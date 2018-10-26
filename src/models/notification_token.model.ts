@@ -82,17 +82,27 @@ export class NotificationToken extends BaseClass {
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
         ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_insert, param, (err, results) => {
-        if (err) {
-          console.log('Cannot create record NotificationToken', err, sql_insert, param);
+
+      this.pool.getConnection((err, connection) => {
+        if(err){
           throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['notification_token_id'] = this.id;
-        resolve(true);
+
+        connection.query(sql_insert, param, (err, results) => {
+          if (err) {
+            console.log('Cannot create record NotificationToken', err, sql_insert, param);
+            throw new Error(err);
+          }
+          this.id = results.insertId;
+          this.dbData['notification_token_id'] = this.id;
+          resolve(true);
+        });
+        connection.release();
+
       });
-      connection.end();
+
+      
+
     });
 
   }
@@ -133,34 +143,48 @@ export class NotificationToken extends BaseClass {
         ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
         this.ID() ? this.ID() : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, param, (err, results) => {
-        if (err) {
-          console.log('Cannot update record NotificationToken');
-          throw Error(err);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        resolve(true);
+
+        connection.query(sql_update, param, (err, results) => {
+          if (err) {
+            console.log('Cannot update record NotificationToken');
+            throw Error(err);
+          }
+          resolve(true);
+
+        });
+        connection.release();
 
       });
-      connection.end();
+      
     });
   }
   public load() {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM notification_token WHERE notification_token_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [this.id], (error, results) => {
-        if (error) {
-          console.log('Cannot load record NotificationToken', sql_load);
-          throw Error(error);
-        }        
-        if (results.length > 0) {
-          this.dbData = results[0];
-          this.setID(results[0]['notification_token_id']);          
-        }        
-        resolve(this.dbData);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
+        }
+
+        connection.query(sql_load, [this.id], (error, results) => {
+          if (error) {
+            console.log('Cannot load record NotificationToken', sql_load);
+            throw Error(error);
+          }        
+          if (results.length > 0) {
+            this.dbData = results[0];
+            this.setID(results[0]['notification_token_id']);          
+          }        
+          resolve(this.dbData);
+        });
+        connection.release();
+
       });
-      connection.end();
+      
     });
   }
 
@@ -170,21 +194,28 @@ export class NotificationToken extends BaseClass {
       const sql_load = `SELECT *, IF(dtExpiration < NOW(), 'expired', 'active') as expiration_status FROM notification_token
         WHERE user_id = ? AND notification_config_id = ?`;
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [userId, configId], (error, results) => {
-        if (error) {
-          console.log('NotificationToken.loadByContraintKeys', error, sql_load);
-          throw Error(error);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        if (results.length) {
-          this.dbData = results[0];
-          this.setID(results[0]['notification_token_id']);
-          resolve(this.dbData);
-        } else {
-          resolve({});
-        }
+
+        connection.query(sql_load, [userId, configId], (error, results) => {
+          if (error) {
+            console.log('NotificationToken.loadByContraintKeys', error, sql_load);
+            throw Error(error);
+          }
+          if (results.length) {
+            this.dbData = results[0];
+            this.setID(results[0]['notification_token_id']);
+            resolve(this.dbData);
+          } else {
+            resolve({});
+          }
+        });
+        connection.release();
+
       });
-      connection.end();
+      
 
     });
   }
@@ -195,16 +226,21 @@ export class NotificationToken extends BaseClass {
       INNER JOIN users ON notification_token.user_id = users.user_id
               WHERE notification_config_id = ?`;
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_load, [configId], (error, results) => {
-        if (error) {
-          console.log('NotificationToken.getTokensByConfigId', error, sql_load);
-          throw Error(error);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
         }
-        resolve(results);
-      });
-      connection.end();
 
+        connection.query(sql_load, [configId], (error, results) => {
+          if (error) {
+            console.log('NotificationToken.getTokensByConfigId', error, sql_load);
+            throw Error(error);
+          }
+          resolve(results);
+        });
+        connection.release();
+
+      });
     });
   }
 
@@ -243,15 +279,22 @@ export class NotificationToken extends BaseClass {
                  notification_token.notification_config_id = ?
                ORDER BY accounts.account_name, users.user_id`;
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [config], (error, results) => {
-       if (error) {
-         console.log('NotificationToken.generateNotifiedUsers', sql, error, config);
-         throw Error(error);
-       }
-       resolve(results);
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
+        }
+
+        connection.query(sql, [config], (error, results) => {
+         if (error) {
+           console.log('NotificationToken.generateNotifiedUsers', sql, error, config);
+           throw Error(error);
+         }
+         resolve(results);
+        });
+        connection.release();
+
       });
-      connection.end();
+      
     });
   }
 

@@ -39,18 +39,208 @@ import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 
-
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
 
-  public static create(router: Router) {
+  public static create(router: Router) {    
 
+    router.post('/admin/send-message-to-admin/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const message = req.body.message;
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : ['adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+        cc: [],
+        body : ` ${req.get('Host')} says: <pre>{{}}</pre>`,
+        attachments: [],
+        subject : 'EvacConnect Developer Notification'
+      };
+      const email = new EmailSender(opts);
+      email.send(
+        (data) => {
+            console.log('Email sent successfully');					
+        },
+        (err) => console.log(err)
+      );
+      res.status(200).send({
+        message: 'Email sent to devs'
+      });
+    });
+
+    router.post('/admin/create-new-location/',new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      let sublocs = [];
+      let location = new Location();
+      let locationAccountRelationObj; 
+      let sublocation;
+      await location.create({
+        name: req.body.name,
+        is_building: 1,
+        parent_id: -1,
+        street: req.body.street,
+        city: req.body.city,
+        state: req.body.state,
+        formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+        location_directory_name: (req.body.name).replace(/\s/g, ''),
+        admin_verified: 1
+      });
+      locationAccountRelationObj = new LocationAccountRelation();
+        await locationAccountRelationObj.create({
+          location_id: location.ID(),
+          account_id: req.body.account_id,
+          responsibility: req.body.role
+        });
+        locationAccountRelationObj = null;
+      if (req.body.role == 'Tenant') {
+        sublocs = JSON.parse(req.body.sublocs);        
+        
+        for(const sublevel of sublocs) {
+          let sublocation = new Location();
+
+          await sublocation.create({
+            name: sublevel,
+            is_building: 0,
+            parent_id: location.ID(),
+            street: req.body.street,
+            city: req.body.city,
+            state: req.body.state,
+            formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+            location_directory_name: (sublevel).replace(/\s/g, ''),
+            admin_verified: 1
+          });
+          locationAccountRelationObj = new LocationAccountRelation();
+          await locationAccountRelationObj.create({
+            location_id: sublocation.ID(),
+            account_id: req.body.account_id,
+            responsibility: 'Tenant'
+          });
+
+          locationAccountRelationObj = null;
+          sublocation = null;
+        } 
+      }
+      else if(req.body.role == 'Manager') {
+        console.log(req.body);
+         // if (req.body.occupiable_levels != null || parseInt(req.body.occupiable_levels, 10) != 0) {
+        if (req.body.occupiable_levels) {
+          let occupiableLevels = parseInt(req.body.occupiable_levels, 10);
+          for (let i = 0; i < occupiableLevels; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Level ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Level${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+
+         if (req.body.carpark) {
+          let carpark = parseInt(req.body.carpark, 10);
+          for (let i = 0; i < carpark; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Carpark ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Carpark${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+
+         if (req.body.plantroom) {
+          let plantroom = parseInt(req.body.plantroom, 10);
+          for (let i = 0; i < plantroom; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Plantroom ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Plantroom${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+
+         if (req.body.others) {
+          let others = parseInt(req.body.others, 10);
+          for (let i = 0; i < others; i++) {
+            let sublocation = new Location();
+            await sublocation.create({
+              name: `Others ${i+1}`,
+              is_building: 0,
+              parent_id: location.ID(),
+              street: req.body.street,
+              city: req.body.city,
+              state: req.body.state,
+              formatted_address: `${req.body.street}, ${req.body.city}, ${req.body.state}`,
+              location_directory_name: `Others${i+1}`,
+              admin_verified: 1
+            });
+            locationAccountRelationObj = new LocationAccountRelation();
+            await locationAccountRelationObj.create({
+              location_id: sublocation.ID(),
+              account_id: req.body.account_id,
+              responsibility: 'Manager'
+            });
+            locationAccountRelationObj = null;
+            sublocation = null;
+          }
+         }
+      }
+
+      return res.status(200).send({
+        message: 'Success'
+      });
+
+    });
+    
     router.post('/admin/set-passwd-invite/',
     new MiddlewareAuth().authenticate,
     (req: AuthRequest, res: Response, next: NextFunction) => {
       new AdminRoute().setInvitePassword(req, res, next);
     });
+    
 
     router.post('/admin/send-notification/',
       new MiddlewareAuth().authenticate,
@@ -323,6 +513,7 @@ export class AdminRoute extends BaseRoute {
         message: 'Success'
       });
     });
+
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
       const users: Array<object> = JSON.parse(req.body.users);
@@ -506,6 +697,7 @@ export class AdminRoute extends BaseRoute {
         console.log(e);
       });
     });
+
     router.get('/admin/location/search/',
     new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
@@ -638,7 +830,57 @@ export class AdminRoute extends BaseRoute {
 
     });
 
-    
+    router.post('/admin/compliance/FSAByEvac/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      // account id
+      const accountId = req.body.account;
+      const status = req.body.status;
+      const account = new Account(accountId);      
+      const list = new List();
+      // get all locations related to this account
+      const bldgsOnAccount = <any> await list.listAllTaggedBuildingsOfAccount(accountId);
+      const locations = [];
+      const compliance = new ComplianceModel();
+      for (const building of bldgsOnAccount) {
+        // checks if building exists else insert
+        try {
+          await compliance.getComplianceRecord(3, building['location_id'], accountId);
+          locations.push(building['location_id']);
+
+        } catch (e) {
+          console.log(e);
+          await compliance.create({
+            compliance_kpis_id: 3,
+            compliance_status: status,
+            building_id: building['location_id'],
+            account_id: accountId,
+            note: 'FSA Training by Evac',
+            dtLastUpdated: moment().format('YYYY-MM-DD')
+          });
+        }
+        
+      }
+      
+      try {
+        await compliance.FSATrainingByEvac(accountId, locations, status);
+        await account.load();
+        account.set('fsa_by_evac', status);
+        await account.write();
+        return res.status(200).send({
+          message: 'Success',
+          status: status,
+          locations: locations
+        });
+      } catch(e) {
+        console.log(e);
+        return res.status(400).send({
+          message: 'Fail',
+          status: status,
+          locations: locations
+        });
+      }
+
+    });
 
     router.get('/admin/compliance/FSA-EvacExer/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -675,9 +917,8 @@ export class AdminRoute extends BaseRoute {
         accountId = req.params.accountId,
         allLocations = {},
         filteredLocations = [],
-        allTaggedLocationsAccounts = <any> await list.listAllTaggedBuildingsOfAccount(accountId);
-      
-       
+        archived = (req.query.archived) ? 1 : 0,
+        allTaggedLocationsAccounts = <any> await list.listAllTaggedBuildingsOfAccount(accountId, archived);
        
       return res.status(200).send({
         data: allTaggedLocationsAccounts
@@ -1735,6 +1976,10 @@ export class AdminRoute extends BaseRoute {
         new AdminRoute().generateAdminReport(req, res);
     });
 
+    router.get('/admin/search/user/location/account/:keyword', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().searchUsersLocationsAndAccount(req, res);
+    });
+
     router.get('/admin/user-information/:userId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new AdminRoute().getUserInformation(req, res);
     });
@@ -1743,7 +1988,53 @@ export class AdminRoute extends BaseRoute {
         new AdminRoute().getTaggedLocationsFromAccount(req, res);
     });
 
+    router.post('/admin/tag-account-to-existing-loc/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+      new AdminRoute().tagAccountToExistingLocation(req, res);
+    });
+
   // ===============
+  }
+
+  public async tagAccountToExistingLocation(req: AuthRequest, res: Response) {
+     const accountId = req.body.accountId;
+     const managingRole = req.body.managing_role;
+
+     const buildingLocation = req.body.building;
+     const sublocations = JSON.parse(req.body.sublocs);
+     console.log(req.body);
+     let locAcctRel = new LocationAccountRelation();
+      let filter = {};
+     if (managingRole == 'Manager') {       
+      try {
+        filter['location_id'] = buildingLocation;
+        filter['account_id'] = accountId;
+        filter['responsibility'] = 'Manager';
+        await locAcctRel.getLocationAccountRelation(filter);
+      } catch (e) {
+        console.log(e, 'Creating building record');
+        await new LocationAccountRelation().create(filter);
+      }
+    } 
+    for( let sub of sublocations) {
+      filter = {};
+      try {
+        locAcctRel = new LocationAccountRelation();
+        filter['location_id'] = sub;
+        filter['account_id'] = accountId;
+        filter['responsibility'] = 'Tenant';
+        await locAcctRel.getLocationAccountRelation(filter);
+        locAcctRel = null;
+      } catch (e) {
+        console.log(e);
+        console.log('creating sublocation record');
+        await new LocationAccountRelation().create(filter);
+      }          
+    }
+
+    res.status(200).send({
+       message: 'Success'
+    });
+
   }
 
 
@@ -1979,12 +2270,17 @@ export class AdminRoute extends BaseRoute {
     }
 
     public async getLocationListing(req: AuthRequest, res: Response, toReturn?){
-        const locAccntRelObj = new LocationAccountRelation();
+      const locAccntRelObj = new LocationAccountRelation();
       let locationsForManager;
       let locationsForTRP;
       const buildingIds = [];
 
-      locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
+      const listModel = new List();
+
+
+      // locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
+      locationsForManager = await listModel.listAllTaggedBuildingsOfAccount(req.params.accountId);
+      // console.log('LocationForManager',locationsForManager );
       for (const location of locationsForManager) {
         buildingIds.push(location['location_id']);
       }
@@ -2043,7 +2339,17 @@ export class AdminRoute extends BaseRoute {
        
     }
 
-    
+    public async searchUsersLocationsAndAccount(req: AuthRequest, res: Response){
+        let 
+        keyword = req.params.keyword,
+        filter = (req.query.filter) ? req.query.filter : 'global',
+        userModel = new User(),
+        results = <any> [];
+
+        results = await userModel.searchUsersLocationsAndAccount(keyword, filter);
+
+        res.send(results);
+    }
 
     public async getUserInformation(req: AuthRequest, res: Response){
         let 
@@ -2168,6 +2474,5 @@ export class AdminRoute extends BaseRoute {
       message: 'Success'
     });
   }
-
 
 }

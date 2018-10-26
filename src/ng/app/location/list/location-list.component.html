@@ -1,7 +1,13 @@
+<breadcrumbs-component></breadcrumbs-component>
+
 <div class="row">
 	<div class="col m12">
-        <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
-		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
+        <h5 *ngIf="underLocationData.location_id else notUnderLocation">{{underLocationData.name}}</h5>
+        <ng-template #notUnderLocation>
+            <h5 class="text left" *ngIf="!paramArchived">Location List</h5>
+    		<h5 class="text left" *ngIf="paramArchived">Location Archived List</h5>
+        </ng-template>
+
 
 		<div class="right table-align">
 			<!-- <h5 class="medium-text">Show only not compliant</h5>
@@ -13,11 +19,11 @@
 				<div class="background"></div>
 			</div>-->
 
-			<a href="#" class="archived" *ngIf="!paramArchived" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
+			<a href="#" class="archived" *ngIf="!paramArchived && !underLocationData.location_id" [routerLink]="['/location/list']" [queryParams]="{ archived : true }">
 				<span class="image"></span>
 				View Archive
 			</a>
-            <a href="#" class="archived" *ngIf="paramArchived" [routerLink]="['/location/list']">
+            <a href="#" class="archived" *ngIf="paramArchived && !underLocationData.location_id" [routerLink]="['/location/list']">
                 <span class="image"></span>
                 View Active
             </a>
@@ -73,7 +79,7 @@
 							<label for="allSelect">Location Name</label>
 						</p>
 					</th>
-					<th *ngIf="isFRP == true">Sub-location floor</th>
+					<th *ngIf="isFRP == true">Sub-location</th>
 					<th *ngIf="isFRP == true">No. of Tenants</th>
 					<th>No. of Wardens</th>
 					<th>Mobility Impaired</th>
@@ -110,16 +116,26 @@
                         </a>
                         -->
 
-                        <a *ngIf="location.sublocation_count > 0 " [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+
+                        <a *ngIf="location.is_building != 1 && location.has_child_building == 1 else notCampus" [routerLink]="['/location/list']"  [queryParams]="{ undrlocid : location.location_id, archived : paramArchived }" class="location-name-link">
                             <span *ngIf="location.parent">{{location.parent.name}},</span>
                             <span *ngIf="location.name.length > 0"> {{location.name}}</span>
                             <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
                         </a>
-                        <a *ngIf="location.sublocation_count == 0" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">
-                            <span *ngIf="location.parent">{{location.parent.name}},</span>
-                            <span *ngIf="location.name.length > 0"> {{location.name}}</span>
-                            <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-                        </a>
+
+                        <ng-template #notCampus>
+                            <a *ngIf="location.is_building == 1 && (location.parent_is_building == 0 || location.parent_is_building == null)" [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+                                <span *ngIf="location.parent">{{location.parent.name}},</span>
+                                <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                                <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                            </a>
+                            <a *ngIf="location.is_building == 0 && location.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">
+                                <span *ngIf="location.parent">{{location.parent.name}},</span>
+                                <span *ngIf="location.name.length > 0"> {{location.name}}</span>
+                                <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
+                            </a>
+                        </ng-template>
+
 
 						</div>
 					</td>
@@ -132,13 +148,16 @@
 					</td>
 
 					<td>
-						<span style="margin-right:10px;">{{location.num_wardens}}</span>
+                        <a class="blue-text" (click)="viewWardenList(location)"> {{location.num_wardens}} </a>
 						<!-- <a class="btn grey darken-2 waves-effect waves-light" [routerLink]="['/teams/add-wardens/', location.location_id]" > Add Wardens </a> -->
 					</td>
 					<td>
 						{{location.mobility_impaired}}
 					</td>
-					<td class="with-bar">
+                    <!-- <td *ngIf="location.is_building == 0">
+                        Not a building
+                    </td> -->
+					<td class="with-bar" >
 
                         <div *ngIf="location.fetchingCompliance" class="progress fetching">
                             <div class="indeterminate"></div>
@@ -155,7 +174,16 @@
 							</div>
 						</a>
 
-                        <a *ngIf="!location.fetchingCompliance && location.is_building == 0" [routerLink]="['/location/compliance/view/', location.parent_id]">
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && encryptDecrypt.decrypt(location.parent_id) != -1" [routerLink]="['/location/compliance/view/', location.parent_id]">
+                            <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
+                            <div class="progress-container" >
+                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
+                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
+                                </div>
+                            </div>
+                        </a>
+
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && encryptDecrypt.decrypt(location.parent_id) == -1" [routerLink]="['/location/compliance/view/', location.location_id]">
                             <div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
                             <div class="progress-container" >
                                 <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
@@ -171,7 +199,7 @@
 							<option value="addwardens-{{location.location_id}}">Add Wardens</option>
 							<option value="view-{{location.location_id}}">View Location</option>
                             <option *ngIf="location.is_building == 1" value="compliance-{{location.location_id}}" >View Compliance</option>
-							<option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option>
+							<!-- <option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option> -->
                             <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
 							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
@@ -427,4 +455,40 @@
 
 
 	</div>
+</div>
+
+
+<div id="modalAddNewTenant" class="modal">
+    <div class="modal-content" [hidden]="!showModalNewTenantLoader">
+        <div class="center-align">
+            <div class="preloader-wrapper active" >
+                <div class="spinner-layer spinner-red-only">
+                    <div class="circle-clipper left">
+                        <div class="circle"></div>
+                    </div><div class="gap-patch">
+                        <div class="circle"></div>
+                    </div><div class="circle-clipper right">
+                        <div class="circle"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="modalWardenList">
+    <div class="modal-content">
+        <h5 *ngIf="viewWardens.length == 0">No warden</h5>
+        
+        <h5 *ngIf="viewWardens.length > 0"> Wardens </h5>
+        <ol style="max-height: 400px; overflow: auto;">
+            <li *ngFor="let warden of viewWardens" style="font-size: 17px; margin: 10px 0px;">
+                {{warden.first_name}} {{warden.last_name}} <small class="grey-text">{{warden.role_name}}</small>
+            </li>
+        </ol>
+        
+        <div class="modal-footer">
+            <button class="btn grey modal-close">Close</button>
+        </div>
+    </div>
 </div>

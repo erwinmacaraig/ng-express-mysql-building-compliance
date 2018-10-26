@@ -171,7 +171,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.viewData.role_text = response.data.role_text;
         this.viewData.eco_roles = response.data.eco_roles;
         this.viewData.locations = response.data.locations;
-        this.viewData.trainings = response.data.trainings;
+
+        let trainings = [];
+        for(let tr of response.data.trainings){
+            if( this.userData['userId'] == tr.user_id){
+                trainings.push(tr);
+            }
+        }
+
+        this.viewData.trainings = trainings;
         this.viewData.certificates = response.data.certificates;
         this.viewData.valid_trainings = response.data.valid_trainings;
         this.viewData.required_trainings = response.data.required_trainings;
@@ -186,6 +194,8 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         if(this.viewData.user.last_login.length > 0 ){
             this.viewData.user['last_login'] = moment(this.viewData.user['last_login']).format('MMM. DD, YYYY hh:mm A');
         }
+
+        setTimeout(function(){ $('#selectLocation').trigger('change'); },500);
     }
 
 	loadProfile(callBack?){
@@ -238,16 +248,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
         this.selectLocationEvent();
         this.onKeyUpSearchModalLocationEvent();
-
+        this.selectActionEvent();
 		setTimeout(() => {
             $('#selectLocation').trigger('change');
             setTimeout(() => {
                 Materialize.updateTextFields();
             }, 300);
-        }, 300);
-
-		this.selectActionEvent();
-
+        }, 500);
 	}
 
 	selectLocationEvent(){
@@ -590,7 +597,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         this.onChangeSelectRole(loc, loc.role_id);
         this.buildLocationsListInModal();
     	this.showSelectLocation = true;
-
+        $('#modalAssignLocations').scrollTop(0);
     }
 
     submitSelectLocationModal(formLoc, event){

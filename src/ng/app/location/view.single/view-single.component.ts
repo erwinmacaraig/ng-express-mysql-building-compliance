@@ -44,9 +44,10 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         google_photo_url: '',
         formatted_address: '',
         sublocations : [],
+        is_building : 0,
         admin_verified : 0,
         parent : {
-            name : <any> false
+            name : <any> false, is_building : 0
         }
     };
     private sub;
@@ -82,6 +83,18 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
     showLoadingSublocations = false;
     emailTaken = false;
 
+    breadCrumbs = [];
+
+    modalArchive = {
+        loader : false
+    };
+
+    selectedArchive = {
+        length : 0
+    };
+
+    paramArchived = <any> false;
+
     constructor(
         private auth: AuthService,
         private preloaderService: DashboardPreloaderService,
@@ -104,7 +117,6 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     if(target.find('select.select-from-row:not(.initialized)').length > 0){
 
                         target.find('select.select-from-row:not(.initialized)').material_select();
-
                     }
                 }
             });
@@ -122,6 +134,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     this.preloaderService.hide();
                 }, 250);
                 this.locationData.name = response.location.name;
+                this.locationData.is_building = response.location.is_building;
                 this.locationData.formatted_address = response.location.formatted_address;
                 this.locationData.sublocations = response.sublocations;
                 this.locationData.google_photo_url = response.location.google_photo_url || undefined;
@@ -137,6 +150,8 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                     = this.encryptDecrypt.encrypt(this.locationData['sublocations'][i].location_id).toString();
                 }
             });
+          }else if( msg.getbreadcrumbs ){
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
           }
         });
     }
@@ -152,6 +167,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
 
             this.locationData.name = response.location.name;
             this.locationData.location_id = response.locationID;
+            this.locationData.is_building = response.location.is_building;
             this.locationData.formatted_address = response.location.formatted_address;
             this.locationData.sublocations = response.sublocations;
             this.locationData.google_photo_url = response.location.google_photo_url || undefined;
@@ -185,8 +201,32 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 $('.manage-compliance .completion .end.number').html(denom);
             });
 
+            this.breadCrumbs = [];
+            this.breadCrumbs.push({
+              'value' : 'Location list', 'link' : '/location/list'
+            });
+            for(let i in response.ancestries){
+
+                if( response.ancestries[i].parent_is_building == 1 || response.ancestries[i].has_child_building == 1 || response.ancestries[i].is_building == 1 ){
+                    let
+                    queryParams = {},
+                    encId =  this.encryptDecrypt.encrypt(response.ancestries[i]['location_id']),
+                    url = (response.ancestries[i].is_building == 1) ? '/location/view/'+encId : '/location/list' ;
+
+                    if( response.ancestries[i].has_child_building == 1  ){
+                        queryParams['undrlocid'] = encId;
+                    }
+
+                    this.breadCrumbs.push({
+                      'value' : response.ancestries[i].name, 'link' : url, 'queryParams' : queryParams
+                    });
+                }
+
+            }
+             
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
             callBack();
-        });
+        }, { get_related_only : true });
     }
 
     ngOnInit() {
@@ -237,7 +277,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         $('body').off('change.locationchange').on('change.locationchange', 'select.location-id', (event) => {
             formAddTenant.controls.location_id.setValue( event.currentTarget.value );
         });
-	}
+	  }
 
     addNewSubLocationSubmit(form, e) {
         if(form.valid){
@@ -256,7 +296,7 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                         this.showLoaderModalSublocation = false;
                         this.errorMessageModalSublocation = '';
                         $('#modalAddSublocation').modal('close');
-                    });
+                    }, { get_related_only : true });
                 });
             }else{
                 this.locationService.createSubLocation({
@@ -292,32 +332,25 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
         }
     }
 
-    onClickArchiveLocation(locationData){
-        this.selectedLocationToArchive = locationData;
-        $('#modalArchive').modal('open');
-    }
+    archiveClick(){
+        if(this.selectedArchive.length > 0){
+            this.modalArchive.loader = true;
+            let locs = [];
 
-    onClickYesArchive(){
-        this.errorMessageModalSublocation = '';
-        this.showLoaderModalSublocation = true;
-        this.locationService.archiveLocation({
-            location_id : this.locationID
-        }).subscribe(
-            (response) => {
-                this.showLoaderModalSublocation = false;
-                this.errorMessageModalSublocation = '';
-                $('#modalArchive').modal('close');
+            locs.push({
+                location_id : this.encryptDecrypt.decrypt(this.selectedArchive['location_id']),
+                archived : (!this.paramArchived) ? 1 : 0
+            });
 
-                this.router.navigate(['/location/view', this.locationData['parent_id']]);
-            },
-            (msg) => {
-                this.showLoaderModalSublocation = false;
-                this.errorMessageModalSublocation = msg;
-                setTimeout(() => {
-                    this.errorMessageModalSublocation = '';
-                }, 2000);
-            }
-        );
+            this.locationService.archiveMultipleLocation({
+                locations : locs
+            }).subscribe(() => {
+                this.getLocationData(() => {
+                    this.modalArchive.loader = false;
+                    $('#modalArchive').modal('close');
+                });
+            });
+        }
     }
 
 	ngAfterViewInit(){
@@ -380,6 +413,17 @@ export class ViewSingleLocation implements OnInit, OnDestroy, OnChanges {
                 this.locationToApplyActionTo = this.encryptDecrypt.decrypt(val.replace('benchmark-', ''));
                 $('#modalWardenBenchmarkCalc').modal('open');
                 console.log(' Benchmark location id ' + this.locationToApplyActionTo);
+            }else if(val.indexOf("archive-") > -1){
+                let locIdEnc = val.replace('archive-', '');
+
+                for(let i in this.locationData.sublocations){
+                    if(this.locationData.sublocations[i]['location_id'] == locIdEnc){
+                        this.selectedArchive = this.locationData.sublocations[i];
+                        this.selectedArchive.length = 1;
+                        $('#modalArchive').modal('open');
+                    }
+                }
+
             }
 
             target.val(0);

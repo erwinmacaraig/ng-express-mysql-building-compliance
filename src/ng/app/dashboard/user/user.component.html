@@ -1,168 +1,195 @@
 <div class="container-fluid">
 
-	<div class="row margin-bottom-30">
+  <div class="row">
+    <div class="col l8 m12 s12">
+      <div class="row margin-bottom-30">
+        
+        <div class="col l4 m12 s12 my-training-container">
+          <h5 class="orange-text margin-bottom-30">My Training</h5>
 
-		<div class="col l2 m12 s12 my-training-container">
-			<h5 class="orange-text margin-bottom-30">My Training</h5>
+           <div id="specificChart" class="donut-size cell">
+            <div class="pie-wrapper">
+              <span class="label">
+                <span class="num"> 00 </span><span class="smaller">%</span>
+              </span>
+              <div class="pie">
+                <div class="left-side half-circle" ></div>
+                <div class="right-side half-circle" ></div>
+              </div>
+              <div class="shadow"></div>
+            </div>
+          </div>
 
-			 <div id="specificChart" class="donut-size cell">
-				<div class="pie-wrapper">
-					<span class="label">
-						<span class="num"> 00 </span><span class="smaller">%</span>
-					</span>
-					<div class="pie">
-						<div class="left-side half-circle" ></div>
-						<div class="right-side half-circle" ></div>
-					</div>
-					<div class="shadow"></div>
-				</div>
-			</div>
+          <div class="center-block text-button-container">
+              <button class="btn orange waves-effect waves-light center-block display-block" [routerLink]="['/trainings/my-training']"> Go to training > </button>
+          </div>
+        </div>
 
-			<div class="center-block text-button-container">
-			    <button class="btn orange waves-effect waves-light center-block display-block" [routerLink]="['/trainings/my-training']"> Go to training > </button>
-			</div>
+        <div class="col l8 m12 s12">
+          <div class="margin-bottom-30"></div>
 
+          <div class="grey lighten-5 table-container">
+            <table class="table striped">
+              <thead>
+                <tr class="grey darken-4 white-text">
+                  <th>Status</th>
+                  <th>Training</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngIf="trainings.length == 0 && assignedCourses.length == 0">
+                  <td colspan="3">No trainings found.</td>
+                </tr>
+                <tr *ngFor="let t of trainings">
+                  <td>
+                    <img src="/assets/images/check_icon.png" >
+                  </td>
+                  <td>{{t.training_requirement_name}}</td>
+                  <td> <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{t.scorm_course_id}}&amp;c={{t.certifications_id}}" target="_blank" class="btn light-blue waves-effect waves-light">Cerificate</a> </td>
+                </tr>
 
-		</div>
+                <!-- Assigned Courses -->
+                <tr *ngFor="let c of assignedCourses">
+                  <td>
+                    <img src="/assets/images/expired_icon.png" >
+                  </td>
+                  <td>{{c['training_requirement_name']}}</td>
+                  <td> <a [routerLink]="['/trainings/my-training-profile/', userIdEnc]"> Take Course</a> </td>
+                </tr>
+              </tbody>
+            </table>
 
-		<div class="col l6 m12 s12">
-			<div class="margin-bottom-30"></div>
+          </div>
+        </div>
 
-			<div class="grey lighten-5 table-container">
-				<table class="table striped">
-					<thead>
-						<tr class="grey darken-4 white-text">
-							<th>Status</th>
-							<th>Training</th>
-							<th>Action</th>
-						</tr>
-					</thead>
-					<tbody>
-            <tr *ngIf="trainings.length == 0 && assignedCourses.length == 0">
-              <td colspan="3">No trainings found.</td>
-            </tr>
-						<tr *ngFor="let t of trainings">
-							<td>
-								<img src="/assets/images/check_icon.png" >
-							</td>
-							<td>{{t.training_requirement_name}}</td>
-							<td> <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{t.scorm_course_id}}&amp;c={{t.certifications_id}}" target="_blank" class="btn light-blue waves-effect waves-light">Cerificate</a> </td>
-						</tr>
+      </div>
 
-            <!-- Assigned Courses -->
-            <tr *ngFor="let c of assignedCourses">
-              <td>
-                <img src="/assets/images/expired_icon.png" >
-              </td>
-              <td>{{c['training_requirement_name']}}</td>
-							<td> <a [routerLink]="['/trainings', 'my-training']"> Take Course</a> </td>
-            </tr>
-					</tbody>
-				</table>
+      <div class="row">
 
-			</div>
+        <div class="col l12 m12 s12">
+          <h5 class="orange-text margin-bottom-30">Activities</h5>
 
-		</div>
+          <div class="row">
 
-		<div class="col l3 m12 s12">
-			<h5 class="orange-text margin-bottom-30">Community</h5>
+            <div class="col l4 m12 s12 activity-container" style="cursor: pointer"  [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/dashboard' }">
+              <div class="display-table width100">
+                <div class="cell grey lighten-5 image-container">
+                  <img src="/assets/images/dash01.png" alt="">
+                </div>
+                <div class="cell font-size-20 grey lighten-4" >
+                  Register as Mobility Impaired
+                </div>
+              </div>
+            </div>
 
-			<div class="blog">
-				<img src="/assets/images/blog.png"  >
+            <div class="col l4 m12 s12 activity-container">
+              <div class="display-table width100">
+                <div class="cell grey lighten-5 image-container">
+                  <img src="/assets/images/dash02.png" alt="">
+                </div>
+                <div class="cell font-size-20 grey lighten-4">
+                  Register as Warden
+                </div>
+              </div>
+            </div>
 
-				<div class="content">
-					<h5>Facility Manager Strategies to Achieve Safety</h5>
+            <div class="col l4 m12 s12 activity-container">
+              <div class="display-table width100">
+                <div class="cell grey lighten-5 image-container">
+                  <img src="/assets/images/dash03.png" alt="">
+                </div>
+                <div class="cell font-size-20 grey lighten-4">
+                  Update my Location
+                </div>
+              </div>
+            </div>
 
-					<h6 class="grey-text">By Dalton | August 4th, 2017</h6>
+          </div>
+        </div>
 
-					<p style="font-size: 16px;">
-						A facility Manage plays a key role to maintain and enchance compliance in life safety of the building
-					</p>
-				</div>
+        <!--
+            <div class="col l3 m12 s12">
+                <h5 class="orange-text margin-bottom-30">Resources</h5>
 
-				<a  class="blue-text font-size-16">View all ></a>
-			</div>
+                <div class="resources-container">
+                    <ul>
+                        <li>
+                            <div class="display-table">
+                                <div class="cell">
+                                    <img src="/assets/images/pdf.png" alt="">
+                                </div>
+                                <div class="cell font-size-16">
+                                    Bomb and Telephone Threat Checklist
+                                </div>
+                            </div>
+                        </li>
 
-		</div>
+                        <li>
+                            <div class="display-table">
+                                <div class="cell">
+                                    <img src="/assets/images/pdf.png" alt="">
+                                </div>
+                                <div class="cell font-size-16">
+                                    Offender Description
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
 
-	</div>
+                    <a  class="blue-text font-size-16 right">View all ></a>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+            -->
+      </div>
+    </div>
 
-	<div class="row">
+    <div class="col l4 m12 s12 margin-bottom-30">
+      <h5 class="orange-text margin-bottom-30">Community</h5>
+      <div class="row">
+        <div class="col l7 m12 s12">
+          <img src="http://ec2-13-55-82-238.ap-southeast-2.compute.amazonaws.com/assets/images/emails/emergency-planning-101.jpg" style="max-width: 100%;" >
+        </div>
+        <div class="col l5 m12 s12">
+          <h5 style="font-size: 20px; margin: 0px;">Emergency Planning 101</h5>
+          <!-- <h6 class="grey-text">By Dalton | August 4th, 2017</h6> -->
+          <p style="font-size: 15px;">
+              Do you and your occupants know what to do and where to go when emergencies strike? Are you confident... <a href="https://www.evacservices.com.au/emergency-planning-101-why-plan-for-emergencies/" class="blue-text  ">Read more...</a>
 
-		<div class="col l8 m12 s12">
-			<h5 class="orange-text margin-bottom-30">Activities</h5>
+            </p>
+        </div>
+      </div>
+  
+      <div class="row">
+        <div class="col l7 m12 s12">
+          <img src="http://ec2-13-55-82-238.ap-southeast-2.compute.amazonaws.com/assets/images/emails/updatign-and-managing-now-easier.jpg" style="max-width: 100%;" >
+        </div>
+        <div class="col l5 m12 s12">
+          <h5 style="font-size: 20px; margin: 0px;">Tenant</h5>
+          <!-- <h6 class="grey-text">By Dalton | August 4th, 2017</h6> -->
+          <p style="font-size: 15px;">
+              Establishing emergency procedures is not just in the hands of facility managers. While building owners and managers are ultimately responsible... <a href="https://www.evacservices.com.au/roles-of-tenants-in-occupant-safety/" class="blue-text  ">Read more...</a>
+          </p>
+        </div>
+      </div>
 
-			<div class="row">
-
-				<div class="col l4 m12 s12 activity-container" style="cursor: pointer"  [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/dashboard' }">
-					<div class="display-table width100">
-						<div class="cell grey lighten-5 image-container">
-							<img src="/assets/images/dash01.png" alt="">
-						</div>
-						<div class="cell font-size-20 grey lighten-4" >
-							Register as Mobility Impaired
-						</div>
-					</div>
-				</div>
-
-				<div class="col l4 m12 s12 activity-container">
-					<div class="display-table width100">
-						<div class="cell grey lighten-5 image-container">
-							<img src="/assets/images/dash02.png" alt="">
-						</div>
-						<div class="cell font-size-20 grey lighten-4">
-							Register as Warden
-						</div>
-					</div>
-				</div>
-
-				<div class="col l4 m12 s12 activity-container">
-					<div class="display-table width100">
-						<div class="cell grey lighten-5 image-container">
-							<img src="/assets/images/dash03.png" alt="">
-						</div>
-						<div class="cell font-size-20 grey lighten-4">
-							Update my Location
-						</div>
-					</div>
-				</div>
-
-			</div>
-		</div>
-
-		<div class="col l3 m12 s12">
-			<h5 class="orange-text margin-bottom-30">Resources</h5>
-
-			<div class="resources-container">
-				<ul>
-					<li>
-						<div class="display-table">
-							<div class="cell">
-								<img src="/assets/images/pdf.png" alt="">
-							</div>
-							<div class="cell font-size-16">
-								Bomb and Telephone Threat Checklist
-							</div>
-						</div>
-					</li>
-
-					<li>
-						<div class="display-table">
-							<div class="cell">
-								<img src="/assets/images/pdf.png" alt="">
-							</div>
-							<div class="cell font-size-16">
-								Offender Description
-							</div>
-						</div>
-					</li>
-				</ul>
-
-				<a  class="blue-text font-size-16 right">View all ></a>
-				<div class="clearfix"></div>
-			</div>
-		</div>
+      <div class="row">
+        <div class="col l7 m12 s12">
+          <img src="http://ec2-13-55-82-238.ap-southeast-2.compute.amazonaws.com/assets/images/emails/limesurvey.jpg" style="max-width: 100%;" >
+        </div>
+        <div class="col l5 m12 s12">
+          <h5 style="font-size: 20px; margin: 0px;">Survey</h5>
+          <!-- <h6 class="grey-text">By Dalton | August 4th, 2017</h6> -->
+          <p style="font-size: 15px;">
+              Take this survey to tell us about your user experience of EvacConnect. <a href="http://evachub.com/limesurvey/index.php/662295?newtest=Y&lang=en" class="blue-text  ">Take survey</a>
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
+
+	
 </div>
 <div id="modalMobility" class="modal">
   <div class="modal-content center"></div>

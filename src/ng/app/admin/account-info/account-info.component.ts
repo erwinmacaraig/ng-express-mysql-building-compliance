@@ -4,7 +4,8 @@ import { Subscription } from 'rxjs/Rx';
 import { AdminService } from './../../services/admin.service';
 import { MessageService } from './../../services/messaging.service';
 import { AuthService } from '../../services/auth.service';
-import { Router, NavigationEnd  } from '@angular/router';
+import { AlertService } from '../../services/alert.service';
+import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 declare var $: any;
 
 @Component({
@@ -33,31 +34,39 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     'email_add_user_exemption': '',
     'lead': '',
     'online_training': 0,
-    'epc_committee_on_hq': 0
+    'epc_committee_on_hq': 0,
+    'fsa_by_evac': 0
   };
   account_billing = '';
 
   msgSrvSub;
   userData = <any> {};
-
+  paramSubs;
   routerSubs;
   activeLink = 'users';
 
   constructor(private adminService: AdminService,
               private msgSrv : MessageService,
               private auth: AuthService,
-              private router: Router) {
+              private router: Router,
+              private activatedRoute: ActivatedRoute,
+              private alertService: AlertService ) {
 
     this.routerSubs = this.router.events.subscribe((observer) => {
       if(observer instanceof NavigationEnd){
         if(observer.url.indexOf('users-in-accounts') > -1){
           this.activeLink = 'users';
-        }else if(observer.url.indexOf('locations-in-account') > -1 || observer.url.indexOf('add-location-to-account') > -1){
+        }else if(observer.url.indexOf('locations-in-account') > -1 || observer.url.indexOf('add-location-to-account') > -1 || observer.url.indexOf('view-location-compliance') > -1){
           this.activeLink = 'locations';
         }else if(observer.url.indexOf('account-trainings') > -1){
           this.activeLink = 'trainings';
         }
       }
+    });
+
+    this.paramSubs = this.activatedRoute.params.subscribe((params) => {
+      this.accountId = params.accntId;
+      this.getAndSetAccountInfo();
     });
   }
 
@@ -66,6 +75,10 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     if(this.userData.evac_role != 'admin'){
         this.router.navigate(['/signout']);
     }
+    this.getAndSetAccountInfo();
+  }
+
+  getAndSetAccountInfo(){
     this.sub = this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
       if (response['message'] === 'Success') {
         Object.keys(this.accountInfo).forEach((key) => {
@@ -89,12 +102,10 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
         console.log(this.accountInfo);
 
         this.msgSrv.sendMessage({
-            'accountInfo' : this.accountInfo
+          'accountInfo' : this.accountInfo
         });
       }
     });
-
-
   }
 
   ngAfterViewInit() {}
@@ -102,6 +113,7 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
   ngOnDestroy() {
     this.sub.unsubscribe();
     this.routerSubs.unsubscribe();
+    this.paramSubs.unsubscribe();
   }
 
   public toggleOnlineTrainingAccess(e): void {
@@ -117,6 +129,31 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
         this.msgSrv.sendMessage({
           'update_account_training_listing': true
         });
+    });
+
+  }
+
+  public toggleFSAByEvac(e): void {
+    let toggleFSATraining = 0;
+    if (e.target.checked) {
+      toggleFSATraining = 1;
+    }
+    this.adminService.toggleFSAByEvac({
+      account: this.accountId,
+      status: toggleFSATraining
+    }).subscribe((response) => {
+      console.log(response);
+      this.alertService.info('Evac Services acts as Fire Safety Advisor for the account.');
+      this.msgSrv.sendMessage({
+        'Fire_Safety_Advisor_Updated': true
+      });
+      setTimeout(() => {
+        this.alertService.info(null); 
+      }, 5000);
+    }, (error) => {
+      console.log(error);
+      this.alertService.error('There was an error setting FSA.');
+      setTimeout(() => {this.alertService.info(null); }, 5000);
     });
 
   }

@@ -145,8 +145,13 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 import {  PeepFormComponent } from './peep.form/peep.form';
 
+import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+
+import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
+
 @NgModule({
   declarations: [
+    BreadCrumbsComponent,
     SafeHtmlPipe,
     AppComponent,
     LoginComponent,
@@ -273,6 +278,7 @@ import {  PeepFormComponent } from './peep.form/peep.form';
       apiKey : 'AIzaSyBB5YdbG9RZOiqBLcQsM_0CD7jfGJTs-hU',
       libraries: ['places']
     }),
+    NgMultiSelectDropDownModule.forRoot(),
     // todo: move to location module
     ReactiveFormsModule,
     NgDatepickerModule,

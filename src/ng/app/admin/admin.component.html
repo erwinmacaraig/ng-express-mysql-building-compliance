@@ -16,18 +16,31 @@
                 <div class="results" #searchResults  >
                     <ul>
                         <li *ngFor="let result of searchedResult" (click)="searchClickEvent(result)">
-                            <div class="bg-image" [ngClass]="{  'location' : (result.type == 'location'), 'user' : (result.type == 'user') }"> </div> {{result.name}}
+                            <div class="bg-image" [ngClass]="{  'location' : (result.type == 'location'), 'user' : (result.type == 'user'), 'account' : (result.type == 'account') }"> </div> 
+                            {{result.name}}
+                            <span *ngIf="result.type == 'user'" class="grey-text">
+                                ( {{result.extra}} )
+                            </span>
                         </li>
                     </ul>
+                </div>
+
+                <div class="select-container">
+                    <select style="display: block;" #filterSearch (change)="filterSearchOnChange()">
+                        <option value="global" selected>Global</option>
+                        <option value="location">Locations</option>
+                        <option value="account">Accounts</option>
+                        <option value="user">Users</option>
+                    </select>
                 </div>
             </div>
 
             <div class="right-container">
                 <div class="field">
-                    <div class="notification logo"></div>
+                    <!-- <div class="notification logo"></div> -->
                 </div>
                 <div class="field">
-                    <div class="message logo"></div>
+                    <!-- <div class="message logo"></div> -->
                 </div>
                 <div class="field">
                     <div class="text">Admin Text</div>

@@ -58,7 +58,11 @@ export class AdminService {
     return this.http.post(this.baseUrl + '/admin/upload/compliance-documents/', formData );
   }
 
-  taggedLocationsOnAccount(accountId: number = 0) {
+  taggedLocationsOnAccount(accountId: number = 0, archived?) {
+    this.options['params'] = {};
+      if(archived){
+        this.options['params'] = { archived : true };
+      }
     return this.http.get(this.baseUrl + `/admin/account-locations/${accountId}/`, this.options);
   }
 
@@ -166,6 +170,10 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/assign-default-training/`,reqBody, this.options);
   }
 
+  toggleFSAByEvac(reqBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/compliance/FSAByEvac/`,reqBody, this.options);
+  }
+
   generateAdminReport(form: Object) {
       return this.http.post(`${this.baseUrl}/admin/generate-admin-report`, form);
   }
@@ -178,8 +186,10 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/send-notification/`, reqBody);
   }
 
-  searchUserAndLocation(keyword = ''){
-    return this.http.get(`${this.baseUrl}/admin/search/user/location/`+keyword, this.options); 
+  searchUsersAccountsAndLocations(keyword = '', filter = 'global'){
+    let opt = this.options;
+    opt['params'] = { filter : filter };
+    return this.http.get(`${this.baseUrl}/admin/search/user/location/account/`+keyword, this.options); 
   }
 
   getUserInformation(userid = 0){
@@ -194,8 +204,23 @@ export class AdminService {
     return this.http.get(`${this.baseUrl}/admin/get-tagged-locations-from-account/`+accountId, this.options);
   }
 
+  addExistingLocationsToAccount(postBody = {}) {
+    return this.http.post(`${this.baseUrl}/admin/tag-account-to-existing-loc/`, postBody);
+  }
+
+  addNewLocation(postBody = {}) {
+    return  this.http.post(`${this.baseUrl}/admin/create-new-location/`, postBody);
+  }
+
   sendPasswordSetupInvite(postBody={}) {
     return this.http.post(`${this.baseUrl}/admin/set-passwd-invite/`, postBody);
   }
+
+  sendEmailToDev(message='') {
+    return this.http.post(`${this.baseUrl}/admin/send-message-to-admin/`, {
+      message: message
+    });
+  }
+
   
 }

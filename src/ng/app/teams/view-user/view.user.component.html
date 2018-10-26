@@ -541,7 +541,7 @@
 	</form>
 </div>
 
-<div id="modalAssignLocations" class="modal modal-sublocations">
+<div id="modalAssignLocations" class="modal modal-sublocations" [ngClass]="{ 'overflow-hide' : showSelectLocation }">
 
 	<div [hidden]="showSelectLocation">
 		<div class="modal-content"  >
@@ -609,7 +609,7 @@
 
 			<form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
 
-			<div class="list-region" style="overflow-y: auto; height: 340px;">
+			<div class="list-region" style="overflow-y: auto; height: 340px; margin: 20px 5px;">
 				<p *ngIf="locations.length == 0">No location found</p>
                 <ul class="locations">
                 </ul>

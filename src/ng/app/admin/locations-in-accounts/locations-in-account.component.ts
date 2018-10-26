@@ -9,6 +9,7 @@ import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@ang
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { LocationsService } from '../../services/locations';
 
 declare var $: any;
 
@@ -22,12 +23,20 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
     accountId = 0;
     locations = [];
+    isArchived = false;
+
+    modalArchive = {
+        loader : false,
+        selected : {}
+    };
+
     constructor(public http: HttpClient,
         private adminService: AdminService,
         private route: ActivatedRoute,
         private router: Router,
         public encryptDecrypt: EncryptDecryptService,
-        public dashboard: DashboardPreloaderService) {
+        public dashboard: DashboardPreloaderService,
+        private locationsService: LocationsService) {
 
     }
 
@@ -35,18 +44,27 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
         this.dashboard.show();
         this.route.params.subscribe((parameters) => {
             this.accountId = parameters['accntId'];
-            this.adminService.taggedLocationsOnAccount(this.accountId).subscribe((response) => {
-                this.locations = response['data'];
-                for (const loc of this.locations) {
-                    loc['id_encrypted'] = this.encryptDecrypt.encrypt(loc['location_id']);
-                }
-                console.log(response);
-                this.dashboard.hide();
-            }, (error) => {
-                console.log(error);
-                this.dashboard.hide();
-            });
+            this.getLocations();
+        });
 
+        this.route.queryParams.subscribe((query) => {
+            this.dashboard.show();
+            this.isArchived = (query['archived']) ? query['archived'] : false;
+            this.getLocations();
+        });
+    }
+
+    getLocations(){
+        this.adminService.taggedLocationsOnAccount(this.accountId, this.isArchived).subscribe((response) => {
+            this.locations = response['data'];
+            for (const loc of this.locations) {
+                loc['id_encrypted'] = this.encryptDecrypt.encrypt(loc['location_id']);
+            }
+            console.log(response);
+            this.dashboard.hide();
+        }, (error) => {
+            console.log(error);
+            this.dashboard.hide();
         });
     }
 
@@ -61,10 +79,34 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
             this.router.navigate(["/admin/teams-report", encLocId, ecnAccntId]);
         }else if(selectAction.value == "training"){
             this.router.navigate(["/admin/trainings-report", encLocId, ecnAccntId]);
+        }else if(selectAction.value == "archive" || selectAction.value == "restore"){
+            this.modalArchive.selected = location;
+            $('#modalArchive').modal({ dismissible: false });
+            $('#modalArchive').modal('open');
         }
 
 
         selectAction.value = 0;
+    }
+
+    archiveClick(){
+        if(Object.keys(this.modalArchive.selected).length > 0){
+            this.modalArchive.loader = true;
+            let locs = [];
+
+            locs.push({
+                location_id : this.modalArchive.selected['location_id'],
+                archived : (!this.isArchived) ? 1 : 0
+            });
+
+            this.locationsService.archiveMultipleLocation({
+                locations : locs
+            }).subscribe(() => {
+                this.getLocations();
+                this.modalArchive.loader = false;
+                $('#modalArchive').modal('close');
+            });
+        }
     }
 
     ngAfterViewInit() {}

@@ -261,20 +261,19 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
   
   public getUploadedDocumentsFromSelectedKPI(kpi, reload: boolean = false) {
-    
+    console.log(kpi);
     this.selectedKPI = kpi['compliance_kpis_id'];
     this.documentFiles = [];
-    this.displayKPIName = kpi['name']; // clean this up
-    this.displayKPIDescription = kpi['description']; // clean this up
-   
+    this.displayKPIName = kpi['name']; 
+    this.displayKPIDescription = kpi['description'];
+    
     this.showLoadingForSignedURL = false;
     this.myKPI = kpi;
     console.log(`selected kpi is ${this.selectedKPI}`);
     if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
       this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
         this.documentFiles = response['data'];        
-        // console.log('total docs is ' + this.documentFiles.length);
-        // this.complianceDocuments[this.selectedKPI] = response['data'];
+        
         this.locationName = response['displayName'].join(' >> ');
         for (const doc of this.documentFiles) {
           doc['downloadCtrl'] = false; 
@@ -283,6 +282,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         // this.complianceDocuments[this.selectedKPI].sort((obj1, obj2) => {
         //  return obj2.compliance_documents_id - obj1.compliance_documents_id;
         // }); 
+        console.log(this.complianceDocuments[this.selectedKPI]);
         
       }, (error) => {
         console.log(error);
@@ -350,24 +350,31 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       }      
       $('#modalfilenotfound').modal('open');
       console.log('There was an error', error);
+      const message = `Download error for location_id = ${this.locationId} and file =  paper_attendance/${filename} in admin`;
+      this.adminService.sendEmailToDev(message).subscribe((response) => {
+        console.log(response);
+      });
     });
 
   }
 
-  downloadKPIdownloadKPIFile(kpi_file, filename, kpis_id, index) {      
-    this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;   
+  downloadKPIFile(kpi_file, filename, kpis_id?, index?) {
     
-    this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+    this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;   
+    this.complianceService.downloadComplianceFile(encodeURIComponent(kpi_file), encodeURIComponent(filename)).subscribe((data) => {
       const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
       FileSaver.saveAs(blob, filename);
       this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
-      
     },
     (error) => {
-      // this.alertService.error('No file(s) available for download');
-      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;
+      // this.alertService.error('No file(s) available for download');      
+      this.complianceDocuments[kpis_id][index]['downloadCtrl'] = false;     
       $('#modalfilenotfound').modal('open');
       console.log('There was an error', error);
+      const message = `Download error for location_id = ${this.locationId} and KPI file ${kpi_file} in admin`;
+      this.adminService.sendEmailToDev(message).subscribe((response) => {
+        console.log(response);
+      });
     });
   }
 
@@ -524,17 +531,6 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
           console.log(this.tenants);
         }
         this.fetchingWardenList = false;
-      });
-  }
-
-  downloadKPIFile(kpi_file, filename) {
-      this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
-        const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
-        FileSaver.saveAs(blob, filename);
-        console.log(data);
-      },
-      (error) => {
-        console.log('There was an error', error);
       });
   }
 

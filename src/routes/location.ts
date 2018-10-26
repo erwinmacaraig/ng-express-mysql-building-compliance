@@ -1134,8 +1134,6 @@ const defs = require('../config/defs.json');
           floorWardenRoles = {};
         }
 
-
-
         let allWardens = [];
 
         for (const sub of sublocations) {
@@ -1236,6 +1234,11 @@ const defs = require('../config/defs.json');
         });
 
       	response.sublocations = sublocations;
+
+        let ancestriesModel = new Location(),
+        ancestries = await ancestriesModel.getAncestries(locationId);
+        response['ancestries'] = ancestries;
+
 	    // get immediate parent
 	    const parentId = <number>location.get('parent_id');
 
@@ -1318,7 +1321,10 @@ const defs = require('../config/defs.json');
             filter = {
                 archived : (archived) ? archived : 0
             },
-            mobilityImpaired = new MobilityImpairedModel();
+            parentOnly = (queries.showparentonly) ? queries.showparentonly : false,
+            mobilityImpaired = new MobilityImpairedModel(),
+            parentId = (queries.parent_id) ? queries.parent_id : false;
+
         let
             r = 0,
             EMRole = new UserEmRoleRelation(),
@@ -1354,9 +1360,11 @@ const defs = require('../config/defs.json');
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
         }
+        filter['parentOnly'] = (parentId) ? false : parentOnly;
         filter['responsibility'] = r;
         filter['isPortfolio'] = isPortfolio;
         filter['userId'] = req.user.user_id;
+        filter['parent_id'] = parentId;
 
         if('search' in queries){
             filter['name'] = queries.search;
@@ -1383,6 +1391,52 @@ const defs = require('../config/defs.json');
         }catch(e){
             response.locations = [];
         }
+
+        /*let parentsAndChildIds = {};
+        for(let loc of response.locations){
+            if(!parentsAndChildIds[loc.parent_id]){ parentsAndChildIds[loc.parent_id] = { childids : [], total : 0, isBuilding : 0, replaceToBuilding : false } }
+            parentsAndChildIds[loc.parent_id]['childids'].push(loc.location_id);
+            parentsAndChildIds[loc.parent_id]['total'] = parentsAndChildIds[loc.parent_id]['childids'].length;
+            parentsAndChildIds[loc.parent_id]['isBuilding'] = loc.parent_is_building;
+
+            if( parentsAndChildIds[loc.parent_id]['isBuilding'] == 1 && parentsAndChildIds[loc.parent_id]['total'] > 1 ){
+                parentsAndChildIds[loc.parent_id]['replaceToBuilding'] = true;
+            }
+        }
+
+        let bldgIdsToReplace = [];
+        for(let id in parentsAndChildIds){
+            if( parentsAndChildIds[id]['replaceToBuilding'] ){
+                bldgIdsToReplace.push(id);
+            }
+        }
+
+        let 
+        bldgLocModel = new Location(),
+        buildingsReplacement = ( bldgIdsToReplace.length > 0 ) ? <any> await bldgLocModel.getByInIds( bldgIdsToReplace.toString() ) : [];
+
+        let newLocations = [];
+        for(let id in parentsAndChildIds ){
+            if(!parentsAndChildIds[id]['replaceToBuilding']){
+                for(let idc of parentsAndChildIds[id]['childids']){
+                    for(let loc of response.locations){
+                        if(loc.location_id == idc){
+                            newLocations.push( loc );
+                        }
+                    }
+                }
+
+            }
+        }
+
+        for(let bldg of buildingsReplacement){
+            newLocations.push(bldg);
+        }
+
+        response['locations'] = newLocations;
+        response['buildingsReplacement'] = buildingsReplacement;
+        response['bldgIdsToReplace'] = bldgIdsToReplace;
+        response['parentsAndChildIds'] = parentsAndChildIds;*/
 
         const subLocsArr = [];
         let subLocsStr = '';
@@ -1456,6 +1510,14 @@ const defs = require('../config/defs.json');
 
             loc['mobility_impaired'] = impaired.length;
 
+        }
+
+
+        response['under_location'] = (parentId) ? await new Location(parentId).load() : {};
+        if(parentId){
+            let ancestriesModel = new Location(),
+            ancestries = await ancestriesModel.getAncestries(parentId);
+            response['ancestries'] = ancestries;
         }
 
 

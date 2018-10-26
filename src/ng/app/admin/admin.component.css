@@ -45,7 +45,7 @@
 }
 
 .search-container{
-    width: 50%;
+    width: calc(100% - 200px);
     position: relative;
 }
 
@@ -102,6 +102,8 @@
 
 .search-container .results ul{
     margin: 0px;
+    max-height: 500px;
+    overflow-y: auto;
 }
 
 .search-container .results ul li,
@@ -129,9 +131,19 @@
     background-position: 89% 39%;
 }
 
+.search-container .results ul li .bg-image.account{
+    background-position: 47% 26%;
+}
+
 .search-container .results ul li:hover{
     cursor: pointer;
     background-color: #efeeee;
+}
+
+.search-container  .select-container{
+    position: absolute;
+    right: 0px;
+    top: 2px;
 }
 
 .right-container{

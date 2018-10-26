@@ -15,6 +15,7 @@ import { DonutService } from '../../services/donut';
 
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
+import { MessageService } from '../../services/messaging.service';
 
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -75,6 +76,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
 
     latestCompliance = <any> {};
 
+    breadCrumbs = [];
+
     constructor(private locationService: LocationsService,
         private encryptDecrypt: EncryptDecryptService,
         private activeRoute: ActivatedRoute,
@@ -85,7 +88,8 @@ export class SublocationComponent implements OnInit, OnDestroy {
         private accountService: AccountsDataProviderService,
         private dashboardService: DashboardPreloaderService,
         private complianceService: ComplianceService,
-        private donutService: DonutService
+        private donutService: DonutService,
+        private messageService: MessageService
     ) {
 
         this.userData = this.auth.getUserData();
@@ -94,12 +98,14 @@ export class SublocationComponent implements OnInit, OnDestroy {
             if (this.role > rol.role_id) {
               this.role = rol.role_id;
             }
-
         }
     }
 
     getLocationData(callBack){
-        this.locationService.getById(this.locationID, (response) => {
+        this.locationService.getByIdWithQueries({
+            location_id : this.locationID,
+            get_related_only : (this.role == 2) ? true : false
+        }, (response) => {
 
             this.parentData = response.parent;
             this.locationData = response.location;
@@ -117,11 +123,37 @@ export class SublocationComponent implements OnInit, OnDestroy {
               this.parentData['name'] = this.parentData['formatted_address'];
             }
 
-            if(response.show_compliance){
+            /*if(response.show_compliance){
                 this.showCompliance = true;
             }else{
                 this.showCompliance = false;
+            }*/
+
+            this.breadCrumbs = [];
+            this.breadCrumbs.push({
+              'value' : 'Location list', 'link' : '/location/list'
+            });
+            for(let i in response.ancestries){
+
+                if( response.ancestries[i].parent_is_building == 1 || response.ancestries[i].has_child_building == 1 || response.ancestries[i].is_building == 1 ){
+                    let
+                    queryParams = {},
+                    encId =  this.encryptDecrypt.encrypt(response.ancestries[i]['location_id']),
+                    url = (response.ancestries[i].is_building == 1) ? '/location/view/'+encId 
+                        : (response.ancestries[i].parent_is_building == 1) ? '/location/view-sublocation/'+encId : '/location/list' ;
+
+                    if( response.ancestries[i].has_child_building == 1  ){
+                        queryParams['undrlocid'] = encId;
+                    }
+
+                    this.breadCrumbs.push({
+                      'value' : response.ancestries[i].name, 'link' : url, 'queryParams' : queryParams
+                    });
+                }
+
             }
+
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadCrumbs });
 
             callBack();
         });

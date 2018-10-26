@@ -857,7 +857,8 @@ export class UsersRoute extends BaseRoute {
         emRoleIdSelected = [],
         getUSERS = ( queryRoles.indexOf('users') > -1 || queryRoles.indexOf() > -1 ) ? true : false,
         getPendings = (queryRoles.indexOf('pending') > -1) ? true : false,
-        getUsersByEmRoleId = false;
+        getUsersByEmRoleId = false,
+        locationId = (query.location_id) ? query.location_id : false;
 
         for(let id of emRoleIds){
             if(queryRoles.indexOf(''+id) > -1){
@@ -901,7 +902,7 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id ');
+        modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id INNER JOIN accounts ON users.account_id = accounts.account_id ');
 
         if(query.roles){
 
@@ -1007,7 +1008,7 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic "];
+        modelQueries.select['custom'] = [" IF(files.url IS NULL, '', files.url) as profile_pic, accounts.account_name "];
 
         if(query.limit){
             modelQueries.limit = query.limit;
@@ -1065,8 +1066,8 @@ export class UsersRoute extends BaseRoute {
                 locationsDB = <any> [],
                 locations = <any> [],
                 locationIds = [],
-                locationsEmRoles = (getUSERS && !noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
-                locationFRPTRP =  (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), false,  (frptrpIds.length > 0) ? frptrpIds.join(',') : false  ) : [];
+                locationsEmRoles = (locationId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), locationId, true) : (getUSERS && !noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
+                locationFRPTRP =  (locationId) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), locationId)  : (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), false,  (frptrpIds.length > 0) ? frptrpIds.join(',') : false  ) : [];
 
             if(!getUSERS && !noGeneralOcc && getUsersByEmRoleId){
                 locationsEmRoles = <any> await emRolesModel.getLocationsByUserIdsAndRoleIds(userIds.join(','), emRoleIdSelected.join(','));
@@ -2398,6 +2399,9 @@ export class UsersRoute extends BaseRoute {
 
                     if(!isAccountEmailExempt){
 
+                        let isGenOccupant = false,
+                            isWarden = false;
+
                         if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
                             emailType = 'frp';
                             if(parseInt(users[i]['account_role_id']) == 2){
@@ -2405,21 +2409,44 @@ export class UsersRoute extends BaseRoute {
                             }
                         }else{
                             emailType = 'warden';
-                            for(let em of emRoles){
-                                if(em.em_roles_id == parseInt(users[i]['account_role_id'])){
-                                    emailData.role = em.role_name;
+                            let roles = [];
+
+                            for(let i in selectedRoles){
+                                if(selectedRoles[i]['role_id'] == 8){
+                                    isGenOccupant = true;
+                                }else if(selectedRoles[i]['role_id'] == 9){
+                                    isWarden = true;
                                 }
+                                roles.push( selectedRoles[i]['role_name'] );
+                            }
+
+                            emailData.role = roles.join(', ');
+                        }
+
+                        if(isGenOccupant){
+                            if(hasOnlineTraining){
+                                emailType = 'general-occupant-with-online';
+                            }else{
+                                emailType = 'general-occupant-without-online';
+                            }
+                        }
+
+                        if(isWarden){
+                            if(hasOnlineTraining){
+                                emailType = 'warden-with-online';
+                            }else{
+                                emailType = 'warden-without-online';
                             }
                         }
 
                         const opts = {
-                            from : '',
-                            fromName : 'EvacConnect',
-                            to : [],
-                            cc: [],
-                            body : '',
-                            attachments: [],
-                            subject : ''
+                           from : '',
+                           fromName : 'EvacConnect',
+                           to : [],
+                           cc: [],
+                           body : '',
+                           attachments: [],
+                           subject : ''
                         };
                         const email = new EmailSender(opts);
 

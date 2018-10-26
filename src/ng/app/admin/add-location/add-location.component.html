@@ -1,0 +1,244 @@
+<div class="row">
+    <div class="col s12">
+        <h3>Account / {{accountInfo['account_name']}} / Location </h3>
+    </div>
+    <div class="col s12">
+        <h5>Select managing role for this location</h5>          
+    </div>
+    <div class="col s12" [formGroup]="managingRoleGroup">
+        <input
+            id="managing_role_frp_chkb"
+            class="with-gap"
+            type="radio"
+            name="managingRoleControl"
+            formControlName="managingRoleControl"
+            value="FRP"
+            (change)="setLocationManagingRole($event, 'FRP')" />
+        <label for="managing_role_frp_chkb">FRP</label>
+        
+        <input
+            id="managing_role_trp_all_chkb"
+            class="with-gap"
+            type="radio"
+            name="managingRoleControl"
+            formControlName="managingRoleControl"
+            value="TRP All Levels"
+            (change)="setLocationManagingRole($event, 'TRP All Levels')" />
+        <label for="managing_role_trp_all_chkb">TRP Occupying all Levels</label>
+        
+        <input
+            id="managing_role_trp_sp_level_chkb"
+            class="with-gap"
+            type="radio"
+            name="managingRoleControl"
+            formControlName="managingRoleControl"
+            value="TRP"
+            (change)="setLocationManagingRole($event, 'TRP')" />
+        <label for="managing_role_trp_sp_level_chkb">TRP Occupying Specific Levels</label>
+    </div><br>            
+</div>
+<div class="row filter-container" [hidden]="!showSearchLocation">
+    <div class="col s12">Search Location</div>
+    <div class="col s12">
+        <div class="search-field">
+            <input type="text" placeholder="Search" id="searchLocations" autocorrect="off" autocapitalize="off" spellcheck="off" #search>
+            <span class="material-icons">search</span>
+            <div class="search-result-container">                
+                <ul *ngIf="searchedLocations.length > 0">
+                    <li *ngFor="let location of searchedLocations">
+                        <a (click)="selectLocationFromSearch(location)">{{location['name']}}</a>                        
+                    </li>                   
+                </ul>
+                <div *ngIf="searchedLocations.length == 0 && showTextSearch">
+                    <p class="text">Location not found, create this new location</p>	
+                    <p class="text">
+                        <button type="button" class="btn grey waves-effect waves-light" (click)="cancelNewLoc()">No</button>
+                        <button type="button" class="btn waves-effect waves-light orange" (click)="showNewLocForm()"> Yes </button>
+                    </p>
+                </div>
+            </div>     
+        </div><!--
+        <div class="search-icon-container">
+            <img class="glass" src="assets/images/locations/search_icon.png" alt="">
+            <a  class="close-link" (click)="clearSearch()">
+                <img class="close" src="assets/images/locations/close_search.png" alt="">
+            </a>
+        </div>    
+        --> 
+          
+    </div>    
+</div>
+<div class="row" *ngIf="selectedLocationFromSearch['location_id']" >
+    <div class="col s12">
+        <h4>{{selectedLocationFromSearch['name']}}</h4>
+        <h6>{{selectedLocationFromSearch['formatted_address']}}</h6>
+    </div>
+    <div class="col s12">
+        <h6>Total number of Levels: {{sublocations.length}}</h6>
+        <p *ngFor="let s of sublocations">
+            <input *ngIf="managingRole == 'TRP'" type="checkbox" id="{{s['location_id']}}" (change)="onChangeSublocation($event, s['location_id'])" >
+            <label *ngIf="managingRole == 'TRP'" for="{{s['location_id']}}">{{s['name']}}</label>
+            
+            <input *ngIf="managingRole != 'TRP'" type="checkbox" id="{{s['location_id']}}" disabled="disabled" checked="checked" />
+            <label *ngIf="managingRole != 'TRP'" for="{{s['location_id']}}">{{s['name']}}</label>
+        </p> 
+        <button type="button" (click)="resetSelections()" class="btn grey waves-effect waves-light">Back</button>           
+        <button type="button" class="btn waves-effect waves-light orange" (click)="addExistingLocToAccount()">Submit</button>
+    </div>
+</div>
+
+<form [formGroup]="newLocationFrmGroup" (ngSubmit)="createNewLocation()">
+    <div id="buildingLocationFormDiv" *ngIf="showNewBuildingForm">
+        <div class="row">
+            <div class="col s12">
+                <h5>Add New Building Form</h5>
+            </div>
+            <div class="col s12">
+                <div class="row">
+                    <div class="col s6">
+                        <label for="building_name">Building Name</label>
+                        <input
+                            placeholder=""
+                            id="building_name"
+                            type="text"
+                            formControlName="name"
+                        /> 
+                    </div>
+                    <div class="col s6">
+                        <label for="street_name">Street</label>
+                        <input
+                            placeholder=""
+                            id="street_name"
+                            type="text"
+                            formControlName="street"
+                        />                        
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col s6">
+                        <label for="city_name">City</label>
+                        <input
+                            placeholder=""
+                            id="city_name"
+                            type="text"
+                            formControlName="city"
+                        />
+                    </div>
+                    <div class="col s6">
+                        <label for="state_name">State</label>
+                        <input
+                            placeholder=""
+                            id="state_name"
+                            type="text"
+                            formControlName="state"
+                        />
+                    </div>
+                </div>
+                <div class="row" *ngIf="managingRole != 'FRP'">                
+                    <span style="padding: 1.5rem"> How many levels occupied </span>                
+                    <div class="input-arrow-up-down">
+                        <input formControlName="total_levels" type="text" class="input-level">
+                        <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevel('total_levels')"><i class="material-icons">arrow_drop_up</i></button>
+                        <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('total_levels')"><i class="material-icons">arrow_drop_down</i></button>
+                    </div>               
+                </div>
+                <div class="row" *ngIf="managingRole == 'FRP'">            
+                    <div class="col s12">
+                            <span style="padding-right: 1.5rem"> The total numbers of levels,including Carpark, Plant Room & Others </span>
+                            <div class="input-arrow-up-down">
+                                <input formControlName="total_levels" type="text" class="input-level">
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevel('total_levels')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('total_levels')"><i class="material-icons">arrow_drop_down</i></button>
+                            </div>                            
+                    </div>        
+                    <div class="col s12 m12 l12 inputs-button-container">  
+                        <div class="inline-block">
+                            <span>Occupiable Levels</span>
+                            <div class="input-arrow-up-down">
+                                <input formControlName="occupiableLvls" type="text" readonly class="input-level" value="0">
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('occupiableLvls')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('occupiableLvls')"><i class="material-icons">arrow_drop_down</i></button>
+                            </div>
+                        </div>
+                        <div class="inline-block">
+                            <span>Carpark Level</span>
+                            <div class="input-arrow-up-down" >
+                                <input type="text" formControlName="carpark" readonly class="input-level" value="0" #inpCarPark>
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('carpark')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('carpark')"><i class="material-icons">arrow_drop_down</i></button>
+                            </div>
+                        </div>
+                        <div class="inline-block">
+                            <span>Plant Room</span>
+                            <div class="input-arrow-up-down" >
+                                <input type="text" formControlName="plantroom" readonly class="input-level" value="0">
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('plantroom')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('plantroom')"><i class="material-icons">arrow_drop_down</i></button>
+                            </div>
+                        </div>
+                        <div class="inline-block">
+                            <span>Others</span>
+                            <div class="input-arrow-up-down" >
+                                <input type="text" formControlName="others" readonly class="input-level" value="0">
+                                <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevelForFRPBuilding('others')"><i class="material-icons">arrow_drop_up</i></button>
+                                <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="removeLevelForFRPBuilding('others')"><i class="material-icons">arrow_drop_down</i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col s12 right-align">
+                        <button type="button" class="btn grey waves-effect waves-light" (click)="cancelAll()">Cancel</button>
+                        <button *ngIf="managingRole != 'FRP'" type="button" class="btn orange waves-effect waves-light" [disabled]="!newLocationFrmGroup.valid" (click)="showDynamicLevelForm()">Next</button>                    
+                        <button *ngIf="managingRole == 'FRP'" type="button" class="btn orange waves-effect waves-light" [disabled]="!(newLocationFrmGroup.valid && addLocationBldgFRPCtrl)" (click)="showFRPNewLocationDetails()">Next</button>                    
+                    </div>
+                </div>            
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="showLevelForm">
+        <div class="row">
+            <div col="col s8">
+                    <h5>{{newLocationFrmGroup.get('name').value}}</h5> 
+                    <h6>{{newLocationFrmGroup.get('street').value}}, {{newLocationFrmGroup.get('city').value}}, {{newLocationFrmGroup.get('state').value}}</h6>
+                    <br>
+                    <span>Number of levels occupied: {{newLocationFrmGroup.get('total_levels').value}}</span>
+            </div>           
+        </div>
+        <div class="row" formArrayName="levels">
+            <div class="col s12" [formGroupName]="i" *ngFor="let level of newLocationFrmGroup.controls.levels.controls; let i = index">
+                <input type="text" formControlName="new_level" placeholder="Type level/sublocation name">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12 right-align">
+                <button type="button" class="btn grey waves-effect waves-light" (click)="cancelAll()">Cancel</button>
+                <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!newLocationFrmGroup.valid" >Submit</button>                    
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="frpBuildingLocationConfirmation">
+        <div class="row">
+            <div col="col s8">
+                <h5>{{newLocationFrmGroup.get('name').value}}</h5> 
+                <h6>{{newLocationFrmGroup.get('street').value}}, {{newLocationFrmGroup.get('city').value}}, {{newLocationFrmGroup.get('state').value}}</h6>
+                <br>
+                <span>Number of occupiable levels: {{newLocationFrmGroup.get('occupiableLvls').value}}</span>
+                <div>
+                    <ul>
+                        <li *ngFor="let l of occupiableLevelArr; let i = index">Level {{i+1}}</li>
+                    </ul>
+                </div>
+            </div>           
+        </div>
+        <div class="row">
+            <div class="col s12 right-align">
+                <button type="button" class="btn grey waves-effect waves-light" (click)="cancelAll()">Cancel</button>
+                <button type="submit" class="btn orange waves-effect waves-light">Submit</button>                    
+            </div>
+        </div>
+    </div>
+</form>

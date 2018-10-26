@@ -108,22 +108,24 @@
                         </tr>
                         <tr *ngFor="let loc of locations" >
                             <td>
-                                <a *ngIf="loc.sublocation_count > 0 " [routerLink]="['/location', 'view', loc.enc_location_id]" class="black-text">
-                                    <span *ngIf="loc.name.length > 0">
-                                        <span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}
-                                    </span>
-                                    <span *ngIf="loc.name.length == 0">
-                                        {{loc.formatted_address}}
-                                    </span>
+                                <a *ngIf="loc.is_building != 1 && loc.has_child_building == 1 else notCampus" [routerLink]="['/location/list']"  [queryParams]="{ undrlocid : loc.enc_location_id, archived : paramArchived }" class="black-text">
+                                    <span *ngIf="loc.parent">{{loc.parent.name}},</span>
+                                    <span *ngIf="loc.name.length > 0"> {{loc.name}}</span>
+                                    <span *ngIf="loc.name.length == 0"> {{loc.formatted_address}} </span>
                                 </a>
-                                <a *ngIf="loc.sublocation_count == 0" [routerLink]="['/location', 'view-sublocation', loc.enc_location_id]" class="black-text">
-                                    <span *ngIf="loc.name.length > 0">
-                                        <span *ngIf="loc.parent">{{loc.parent.name}}, </span>{{loc.name}}
-                                    </span>
-                                    <span *ngIf="loc.name.length == 0">
-                                        {{loc.formatted_address}}
-                                    </span>
-                                </a>
+
+                                <ng-template #notCampus>
+                                    <a *ngIf="loc.is_building == 1 && (loc.parent_is_building == 0 || loc.parent_is_building == null)" [routerLink]="['/location', 'view', loc.enc_location_id]" class="black-text">
+                                        <span *ngIf="loc.parent">{{loc.parent.name}},</span>
+                                        <span *ngIf="loc.name.length > 0"> {{loc.name}}</span>
+                                        <span *ngIf="loc.name.length == 0"> {{loc.formatted_address}} </span>
+                                    </a>
+                                    <a *ngIf="loc.is_building == 0 && loc.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', loc.enc_location_id]" class="black-text">
+                                        <span *ngIf="loc.parent">{{loc.parent.name}},</span>
+                                        <span *ngIf="loc.name.length > 0"> {{loc.name}}</span>
+                                        <span *ngIf="loc.name.length == 0"> {{loc.formatted_address}} </span>
+                                    </a>
+                                </ng-template>
                             </td>
                             <td class="with-bar">
                                 <ng-template #innerLink>
@@ -142,7 +144,15 @@
                                     <ng-container *ngTemplateOutlet="innerLink"></ng-container>
                                 </a>
 
-                                <a *ngIf="loc.is_building == 0" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_parent_id]">
+                                <!-- <span *ngIf="loc.is_building == 0">
+                                    Not a building
+                                </span> -->
+
+                                <a *ngIf="loc.is_building == 0 && loc.parent_id != -1" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_parent_id]">
+                                    <ng-container *ngTemplateOutlet="innerLink"></ng-container>
+                                </a>
+                                
+                                <a *ngIf="loc.is_building == 0 && loc.parent_id == -1" [attr.disabled]="!loc.fetchingCompliance" [routerLink]="['/location/compliance/view/', loc.enc_location_id]">
                                     <ng-container *ngTemplateOutlet="innerLink"></ng-container>
                                 </a>
                             </td>
@@ -414,43 +424,46 @@
 			<a  class="blue-text font-size-16 right">View all ></a>
 			<div class="clearfix"></div>
 		</div>
-
-		<div class="col l3 m6 s12">
-			<h5 class="orange-text margin-bottom-30">Resources</h5>
-
-			<div class="resources-container">
-				<ul>
-					<li>
-						<a href="https://s3.amazonaws.com/allan-delfin/manuals/EvacConnect+for+Facility+Responsible+Persons.pdf" target="_blank">
-						<div class="display-table">
-							<div class="cell">
-								<img src="/assets/images/pdf.png" alt="">
-							</div>
-							<div class="cell font-size-16">
-								Facility Responsible Persons User Guide
-							</div>
-						</div>
-						</a>
-					</li>
-
-					<li>
-						<a href="https://s3.amazonaws.com/allan-delfin/manuals/EvacConnect+for+Tenant+Responsible+Persons.pdf" target="_blank">
-						<div class="display-table">
-							<div class="cell">
-								<img src="/assets/images/pdf.png" alt="">
-							</div>
-							<div class="cell font-size-16">
-								Tenant Responsible Persons User Guide
-							</div>
-						</div>
-						</a>
-					</li>
-				</ul>
-
-				<!-- <a  class="blue-text font-size-16 right">View all ></a>
-				<div class="clearfix"></div> -->
-			</div>
-		</div>
+        
+		<!-- <div class="col l3 m6 s12">
+            <h5 class="orange-text margin-bottom-30">Resources</h5>
+        
+            <div class="resources-container">
+                <ul>
+                    <li>
+                        <a href="https://www.evacservices.com.au/category/building-management/" target="_blank">
+                        <div class="display-table">
+                            <div class="cell">
+                                <img src="/assets/images/pdf.png" alt="">
+                            </div>
+                            <div class="cell font-size-16">
+                                Facility Responsible Persons User Guide
+                            </div>
+                        </div>
+                        </a>
+                    </li>
+        
+                    <li>
+                        <a href="https://s3.amazonaws.com/allan-delfin/manuals/EvacConnect+for+Tenant+Responsible+Persons.pdf" target="_blank">
+                        <div class="display-table">
+                            <div class="cell">
+                                <img src="/assets/images/pdf.png" alt="">
+                            </div>
+                            <div class="cell font-size-16">
+                                Tenant Responsible Persons User Guide
+                            </div>
+                        </div>
+                        </a>
+                    </li>
+                </ul>
+                        
+                        
+                <a  class="blue-text font-size-16 right">View all ></a>
+                <div class="clearfix"></div> 
+                        
+            </div>
+        
+        </div> -->
 
 	</div>
 

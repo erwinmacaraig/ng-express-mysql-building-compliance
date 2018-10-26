@@ -12,6 +12,7 @@ import { AdminService } from '../../services/admin.service';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { MessageService } from '../../services/messaging.service';
+import { AccountsDataProviderService } from '../../services/accounts';
 import { AlertService } from '../../services/alert.service';
 import { AlertComponent } from '../../alert/alert.component';
 import { Observable } from 'rxjs/Rx';
@@ -25,7 +26,7 @@ declare var moment: any;
 	selector : 'app-view-compliance',
 	templateUrl : './view.compliance.component.html',
 	styleUrls : [ './view.compliance.component.css' ],
-    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService]
+    providers : [AuthService, UserService, SignupService, DashboardPreloaderService, ComplianceService, EncryptDecryptService, LocationsService, AdminService, AccountsDataProviderService]
 })
 export class ViewComplianceComponent implements OnInit, OnDestroy{
 	@ViewChild("notesTemplate") notesTemplate : ElementRef;
@@ -73,7 +74,20 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 		short_code : '',
 		template : this.noneTemplate,
 		tableTemplate : this.noneTemplate
-	};
+    };
+    
+    complianceDocuments: object = {
+        1: [],    
+        2: [],   
+        4: [],
+        5: [],
+        6: [],
+        8: [],        
+        9: [],
+        12: [],    
+        13: []
+      };
+
 
 	timer = Observable.interval(10);
 	subscribeTime;
@@ -169,6 +183,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     downloadAllPackLabel = '';
     downloadAllPackControler = false;
     downloadPackName = '';
+
+    breadcrumbsData = [];
+
+    accountData = <any> {};
+
     constructor(
         private router : Router,
         private route: ActivatedRoute,
@@ -181,7 +200,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         private encryptDecrypt : EncryptDecryptService,
         private adminService : AdminService,
         private messageService : MessageService,
-        private alertService: AlertService
+        private alertService: AlertService,
+        private accountService: AccountsDataProviderService
         ) {
 
         this.userData = this.authService.getUserData(); 
@@ -202,6 +222,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
         });
 
+        this.messageService.sendMessage({ 'breadcrumbs' : this.breadcrumbsData });
+
         this.msgSubs = this.messageService.getMessage().subscribe((message) => {
             if(message.epcform){
                 if(message.epcform == 'hide') {
@@ -211,7 +233,13 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.messageService.sendMessage({
                     'locationId' : this.locationID
                 });
+            }else if(message.getbreadcrumbs){
+                this.messageService.sendMessage({ 'breadcrumbs' : this.breadcrumbsData });
             }
+        });
+
+        this.accountService.getByUserId(this.userData['userId'], (response) => {
+            this.accountData = response.data;
         });
     }
 
@@ -232,12 +260,13 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 				if(comp.docs.length > 0) {
 					for(let doc of comp.docs){
                         doc['timestamp_formatted'] = moment(doc["timestamp"]).format("DD/MM/YYYY");
-                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');
-					}
+                        doc['display_format'] = moment(doc['timestamp']).format('DD/MM/YYYY');                        
+                        doc['downloadCtrl'] = false;                        
+                    }
 				}
 			}
 		}
-
+       
         let colors = this.complianceService.getColors();
 		for(let kpis of this.KPIS) {
             if (kpis.compliance.docs.length > 0) {
@@ -321,8 +350,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                     if(responseCompl['building_based']){
                         this.nameDisplay = responseCompl.building.name;
                     }else{
-                        this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
+                        this.nameDisplay = this.locationData.name;
+                        // this.nameDisplay = (this.locationData.parentData.name) ? this.locationData.parentData.name+', '+this.locationData.name : this.locationData.name; 
                     }
+
+                    this.nameDisplay = this.accountData.account_name + ' at ' + this.nameDisplay;
 
 		            this.downloadPackName = this.locationData['location_directory_name'];
 	
@@ -384,6 +416,29 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.showLoadingForSignedURL = false;                
             });
 
+            this.breadcrumbsData = [];
+            this.breadcrumbsData.push({
+              'value' : 'Location list', 'link' : '/location/list'
+            });
+            for(let i in response.ancestries){
+                if( response.ancestries[i].parent_is_building == 1 || response.ancestries[i].has_child_building == 1 || response.ancestries[i].is_building == 1 ){
+                    let
+                    queryParams = {},
+                    encId =  this.encryptDecrypt.encrypt(response.ancestries[i]['location_id']),
+                    url = (response.ancestries[i].is_building == 1) ? '/location/view/'+encId 
+                        : (response.ancestries[i].parent_is_building == 1) ? '/location/view-sublocation/'+encId : '/location/list' ;
+
+                    if( response.ancestries[i].has_child_building == 1  ){
+                        queryParams['undrlocid'] = encId;
+                    }
+
+                    this.breadcrumbsData.push({
+                      'value' : response.ancestries[i].name, 'link' : url, 'queryParams' : queryParams
+                    });
+                }
+            }
+
+            this.messageService.sendMessage({ 'breadcrumbs' : this.breadcrumbsData });
         });
     }
 
@@ -412,34 +467,54 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 });
             }
         });
+
+        window.onscroll = function(){
+            if( this['scrollY'] >= 70 ){
+                $('.top-gray').css({
+                    'position' : 'fixed',
+                    'top' : '94px',
+                    'z-index' : '999'
+                });
+            }else{
+                $('.top-gray').css({
+                    'position' : 'absolute',
+                    'top' : '0px'
+                });
+            }
+        }
 	}
 
 	clickSelectComplianceFromList(compliance) {
-        this.selectedCompliance = compliance;
-            console.log(this.selectedCompliance);
-    		let attr = compliance.short_code,
-    			allTr = $("tr[compliance]"),
-    			tr = $("tr[compliance='"+attr+"']");
+        this.selectedCompliance = compliance;   
+        console.log(this.selectedCompliance);
+        this.complianceDocuments[compliance['compliance_kpis_id']] = [];
 
-    		allTr.removeClass('active');
-    		tr.addClass('active');
+        for (let d of compliance.compliance.docs) {
+            this.complianceDocuments[compliance['compliance_kpis_id']].push(d);
+        }
 
-    		/*$('.row-diagram-details .content').html('');
-    		if(targetPreview.length > 0){
-    			$('.row-diagram-details .content').html( targetPreview.html() );
-    		}*/
-    		$('select').material_select();
+        // console.log(this.complianceDocuments);
+        let attr = compliance.short_code,
+            allTr = $("tr[compliance]"),
+            tr = $("tr[compliance='"+attr+"']");
 
-    		this.selectedComplianceTitle = compliance.name;
-    		this.selectedComplianceDescription = compliance.description;
-    		this.selectedComplianceClasses = compliance.icon_class;
+        allTr.removeClass('active');
+        tr.addClass('active');
 
-            $('.compliance-title-container .image').css('background-color', this.selectedCompliance['background_color']);
+        /*$('.row-diagram-details .content').html('');
+        if(targetPreview.length > 0){
+            $('.row-diagram-details .content').html( targetPreview.html() );
+        }*/
+        $('select').material_select();
 
+        this.selectedComplianceTitle = compliance.name;
+        this.selectedComplianceDescription = compliance.description;
+        this.selectedComplianceClasses = compliance.icon_class;
+
+        $('.compliance-title-container .image').css('background-color', this.selectedCompliance['background_color']);
 	}
 
 	showDiagramDetails(){
-
 		let tableLeft = $('.row-table-content').position().left,
 			tableW = $('.row-table-content').width(),
 			diagramLeft = $('.row-diagram-details').position().left;
@@ -469,6 +544,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 	ngOnDestroy() {
         this.msgSubs.unsubscribe();
+        window.onscroll = null;
     }
 
     downloadAllPack() {
@@ -490,18 +566,35 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           }          
           this.alertService.error('There was a problem in your download.');
           this.downloadAllPackControler = false;
+          const message = `Download all pack error download for location_id = ${this.locationID}`;
+          this.adminService.sendEmailToDev(message).subscribe((response) => {
+            console.log(response);
+          });
         });
     }
 
-    downloadKPIFile(kpi_file, filename) {
-        this.complianceService.downloadComplianceFile(kpi_file, filename).subscribe((data) => {
+    downloadKPIFile(kpi_file, filename, kpis_id=0, index=0) {  
+        // console.log(`index is ${index} and kpis_id is ${kpis_id}`);      
+        // console.log(this.complianceDocuments[kpis_id][+index]);
+        if (!('downloadCtrl' in this.complianceDocuments[kpis_id][+index])) {
+            this.complianceDocuments[kpis_id][index]['downloadCtrl'] = true;    
+        }
+        this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = true;
+        // console.log(this.complianceDocuments[kpis_id][+index]);
+        this.complianceService.downloadComplianceFile(kpi_file, encodeURIComponent(filename)).subscribe((data) => {
           const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
           FileSaver.saveAs(blob, filename);
+          this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = false;
         },
         (error) => {
           // this.alertService.error('No file(s) available for download');
           $('#modalfilenotfound').modal('open');
+          this.complianceDocuments[kpis_id][+index]['downloadCtrl'] = false;
           console.log('There was an error', error);
+          const message = `Download error for location_id = ${this.locationID} and kpi file ${kpi_file}`;
+          this.adminService.sendEmailToDev(message).subscribe((response) => {
+            console.log(response);
+          });
         });
     }
 
@@ -528,6 +621,32 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           $('#modalWardenList').modal('open');
           console.log(this.tenants);
         });
+    }
+
+    public viewEmUsers(locationId, type){
+        let queries = {
+            roles: type,
+            impaired: null,
+            type: 'client',
+            offset: 0,
+            limit: 1000,
+            archived: 0,
+            pagination: true,
+            user_training: true,
+            users_locations: true,
+            search: '',
+            online_trainings: true,
+            location_id : locationId 
+        };
+
+        this.userService.queryUsers(queries, (response) => {
+            this.tenants = response.data.users;
+            $('#modalWardenList').modal('open');
+        });
+
+        // this.userService.queryUsers({
+            
+        // })
     }
 
     showModalUploadDocs(shortCode){

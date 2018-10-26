@@ -462,9 +462,17 @@ td.select-blue{
     width: 35%;
 }
 
+#modalWardenList{
+    width: 28%;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalAddNewTenant{
         width: 50% !important;
+    }
+
+    #modalWardenList{
+        width: 40% !important;
     }
 }
 
@@ -472,11 +480,19 @@ td.select-blue{
     #modalAddNewTenant{
         width: 75% !important;
     }
+
+    #modalWardenList{
+        width: 90% !important;
+    }
 }
 
 @media only screen and (max-width: 500px) {
     #modalAddNewTenant{
         width: 95% !important;
+    }
+
+    #modalWardenList{
+        width: 99% !important;
     }
 }
 

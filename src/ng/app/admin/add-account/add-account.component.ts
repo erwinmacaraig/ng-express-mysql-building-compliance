@@ -23,6 +23,7 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
   account_email: FormControl;
   epc_committee_on_hq: FormControl;
   online_training: FormControl;
+  fsa_by_evac: FormControl;
 
   filteredAccounts = [];
 
@@ -38,7 +39,8 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
     account_email: null,
     epc_committee_on_hq: false,
     online_training: false,
-    account_id: 0
+    account_id: 0,
+    fsa_by_evac: false,
   };
   public accountId = 0;
   public sub: Subscription;
@@ -56,7 +58,8 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
       account_contact_num: new FormControl(this.accountFormValue['account_contact_num']),
       account_email: new FormControl(this.accountFormValue['account_email']),
       epc_committee_on_hq: new FormControl(this.accountFormValue['epc_committee_on_hq']),
-      online_training: new FormControl(this.accountFormValue['online_training'])
+      online_training: new FormControl(this.accountFormValue['online_training']),
+      fsa_by_evac: new FormControl(this.accountFormValue['fsa_by_evac']),
     });
 
     this.sub = this.getAccountChanges();
@@ -87,7 +90,16 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
     this.accountFormValue['account_id'] = this.accountId;
     this.adminService.createAccount(this.accountFormValue).subscribe((response) => {
       this.accountFormValue = response['data'];
-      this.router.navigate(['/admin', 'users-in-accounts', this.accountFormValue['account_id']]);
+      if (this.accountId) {
+        // edit account
+        alert('Account successfully modified.');
+        this.router.navigate(['/admin', 'locations-in-account', this.accountFormValue['account_id']]);        
+      } else {
+        // new account
+        alert('Account created.');
+        this.router.navigate(['/admin', 'add-account-location', this.accountFormValue['account_id']], {queryParams: {ctau: 'on'}});
+      }
+      
     }, (error) => {
       console.log(error);
     });
@@ -118,7 +130,8 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
       account_email: null,
       epc_committee_on_hq: false,
       online_training: false,
-      account_id: 0
+      account_id: 0,
+      fsa_by_evac: false
     };
 
   }

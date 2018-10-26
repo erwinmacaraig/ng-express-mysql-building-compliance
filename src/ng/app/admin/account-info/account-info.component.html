@@ -1,12 +1,14 @@
 <div class="row">
-  <!-- <div class="col s4">{{ accountInfo.account_name }}</div> -->
-    <div class="col l12 m12 s12">
+    <div class="col l12 m12 s12">    
+        <app-alert></app-alert>    
         <h4 class="account-name inline-block">{{ accountInfo.account_name }}</h4>
         <p class="inline-block edit-info-text">
+            <!--
             <a href="#"  >
                 <img src="/assets/images/locations/editdetails_icon.png">
                 Edit Information
             </a>
+            -->
         </p>
     </div>
 </div>
@@ -30,7 +32,7 @@
                                 <p>{{accountInfo.account_name}}</p>
                             </div>
                         </div>
-
+                        <!--  
                         <div class="col l4 m12 s12">
                             <div class="label-and-text">
                                 <label>Key Contact</label>
@@ -46,6 +48,7 @@
                                 <p>--</p>
                             </div>
                         </div>
+                    -->
                     </div>
 
                     <div class="row">
@@ -59,9 +62,11 @@
                         <div class="col l4 m12 s12">
                             <div class="label-and-text">
                                 <label>Settings</label><br>
-                                <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
-                                <br>
+                                <!-- <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
+                                <br> -->
                                 <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+                                <br />
+                                <input id="fsa_evac" type="checkbox" [(ngModel)]="accountInfo.fsa_by_evac" (change)="toggleFSAByEvac($event)"><label for="fsa_evac">FSA By Evac</label>
                             </div>
                         </div>
                     </div>
@@ -130,8 +135,8 @@
         <div class="mid-nav">
             <ul>
                 <li [routerLink]="['/admin', 'locations-in-account', accountId]" [ngClass]="{active:activeLink=='locations'}"> Locations </li>
-                <li [routerLink]="['/admin', 'users-in-accounts', accountId]" [ngClass]="{active:activeLink=='users'}"> Users </li>
-                <li>Subscriptions</li>
+                <li [routerLink]="['/admin', 'users-in-accounts', accountId]" [ngClass]="{active:activeLink=='users'}"> Team </li>
+                <!-- <li>Subscriptions</li> -->
                 <li [routerLink]="['/admin', 'account-trainings', accountId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li>
             </ul>
         </div>

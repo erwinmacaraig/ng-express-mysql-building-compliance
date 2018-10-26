@@ -21,6 +21,9 @@ import { Utils } from '../models/utils.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
 import { ComplianceRoute } from './compliance';
 
+import { PDFDocumentWithTables } from '../models/pdftable';
+import * as PDFDocument from 'pdfkit';
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as CryptoJS from 'crypto-js';
@@ -59,18 +62,35 @@ export class ReportsRoute extends BaseRoute {
                 let 
                 r = 0,
                 locationListing,
-                accountId = (req.query.account_id) ? req.query.account_id : req.user.account_id;
+                accountId = (req.query.account_id) ? req.query.account_id : req.user.account_id,
+                userId = (req.body.user_id) ? req.body.user_id : (req.user.user_id) ? req.user.user_id : 0;
 
                 if(req.user.evac_role == 'admin'){
                     r = 1;
                 }else{
                     try {
-                        r = await userRoleRel.getByUserId(req.user.user_id, true);
+                        r = await userRoleRel.getByUserId(userId, true);
                     } catch (e) {
                         console.log('location route get-parent-locations-by-account-d', e);
                         r = 0;
                     }
                 }
+
+                let 
+                    roles = [],
+                    isPortfolio = false;
+
+                try {
+                  roles = await userRoleRel.getByUserId(userId);
+                  for(let role of roles){
+                      if(role['is_portfolio'] == 1){
+                          isPortfolio = true;
+                      }
+                  }
+                } catch(e) { }
+
+                filter['isPortfolio'] = isPortfolio;
+                filter['userId'] = userId;
 
 
                 filter['responsibility'] = r;
@@ -93,7 +113,7 @@ export class ReportsRoute extends BaseRoute {
         * generate list for team
         */
        router.post('/reports/team', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
-         new ReportsRoute().generateTeamReport(req, res, next);
+         new ReportsRoute().generateTeamReport(req, res);
        });
 
        router.post('/reports/location-trainings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -111,6 +131,35 @@ export class ReportsRoute extends BaseRoute {
        router.post('/reports/get-activity-report', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
            new ReportsRoute().getActivityReport(req, res);
        });
+
+       router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           new ReportsRoute().getActivityReport(req, res, true);
+       });
+
+       router.get('/reports/pdf-team/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           new ReportsRoute().generateTeamReport(req, res, true);
+       });
+
+       router.get('/reports/pdf-location-trainings/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['course_method'] = 'none';
+           req.body['getall'] = true;
+           new ReportsRoute().locationTrainings(req, res, true);
+       });
     }
 
      /**
@@ -118,13 +167,13 @@ export class ReportsRoute extends BaseRoute {
       * process reporting info for a given root location
       */
 
-    public async generateTeamReport(req: AuthRequest, res: Response, next: NextFunction) {
+    public async generateTeamReport(req: AuthRequest, res: Response, toPdf?) {
 
         let
         userRoleRel = new UserRoleRelation(),
         r = 0,
         location_id = req.body.location_id,
-        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > -1) ? req.body.account_id : req.user.account_id : req.user.account_id,
         response = {
             status : true, data : [], message : '',
             pagination : {
@@ -137,12 +186,13 @@ export class ReportsRoute extends BaseRoute {
         locationModel = new Location(location_id),
         locations = <any> [],
         toReturn = <any> [],
-        isAdmin = (req.user.evac_role == 'admin') ? true : false,
+        isAdmin = (req.user) ? (req.user.evac_role == 'admin') ? true : false : false,
         userRoleModel = new UserRoleRelation(),
+        userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         role = 0;
 
         try{
-            role = await userRoleModel.getByUserId(req.user.user_id, true);
+            role = await userRoleModel.getByUserId(userId, true);
         }catch(e){}
 
         if(location_id == 0){
@@ -239,8 +289,6 @@ export class ReportsRoute extends BaseRoute {
                 totalpages++;
             }
 
-
-
             response.pagination.pages = totalpages;
         }
 
@@ -248,7 +296,42 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        res.status(200).send(response);
+        if(!toPdf){
+          res.status(200).send(response);
+        }else{
+          response['title'] = 'Team Report';
+          response['tables'] = [];
+          for(let data of response.data){
+            let tblData = {
+              title : data.location.name + ' Current Team Information',
+              data : [], 
+              headers : ['Company', 'Sub Location', 'Contact Person', 'Email', 'Warden', 'P.E.E.P']
+            };
+
+            let totalWardens = 0;
+            for(let d of data.data){
+              let accnts = '';
+              let trps = '';
+              let emails = '';
+              for(let t of d.trp){
+                accnts += t.account_name+'\n';
+                trps += t.first_name+' '+t.last_name+'\n';
+                emails += t.email+'\n';
+              }
+              tblData.data.push([
+                accnts, d.name, trps, emails, d.total_wardens, d.peep_total
+              ]);
+
+              totalWardens += parseInt(d.total_wardens);
+            }
+
+            tblData.data.push([ '', '', '', '', '', 'Total No. Of Wardens '+totalWardens ]);
+
+            response['tables'].push(tblData);
+          }
+          this.generatePDF(response, res);
+        }
+        
     }
 
     public async listLocations(req: AuthRequest, res: Response, toReturn?, filters?){
@@ -266,14 +349,47 @@ export class ReportsRoute extends BaseRoute {
             },
             response = <any> {
                 data : []
-            };
+            }, 
+            userId = (req.body.user_id) ? req.body.user_id : (req.user.user_id) ? req.user.user_id : 0;
 
         try {
-          r = await userRoleRel.getByUserId(req.user.user_id, true);
+          r = await userRoleRel.getByUserId(userId, true);
         } catch(e) {
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
         }
+
+        if(req.user){
+          if(req.user.evac_role == 'admin'){
+            filters['responsibility'] = 'Manager';
+          }
+        }else{
+          try{
+            let uModel = new User(req.body.user_id);
+            await uModel.load();
+
+            if(uModel.get('evac_role') == 'admin'){
+              filters['responsibility'] = 'Manager';
+            }
+          }catch(e){}
+          
+        }
+
+        let 
+            roles = [],
+            isPortfolio = false;
+
+        try {
+          roles = await userRoleRel.getByUserId(req.user.user_id);
+          for(let role of roles){
+              if(role['is_portfolio'] == 1){
+                  isPortfolio = true;
+              }
+          }
+        } catch(e) { }
+
+        filter['isPortfolio'] = isPortfolio;
+        filter['userId'] = userId;
 
         if('responsibility' in filters){
             filter['responsibility'] = filters['responsibility'];
@@ -314,7 +430,7 @@ export class ReportsRoute extends BaseRoute {
         }
     }
 
-    public async locationTrainings(req: AuthRequest, res: Response){
+    public async locationTrainings(req: AuthRequest, res: Response, toPdf?){
       let
         response = {
             status : false, data : [], message : '',
@@ -334,17 +450,18 @@ export class ReportsRoute extends BaseRoute {
             sublocations : []
         },
         location_id = req.body.location_id,
-        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > -1) ? req.body.account_id : req.user.account_id : req.user.account_id,
         locationModel = new Location(location_id),
         sublocationModel = new Location(),
         locations = <any> [],
         getAll = (req.body.getall) ? req.body.getall : false,
         filterExceptLocation = (req.body.nofilter_except_location) ? req.body.nofilter_except_location : false,
         userRoleModel = new UserRoleRelation(),
+        userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         role = 0;
 
         try{
-            role = await userRoleModel.getByUserId(req.user.user_id, true);
+            role = await userRoleModel.getByUserId(userId, true);
         }catch(e){}
 
         if(getAll || filterExceptLocation){
@@ -381,8 +498,10 @@ export class ReportsRoute extends BaseRoute {
             users = [];
 
         const config = {};
-        if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !getAll && !filterExceptLocation) {
-          config['searchKey'] = req.body.searchKey;
+        if(req.body.searchKey){
+          if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !getAll && !filterExceptLocation) {
+            config['searchKey'] = req.body.searchKey;
+          }
         }
 
         if(role != 1){
@@ -498,6 +617,8 @@ export class ReportsRoute extends BaseRoute {
                     cert['first_name'] = user.first_name;
                     cert['last_name'] = user.last_name;
                     cert['email'] = user.email;
+                    cert['location_name'] = user.location_name;
+                    cert['account_name'] = user.account_name;
                 }
             }
 
@@ -529,7 +650,6 @@ export class ReportsRoute extends BaseRoute {
 
         response.data = finalResult;
 
-
         if(response.pagination.total > limit){
             let div = response.pagination.total / limit,
                 rem = (response.pagination.total % limit) * 1,
@@ -546,7 +666,37 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        res.send(response);
+        if(!toPdf){
+            res.status(200).send(response);
+        }else{
+          response['tables'] = [];
+          let tblData = {
+            title : 'Training Report',
+            data : [], 
+            headers : ["User", "Email", "Account", "Location", "Training Name", "Training Date", "Status"]
+          };
+
+          for(let re of response.data){
+              let compOrNot = '';
+
+              if(re.status == 'valid' && re.pass == 1){
+                compOrNot = 'Compliant';
+              }else{
+                  let desc = '(Not Taken)';
+                  if(re.pass == 0){
+                      desc = '(Failed)';
+                  }else if(re.status == 'expired'){
+                      desc = '(Expired)';
+                  }
+                  compOrNot = 'Not Compliant '+desc;
+              }
+              tblData.data.push([ re.first_name+' '+re.last_name, re.email, re.account_name, re.location_name, re.training_requirement_name, re.certification_date_formatted, compOrNot ]);
+          }
+           
+          response['tables'].push(tblData);
+
+          this.generatePDF(response, res);
+        }
     }
 
     private async createComplianceMapForLocation(locationId, accountId, role){
@@ -835,13 +985,13 @@ export class ReportsRoute extends BaseRoute {
         res.send(response);
     }
 
-    public async getActivityReport(req: AuthRequest, res: Response){
+    public async getActivityReport(req: AuthRequest, res: Response, toPdf?){
         let
         location_id = req.body.location_id,
         limit = req.body.limit,
         offset = req.body.offset,
-        accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
-        userId = req.user.user_id,
+        accountId = (req.body.account_id) ? (req.body.account_id > -1) ? req.body.account_id : req.user.account_id : req.user.account_id,
+        userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         response = {
             status : false, data : [],
             pagination : {
@@ -859,9 +1009,12 @@ export class ReportsRoute extends BaseRoute {
 
         if(location_id == 0){
             try{
+                console.log('req.body', req.body);
                 let responseLocations = <any> await this.listLocations(req,res, true, {'archived' : 0});
                 locations = responseLocations.data;
-            }catch(e){}
+            }catch(e){
+              console.log(e);
+            }
         }else{
             let ids = location_id.split('-'),
                 locsIds = [0],
@@ -921,6 +1074,70 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        res.status(200).send(response);
+        if(!toPdf){
+            res.status(200).send(response);
+        }else{
+          response['tables'] = [];
+          let tblData = {
+            title : 'Activity Report',
+            data : [], 
+            headers : ['Locations', 'File name', 'Date']
+          };
+          for(let d of response.data){
+            tblData.data.push([ d.location_name, d.file_name, d.timestamp_formatted ]);
+          }
+          response['tables'].push(tblData);
+
+          this.generatePDF(response, res);
+        }
+    }
+
+    generatePDF(objRes, res){
+      let 
+        data = objRes.data,
+        tables = objRes.tables,
+        timestamp = new Date().getTime(),
+        doc:PDFDocument = new PDFDocumentWithTables({
+          margins : {
+            top:25, left:25, right:25, bottom:25
+          }
+        }),
+        DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
+
+        let 
+        filepath = DIR + timestamp + '.pdf',
+        writeStream = fs.createWriteStream(filepath);
+        
+        doc.pipe(writeStream);
+        doc.image( __dirname + '/../public/assets/images/ec_logo.png', 25, 15, { width: 200, height: 60 });
+        doc.moveDown(4);
+
+        for(let table of tables){
+          doc.table({
+            title : table.title,
+            headers: table.headers,
+            rows: table.data
+          },
+          {
+            prepareHeader: () => doc.font('Helvetica').fontSize(9),
+            prepareRow: (row, i) => doc.font('Helvetica').fontSize(6)
+          });
+        }
+
+        doc.end();
+
+        writeStream.on('finish', function(){
+            fs.readFile(filepath, "utf8", function(err, data){
+                if(err) throw err;
+
+                var file = fs.createReadStream(filepath);
+                var stat = fs.statSync(filepath);
+
+                res.setHeader('Content-Length', stat.size);
+                res.setHeader('Content-Type', 'application/pdf');
+                res.setHeader('Content-Disposition', 'attachment; filename='+timestamp + '.pdf');
+                file.pipe(res);
+            });
+        });
     }
 }

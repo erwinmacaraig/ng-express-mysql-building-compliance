@@ -11,23 +11,24 @@ import * as ng2JWT from 'angular2-jwt';
 @Injectable()
 export class AuthGuard implements CanActivate {
 
-  constructor(private authService: AuthService,
-              private router: Router){}
-
-
-  canActivate(route: ActivatedRouteSnapshot,
-              state: RouterStateSnapshot):
-              Observable<boolean> |
-              Promise<boolean> |
-              boolean
-  {
-    if (this.authService.getToken()) {
-      if( ng2JWT.tokenNotExpired('currentUser') ){
-        return true;
-      }
+    constructor(
+        private authService: AuthService,
+        private router: Router){
     }
-    window.location.href = 'https://portal.evacconnect.com/login';
-    // this.router.navigate(['/login']);
-    return false;
-  }
+
+
+    canActivate(route: ActivatedRouteSnapshot,state: RouterStateSnapshot):
+        Observable<boolean> |
+        Promise<boolean> |
+        boolean
+    {
+        if (this.authService.getToken() ) {
+            if( ng2JWT.tokenNotExpired('currentUser') ){
+                return true;
+            }
+        }
+        window.location.href = 'https://portal.evacconnect.com/login';
+        // this.router.navigate(['/login']);
+        return false;
+    }
 }

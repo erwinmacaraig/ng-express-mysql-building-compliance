@@ -1,5 +1,7 @@
+<breadcrumbs-component></breadcrumbs-component>
+
 <div class="row">
-	<div class="col l2 m2 s12">
+	<div class="col l2 m2 s12" *ngIf="locationData.is_building == 1">
 		<div class="manage-compliance">
 			<h5 class="center compliacne-rating">Compliance Rating</h5>
 
@@ -41,7 +43,7 @@
 			<a *ngIf="locationData.admin_verified == 1 && !showLoadingCompliance" class="btn blue waves-effect waves-light" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
 		</div>
 	</div>
-	<div class="col l10 m10 s12">
+	<div class="col l10 m10 s12" [ngClass]="{ 'l12' :  locationData.is_building != 1}">
 		<div class="row">
 			<div class="col l12 m12 s12" style="margin-bottom: 40px;">
 				<div class="details-container left">
@@ -86,7 +88,7 @@
 							<div class="background"></div>
 						</div> -->
 
-						<a href="#" class="archived" [routerLink]="['/location/list']">
+						<a href="#" class="archived" [routerLink]="['/location/list']" [queryParams]="{ 'archived' : true }">
 							<span class="image"></span>
 							View Archive
 						</a>
@@ -108,7 +110,7 @@
 						<tr class="grey darken-4 white-text">
 							<th>Sub Location</th>
 							<th>Warden Benchmarking</th>
-							<th>No. of Tenants</th>
+							<th>No. of Accounts</th>
 							<!-- <th>Compliance</th> -->
 							<th>Manage</th>
 						</tr>
@@ -121,24 +123,17 @@
 						</tr>
 						<tr *ngFor="let sub of locationData.sublocations">
 							<td>
-                <div *ngIf="sub.children?.length > 0; else nochildren">
-                    <a [routerLink]="['/location/view/', sub.location_id]" class="location-name-link">
-                      {{sub.name}}
-                    </a>
-                </div>
-                <ng-template #nochildren>
-                  <div>
-                    <a [routerLink]="['/location/view-sublocation/', sub.location_id]" class="location-name-link">
-                      {{sub.name}}
-                    </a>
-                  </div>
-                </ng-template>
-
-              </td>
+                                <a [routerLink]="['/location/view/', sub.location_id]" class="location-name-link" *ngIf="locationData.is_building == 0">
+                                      {{sub.name}}
+                                </a>
+                                <a [routerLink]="['/location/view-sublocation/', sub.location_id]" class="location-name-link" *ngIf="locationData.is_building == 1">
+                                      {{sub.name}}
+                                </a>
+                            </td>
 
 							<td>
-                <!-- {{sub.trained_wardens}} / {{sub.total_wardens}} -->
-                {{sub.trained_wardens}} / {{sub.total_estimated_wardens}}
+                                <!-- {{sub.trained_wardens}} / {{sub.total_wardens}} -->
+                                {{sub.trained_wardens}} / {{sub.total_estimated_wardens}}
 							</td>
 							<td>
 								<span style="margin-right:10px;">{{sub.num_tenants}}</span>
@@ -150,7 +145,7 @@
                                     <option value="view-{{sub.location_id}}" *ngIf="sub.children?.length > 0">View Location</option>
                                     <option value="viewsub-{{sub.location_id}}" *ngIf="sub.children?.length == 0">View Location</option>
                                     <option value="addtenants-{{sub.location_id}}" >Add Tenants</option>
-                                    <option value="archive">Archive</option>
+                                    <option value="archive-{{sub.location_id}}">Archive</option>
                                     <option value="benchmark-{{sub.location_id}}">Benchmark</option>
                                 </select>
                             </td>
@@ -233,37 +228,43 @@
 	</div>
 </div>
 
+
 <div id="modalArchive" class="modal">
-	<div class="modal-content">
-		<div class="center-align" *ngIf="showLoaderModalSublocation">
-			<div class="preloader-wrapper active" >
-				<div class="spinner-layer spinner-red-only">
-					<div class="circle-clipper left">
-						<div class="circle"></div>
-					</div><div class="gap-patch">
-						<div class="circle"></div>
-					</div><div class="circle-clipper right">
-						<div class="circle"></div>
-					</div>
-				</div>
-			</div>
-		</div>
+    <div class="modal-content center" [hidden]="!modalArchive.loader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal-content" [hidden]="modalArchive.loader">
+        <h5>Confirmation</h5>
 
-		<div class="center" *ngIf="errorMessageModalSublocation.length > 0 && !showLoaderModalSublocation">
-			<h4>{{errorMessageModalSublocation}}</h4>
-		</div>
-
-		<div class="center-align" *ngIf="errorMessageModalSublocation.length == 0 && !showLoaderModalSublocation">
-			<h5>Are you sure you want to archive this '{{selectedLocationToArchive.name}}'</h5>
-		</div>
-
-		<div class="button-container center-align" *ngIf="!showLoaderModalSublocation">
-			<a  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Cancel</a>
-    		<button type="submit" class="waves-effect waves-light btn orange btn-flat" (click)="onClickYesArchive()">Yes</button>
-		</div>
-
-	</div>
+        <h5 *ngIf="selectedArchive.length == 0">No location selected</h5>
+        <div *ngIf="selectedArchive.length > 0">
+            <p style="font-size: 16px;" *ngIf="!paramArchived">
+                Are you sure you want archive location : {{selectedArchive.name}}?
+            </p>
+            <p style="font-size: 16px;" *ngIf="paramArchived">
+                Are you sure you want restore location : {{selectedArchive.name}}?
+            </p>
+        </div>
+    </div>
+    <div class="modal-footer" [hidden]="modalArchive.loader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <a  *ngIf="selectedArchive.length  > 0" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!paramArchived">Archive</span>
+            <span *ngIf="paramArchived">Restore</span>
+        </a>
+    </div>
 </div>
+
 
 <div id="modalEditDetails" class="modal">
 

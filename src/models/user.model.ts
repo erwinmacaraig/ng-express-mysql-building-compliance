@@ -1,5 +1,3 @@
-
-
 import * as db from 'mysql2';
 import { BaseClass } from './base.model';
 import { UtilsSync } from './util.sync';
@@ -12,6 +10,13 @@ import * as md5 from 'md5';
 import * as jwt from 'jsonwebtoken';
 
 export class User extends BaseClass {
+
+    constructor(id?: number) {
+        super();
+        if (id) {
+            this.id = id;
+        }
+    }
 
     public static getByToken(token: string) {
         return new Promise((resolve, reject) => {
@@ -42,347 +47,392 @@ export class User extends BaseClass {
         });
     }
 
-    constructor(id?: number) {
-        super();
-        if (id) {
-            this.id = id;
-        }
-    }
-
     public load() {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM users WHERE user_id = ?';
-            const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    console.log(`${error} and sql is ${sql_load}`);
-                    throw error;
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                if (!results.length) {
-                    console.log('User not found');
-                    reject('No user found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['user_id']);
-                    resolve(this.dbData);
-                }
+                const sql_load = 'SELECT * FROM users WHERE user_id = ?';
+                const uid = [this.id];
+                connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        console.log(`${error} and sql is ${sql_load}`);
+                        throw Error(error);
+                    }
+                    if (!results.length) {
+                        console.log('User not found');
+                        reject('No user found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['user_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getByEmail(email: String) {
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM users WHERE email = ?';
-            const param = [email];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
+                const sql_load = 'SELECT * FROM users WHERE email = ?';
+                const param = [email];
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
 
-                if (!results.length) {
-                    console.log('Call to user.model.getByEmail - No email found.');
-                    reject('No user found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['user_id']);
-                    resolve(this.dbData);
-                }
+                    if (!results.length) {
+                        console.log('Call to user.model.getByEmail - No email found.');
+                        reject('No user found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['user_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getByUsername(username: String) {
         console.log(username);
         return new Promise((resolve, reject) => {
-            const sql_load = 'SELECT * FROM users WHERE user_name = ?';
-            const param = [username];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
+                const sql_load = 'SELECT * FROM users WHERE user_name = ?';
+                const param = [username];
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
 
-                if (!results.length) {
-                    reject('No user found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['user_id']);
-                    resolve(this.dbData);
-                }
+                    if (!results.length) {
+                        reject('No user found');
+                    } else {
+                        this.dbData = results[0];
+                        this.setID(results[0]['user_id']);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
     loadByCredentials(username: string, passwd: string) {
         return new Promise((resolve, reject) => {
-            let whereClause = '';
-            if (validator.isEmail(username)) {
-                whereClause = 'WHERE email = ?';
-            } else {
-                whereClause = 'WHERE user_name = ?';
-            }
-            const sql_user = `SELECT users.*, token.verified, token.expiration_date, token.action, token.token_id FROM users
-                              LEFT JOIN token ON users.user_id = token.id `
-                              + whereClause + ` AND password = ?`;
-            // const sql_user = `SELECT * FROM users `+ whereClause + ` AND password = ? `;
-            const newPasswd = md5('Ideation' + passwd + 'Max');
-            const credential = [username, newPasswd];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_user, credential, (error, results, fields) => {
-                if (error) {
-                    console.log(sql_user);
-                    throw error;
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                if (!results.length) {
-                    reject('Invalid user');
+                let whereClause = '';
+                if (validator.isEmail(username)) {
+                    whereClause = 'WHERE email = ?';
                 } else {
-                    let user = <any> {
-                        'action' : false
-                    };
-                    for(let res of results){
-                        if(res['action'] == 'verify'){
-                            user = res;
-                        }
-                    }
-                    if(!user['action']){
-                        user = results[0];
-                        user['token_id'] = null;
-                    }
-
-                    this.dbData = user;
-                    this.setID(user.user_id);
-                    resolve(this.dbData);
+                    whereClause = 'WHERE user_name = ?';
                 }
+                const sql_user = `SELECT users.*, token.verified, token.expiration_date, token.action, token.token_id FROM users
+                                  LEFT JOIN token ON users.user_id = token.id `
+                                  + whereClause + ` AND password = ?`;
+                // const sql_user = `SELECT * FROM users `+ whereClause + ` AND password = ? `;
+                const newPasswd = md5('Ideation' + passwd + 'Max');
+                const credential = [username, newPasswd];
+                connection.query(sql_user, credential, (error, results, fields) => {
+                    if (error) {
+                        console.log(sql_user);
+                        throw error;
+                    }
+                    if (!results.length) {
+                        reject('Invalid user');
+                    } else {
+                        let user = <any> {
+                            'action' : false
+                        };
+                        for(let res of results){
+                            if(res['action'] == 'verify' && res['id_type'] == 'user_id'){
+                                user = res;
+                                break;
+                            }
+                        }
+                        if(!user['action']){
+                            user = results[0];
+                            user['token_id'] = null;
+                        }
+
+                        this.dbData = user;
+                        this.setID(user.user_id);
+                        resolve(this.dbData);
+                    }
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-            const sql_insert = `INSERT INTO users (
-            first_name,
-            last_name,
-            email,
-            phone_number,
-            mobile_number,
-            occupation,
-            mobility_impaired,
-            time_zone,
-            can_login,
-            password,
-            invited_by_user,
-            account_id,
-            last_login,
-            evac_role,
-            invitation_date,
-            add_to_location,
-            token,
-            approved_license_agreement,
-            logged_in,
-            archived,
-            must_change_password,
-            user_name,
-            profile_completion
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
-            const user = [
-            ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
-            ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
-            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
-            ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
-            ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : ' ',
-            ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
-            ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
-            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
-            ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
-            ('password' in this.dbData) ? this.dbData['password'] : '',
-            ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
-            ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
-            ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
-            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : 'Client',
-            ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
-            ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : '0',
-            ('token' in this.dbData) ? this.dbData['token'] : null,
-            ('approved_license_agreement' in this.dbData) ? this.dbData['approved_license_agreement'] : '0',
-            ('logged_in' in this.dbData) ? this.dbData['logged_in'] : '0',
-            ('archived' in this.dbData) ? this.dbData['archived'] : '0',
-            ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : '0',
-            ('user_name' in this.dbData) ? this.dbData['user_name'] : null,
-            ('profile_completion' in this.dbData) ? this.dbData['profile_completion'] : 1,
+            this.pool.getConnection((err, connection) => {
+                const sql_insert = `INSERT INTO users (
+                    first_name,
+                    last_name,
+                    email,
+                    phone_number,
+                    mobile_number,
+                    occupation,
+                    mobility_impaired,
+                    time_zone,
+                    can_login,
+                    password,
+                    invited_by_user,
+                    account_id,
+                    last_login,
+                    evac_role,
+                    invitation_date,
+                    add_to_location,
+                    token,
+                    approved_license_agreement,
+                    logged_in,
+                    archived,
+                    must_change_password,
+                    user_name,
+                    profile_completion
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+                let email = this.dbData['email'];
+                const user = [
+                    ('first_name' in this.dbData) ? this.dbData['first_name'] : '',
+                    ('last_name' in this.dbData) ? this.dbData['last_name'] : '',
+                    ('email' in this.dbData) ? email.toLowerCase() : '',
+                    ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
+                    ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : ' ',
+                    ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
+                    ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
+                    ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
+                    ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
+                    ('password' in this.dbData) ? this.dbData['password'] : '',
+                    ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
+                    ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
+                    ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
+                    ('evac_role' in this.dbData) ? this.dbData['evac_role'] : 'Client',
+                    ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
+                    ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : '0',
+                    ('token' in this.dbData) ? this.dbData['token'] : null,
+                    ('approved_license_agreement' in this.dbData) ? this.dbData['approved_license_agreement'] : '0',
+                    ('logged_in' in this.dbData) ? this.dbData['logged_in'] : '0',
+                    ('archived' in this.dbData) ? this.dbData['archived'] : '0',
+                    ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : '0',
+                    ('user_name' in this.dbData) ? this.dbData['user_name'] : null,
+                    ('profile_completion' in this.dbData) ? this.dbData['profile_completion'] : 1,
 
-            ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, user, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err);
-                }
-                this.id = results.insertId;
-                this.dbData['user_id'] = this.id;
-                resolve(true);
+                ];
+                connection.query(sql_insert, user, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    this.id = results.insertId;
+                    this.dbData['user_id'] = this.id;
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
-
         });
     }
 
     public dbUpdate() {
         return new Promise((resolve, reject) => {
-            const sql_update = `UPDATE users SET
-            first_name = ?,
-            last_name = ?,
-            email = ?,
-            phone_number = ?,
-            mobile_number = ?,
-            occupation = ?,
-            mobility_impaired = ?,
-            time_zone = ?,
-            can_login = ?,
-            password = ?,
-            invited_by_user = ?,
-            account_id = ?,
-            last_login = ?,
-            evac_role = ?,
-            invitation_date = ?,
-            add_to_location = ?,
-            token = ?,
-            approved_license_agreement = ?,
-            logged_in = ?,
-            archived = ?,
-            must_change_password = ?,
-            user_name = ?,
-            profile_completion = ?
-            WHERE user_id = ?
-            `;
-            const user = [
-            ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
-            ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
-            ('email' in this.dbData) ? this.dbData['email'].toLowerCase() : '',
-            ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
-            ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
-            ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
-            ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
-            ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
-            ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
-            ('password' in this.dbData) ? this.dbData['password'] : null,
-            ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
-            ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
-            ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
-            ('evac_role' in this.dbData) ? this.dbData['evac_role'] : 'Client',
-            ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
-            ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : null,
-            ('token' in this.dbData) ? this.dbData['token'] : null,
-            ('approved_license_agreement' in this.dbData) ? this.dbData['approved_license_agreement'] : null,
-            ('logged_in' in this.dbData) ? this.dbData['logged_in'] : '0',
-            ('archived' in this.dbData) ? this.dbData['archived'] : '0',
-            ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : '0',
-            ('user_name' in this.dbData) ? this.dbData['user_name'] : null,
-            ('profile_completion' in this.dbData) ? this.dbData['profile_completion'] : 1,
-            this.ID() ? this.ID() : 0
-            ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_update, user, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err + ' ' + sql_update);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                resolve(true);
+                const sql_update = `UPDATE users SET
+                    first_name = ?,
+                    last_name = ?,
+                    email = ?,
+                    phone_number = ?,
+                    mobile_number = ?,
+                    occupation = ?,
+                    mobility_impaired = ?,
+                    time_zone = ?,
+                    can_login = ?,
+                    password = ?,
+                    invited_by_user = ?,
+                    account_id = ?,
+                    last_login = ?,
+                    evac_role = ?,
+                    invitation_date = ?,
+                    add_to_location = ?,
+                    token = ?,
+                    approved_license_agreement = ?,
+                    logged_in = ?,
+                    archived = ?,
+                    must_change_password = ?,
+                    user_name = ?,
+                    profile_completion = ?
+                    WHERE user_id = ?
+                    `;
+                const user = [
+                    ('first_name' in this.dbData) ? this.dbData['first_name'] : null,
+                    ('last_name' in this.dbData) ? this.dbData['last_name'] : null,
+                    ('email' in this.dbData) ? <string>this.dbData['email'].toLowerCase() : '',
+                    ('phone_number' in this.dbData) ? this.dbData['phone_number'] : '',
+                    ('mobile_number' in this.dbData) ? this.dbData['mobile_number'] : '',
+                    ('occupation' in this.dbData) ? this.dbData['occupation'] : '',
+                    ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
+                    ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
+                    ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
+                    ('password' in this.dbData) ? this.dbData['password'] : null,
+                    ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
+                    ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
+                    ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
+                    ('evac_role' in this.dbData) ? this.dbData['evac_role'] : 'Client',
+                    ('invitation_date' in this.dbData) ? this.dbData['invitation_date'] : null,
+                    ('add_to_location' in this.dbData) ? this.dbData['add_to_location'] : null,
+                    ('token' in this.dbData) ? this.dbData['token'] : null,
+                    ('approved_license_agreement' in this.dbData) ? this.dbData['approved_license_agreement'] : null,
+                    ('logged_in' in this.dbData) ? this.dbData['logged_in'] : '0',
+                    ('archived' in this.dbData) ? this.dbData['archived'] : '0',
+                    ('must_change_password' in this.dbData) ? this.dbData['must_change_password'] : '0',
+                    ('user_name' in this.dbData) ? this.dbData['user_name'] : null,
+                    ('profile_completion' in this.dbData) ? this.dbData['profile_completion'] : 1,
+                    this.ID() ? this.ID() : 0
+                ];
+                connection.query(sql_update, user, (err, results, fields) => {
+                    if (err) {
+                        throw new Error(err + ' ' + sql_update);
+                    }
+                    resolve(true);
+                });
+                connection.release();
             });
-            connection.end();
         }); // end Promise
     }
 
     public create(createData) {
         return new Promise((resolve, reject) => {
-            for (let key in createData ) {
-                this.dbData[key] = createData[key];
-            }
-            if ('user_id' in createData) {
-                this.id = createData.user_id;
-            }
-            resolve(this.write());
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
+                }
+
+                for (let key in createData ) {
+                    this.dbData[key] = createData[key];
+                }
+                if ('user_id' in createData) {
+                    this.id = createData.user_id;
+                }
+                resolve(this.write());
+
+                connection.release();
+            });
         });
     }
 
     public getAll(limit:number, orderBy:String, order:String){
         return new Promise((resolve, reject) => {
-            limit = (limit) ? limit : 25;
-            orderBy = (orderBy) ? orderBy : 'user_id';
-            order = (order) ? order : 'DESC';
-            const sql_load = "SELECT * FROM users ORDER BY "+orderBy+" "+order+" LIMIT "+limit+"";
-            const param = [ ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+
+                limit = (limit) ? limit : 25;
+                orderBy = (orderBy) ? orderBy : 'user_id';
+                order = (order) ? order : 'DESC';
+                const sql_load = "SELECT * FROM users ORDER BY "+orderBy+" "+order+" LIMIT "+limit+"";
+                const param = [ ];
+                
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getAdmins(limit?){
         return new Promise((resolve, reject) => {
-            let sql_load = "SELECT * FROM users WHERE evac_role = 'admin' AND archived = 0";
-            if(limit){
-                sql_load += " LIMIT "+limit;
-            }
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+
+                let sql_load = "SELECT * FROM users WHERE evac_role = 'admin' AND archived = 0";
+                if(limit){
+                    sql_load += " LIMIT "+limit;
+                }
+
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getByAccountId(accountId, archived?, search?): any {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? ';
-            if(search){
-                sql_load += ' AND CONCAT(first_name, " ", last_name) LIKE "%'+search+'%" ';
-            }
-            if(!archived){
-                archived = 0;
-            }
-            const param = [accountId, archived];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                this.dbData = results;
-                resolve(results);
+                let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? ';
+                if(search){
+                    sql_load += ' AND CONCAT(first_name, " ", last_name) LIKE "%'+search+'%" ';
+                }
+                if(!archived){
+                    archived = 0;
+                }
+                const param = [accountId, archived];
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getImpairedByAccountId(accountId, archived?) {
         return new Promise((resolve, reject) => {
-            let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? AND mobility_impaired = 1';
-            if(!archived){
-                archived = 0;
-            }
-            const param = [accountId, archived];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                this.dbData = results;
-                resolve(results);
+                let sql_load = 'SELECT * FROM users WHERE account_id = ? AND archived = ? AND mobility_impaired = 1';
+                if(!archived){
+                    archived = 0;
+                }
+                const param = [accountId, archived];
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(results);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
   /**
@@ -393,81 +443,86 @@ export class User extends BaseClass {
    * @param user_id
    * User id on which to get all certifications based on the filter
    */
-  public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
-    return new Promise((resolve, reject) => {
-      let uid = this.ID();
-      if (user_id) {
-        uid = user_id;
-      }
-      let filterStr = '';
-      Object.keys(filter).forEach((key) => {
-        switch (key) {
-          case 'pass':
-            filterStr += ` AND certifications.pass = ${filter[key]}`;
-          break;
-          case 'training_requirement_id':
-            const trainingRequirementIds = (filter['training_requirement_id']).join(',');
-            if (trainingRequirementIds.length > 0 ) {
-              filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
-            }
-          break;
-          case 'certifications_id':
-            filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
-          break;
-          case 'current':
-            filterStr += ` AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()`;
-          break;
-          case 'em_roles':
-            if (filter['em_roles'].length > 0) {
-              const em_roles = (filter['em_roles']).join(',');
-              filterStr += ` AND em_role_training_requirements.em_role_id IN (${em_roles})`;
-            }
+    public getAllCertifications(filter: object = {}, user_id: number = 0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
+                }
 
-          break;
-        }
-      });
-      const sql_certifications = `SELECT
-        training_requirement.training_requirement_name,
-        em_roles.role_name,
-        training_requirement.scorm_course_id,
-        certifications.*,
-        training_requirement.num_months_valid,
-        DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
-        IF (DATE_ADD(certifications.certification_date,
-          INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
-        FROM
-          certifications
-        INNER JOIN
-         training_requirement
-        ON
-          training_requirement.training_requirement_id = certifications.training_requirement_id
-        INNER JOIN
-          em_role_training_requirements
-        ON
-          em_role_training_requirements.training_requirement_id = training_requirement.training_requirement_id
-        INNER JOIN
-          em_roles
-        ON
-          em_roles.em_roles_id = em_role_training_requirements.em_role_id
-        WHERE
-          certifications.user_id = ? ${filterStr}`;
+                let uid = this.ID();
+                if (user_id) {
+                    uid = user_id;
+                }
+                let filterStr = '';
+                Object.keys(filter).forEach((key) => {
+                    switch (key) {
+                        case 'pass':
+                        filterStr += ` AND certifications.pass = ${filter[key]}`;
+                        break;
+                        case 'training_requirement_id':
+                        const trainingRequirementIds = (filter['training_requirement_id']).join(',');
+                        if (trainingRequirementIds.length > 0 ) {
+                            filterStr += ` AND certifications.training_requirement_id IN (${trainingRequirementIds}) `;
+                        }
+                        break;
+                        case 'certifications_id':
+                        filterStr += ` AND certifications.certifications_id = ${filter[key]}`;
+                        break;
+                        case 'current':
+                        filterStr += ` AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()`;
+                        break;
+                        case 'em_roles':
+                        if (filter['em_roles'].length > 0) {
+                            const em_roles = (filter['em_roles']).join(',');
+                            filterStr += ` AND em_role_training_requirements.em_role_id IN (${em_roles})`;
+                        }
 
+                        break;
+                    }
+                });
+                const sql_certifications = `SELECT
+                    training_requirement.training_requirement_name,
+                    em_roles.role_name,
+                    training_requirement.scorm_course_id,
+                    certifications.*,
+                    training_requirement.num_months_valid,
+                    DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+                    IF (DATE_ADD(certifications.certification_date,
+                    INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired') as status
+                    FROM
+                    certifications
+                    INNER JOIN
+                    training_requirement
+                    ON
+                    training_requirement.training_requirement_id = certifications.training_requirement_id
+                    INNER JOIN
+                    em_role_training_requirements
+                    ON
+                    em_role_training_requirements.training_requirement_id = training_requirement.training_requirement_id
+                    INNER JOIN
+                    em_roles
+                    ON
+                    em_roles.em_roles_id = em_role_training_requirements.em_role_id
+                    WHERE
+                    certifications.user_id = ? ${filterStr}  GROUP BY certifications.certifications_id ORDER BY certifications.certification_date DESC`;
 
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_certifications, [uid], (error, results, fields) => {
-        if (error) {
-          console.log('user.model.getAllCertifications',  error, sql_certifications);
-          throw Error('There was a problem with getting the certification records for this user');
-        }
-        if (results.length > 0) {
-          resolve(results);
-        } else {
-          reject('There are no certifications for this user');
-        }
-      });
-      connection.end();
-    });
-  }
+                connection.query(sql_certifications, [uid], (error, results, fields) => {
+                    if (error) {
+                        console.log('user.model.getAllCertifications',  error, sql_certifications);
+                        throw Error('There was a problem with getting the certification records for this user');
+                    }
+                    if (results.length > 0) {
+                        resolve(results);
+                    } else {
+                        reject('There are no certifications for this user');
+                    }
+                });
+                
+                connection.release();
+            });
+        });
+    }
     /**
     * @author Erwin Macaraig
     * @description
@@ -477,296 +532,334 @@ export class User extends BaseClass {
     */
     public getAllMyEMLocations(user_id: number = 0): Promise<Array<Object>> {
         return new Promise((resolve, reject) => {
-            let userId = this.ID();
-            if (user_id) {
-                userId = user_id;
-            }
-            const sql = `SELECT
-              users.user_id,
-              user_em_roles_relation.user_em_roles_relation_id,
-              user_em_roles_relation.em_role_id,
-              user_em_roles_relation.em_role_id as role_id,
-              em_roles.role_name,
-              locations.location_id,
-              locations.parent_id,
-              locations.is_building,
-              lp.name as parent_name,
-              IF(lp.name IS NOT NULL, CONCAT( IF(TRIM(lp.name) <> '', CONCAT(lp.name, ', '), ''), locations.name), locations.name) as name
-              FROM
-              users
-              INNER JOIN
-              user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
-              INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id
-              INNER JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
-              LEFT JOIN locations lp ON lp.location_id = locations.parent_id
-              WHERE users.user_id = ?`;
-
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, [userId], (error, results, fields) => {
-                if (error) {
-                    console.log('user.model.getAllMyLocations', error, sql, userId);
-                    throw Error('Internal error. Cannot retrieve records');
-                }
-                if (results.length > 0) {
-                    /*console.log(results);*/
-                    const utils = new UtilsSync();
-                    utils.getRootParent(results).then((set) => {
-                        /*console.log(set);*/
-                        resolve(set);
-                    });
-                } else {
-                    resolve([]);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
 
+                let userId = this.ID();
+                if (user_id) {
+                    userId = user_id;
+                }
+                const sql = `SELECT
+                  users.user_id,
+                  user_em_roles_relation.user_em_roles_relation_id,
+                  user_em_roles_relation.em_role_id,
+                  user_em_roles_relation.em_role_id as role_id,
+                  em_roles.role_name,
+                  locations.location_id,
+                  locations.parent_id,
+                  locations.is_building,
+                  lp.name as parent_name,
+                  IF(lp.name IS NOT NULL, CONCAT( IF(TRIM(lp.name) <> '', CONCAT(lp.name, ', '), ''), locations.name), locations.name) as name
+                  FROM
+                  users
+                  INNER JOIN
+                  user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+                  INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id
+                  INNER JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                  LEFT JOIN locations lp ON lp.location_id = locations.parent_id
+                  WHERE users.user_id = ?`;
+                connection.query(sql, [userId], (error, results, fields) => {
+                    if (error) {
+                        console.log('user.model.getAllMyLocations', error, sql, userId);
+                        throw Error('Internal error. Cannot retrieve records');
+                    }
+                    if (results.length > 0) {
+                        /*console.log(results);*/
+                        const utils = new UtilsSync();
+                        utils.getRootParent(results).then((set) => {
+                            /*console.log(set);*/
+                            resolve(set);
+                        });
+                    } else {
+                        resolve([]);
+                    }
+                });
+                connection.release();
             });
+
+            
         });
     }
 
     public getWithoutToken() {
         return new Promise((resolve, reject) => {
-            const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql,  (error, results, fields) => {
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
+                }
 
-                resolve(results);
-
+                const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
+                connection.query(sql,  (error, results, fields) => {
+                    resolve(results);
+                });
+                connection.release();
             });
+            
         });
     }
 
     public query(queries){
         return new Promise((resolve, reject) => {
-            let selectQuery = 'users.*';
-            if(queries.select){
-                if( Object.keys(queries.select).length > 0 ){
-                    selectQuery = '';
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
+                }
 
-                    for(let i in queries.select){
-                        let arrSel = queries.select[i];
-                        let c = 0;
-                        for(let n in arrSel){
-                            if(c > 0 || selectQuery.trim().length > 0){
-                                selectQuery += ', ';
+                let selectQuery = 'users.*';
+                if(queries.select){
+                    if( Object.keys(queries.select).length > 0 ){
+                        selectQuery = '';
+
+                        for(let i in queries.select){
+                            let arrSel = queries.select[i];
+                            let c = 0;
+                            for(let n in arrSel){
+                                if(c > 0 || selectQuery.trim().length > 0){
+                                    selectQuery += ', ';
+                                }
+
+                                if(i !== 'custom'){
+                                    selectQuery += i + '.' + arrSel[n] +' ';
+                                }else{
+                                    selectQuery += arrSel[n]+' ';
+                                }
+
+                                c++;
                             }
-
-                            if(i !== 'custom'){
-                                selectQuery += i + '.' + arrSel[n] +' ';
-                            }else{
-                                selectQuery += arrSel[n]+' ';
-                            }
-
-                            c++;
                         }
+
                     }
 
                 }
 
-            }
+                if(queries.select.count){
+                    selectQuery = ' COUNT(users.user_id) as count';
+                }
 
-            if(queries.select.count){
-                selectQuery = ' COUNT(users.user_id) as count';
-            }
-
-            let whereQuery = '',
-                whereCount = 0;
-            if(queries.where){
-                for(let i in queries.where){
-                    if(whereCount == 0){
-                        whereQuery += ' WHERE '+queries.where[i];
-                    }else{
-                        whereQuery += ' AND '+queries.where[i];
+                let whereQuery = '',
+                    whereCount = 0;
+                if(queries.where){
+                    for(let i in queries.where){
+                        if(whereCount == 0){
+                            whereQuery += ' WHERE '+queries.where[i];
+                        }else{
+                            whereQuery += ' AND '+queries.where[i];
+                        }
+                        whereCount++;
                     }
-                    whereCount++;
                 }
-            }
 
-            if(queries.orWhere){
-                for(let i in queries.orWhere){
-                    whereQuery += ' '+queries.orWhere[i]+' ';
+                if(queries.orWhere){
+                    for(let i in queries.orWhere){
+                        whereQuery += ' '+queries.orWhere[i]+' ';
+                    }
                 }
-            }
 
-            let joinsQuery = '';
-            if(queries.where){
-                for(let i in queries.joins){
-                   joinsQuery += ' '+queries.joins[i]+' ';
+                let joinsQuery = '';
+                if(queries.where){
+                    for(let i in queries.joins){
+                       joinsQuery += ' '+queries.joins[i]+' ';
+                    }
                 }
-            }
 
-            let limitQuery = '';
-            if(queries.limit && ('count' in queries.select == false) ){
-                limitQuery = 'LIMIT '+queries.limit;
-            }
-
-            let orderQuery = '';
-            if(queries.order){
-                orderQuery = 'ORDER BY '+queries.order;
-            }
-
-            let groupQuery = '';
-            if(queries.group){
-                groupQuery = 'GROUP BY '+queries.group;
-            }
-
-            let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
-            // console.log(sql_load);
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    console.log(sql_load);
-                    return console.log(error);
+                let limitQuery = '';
+                if(queries.limit && ('count' in queries.select == false) ){
+                    limitQuery = 'LIMIT '+queries.limit;
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+
+                let orderQuery = '';
+                if(queries.order){
+                    orderQuery = 'ORDER BY '+queries.order;
+                }
+
+                let groupQuery = '';
+                if(queries.group){
+                    groupQuery = 'GROUP BY '+queries.group;
+                }
+
+                let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
+                // console.log(sql_load);
+                
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log(sql_load);
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getAllActive(accountId?, count?){
         return new Promise((resolve, reject) => {
-            let accntWhere = (accountId) ? ' AND users.account_id = '+accountId : '';
-            let sql_load =  ` 
-                SELECT users.*, accounts.account_name FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
-                WHERE users.archived = 0 ${accntWhere} `;
-            if(count){
-                sql_load =  ` SELECT COUNT(users.user_id) as count FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
-                WHERE users.archived = 0 ${accntWhere} `;
-            }
-            const param = [ ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+                let accntWhere = (accountId) ? ' AND users.account_id = '+accountId : '';
+                let sql_load =  ` 
+                    SELECT users.*, accounts.account_name FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
+                    WHERE users.archived = 0 ${accntWhere} `;
+                if(count){
+                    sql_load =  ` SELECT COUNT(users.user_id) as count FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
+                    WHERE users.archived = 0 ${accntWhere} `;
+                }
+                const param = [ ];
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
-    public getSpliceUsers(accountId: number = 0, filter = {}): Promise<Array<number>> {
-      return new Promise((resolve, reject) => {
-        let 
-        page = 0,
-        sql = 'SELECT user_id FROM users WHERE ', 
-        where = '  ',
-        limit = 10,
-        resultSet = [];
+    public getSpliceUsers(accountId: number = 0, filter:any = {}): Promise<Array<number>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
+                }
+                
+                let 
+                page = 0,
+                sql = 'SELECT user_id FROM users WHERE ', 
+                where = '  ',
+                limit = 10,
+                resultSet = [];
 
-        if ('page' in filter) {
-          page = ( typeof filter['page'] == 'string'  ) ? (isNaN(parseInt(filter['page']))) ? 0 : parseInt(filter['page']) : filter['page']; 
-        }
+                if ('page' in filter) {
+                    page = ( typeof filter['page'] == 'string'  ) ? (isNaN(parseInt(filter['page']))) ? 0 : parseInt(filter['page']) : filter['page']; 
+                }
 
-        if ('query' in filter && filter['query'].length > 0 && filter['query'] != 'all') {
-          where += ` account_id = ${accountId} AND CONCAT(first_name,' ',last_name) LIKE '%${filter['query']}%' AND archived = 0 OR account_id = ${accountId} AND email like '%${filter['query']}%' AND archived = 0 `;
-        }else{
-          where += ` account_id = ${accountId} AND archived = 0 `;
-        }
+                if ('query' in filter && filter['query'].length > 0 && filter['query'] != 'all') {
+                    where += ` account_id = ${accountId} AND CONCAT(first_name,' ',last_name) LIKE '%${filter['query']}%' AND archived = 0 OR account_id = ${accountId} AND email like '%${filter['query']}%' AND archived = 0 `;
+                }else{
+                    where += ` account_id = ${accountId} AND archived = 0 `;
+                }
 
-        if('count' in filter){
-          sql = `SELECT COUNT(user_id) as count FROM users WHERE `+where;
-        }else{
-          sql += where;
-          sql += ` LIMIT ${page}, ${limit} `;
-        }
-        
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, (error, results) => {
-          if (error) {
-            console.log('user.model.getSpliceUsers', error, sql);
-            throw Error('Internal server error. Cannot get users for the account');
-          }
+                if('count' in filter){
+                    sql = `SELECT COUNT(user_id) as count FROM users WHERE `+where;
+                }else{
+                    sql += where;
+                    sql += ` LIMIT ${page}, ${limit} `;
+                }
 
-          if('count' in filter){
-            resolve(results);
-          }else{
-            for (const r of results) {
-              resultSet.push(r['user_id']);
-            }
-            resolve(resultSet);
-          }
-          
+                connection.query(sql, (error, results) => {
+                    if (error) {
+                        console.log('user.model.getSpliceUsers', error, sql);
+                        throw Error('Internal server error. Cannot get users for the account');
+                    }
+
+                    if('count' in filter){
+                        resolve(results);
+                    }else{
+                        for (const r of results) {
+                            resultSet.push(r['user_id']);
+                        }
+                        resolve(resultSet);
+                    }
+
+                });
+
+                connection.release();
+            });
         });
-        connection.end();
-      });
     }
 
     public getIsFrpTrp(accountId?, count?, limit?, locationIds?){
         return new Promise((resolve, reject) => {
-            let select = `
-                users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
-                users.last_login, users.mobile_number, users.phone_number, 
-                DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
-            `;
-            if(count){
-                select = ' COUNT(users.user_id) as count '
-            }
-            
-            let where = '';
-            if(accountId){
-                where += ` AND users.account_id IN (${accountId}) `;
-            }
-
-            where += ' AND users.user_id IN (SELECT user_id FROM user_role_relation ) ';
-
-            if(locationIds){
-                where += ` AND users.user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (${locationIds}) ) `;
-            }
-
-            let offsetLimit = (limit) ? ' LIMIT '+limit : '';
-
-            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id WHERE users.archived = 0 ${where} ${offsetLimit} `;
-            
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    console.log('sql_load', sql_load);
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+
+                let select = `
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.last_login, users.mobile_number, users.phone_number, 
+                    DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
+                `;
+                if(count){
+                    select = ' COUNT(users.user_id) as count '
+                }
+                
+                let where = '';
+                if(accountId){
+                    where += ` AND users.account_id IN (${accountId}) `;
+                }
+
+                where += ' AND users.user_id IN (SELECT user_id FROM user_role_relation ) ';
+
+                if(locationIds){
+                    where += ` AND users.user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (${locationIds}) ) `;
+                }
+
+                let offsetLimit = (limit) ? ' LIMIT '+limit : '';
+
+                let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id WHERE users.archived = 0 ${where} ${offsetLimit} `;
+                
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log('sql_load', sql_load);
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
     public getIsEm(accountId?, count?, limit?, locationIds?){
         return new Promise((resolve, reject) => {
-            let select = `
-                users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
-                users.last_login, users.mobile_number, users.phone_number, 
-                DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
-            `;
-            if(count){
-                select = ' COUNT(users.user_id) as count '
-            }
-            
-            let where = '', join_training = '';
-            if(accountId){
-                where += ` AND users.account_id IN (${accountId})  `;
-            }
-
-            let whereLocations = (locationIds) ? ` WHERE location_id IN (${locationIds}) ` : '';
-            where += ` AND users.user_id IN (SELECT user_id FROM user_em_roles_relation ${whereLocations} )  `;
-            join_training = (locationIds) ?
-            ` INNER JOIN user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
-              INNER JOIN em_role_training_requirements ON user_em_roles_relation.em_role_id = em_role_training_requirements.em_role_id` : '';
-            let offsetLimit = (limit) ? ' LIMIT '+limit : '';
-
-            let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id ${join_training} WHERE users.archived = 0 ${where} ${offsetLimit} `;
-            console.log(sql_load); 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    console.log('sql_load', sql_load);
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if(err){ 
+                    throw err 
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+
+                let select = `
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.last_login, users.mobile_number, users.phone_number, 
+                    DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
+                `;
+                select += (locationIds) ? ` ,em_role_training_requirements.training_requirement_id, user_em_roles_relation.em_role_id` : '';
+                if(count){
+                    select = ' COUNT(users.user_id) as count '
+                }
+                
+                let where = '', join_training = '';
+                if(accountId){
+                    where += ` AND users.account_id IN (${accountId})  `;
+                }
+
+                let whereLocations = (locationIds) ? ` WHERE location_id IN (${locationIds}) ` : '';
+                where += ` AND users.user_id IN (SELECT user_id FROM user_em_roles_relation ${whereLocations} )  `;
+                join_training = (locationIds) ?
+                ` INNER JOIN user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+                  INNER JOIN em_role_training_requirements ON user_em_roles_relation.em_role_id = em_role_training_requirements.em_role_id` : '';
+                let offsetLimit = (limit) ? ' LIMIT '+limit : '';
+
+                let sql_load = `SELECT ${select} FROM users INNER JOIN accounts ON users.account_id = accounts.account_id ${join_training} WHERE users.archived = 0 ${where} ORDER BY users.user_id ${offsetLimit} `;
+                
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        console.log('sql_load', sql_load);
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -775,7 +868,7 @@ export class User extends BaseClass {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     console.log('Error gettting pool connection ' + err);
-                    throw err;
+                    throw new Error(err);
                 }
                 const sql = `SELECT
                                 users.user_id,
@@ -822,28 +915,69 @@ export class User extends BaseClass {
         });
     }
 
-    public searchUserAndLocation(keyword = ''){
+    public searchUsersLocationsAndAccount(keyword = '', filter = ''){
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     console.log('Error gettting pool connection ' + err);
-                    throw err;
+                    throw new Error(err);
                 }
-                let sql_load = `
-                (SELECT 
-                users.user_id as id, CONCAT(users.first_name,' ',users.last_name) as name, @type := 'user' as type
-                FROM users
-                WHERE users.archived = 0 AND CONCAT(first_name,' ',last_name) LIKE "%${keyword}%" LIMIT 5)
 
-                UNION   
+                let sqlUsers = `
+                    SELECT 
+                    users.user_id as id, CONCAT(users.first_name,' ',users.last_name) as name, @type := 'user' as type, @extra := users.email as extra
+                    FROM users
+                    WHERE users.archived = 0 AND CONCAT(first_name,' ',last_name) LIKE "%${keyword}%" OR users.archived = 0 AND email LIKE "%${keyword}%" 
+                `;
 
-                (SELECT
-                l.location_id as id, IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name, @type := 'location' as type
-                FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id
-                WHERE l.archived = 0 AND IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name  ) LIKE "%${keyword}%" ORDER BY IF(p.name IS NULL, l.name, CONCAT(p.name, ',', l.name)  ) ASC  LIMIT 5)
-                
-                ORDER BY name ASC
-            `;
+                let sqlLocations = `
+                    SELECT
+                    l.location_id as id, IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name ) as name, @type := 'location' as type, @extra := '' as extra
+                    FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id
+                    WHERE l.archived = 0 AND IF(p.name IS NOT NULL AND p.name > '', CONCAT(p.name, ',', l.name), l.name  ) LIKE "%${keyword}%" ORDER BY IF(p.name IS NULL, l.name, CONCAT(p.name, ',', l.name)  ) ASC 
+                `;
+
+                let sqlAccounts = `
+                    SELECT account_id as id, account_name as name, @type := 'account' as type, @extra := '' as extra
+                    FROM accounts WHERE account_name LIKE "%${keyword}%"
+                `;
+
+                let arr = [];
+                switch (filter) {
+                    case "user":
+                        sqlUsers += ' LIMIT 15 ';
+                        arr.push(sqlUsers);
+                        break;
+                    case "account":
+                        sqlAccounts += ' LIMIT 15 ';
+                        arr.push(sqlAccounts);
+                        break;
+                    case "location":
+                        sqlLocations += ' LIMIT 15 ';
+                        arr.push(sqlLocations);
+                        break;
+                    
+                    default:
+                        sqlUsers += ' LIMIT 5 ';
+                        sqlLocations += ' LIMIT 5 ';
+                        sqlAccounts += ' LIMIT 5 ';
+                        arr.push(sqlUsers);
+                        arr.push(sqlLocations);
+                        arr.push(sqlAccounts);
+                        break;
+                }
+
+                let sql_load = '';
+                for(let i in arr){
+                    if(parseInt(i) > 0){
+                        sql_load += ' UNION ';
+                    }
+
+                    sql_load += ' ('+arr[i]+') ';
+                }
+
+                sql_load += ' ORDER BY name ASC ';
+
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log('sql_load', sql_load);
@@ -861,7 +995,7 @@ export class User extends BaseClass {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     console.log('Error gettting pool connection ' + err);
-                    throw err;
+                    throw new Error(err);
                 }
                 const sql_load = `
                 SELECT 
@@ -895,7 +1029,7 @@ export class User extends BaseClass {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     console.log('Error gettting pool connection ' + err);
-                    throw err;
+                    throw new Error(err);
                 }
                 const sql_load = `
                 SELECT

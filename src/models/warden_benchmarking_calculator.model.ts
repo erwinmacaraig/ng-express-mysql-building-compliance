@@ -14,21 +14,29 @@ export class WardenBenchmarkingCalculator extends BaseClass {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT * FROM warden_benchmark_calculation
         WHERE warden_benchmark_calculation_id = ?`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_load, [this.id], (error, results, fields) => {
-          if (error) {
-            console.log('warden_benchmarking_calculator.load', error, sql_load);
-            throw new Error('No record found');
+        
+        this.pool.getConnection((err, connection) => {
+          if (err) {                    
+              throw new Error(err);
           }
-          if (!results.length) {
-            reject('Cannot load calculation details');
-          } else {
-            this.dbData = results[0];
-            this.setID(results[0]['warden_benchmark_calculation_id']);
-            resolve(this.dbData);
-          }
+
+          connection.query(sql_load, [this.id], (error, results, fields) => {
+            if (error) {
+              console.log('warden_benchmarking_calculator.load', error, sql_load);
+              throw new Error('No record found');
+            }
+            if (!results.length) {
+              reject('Cannot load calculation details');
+            } else {
+              this.dbData = results[0];
+              this.setID(results[0]['warden_benchmark_calculation_id']);
+              resolve(this.dbData);
+            }
+          });
+          connection.release();
         });
-        connection.end();
+        
+        
     });
   }
 
@@ -36,21 +44,27 @@ export class WardenBenchmarkingCalculator extends BaseClass {
     return new Promise((resolve, reject) => {
       const sql = `SELECT * FROM warden_benchmark_calculation
       WHERE location_id = ?`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [location_id], (error, results, fields) => {
-        if (error) {
-          console.log('warden_benchmarking_calculator.getBenchmarkingResultOnLocation', sql, error);
-          throw new Error('Internal problem, cannot get calculation results');
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        if (!results.length) {
-          reject('No calculations found');
-        } else {
-          this.dbData = results[0];
-          this.setID(results[0]['warden_benchmark_calculation_id']);
-          resolve(results[0]['total_estimated_wardens']);
-        }
+
+        connection.query(sql, [location_id], (error, results, fields) => {
+          if (error) {
+            console.log('warden_benchmarking_calculator.getBenchmarkingResultOnLocation', sql, error);
+            throw new Error('Internal problem, cannot get calculation results');
+          }
+          if (!results.length) {
+            reject('No calculations found');
+          } else {
+            this.dbData = results[0];
+            this.setID(results[0]['warden_benchmark_calculation_id']);
+            resolve(results[0]['total_estimated_wardens']);
+          }
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -60,23 +74,29 @@ export class WardenBenchmarkingCalculator extends BaseClass {
       const calculations = {};
       const sql = `SELECT * FROM warden_benchmark_calculation
       WHERE location_id IN (${locationIds})`;
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql, [], (error, results, fields) => {
-        if (error) {
-          console.log('warden_benchmarking_calculator.getBulkBenchmarkingResultOnLocations', sql, error);
-          throw new Error('Internal problem, cannot get calculation results');
+
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+          throw new Error(err);
         }
-        if (!results.length) {
-          // reject('No calculations found for these locations ' + locationIds);
-          resolve({});
-        } else {
-          for (let i = 0; i < results.length; i++) {
-            calculations[results[i]['location_id']] = results[i];
+        connection.query(sql, [], (error, results, fields) => {
+          if (error) {
+            console.log('warden_benchmarking_calculator.getBulkBenchmarkingResultOnLocations', sql, error);
+            throw new Error('Internal problem, cannot get calculation results');
           }
-          resolve(calculations);
-        }
+          if (!results.length) {
+            // reject('No calculations found for these locations ' + locationIds);
+            resolve({});
+          } else {
+            for (let i = 0; i < results.length; i++) {
+              calculations[results[i]['location_id']] = results[i];
+            }
+            resolve(calculations);
+          }
+        });
+
+        connection.release();
       });
-      connection.end();
     });
   }
   public dbUpdate() {
@@ -107,15 +127,21 @@ export class WardenBenchmarkingCalculator extends BaseClass {
         ('updated_by' in this.dbData) ? this.dbData['updated_by'] : 0,
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_update, values, (error, results, fields) => {
-        if (error) {
-          console.log('warden_benchmarking_calculator.dbUpdate', error, sql_update);
-          throw new Error('Cannot perform record update');
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        resolve(true);
+
+        connection.query(sql_update, values, (error, results, fields) => {
+          if (error) {
+            console.log('warden_benchmarking_calculator.dbUpdate', error, sql_update);
+            throw new Error('Cannot perform record update');
+          }
+          resolve(true);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 
@@ -168,17 +194,23 @@ export class WardenBenchmarkingCalculator extends BaseClass {
         ('total_estimated_wardens' in this.dbData) ? this.dbData['total_estimated_wardens'] : 0,
         ('updated_by' in this.dbData) ? this.dbData['updated_by'] : 0
       ];
-      const connection = db.createConnection(dbconfig);
-      connection.query(sql_insert, values, (error, results, fields) => {
-        if (error) {
-          console.log('warden_benchmarking_calculator.dbInsert', error, sql_insert);
-          throw new Error('Cannot insert record to db');
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
         }
-        this.id = results.insertId;
-        this.dbData['warden_benchmark_calculation_id'] = this.id;
-        resolve(true);
+
+        connection.query(sql_insert, values, (error, results, fields) => {
+          if (error) {
+            console.log('warden_benchmarking_calculator.dbInsert', error, sql_insert);
+            throw new Error('Cannot insert record to db');
+          }
+          this.id = results.insertId;
+          this.dbData['warden_benchmark_calculation_id'] = this.id;
+          resolve(true);
+        });
+        connection.release();
       });
-      connection.end();
+      
     });
   }
 

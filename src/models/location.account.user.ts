@@ -17,28 +17,38 @@ export class LocationAccountUser extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_account_user_id = ?';
             const uid = [this.id];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, uid, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                if(!results.length){
-                    reject('Record not found');
-                }else{
-                    this.dbData = results[0];
-                    this.setID(results[0]['location_account_user_id']);
-                    resolve(this.dbData);
-                }
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, uid, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    if(!results.length){
+                        reject('Record not found');
+                    }else{
+                        this.dbData = results[0];
+                        this.setID(results[0]['location_account_user_id']);
+                        resolve(this.dbData);
+                    }
+                });
+
+              connection.release();
             });
-            connection.end();
         });
     }
 
     public delete() {
         return new Promise((resolve, reject) => {
             const sql_del = `DELETE FROM location_account_user WHERE location_account_user_id = ? LIMIT 1`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_del, [this.ID()], (error, results, fields) => {
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_del, [this.ID()], (error, results, fields) => {
                 if (error) {
                     console.log(error);
                     reject('Error deleting record');
@@ -46,9 +56,11 @@ export class LocationAccountUser extends BaseClass {
                 } else {
                     resolve(true);
                 }
-
+              });
+                 
+              connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -64,25 +76,28 @@ export class LocationAccountUser extends BaseClass {
             WHERE lau.user_id = ${userId} AND lau.account_id = ${accntId} AND l.archived = 0
             `;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
-
-
         });
     }
 
     public getLocationsByUserIds(userIds, locId?, roleIds?) {
         return new Promise((resolve, reject) => {
             let whereLoc = (locId) ? ` AND lau.location_id = ${locId} ` : '';
-            let whereRoles = (locId && locId.length > 0) ? ` AND urr.role_id IN ${roleIds} ` : '';
-
+            let whereRoles = (locId && locId.length > 0 && roleIds) ? ` AND urr.role_id IN ${roleIds} ` : '';
 
             const sql_load = `SELECT
                     lau.location_account_user_id,
@@ -103,16 +118,21 @@ export class LocationAccountUser extends BaseClass {
                     LEFT JOIN user_role_relation urr ON urr.user_id = lau.user_id
                     WHERE lau.user_id IN (`+userIds+`) ${whereLoc} ${whereRoles} `;
 
-            const connection = db.createConnection(dbconfig);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -158,17 +178,23 @@ export class LocationAccountUser extends BaseClass {
 
             sql_load += sqlWhere + ' GROUP BY lau.location_account_user_id ';
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    console.log(sql_load);
-                    reject(error);
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      console.log(sql_load);
+                      reject(error);
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -176,20 +202,26 @@ export class LocationAccountUser extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_id = ?';
             const param = [locationId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                if (!results.length) {
-                    reject('Record not found');
-                } else {
-                    this.dbData = results[0];
-                    this.setID(results[0]['location_account_user_id']);
-                    resolve(this.dbData);
-                }
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  if (!results.length) {
+                      reject('Record not found');
+                  } else {
+                      this.dbData = results[0];
+                      this.setID(results[0]['location_account_user_id']);
+                      resolve(this.dbData);
+                  }
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -197,20 +229,26 @@ export class LocationAccountUser extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE account_id = ?';
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                if(!results.length){
-                    reject('Record not found');
-                }else{
-                    this.dbData = results[0];
-                    this.setID(results[0]['location_account_user_id']);
-                    resolve(this.dbData);
-                }
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  if(!results.length){
+                      reject('Record not found');
+                  }else{
+                      this.dbData = results[0];
+                      this.setID(results[0]['location_account_user_id']);
+                      resolve(this.dbData);
+                  }
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -218,40 +256,48 @@ export class LocationAccountUser extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE account_id = ? AND user_id IN ('+userIds+')';
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
     public getByLocationIdAndUserId(locationIds, userId) {
-
-        console.log(locationIds, userId);
-
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN ('+locationIds+') AND user_id = ?';
             const param = [userId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
-                if (!results.length) {
-                    reject('No record found');
-                } else {
-                    this.dbData = results;
-                    resolve(this.dbData);
-                }
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
 
+                  if (!results.length) {
+                      reject('No record found');
+                  } else {
+                      this.dbData = results;
+                      resolve(this.dbData);
+                  }
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -287,14 +333,21 @@ export class LocationAccountUser extends BaseClass {
                 accounts.account_id = u.account_id
               WHERE
                   lau.location_id IN (${ids})`;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results) => {
-              if (error) {
-                return console.log(error);
+            
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
               }
-              resolve(results);
+
+              connection.query(sql_load, (error, results, fields) => {
+                   if (error) {
+                    return console.log(error);
+                  }
+                  resolve(results);
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -302,17 +355,23 @@ export class LocationAccountUser extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_id IN ('+locationIds+') AND account_id IN (?)';
             const param = [accntId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
+            
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
-                this.dbData = results;
-                resolve(this.dbData);
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
 
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -325,19 +384,26 @@ export class LocationAccountUser extends BaseClass {
             LEFT JOIN location_account_user lau ON lau.user_id = u.user_id
             WHERE u.account_id = ? AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                if(!results.length){
-                    reject('Record not found');
-                }else{
-                    this.dbData = results;
-                    resolve(this.dbData);
-                }
+            
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  if(!results.length){
+                      reject('Record not found');
+                  }else{
+                      this.dbData = results;
+                      resolve(this.dbData);
+                  }
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -350,15 +416,22 @@ export class LocationAccountUser extends BaseClass {
             LEFT JOIN location_account_user lau ON lau.user_id = u.user_id
             WHERE u.account_id = ? AND lau.location_id = ? AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId, locId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+             
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
         });
     }
 
@@ -370,15 +443,23 @@ export class LocationAccountUser extends BaseClass {
             LEFT JOIN em_roles er ON uem.em_role_id = er.em_roles_id
             WHERE u.account_id = ? AND uem.location_id IN (`+locIds+`) AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+            
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
+
         });
     }
 
@@ -392,26 +473,45 @@ export class LocationAccountUser extends BaseClass {
             ON ur.user_id = u.user_id
             WHERE lau.account_id = ? AND u.archived = 0 GROUP BY u.user_id`;
             const param = [accountId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                if(!results.length){
-                    reject('Record not found');
-                }else{
-                    this.dbData = results;
-                    resolve(this.dbData);
-                }
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  if(!results.length){
+                      reject('Record not found');
+                  }else{
+                      this.dbData = results;
+                      resolve(this.dbData);
+                  }
+              });
+                 
+              connection.release();
             });
-            connection.end();
+
         });
     }
 
     public getTrpByLocationIds(locationIds){
         return new Promise((resolve, reject) => {
             const sql_load = `
-            SELECT ur.role_id, u.*, lau.location_id, a.account_name
+            SELECT ur.role_id, lau.location_id, a.account_name,
+                u.first_name,
+                u.last_name,
+                u.email,
+                IF(u.phone_number IS NOT NULL, u.phone_number, '') as phone_number,
+                IF(u.mobile_number IS NOT NULL, u.mobile_number, '') as mobile_number,
+                u.occupation,
+                u.mobility_impaired,
+                u.time_zone,
+                u.can_login,
+                u.account_id,
+                u.evac_role,
+                u.user_id
             FROM location_account_user lau
             INNER JOIN users u
             ON lau.user_id = u.user_id
@@ -421,15 +521,22 @@ export class LocationAccountUser extends BaseClass {
             ON ur.user_id = u.user_id
             WHERE u.archived = 0 AND ur.role_id = 2 AND lau.location_id IN (${locationIds})  GROUP BY u.user_id`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -447,15 +554,21 @@ export class LocationAccountUser extends BaseClass {
                 `;
             }
             const param = [UserId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
                 }
-                this.dbData = results;
-                resolve(this.dbData);
+
+                connection.query(sql_load, param, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(this.dbData);
+                });
+
+                connection.release();
             });
-            connection.end();
         });
     }
 
@@ -471,15 +584,20 @@ export class LocationAccountUser extends BaseClass {
             ('archived' in this.dbData) ? this.dbData['archived'] : 0,
             this.ID() ? this.ID() : 0
             ];
-            const connection = db.createConnection(dbconfig);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
-            connection.query(sql_update, param, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err);
-                }
-                resolve(true);
+              connection.query(sql_update, param, (err, results, fields) => {
+                  if (err) {
+                      throw new Error(err);
+                  }
+                  resolve(true);
+              });
+                 
+              connection.release();
             });
-            connection.end();
 
         });
     }
@@ -497,17 +615,22 @@ export class LocationAccountUser extends BaseClass {
             ('account_id' in this.dbData) ? this.dbData['account_id'] : 0,
             ('user_id' in this.dbData) ? this.dbData['user_id'] : 0
             ];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_insert, param, (err, results, fields) => {
-                if (err) {
-                    throw new Error(err);
-                }
-                this.id = results.insertId;
-                this.dbData['location_account_user_id'] = this.id;
-                resolve(true);
-            });
-            connection.end();
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
+              connection.query(sql_insert, param, (err, results, fields) => {
+                  if (err) {
+                      throw new Error(err);
+                  }
+                  this.id = results.insertId;
+                  this.dbData['location_account_user_id'] = this.id;
+                  resolve(true);
+              });
+                 
+              connection.release();
+            });
         });
     }
 
@@ -527,16 +650,22 @@ export class LocationAccountUser extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_user WHERE location_id = ?';
             const param = [locationId];
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_load, param, (error, results, fields) => {
-                if (error) {
-                    return console.log(error);
-                }
-                this.dbData = results;
-                resolve(this.dbData);
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
 
+              connection.query(sql_load, param, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+
+              });
+              connection.release();
             });
-            connection.end();
+            
         });
     }
 
@@ -565,37 +694,43 @@ export class LocationAccountUser extends BaseClass {
           ${role_filter}
             `;
         // console.log(sql_get_list);
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_list, [location_id], (error, results, fields) => {
-          if (error) {
-            console.log('location.account.user.listRolesOnLocation', error, sql_get_list);
-            throw new Error('Cannot generate list');
+        this.pool.getConnection((err, connection) => {
+          if (err) {                    
+              throw new Error(err);
           }
-          if (!results.length) {
-            reject('There are no role(s) for this location');
-          } else {
-            for (let i = 0; i < results.length; i++) {
-              if (results[i]['account_id'] in resultSetObj) {
-                (resultSetObj[results[i]['account_id']]['trp']).push(results[i]['first_name'] + ' ' + results[i]['last_name']);
-                (resultSetObj[results[i]['account_id']]['user_id']).push(results[i]['user_id']);
-              } else {
-                resultSetObj[results[i]['account_id']] = {
-                  'account_name': results[i]['account_name'],
-                  'trp': [results[i]['first_name'] + ' ' + results[i]['last_name'] ],
-                  'user_id': [results[i]['user_id']],
-                  'account_id': results[i]['account_id'],
-                  'location_id': results[i]['location_id']
-                };
-              }
-              if (seenAccountsArr.indexOf(results[i]['account_id']) === -1) {
-                seenAccountsArr.push(results[i]['account_id']);
-              }
+
+          connection.query(sql_get_list, [location_id], (error, results, fields) => {
+            if (error) {
+              console.log('location.account.user.listRolesOnLocation', error, sql_get_list);
+              throw new Error('Cannot generate list');
             }
-            // console.log(resultSetObj);
-            resolve(resultSetObj);
-          }
+            if (!results.length) {
+              reject('There are no role(s) for this location');
+            } else {
+              for (let i = 0; i < results.length; i++) {
+                if (results[i]['account_id'] in resultSetObj) {
+                  (resultSetObj[results[i]['account_id']]['trp']).push(results[i]['first_name'] + ' ' + results[i]['last_name']);
+                  (resultSetObj[results[i]['account_id']]['user_id']).push(results[i]['user_id']);
+                } else {
+                  resultSetObj[results[i]['account_id']] = {
+                    'account_name': results[i]['account_name'],
+                    'trp': [results[i]['first_name'] + ' ' + results[i]['last_name'] ],
+                    'user_id': [results[i]['user_id']],
+                    'account_id': results[i]['account_id'],
+                    'location_id': results[i]['location_id']
+                  };
+                }
+                if (seenAccountsArr.indexOf(results[i]['account_id']) === -1) {
+                  seenAccountsArr.push(results[i]['account_id']);
+                }
+              }
+              // console.log(resultSetObj);
+              resolve(resultSetObj);
+            }
+          });
+          connection.release();
         });
-        connection.end();
+         
       });
     }
 
@@ -634,21 +769,28 @@ export class LocationAccountUser extends BaseClass {
               ORDER BY
                 accounts.account_name`;
 
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_get_tenants, [], (error, results, fields) => {
-              if (error) {
-                console.log('location.account.user.model.getAllAccountsInSublocations', error, sql_get_tenants);
-                throw Error('Cannot process request');
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
               }
-              for (const s of sublocations) {
-                for (const r of results) {
-                  if (s['location_id'] === r['location_id']) {
-                    (s['trp']).push(r);
+
+              connection.query(sql_get_tenants, [], (error, results, fields) => {
+                if (error) {
+                  console.log('location.account.user.model.getAllAccountsInSublocations', error, sql_get_tenants);
+                  throw Error('Cannot process request');
+                }
+                for (const s of sublocations) {
+                  for (const r of results) {
+                    if (s['location_id'] === r['location_id']) {
+                      (s['trp']).push(r);
+                    }
                   }
                 }
-              }
-              resolve(sublocations);
+                resolve(sublocations);
+              });
+              connection.release();
             });
+            
           });
         });
     }
@@ -669,18 +811,24 @@ export class LocationAccountUser extends BaseClass {
               locations
             WHERE location_id IN (${locationsStr})
           `;
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_get_locations, [], (error, results) => {
-            if (error) {
-              console.log('location.account.user.getLocationDetails', error, sql_get_locations);
-              throw Error('Internal problem');
-            }
-            for (const r of results) {
-              foundLocations.push(r);
-            }
-            resolve(foundLocations);
+          
+          this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_get_locations, [], (error, results) => {
+                if (error) {
+                  console.log('location.account.user.getLocationDetails', error, sql_get_locations);
+                  throw Error('Internal problem');
+                }
+                for (const r of results) {
+                  foundLocations.push(r);
+                }
+                resolve(foundLocations);
+              });
+              connection.release();
           });
-          connection.end();
         });
     }
 
@@ -728,15 +876,21 @@ export class LocationAccountUser extends BaseClass {
                     AND
                       user_role_relation.role_id = 2`;
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [], (error, results) => {
-          if (error) {
-            console.log('Cannot retrieve a record - TRPUsersForNotification');
-            throw Error(error);
-          }
-          resolve(results);
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
+            }
+
+            connection.query(sql, [], (error, results) => {
+              if (error) {
+                console.log('Cannot retrieve a record - TRPUsersForNotification');
+                throw Error(error);
+              }
+              resolve(results);
+            });
+            connection.release();
         });
-        connection.end();
+        
       });
     }
 

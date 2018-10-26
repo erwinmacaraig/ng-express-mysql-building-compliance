@@ -180,7 +180,7 @@
             </tr>
         </thead>        
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[2]; let i = index;">
+            <tr *ngFor="let doc of complianceDocuments[selectedCompliance.compliance_kpis_id]; let i = index;">
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
@@ -188,7 +188,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd'}}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 2, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], selectedCompliance.compliance_kpis_id, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>
@@ -255,7 +255,7 @@
             </tr>
         </thead>        
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[4]; let i = index;">
+            <tr *ngFor="let doc of complianceDocuments[selectedCompliance.compliance_kpis_id]; let i = index;">
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
@@ -263,7 +263,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>                    
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 4, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], selectedCompliance.compliance_kpis_id, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>
@@ -302,7 +302,7 @@
             </tr>
         </thead>        
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[5]; let i = index">
+            <tr *ngFor="let doc of complianceDocuments[selectedCompliance.compliance_kpis_id]; let i = index">
                 <td>{{doc['name']}}</td>
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
@@ -311,7 +311,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 5, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], selectedCompliance.compliance_kpis_id, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>
@@ -330,9 +330,11 @@
 
 <ng-template #templateKpis6>
     <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
-    <div class="documents-container">
+    <div class="buttons">
+            <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+    </div>
+    <div class="documents-container">        
         <div class="document" >
-
             <div class="preview-container"></div>
 
             <div class="text-container">
@@ -357,7 +359,7 @@
                 </div>
                 
                 <div class="buttons">
-                    <a *ngIf="selectedCompliance.compliance.docs[0] != null" (click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'])" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
+                    <a *ngIf="selectedCompliance.compliance.docs[0] != null" (click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                 </div>
             </div> 
             <div class="recently-uploaded">
@@ -485,7 +487,11 @@
 
 <ng-template #templateKpis8>
     <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
+    <div class="buttons">
+            <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+    </div>
     <div class="documents-container">
+        
         <div class="document" >
             <div class="preview-container">
             </div>
@@ -510,7 +516,7 @@
                 </div>
 
                 <div class="buttons">
-                    <a *ngIf="selectedCompliance.compliance.docs[0] != null" (click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'])" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
+                    <a *ngIf="selectedCompliance.compliance.docs[0] != null" (click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                     <!-- <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                     <button class="btn btn-block blue lighten-1 waves-effect waves-light">Manage</button> -->
                     <!-- <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/shop/compliance-package']">Shop</button> -->
@@ -657,7 +663,7 @@
         </thead>
         
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[9]; let i = index;">
+            <tr *ngFor="let doc of complianceDocuments[selectedCompliance.compliance_kpis_id]; let i = index;">
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
@@ -665,7 +671,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 9, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], selectedCompliance.compliance_kpis_id, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>	
@@ -684,6 +690,9 @@
 
 <ng-template #templateKpis12>
     <ng-container *ngTemplateOutlet="displayKPINameAndDescription"></ng-container>
+    <div class="buttons">
+            <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+    </div>
     <div class="documents-container">
         <div class="document" >
 
@@ -714,7 +723,7 @@
                 </div>
 
                 <div class="buttons">
-                    <a *ngIf="selectedCompliance.compliance.docs[0] != null" (click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'])" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
+                    <a *ngIf="selectedCompliance.compliance.docs[0] != null" (click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                     <!--
                     <a href="{{ (selectedCompliance.compliance.docs[0]) ? selectedCompliance.compliance.docs[0]['urlPath'] : '#' }}" target="_blank" class="btn btn-block orange waves-effect waves-light" [ngClass]="{'disabled' : selectedCompliance.compliance.docs.length == 0}">Download</a>
                     <button class="btn btn-block blue lighten-1 waves-effect waves-light" [routerLink]="['/teams/add-wardens']" [queryParams]="{ 'location_id' : encryptedID }">Manage</button> -->
@@ -864,7 +873,7 @@
             </tr>
         </thead>
         <tbody>
-            <tr *ngFor="let doc of complianceDocuments[13]; let i = index;">                
+            <tr *ngFor="let doc of complianceDocuments[selectedCompliance.compliance_kpis_id]; let i = index;">                
                 <td>{{doc['document_type']}}</td>
                 <td>{{doc['file_name']}}</td>
                 <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
@@ -872,7 +881,7 @@
                 <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
                 <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
                 <td>
-                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIdownloadKPIFile(doc['urlPath'], doc['file_name'], 13, i)" target="_blank">Download</a>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], selectedCompliance.compliance_kpis_id, i)" target="_blank">Download</a>
                     <div *ngIf="doc['downloadCtrl']" class="progress">
                         <div class="indeterminate"></div>
                     </div>

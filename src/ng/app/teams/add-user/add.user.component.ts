@@ -38,8 +38,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
         location_name : 'Select Location',
         location_id : 0,
         mobile_number : '',
-        errors : {
-        }
+        selected_roles : [],
+        new_account : {
+            valid : false,
+            name : '',
+            trp : {
+                firstname : '', lastname : '', email : ''
+            }
+        },
+        errors : {}
     };
     private userRole;
     public accountRoles;
@@ -64,6 +71,18 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
     searchModalLocationSubs;
     formLocValid = false;
+
+    selectRolesDropdown = [];
+    dropdownSettings = {
+        singleSelection: false,
+        idField: 'role_id',
+        textField: 'role_name',
+        selectAllText: 'Select All',
+        unSelectAllText: 'UnSelect All',
+        itemsShowLimit: 1,
+        allowSearchFilter: false,
+        enableCheckAll: false
+    };
 
     constructor(
         private authService: AuthService,
@@ -91,12 +110,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
     ngOnInit(){
         this.accountRoles = [
-        {
-            role_id: 2,
-            role_name: 'Tenancy Responsible Personnel',
-            selected : (this.paramRole == 'tenant') ? true : false
-        }
+            {
+                role_id: 2,
+                role_name: 'Tenancy Responsible Personnel',
+                selected : (this.paramRole == 'tenant') ? true : false
+            }
         ];
+        /*this.selectRolesDropdown.push({
+            role_id : 2, role_name : 'Add Tenant'
+        });*/
 
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {
@@ -105,16 +127,30 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 role_name: 'Building Manager',
                 selected : (this.paramRole == 'building manager') ? true : false
             });
+
+            this.selectRolesDropdown.push({
+                role_id : 1, role_name : 'Building Manager'
+            });
+
+            this.selectRolesDropdown.push({
+                role_id : 2, role_name : 'Tenant'
+            });
         }
 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
             this.ecoRoles = roles;
             for(let i in roles){
-                this.accountRoles.push({
-                    role_id : roles[i]['em_roles_id'],
-                    role_name : roles[i]['role_name']
-                });
+                if(roles[i]['em_roles_id'] != 12){
+                    this.accountRoles.push({
+                        role_id : roles[i]['em_roles_id'],
+                        role_name : roles[i]['role_name']
+                    });
+
+                    this.selectRolesDropdown.push({
+                        role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
+                    });
+                }
             }
 
             if(this.paramRole.length > 0){
@@ -134,12 +170,17 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
         this.dashboardPreloaderService.show();
 
-        this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
-            this.buildings = response.data.buildings;
-            this.levels = response.data.levels;
+        this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response:any) => {
+            this.locations = JSON.parse( JSON.stringify( response.locations ) );
+            this.locationsCopy = JSON.parse( JSON.stringify( response.locations ) );
 
             this.dashboardPreloaderService.hide();
             this.addMoreRow();
+        });
+
+        this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
+            this.buildings = response.data.buildings;
+            this.levels = response.data.levels;
         });
     }
 
@@ -150,6 +191,56 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
         this.onKeyUpSearchModalLocationEvent();
         this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Add Users by CSV Upload'  } });
+
+        $('#modalAddNewTenant').off('click.sametrp').on('click.sametrp', '#inputSameAs', (e) => {
+            let target = $(e.target),
+                checked = target.prop('checked'),
+                trpFirstName = $('#trpFirstName'),
+                trpLastName = $('#trpLastName'),
+                trpEmail = $('#trpEmail');
+
+            if(checked){
+                trpFirstName.val(this.selectedUser["first_name"]).prop("disabled", true);
+                trpLastName.val(this.selectedUser["last_name"]).prop("disabled", true);
+                trpEmail.val(this.selectedUser["email"]).prop("disabled", true);
+            }else{
+                trpFirstName.val("").prop("disabled", false);
+                trpLastName.val("").prop("disabled", false);
+                trpEmail.val("").prop("disabled", false);
+            }
+            window['Materialize'].updateTextFields();
+        });
+
+        let breadCrumbs = [];
+        breadCrumbs.push({
+          'value' : 'All users', 'link' : '/teams/all-users'
+        });
+        breadCrumbs.push({
+          'value' : 'Add new users', 'link' : '/teams/add-user'
+        });
+        this.messageService.sendMessage({ 'breadcrumbs' : breadCrumbs });
+    }
+
+    onSelectRole($event, iterator, elem){
+
+        this.selectedUser = this.addedUsers[iterator];
+
+        if($event.role_id == 2){
+            let newSelected = [];
+            for(let i in this.addedUsers[iterator]['selected_roles']){
+                if(this.addedUsers[iterator]['selected_roles'][i]['role_id'] != 2){
+                    newSelected.push(this.addedUsers[iterator]['selected_roles'][i]);
+                }
+            }
+
+            this.addedUsers[iterator]['selected_roles'] = newSelected;
+
+            elem.closeDropdown();
+            $('#modalAddNewTenant').modal('open');
+            $('#inputSameAs').prop('checked', false).trigger('click');
+        }
+
+        console.log(this.selectedUser);
     }
 
     addMoreRow(){
@@ -169,6 +260,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
         setTimeout(() => {
             $("form table tbody tr:last-child").find('input.first-name').focus();
         },300);
+
+        setTimeout(() => {
+            $('.multiselect-item-checkbox').each(function(){
+                let divText = $(this).find('div').text();
+                if(divText.toLowerCase() == 'add tenant'){
+                    $(this).children('div').replaceWith('<p>+Add New Tenant</p>');
+                }
+            });
+        }, 700);
     }
 
     onChangeDropDown(event){
@@ -192,27 +292,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
     filterLocationsToDisplayByUserRole(user, data){
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
-       /* if(user.account_role_id == 1 || user.account_role_id == 11 || user.account_role_id == 15 || user.account_role_id == 16 || user.account_role_id == 18){
-            resp = JSON.parse( JSON.stringify( this.buildings ) );
-        } else {
-            resp = JSON.parse( JSON.stringify( this.levels ) );
-        }*/
 
-        for(let loc of this.buildings){
-            loc['sublocations'] = [];
-            for(let level of this.levels){
-                if(loc.location_id == level.parent_location_id){
-                    for(let sub of level.sublocations){
-                        sub['location_id'] = sub.id;
-                    }
-                    loc['sublocations'] = level.sublocations;
-                }
-            }
-            resp.push(loc);
-        }
-
-        this.locationsCopy = JSON.parse( JSON.stringify( resp ) );
-        return resp;
+        return JSON.parse( JSON.stringify( this.locationsCopy ) );
     }
 
     buildLocationsListInModal(){
@@ -224,79 +305,46 @@ export class AddUserComponent implements OnInit, OnDestroy {
         });
 
         let maxDisplay = 25,
-            count = 1;
+            count = 1,
+            buildChildList = (locations) => {
+                let ul = ``;
 
-        /*if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
-            parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
-            parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
-            parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
-            parseInt(this.selectedUser['account_role_id'], 10) === 18
-           ) {
-          for (let loc of this.locations) {
-            if (count <= maxDisplay) {
-                let $li = $(`
-                    <li class="list-division" id="${loc.location_id}">
-                        <div class="name-radio-plus">
-                            <div class="input">
-                                <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
-                                <label for="check-${loc.location_id}">${loc.name}</label>
-                            </div>
-                        </div>
-                    </li>`);
+                if(locations.length > 0){
+                    ul += '<ul style="padding-left: 20px; max-height: 153px; overflow: auto;">';
+                    for(let loc of locations){
+                        let subUl = (loc.sublocations.length > 0) ? buildChildList(loc.sublocations) : '';
+                        ul += `
+                            <li class="list-division" id="${loc.location_id}">
+                                <div class="name-radio-plus">
+                                    <div class="input">
+                                        <input required type="radio" name="selectLocation" loc-name="${loc.location_name}" value="${loc.location_id}" id="check-${loc.location_id}">
+                                        <label for="check-${loc.location_id}">${loc.name}</label>
+                                    </div>
+                                </div>
 
-                ulModal.append($li);
-                count++;
-            }
-          }
-        } else {
-          for (const loc of this.locations) {
-            if (count <= maxDisplay) {
-              const $lh = $(`<lh><h6>${loc['parent_location_name']}</h6></lh>`);
-              ulModal.append($lh);
-              if ('sublocations' in loc) {
-                for (const subloc of loc.sublocations) {
-                  const $li = $(`
-                      <li class="list-division" id="${subloc.id}">
-                          <div class="name-radio-plus">
-                              <div class="input">
-                                  <input required type="radio"
-                                  name="selectLocation"
-                                  value="${subloc.id}" id="check-${subloc.id}">
-                                  <label for="check-${subloc.id}">${subloc.name}</label>
-                              </div>
-                          </div>
-                      </li>`);
-                  ulModal.append($li);
+                                ${subUl}
+                            </li>
+                        `;
+                    }
+                    ul += '</ul>';
                 }
-              }
-              count++;
-            }
-          }
-        }*/
+
+                return ul;
+
+            };
 
         for (const loc of this.locations) {
             if (count <= maxDisplay) {
                 let ul = ``;
                 if(loc.sublocations.length > 0){
-                    ul += '<ul style="padding-left: 20px; max-height: 153px; overflow: auto;">';
-                        for(let sub of loc.sublocations){
-                            ul += `<li class="list-division" id="${sub.location_id}">
-                                    <div class="name-radio-plus">
-                                        <div class="input">
-                                            <input required type="radio" name="selectLocation" value="${sub.location_id}" id="check-${sub.location_id}">
-                                            <label for="check-${sub.location_id}">${sub.name}</label>
-                                        </div>
-                                    </div>
-                                </li>`;
-                        }
-                    ul += '</ul>';
+                    ul += buildChildList(loc.sublocations);
                 }
                 let $li = $(`
                 <li class="list-division" id="${loc.location_id}">
                     <div class="name-radio-plus">
                         <div class="input">
-                            <input required type="radio" name="selectLocation" value="${loc.location_id}" id="check-${loc.location_id}">
-                            <label for="check-${loc.location_id}">${loc.name}</label>
+                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.location_name}" id="check-${loc.location_id}">
+                            <label for="check-${loc.location_id}">${loc.location_name}</label>
                         </div>
                     </div>
                     ${ul}
@@ -327,39 +375,17 @@ export class AddUserComponent implements OnInit, OnDestroy {
 
     submitSelectLocationModal(form, event){
         event.preventDefault();
-        let locationFound = false;
+
         if(this.formLocValid){
             let selectedLocationId = $(form).find('input[type="radio"]:checked').val();
+            let target = $('#check-'+selectedLocationId);
 
             this.selectedUser['account_location_id'] = selectedLocationId;
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
                 this.selectedUser['eco_location_id'] = selectedLocationId;
             }
 
-            this.selectedUser['location_name'] = '';
-            for(let loc of this.locationsCopy){
-                if(loc.location_id == selectedLocationId){
-                    this.selectedUser['location_name'] = loc.name;
-                    locationFound = true;
-                    break;
-                }
-            }
-            if (!locationFound) {
-                for (const loc of this.locationsCopy) {
-                    if ('sublocations' in loc) {
-                        for (const sublocs of loc['sublocations']) {
-                            if (sublocs['id'] == selectedLocationId) {
-                                this.selectedUser['location_name'] = `${loc['name']}, ${sublocs['name']}`;
-                                if (/^[_-\s]$/.test(loc['name'])) {
-                                    this.selectedUser['location_name'] = `${sublocs['name']}`;
-                                }
-                                locationFound = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
+            this.selectedUser['location_name'] = target.attr('loc-name');
 
             for (const u of this.addedUsers) {
                 if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
@@ -376,7 +402,6 @@ export class AddUserComponent implements OnInit, OnDestroy {
         $('#modalLocations').modal('close');
         this.selectedUser = {};
         this.modalSearchLocation.nativeElement.value = "";
-        // this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
     }
 
     submitUsers(f) {
@@ -435,83 +460,42 @@ export class AddUserComponent implements OnInit, OnDestroy {
             .debounceTime(500)
             .subscribe((event) => {
             this.formLocValid = false;
-            let value = event['target'].value,
-                result = [];
+            let value = event['target'].value.trim().toLowerCase();
+            value = value.replace(/[^a-zA-Z 0-9]/g, "");
             let seenSubLocIndex = [];
             const seenIndex = [];
-            let findRelatedName;
 
-            /*
-            if (parseInt(this.selectedUser['account_role_id'], 10) === 1 ||
-                parseInt(this.selectedUser['account_role_id'], 10) === 11 ||
-                parseInt(this.selectedUser['account_role_id'], 10) === 15 ||
-                parseInt(this.selectedUser['account_role_id'], 10) === 16 ||
-                parseInt(this.selectedUser['account_role_id'], 10) === 18
-            ) {
-              findRelatedName = (data, mainParent?) => {
-                for(let i in data) {
-                    if(data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1){
-                        result.push(data[i]);
+            let findRelatedName = (data) => {
+                let results = [];
+                for(let d of data){
+                    let name = d.location_name.trim().toLowerCase();
+                    name = name.replace(/[^a-zA-Z 0-9]/g, "");
+                    if(name.indexOf(value) > -1){
+                        d['sublocations'] = [];
+                        results.push(d);
                     }
-                }
-                return result;
-              };
-            } else {
-
-              findRelatedName = (data, mainParent?) => {
-                for ( let i = 0; i < data.length; i++) {
-                  if (data[i]['parent_location_name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                    result.push(data[i]);
-                  }
-                }
-                for ( let i = 0; i < data.length; i++) {
-                    seenSubLocIndex = [];
-                    for (let s = 0; s < data[i]['sublocations'].length; s++) {
-                      if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                        if (seenIndex.indexOf(i)) {
-                          seenIndex.push(i);
-                        }
-                        seenSubLocIndex.push(data[i]['sublocations'][s]);
-                        data[i]['sublocations'] = seenSubLocIndex;
-                      }
-                    }
-                  }
-                  for (let si = 0; si < seenIndex.length; si++) {
-                    result.push(data[seenIndex[si]]);
-                  }
-                return result;
-              };
-            }
-            */
-
-            findRelatedName = (data, mainParent?) => {
-                for ( let i = 0; i < data.length; i++) {
-                    if (data[i]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                        result.push(data[i]);
-                    }
-                }
-                for ( let i = 0; i < data.length; i++) {
-                    seenSubLocIndex = [];
-                    for (let s = 0; s < data[i]['sublocations'].length; s++) {
-                        if (data[i]['sublocations'][s]['name'].toLowerCase().indexOf(value.toLowerCase()) > -1) {
-                            if (seenIndex.indexOf(i)) {
-                                seenIndex.push(i);
-                            }
-                            seenSubLocIndex.push(data[i]['sublocations'][s]);
-                            data[i]['sublocations'] = seenSubLocIndex;
+                    if(d.sublocations.length > 0){
+                        let related = findRelatedName(d.sublocations);
+                        for(let i in related){
+                            results.push(related[i]);
                         }
                     }
                 }
-                for (let si = 0; si < seenIndex.length; si++) {
-                    result.push(data[seenIndex[si]]);
-                }
-                return result;
+
+                return results;
             };
 
             if(value.length > 0){
-                result = [];
-                findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
-                this.locations = result;
+                let found = findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
+                let finalResults = [],
+                    ids = [];
+                for(let f of found){
+                    if(ids.indexOf(f.location_id) == -1){
+                        finalResults.push(f);
+                        ids.push(f.location_id);
+                    }
+                }
+                this.locations = finalResults;
             }else{
                 this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
             }

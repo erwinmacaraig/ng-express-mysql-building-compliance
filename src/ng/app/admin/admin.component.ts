@@ -18,6 +18,7 @@ export class AdminComponent implements OnInit, OnDestroy {
 
   @ViewChild('searchInput') searchInput : ElementRef;
   @ViewChild('searchResults') searchResults : ElementRef;
+  @ViewChild('filterSearch') filterSearch : ElementRef;
   searchSubs;
   searchedResult = <any> [];
   showResult = false;
@@ -37,24 +38,32 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.searchEvent();
   }
 
+  search(){
+      let target = this.searchInput.nativeElement,
+          value = target.value,
+          filter = this.filterSearch.nativeElement.value;
+
+      if(value.trim().length > 0){
+          this.showResult = true;
+          this.adminService.searchUsersAccountsAndLocations(value.trim(), filter).subscribe((response:any) => {
+            this.searchedResult = response;
+          });
+      }else{
+        this.searchedResult = [];
+        this.showResult = false;
+      }
+  }
+
   searchEvent(){
       this.searchSubs = Observable.fromEvent(this.searchInput.nativeElement, 'keyup')
       .debounceTime(500)
       .subscribe((event:any) => {
-          let target = event.target,
-              value = target.value;
-
-          if(value.trim().length > 0){
-              this.showResult = true;
-              this.adminService.searchUserAndLocation(value.trim()).subscribe((response:any) => {
-                this.searchedResult = response;
-              });
-          }else{
-            this.searchedResult = [];
-            this.showResult = false;
-          }
+          this.search();
       });
+  }
 
+  filterSearchOnChange(){
+      this.search();
   }
 
   searchClickEvent(result){
@@ -65,6 +74,8 @@ export class AdminComponent implements OnInit, OnDestroy {
           this.router.navigate(['/admin/view-location/', result.id]);
       }else if(result.type == 'user'){
           this.router.navigate(['/admin/view-user/', result.id]);
+      }else if(result.type == 'account'){
+          this.router.navigate(['/admin/locations-in-account/', result.id]);
       }
   }
 

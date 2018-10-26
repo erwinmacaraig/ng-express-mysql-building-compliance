@@ -1,13 +1,13 @@
 <button  class="btn btn-flat btn-import" (click)="showModalCSV()">
     <div  class="image csv-wardens"></div>
-    <div  class="text">{{title}}</div>
+    <div  class="text">{{titleText}}</div>
 </button>
 
 <div id="modaCsvUpload" class="modal">
     <div class="modal-content">
         <div class="header-container center">
             <div class="image csv-wardens"></div>
-            <div class="text">{{title}}</div>
+            <div class="text">{{titleText}}</div>
         </div>
 
         <div class="center" [hidden]="modalCSVMessage.length > 0">
@@ -69,7 +69,7 @@
         </div>
 
         <div class="button-container center" [hidden]="modalCSVMessage.length > 0">
-            <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
+            <button class="btn grey lighten-1 waves-effect waves-light modal-trigger" (click)="canceModal()"> Cancel </button>
             <button class="btn orange waves-effect waves-light" (click)="onUploadCSVAction()"> Submit </button>
         </div>
 

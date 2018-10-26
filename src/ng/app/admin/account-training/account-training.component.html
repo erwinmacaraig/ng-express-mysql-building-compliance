@@ -9,30 +9,28 @@
         <table class="table striped highlight">
           <thead>
             <tr>
-                <th>Course ID</th>
                 <th>Course</th>
-                <th>Training ID</th>
                 <th>Training</th>
                 <th>Role</th>
-                <th style="width: 10%">Action</th>
+                <th style="width: 12%">Action</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngIf="trainingData.length == 0">
-              <td colspan="6" class="center">
+              <td colspan="4" class="center">
                 <h6 *ngIf="trainingData.length == 0">
                     No record found!
                 </h6>
               </td>
             </tr>
             <tr *ngFor="let training of trainingData">
-              <td>{{training['course_id']}}</td>
+              <!-- <td>{{training['course_id']}}</td> -->
               <td>{{training['course_name']}}</td>
-              <td>{{training['training_requirement_id']}}</td>
+              <!-- <td>{{training['training_requirement_id']}}</td> -->
               <td>{{training['training_requirement_name']}}</td>
               <td>{{training['role_name']}}</td>
               <td>
-                <p><button (click)="assignTrainingToRole(training)">Assign This Training to all {{training['role_name']}}</button></p>
+                <p><button class="btn red btn-assign waves-effect waves-light" (click)="assignTrainingToRole(training)">Assign This Training to all {{training['role_name']}}</button></p>
               </td>
             </tr>
           </tbody>

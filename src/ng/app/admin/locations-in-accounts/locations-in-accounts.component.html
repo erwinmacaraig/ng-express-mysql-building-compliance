@@ -1,47 +1,65 @@
 <app-admin-account-info [accountId]="accountId"></app-admin-account-info>
+
 <div class="row filter-container">
   <div class="col l4 m5 s12">
-		<div class="search-field">
-			<input type="text" placeholder="Search" id="searchLocations"> <!-- (keyup)=""-->
-			<span class="material-icons">search</span>
-		</div>
+    <!--
+    <div class="search-field">
+      
+			<input type="text" placeholder="Search" id="searchLocations">
+      <span class="material-icons">search</span>     
+    </div>
+     -->
   </div>
   <div class="col l2 m4 s6">
+    <!--
     <select class="filter-by">
       <option value="0" selected>Filter By (All)</option>
       <option value=""></option>
     </select>
+    -->
 </div>
   <div class="col l2 m6 s6">
-		<select class="sort-by">
+    <!--
+    <select class="sort-by">
 			<option value="0" selected>Sort By</option>
 			<option value="user-name-desc">User Name Descending</option>
 			<option value="user-name-asc">User Name Ascending</option>
-		</select>
+    </select>
+     -->
   </div>
-  <div class="col l2 m6 s12">
+  <div class="col l2 m6 s12"> 
+    <!--
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
 			<option value="archive" >Archive selected</option>
-		</select>
+    </select>
+    -->
   </div>
   <div class="col l2 m3 s12 ">
-		<button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-location-to-account', accountId]">
-			Add New Location
-		</button>
+    <button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-account-location', accountId]">
+      Add New Location
+    </button> 
 	</div>
 </div>
+
 <div class="row">
+  <div class="col l12 right" *ngIf="!isArchived">
+    <div class="right table-align">
+      <a class="archived" [routerLink]="['/admin/locations-in-account/', accountId]" [queryParams]="{ archived : true }">
+        <span class="image"></span>
+        View Archive
+      </a>
+    </div>
+  </div>
   <div class="col s12">
     <table class="table striped">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Location</th>
+          <th> <span *ngIf="isArchived">Archived</span> Location</th>
+          <th>Compliance</th>
           <th>Address</th>
           <th>Type</th>
-          <th>Compliance</th>
-          <th style="width: 10%;">Action</th>
+          <th style="width: 10%;">Quick Report</th>
         </tr>
       </thead>
       <tbody>
@@ -49,17 +67,18 @@
             <td colspan="6" class="center"> <p>No record found</p> </td>
         </tr>
         <tr *ngFor="let location of locations">
-          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['location_id']}}</a></td>
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['display_name']}}</a></td>
-          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['formatted_address']}}</a></td>
-          <td><a [routerLink]="['/admin', 'view-location', location['location_id']]">{{location['responsibility']}}</a></td>
           <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], '2']">View Compliance</a></td>
+          <td>{{location['formatted_address']}}</td>
+          <td>{{location['responsibility']}}</td>
           <td>
               <select #selectAction (change)="selectActionEvent(selectAction, location)">
                     <option value="0" disabled>Select action</option>
                     <option value="activity-log">Activity Log Report</option>
                     <option value="team">Team Report</option>
                     <option value="training">Training Report</option>
+                    <option value="restore" *ngIf="isArchived">Restore</option>
+                    <option value="archive" *ngIf="!isArchived">Archive</option>
               </select>
           </td>
         </tr>
@@ -69,3 +88,38 @@
   </div>
 </div>
 <div preloader></div>
+
+
+<div id="modalArchive" class="modal">
+  <div class="modal-content center" [hidden]="!modalArchive.loader">
+    <div class="preloader-wrapper active">
+      <div class="spinner-layer spinner-red-only">
+        <div class="circle-clipper left">
+          <div class="circle"></div>
+        </div><div class="gap-patch">
+          <div class="circle"></div>
+        </div><div class="circle-clipper right">
+          <div class="circle"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-content" [hidden]="modalArchive.loader">
+    <h5>Confirmation</h5>
+    <div *ngIf="modalArchive.selected['location_id']">
+      <p style="font-size: 16px;" *ngIf="!isArchived">
+        Are you sure you want archive location : {{modalArchive.selected.name}}?
+      </p>
+      <p style="font-size: 16px;" *ngIf="isArchived">
+          Are you sure you want restore location : {{modalArchive.selected.name}}?
+      </p>
+    </div>
+  </div>
+  <div class="modal-footer" [hidden]="modalArchive.loader">
+    <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+    <a  *ngIf="modalArchive.selected['location_id']" class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!isArchived">Archive</span>
+            <span *ngIf="isArchived">Restore</span>
+        </a>
+  </div>
+</div>
