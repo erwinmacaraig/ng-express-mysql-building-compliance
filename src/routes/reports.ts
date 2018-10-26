@@ -160,6 +160,35 @@ export class ReportsRoute extends BaseRoute {
            req.body['getall'] = true;
            new ReportsRoute().locationTrainings(req, res, true);
        });
+
+       router.get('/reports/csv-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           new ReportsRoute().getActivityReport(req, res, false, true);
+       });
+
+       router.get('/reports/csv-team/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           new ReportsRoute().generateTeamReport(req, res, false, true);
+       });
+
+       router.get('/reports/csv-location-trainings/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['course_method'] = 'none';
+           req.body['getall'] = true;
+           new ReportsRoute().locationTrainings(req, res, false, true);
+       });
     }
 
      /**
@@ -167,7 +196,7 @@ export class ReportsRoute extends BaseRoute {
       * process reporting info for a given root location
       */
 
-    public async generateTeamReport(req: AuthRequest, res: Response, toPdf?) {
+    public async generateTeamReport(req: AuthRequest, res: Response, toPdf?, toCsv?) {
 
         let
         userRoleRel = new UserRoleRelation(),
@@ -296,9 +325,9 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        if(!toPdf){
+        if(!toPdf && !toCsv){
           res.status(200).send(response);
-        }else{
+        }else if(toPdf || toCsv){
           response['title'] = 'Team Report';
           response['tables'] = [];
           for(let data of response.data){
@@ -313,11 +342,33 @@ export class ReportsRoute extends BaseRoute {
               let accnts = '';
               let trps = '';
               let emails = '';
-              for(let t of d.trp){
-                accnts += t.account_name+'\n';
-                trps += t.first_name+' '+t.last_name+'\n';
-                emails += t.email+'\n';
+
+              if(toPdf){
+                  for(let t of d.trp){
+                    accnts += t.account_name+'\n';
+                    trps += t.first_name+' '+t.last_name+'\n';
+                    emails += t.email+'\n';
+                  }
+              }else{
+                  accnts = '"';
+                  trps = '"';
+                  emails = '"';
+                  for(let i in d.trp){
+                    accnts += d.trp[i].account_name;
+                    trps += d.trp[i].first_name+' '+d.trp[i].last_name;
+                    emails += d.trp[i].email;
+                    if( parseInt(i) + 1 != d.trp.length ){
+                        accnts += ',';
+                        trps += ',';
+                        emails += ',';
+                    }
+                  }
+
+                  accnts += '"';
+                  trps += '"';
+                  emails += '"';
               }
+
               tblData.data.push([
                 accnts, d.name, trps, emails, d.total_wardens, d.peep_total
               ]);
@@ -329,7 +380,11 @@ export class ReportsRoute extends BaseRoute {
 
             response['tables'].push(tblData);
           }
-          this.generatePDF(response, res);
+          if(toPdf){
+              this.generatePDF(response, res);
+          }else{
+              this.generateCSV(response, res);
+          }
         }
         
     }
@@ -430,7 +485,7 @@ export class ReportsRoute extends BaseRoute {
         }
     }
 
-    public async locationTrainings(req: AuthRequest, res: Response, toPdf?){
+    public async locationTrainings(req: AuthRequest, res: Response, toPdf?, toCsv?){
       let
         response = {
             status : false, data : [], message : '',
@@ -556,8 +611,6 @@ export class ReportsRoute extends BaseRoute {
             }
         },
         hierarchies = mergeToParent(allDbLocations);
-
-        response['hierarchies'] = hierarchies;
         
         let collectLocIdsFromHierarchy = function(data){
             let response = [];
@@ -666,9 +719,9 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        if(!toPdf){
+        if(!toPdf && !toCsv){
             res.status(200).send(response);
-        }else{
+        }else if(toPdf || toCsv){
           response['tables'] = [];
           let tblData = {
             title : 'Training Report',
@@ -695,8 +748,13 @@ export class ReportsRoute extends BaseRoute {
            
           response['tables'].push(tblData);
 
-          this.generatePDF(response, res);
-        }
+          if(toPdf){
+              this.generatePDF(response, res);
+          }else{
+              this.generateCSV(response, res);
+          }
+
+        } 
     }
 
     private async createComplianceMapForLocation(locationId, accountId, role){
@@ -985,7 +1043,7 @@ export class ReportsRoute extends BaseRoute {
         res.send(response);
     }
 
-    public async getActivityReport(req: AuthRequest, res: Response, toPdf?){
+    public async getActivityReport(req: AuthRequest, res: Response, toPdf?, toCsv?){
         let
         location_id = req.body.location_id,
         limit = req.body.limit,
@@ -1074,9 +1132,9 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
-        if(!toPdf){
+        if(!toPdf && !toCsv){
             res.status(200).send(response);
-        }else{
+        }else if(toPdf || toCsv){
           response['tables'] = [];
           let tblData = {
             title : 'Activity Report',
@@ -1088,15 +1146,46 @@ export class ReportsRoute extends BaseRoute {
           }
           response['tables'].push(tblData);
 
-          this.generatePDF(response, res);
+          if(toPdf){
+              this.generatePDF(response, res);
+          }else{
+              this.generateCSV(response, res);
+          }
         }
+    }
+
+    generateCSV(objRes, res){
+        let 
+        data = objRes.data,
+        tables = objRes.tables,
+        timestamp = new Date().getTime(),
+        csvData = '',
+        DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
+
+        for(let table of tables){
+            csvData += table.title;
+            csvData += '\n';
+
+            csvData += table.headers.join(',');
+            csvData += '\n';
+
+            for(let d of table.data){
+                csvData += d.join(',');
+                csvData += '\n';
+            }
+        }
+
+
+        res.setHeader('Content-Type', 'application/octet-stream');
+        res.setHeader('Content-Disposition', 'attachment; filename='+timestamp + '.csv');
+        res.send(csvData);
     }
 
     generatePDF(objRes, res){
       let 
         data = objRes.data,
         tables = objRes.tables,
-        timestamp = new Date().getTime(),
+        timestamp = new Date().getTime(), 
         doc:PDFDocument = new PDFDocumentWithTables({
           margins : {
             top:25, left:25, right:25, bottom:25

@@ -95,7 +95,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                     this.pagination.currentPage = 1;
                 }
 
-                this.generateReportDataForExport();
+                // this.generateReportDataForExport();
             });
         });
 
@@ -328,18 +328,28 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     }
 
     csvExport(){
-        let csvData = {},
+        let a = document.createElement("a"),
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
+        a.href = location.origin+"/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        a.target = "_blank";
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        /*let csvData = {},
             columns = [  "User", "Email", "Account", "Location", "Role", "Training Status & Date" ],
             getLength = () => {
                 return Object.keys(csvData).length;
             };
 
-        let title =  "Training Report ";
+        let title =  "Training Report ";*/
         /*if(this.pagination.total > this.queries.limit){
             title += " pg."+this.pagination.currentPage;
         }*/
 
-        csvData[ getLength() ] = [title];
+       /* csvData[ getLength() ] = [title];
         csvData[ getLength() ] = columns;
 
         if(this.results.length == 0){
@@ -375,7 +385,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 
         this.exportToCSV.setData(csvData, 'trainings-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
-        this.exportToCSV.export();
+        this.exportToCSV.export();*/
     }
 
     ngOnDestroy(){

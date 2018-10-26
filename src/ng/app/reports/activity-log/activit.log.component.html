@@ -5,24 +5,24 @@
 			<h5 class="left">Activity Log</h5>
 
 			<div class="right right-buttons no-print">
-                <div style="width: 35px;" *ngIf="pdfLoader">
+                <!-- <div style="width: 35px;" *ngIf="pdfLoader">
                     <div class="progress" style="margin: 2px auto;">
                         <div class="indeterminate"></div>
                     </div>
-                </div>
+                </div> -->
 
-				<a #aPdf (click)="pdfExport(aPdf, printContainer)" *ngIf="!pdfLoader">
+				<a #aPdf (click)="pdfExport(aPdf, printContainer)">
 					<div class="text">Export to</div>
 					<div class="image pdf"></div>
 				</a>
 
-                <div style="width: 35px;" *ngIf="csvLoader">
+                <!-- <div style="width: 35px;" *ngIf="csvLoader">
                     <div class="progress" style="margin: 2px auto;">
                         <div class="indeterminate"></div>
                     </div>
-                </div>
+                </div> -->
 				
-				<a (click)="csvExport()" *ngIf="!csvLoader">
+				<a (click)="csvExport()">
 					<div class="image excel"></div>
 				</a>
 
