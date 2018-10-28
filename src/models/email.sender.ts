@@ -164,9 +164,25 @@ export class EmailSender {
         subj = '';
 
         switch (type) {
+            case "warden-with-online":
+                subj = "You are nominated as Warden";
+                filename = "warden-with-online";
+                break;
+            case "warden-without-online":
+                subj = "You are nominated as Warden";
+                filename = "warden-without-online";
+                break;
             case "warden":
                 subj = "You are nominated as "+emailData['role'];
                 filename = "warden-email";
+                break;
+            case "general-occupant-with-online":
+                subj = "You are nominated as General Occupant";
+                filename = "general-occupant-with-online";
+                break;
+            case "general-occupant-without-online":
+                subj = "You are nominated as General Occupant";
+                filename = "general-occupant-without-online";
                 break;
             case "trp":
                 subj = "You are assigned as Tenant Responsible Person";
@@ -208,8 +224,6 @@ export class EmailSender {
                 subj = "EvacConnect Account Setup";
                 filename = "set-passwd-invite";
                 break;
-
-            
         }
 
         fs.readFile(dir+'/footer-email.hbs', 'utf8', (err, footer) => {
