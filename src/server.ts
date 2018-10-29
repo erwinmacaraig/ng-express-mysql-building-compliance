@@ -203,7 +203,7 @@ export class Server {
       
       this.app.use(function(req, res, next) {
         if ((!req.secure) && (req.get('X-Forwarded-Proto') !== 'https')) {
-          // return res.redirect('https://' + req.get('Host') + req.url);
+          return res.redirect('https://' + req.get('Host') + req.url);
         }
         return next();
       });

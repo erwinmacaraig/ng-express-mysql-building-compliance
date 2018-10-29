@@ -5,7 +5,6 @@ import { Router } from '@angular/router';
 import { Observable } from 'rxjs/Observable';
 import { Injectable } from '@angular/core';
 import { AuthService } from './auth.service';
-import * as moment from 'moment';
 import * as ng2JWT from 'angular2-jwt';
 
 @Injectable()
