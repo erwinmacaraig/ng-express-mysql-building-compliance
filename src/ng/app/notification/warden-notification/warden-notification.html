@@ -1,0 +1,140 @@
+<div class="container">
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+
+            <div class="steps-text">
+                <div class="circle"></div>
+                <div class="text blue-text">Step 1</div>
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text">Step 2</div>
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text">Step 3</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            
+            <div *ngIf="routeQuery['step'] == '1' && routeQuery['stillonlocation'] != 'yes' && routeQuery['stillonlocation'] != 'no'" style="position: relative;">
+                <ng-container *ngTemplateOutlet="stillInLocation"> </ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['step'] == '1' && routeQuery['stillonlocation'] == 'yes'" style="position: relative;">
+                <ng-container  *ngTemplateOutlet="yesUpdateProfile"> </ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['step'] == '2' && routeQuery['stillonlocation'] == 'yes'" style="position: relative;">
+                <ng-container  *ngTemplateOutlet="yesTrainings"> </ng-container>
+            </div>
+            
+        </div>
+    </div>
+
+</div>
+
+<ng-template #stillInLocation>
+    <div class="div-center center">
+        <div class="text">
+            Are you still Warden for XYZ on 123 Location
+        </div>
+        <div class="buttons">
+            <button class="btn orange waves-effect waves-light" (click)="clickStillOnLocation('yes')" >Yes</button>
+            <button class="btn blue waves-effect waves-light" (click)="clickStillOnLocation('no')" >No</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #yesUpdateProfile>
+    <div class="div-center update-profile">
+        
+        <div class="row">
+            <div class="col l12 m12 s12">
+                <h5 class="blue-text" style="margin-bottom: 10%;">Update Your Profile</h5>
+            </div>
+
+            <div class="col l12 m12 s12">
+                <div class="form-group">
+                    <label for="subLocation">Sub-Location</label>
+                    <input type="text" class="form-control" id="subLocation" />
+                </div>
+            </div>
+
+            <div class="col l12 m12 s12">
+                <div class="form-group">
+                    <label for="subLocation">Mobile</label>
+                    <input type="text" class="form-control" id="mobile" />
+                </div>
+            </div>
+
+            <div class="col l6 m12 s12">
+                <button class="btn btn-block orange waves-effect waves-light" (click)="clickUpdateProfile()" >Update Profile</button>
+            </div>
+
+            <div class="col l6 m12 s12">
+                <button class="btn btn-block blue waves-effect waves-light" (click)="clickToStep2()" >Next</button>
+            </div>
+        </div>
+
+    </div>
+</ng-template>
+
+<ng-template #yesTrainings>
+    <h5 class="blue-text center" style="margin-bottom: 5%;">Required Trainings</h5>
+
+    <div class="row">
+        <div class="col l12 m12">
+            <div id="gridContainer" class="center grid">
+                <div class="grid-container">
+                    
+                    <div class="grid-item card grey lighten-3">
+                        <div class="top">
+                            <div class="image close inline-block"></div>
+                            <div class="text inline-block red-text">Non-Compliant</div>
+                        </div>
+                        <div class="middle-image">
+                            <div class="image red-image"></div>
+                        </div>
+                        <div class="middle-text">
+                            Emergency Control Organisation
+                            <p class="blue-text"></p>
+                        </div>
+                        <div class="buttons">
+                            <button class="btn red lighten-1 waves-effect waves-light" type="button">Go To Training</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-container">
+                    
+                    <div class="grid-item card grey lighten-3">
+                        <div class="top">
+                            <div class="image close inline-block"></div>
+                            <div class="text inline-block red-text">Non-Compliant</div>
+                        </div>
+                        <div class="middle-image">
+                            <div class="image red-image"></div>
+                        </div>
+                        <div class="middle-text">
+                            Emergency Control Organisation
+                            <p class="blue-text"></p>
+                        </div>
+                        <div class="buttons">
+                            <button class="btn red lighten-1 waves-effect waves-light" type="button">Go To Training</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col l12 m12 center">
+            <button class="btn orange waves-effect waves-light center" (click)="clickToStep3()" >Next</button>
+        </div>
+    </div>
+
+</ng-template>
