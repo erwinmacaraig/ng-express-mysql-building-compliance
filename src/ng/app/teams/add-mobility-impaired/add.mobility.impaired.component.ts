@@ -80,7 +80,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         unSelectAllText: 'UnSelect All',
         itemsShowLimit: 1,
         allowSearchFilter: false,
-        enableCheckAll: false
+        enableCheckAll: false,
+        noDataAvailablePlaceholderText: 'Fetching data from server'
     };
 
     constructor(
@@ -129,12 +130,14 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                         });
                     }
                 }
+                this.dashboardPreloaderService.show();
             }, (err) => {
                 console.log('Server Error. Unable to get the list');
+                this.dashboardPreloaderService.show();
             }
         );
 
-        this.dashboardPreloaderService.show();
+        // this.dashboardPreloaderService.show();
 
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response:any) => {
             this.locations = JSON.parse( JSON.stringify( response.locations ) );
