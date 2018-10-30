@@ -83,7 +83,7 @@
 
 .grid-container{
   margin: 10px;
-  float: left;
+  display: inline-block;
 }
 
 .grid-container > p:first-child{
@@ -95,10 +95,10 @@
     width: 260px;
     box-shadow: none;
     border-radius: 10px;
-    float: left;
     height: 350px;
     position: relative;
     padding-bottom: 15px;
+    padding-top: 10px;
 }
 
 .grid-item .top{
@@ -153,6 +153,8 @@
     width: 250px;
     padding: 10px 30px;
     text-align: center;
+    height: 135px;
+    max-height: 135px;
 }
 
 .grid-item .middle-text p{
@@ -160,7 +162,7 @@
 }
 
 .grid-item .middle-image{
-    margin: 20px 0px 0px 0px;
+    margin: 20px 0px 15px 0px;
 }
 
 .grid-item .middle-image .image{
@@ -182,4 +184,80 @@
 
 .grid-item .yellow-image{
     background-position: 45.5% 11% !important;
+}
+
+.inline-block{
+  display: inline-block;
+}
+
+.boxed{
+  padding: 45px;
+  border-radius: 10px;
+}
+
+.margin-bottom-20{
+  margin-bottom: 20px;
+}
+
+.margin-bottom-30{
+  margin-bottom: 30px;
+}
+
+.margin-bottom-40{
+  margin-bottom: 40px;
+}
+
+.margin-bottom-60{
+  margin-bottom: 60px;
+}
+
+.notification-settings .check-container label,
+.select-answer .check-container label,
+.no-resign .check-container label{
+  font-size: 18px;
+  color: #424242;
+}
+
+
+.tenancy-moved-out > .title{
+  font-size: 24px;
+}
+
+.textarea textarea{
+  border: none;
+  padding: 15px;
+  border-radius: 5px;
+  min-height: 165px;
+  background-color: #fff;
+  color: #333;
+  font-size: 16px;
+  outline: none;
+  max-width: 100%;
+}
+
+.input-white-bg input[type="text"]{
+    background-color: #fff;
+    border-radius: 5px;
+    margin: 8px 0px 20px 0px;
+    border-bottom: 0px;
+    padding: 5px 10px 5px 15px;
+}
+
+.input-white-bg{
+    margin-right: 25px;
+}
+
+.input-white-bg input[type="text"]:focus{
+    border-bottom: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.input-white-bg select{
+    display: block;
+    height: 55px;
+    border-radius: 8px;
+    font-size: 16px;
+    padding-left: 10px;
+    outline: none;
 }

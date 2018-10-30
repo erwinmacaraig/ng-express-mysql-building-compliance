@@ -60,6 +60,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     clickStillOnLocation(yesNo){
         let params = this.getQueryParams();
         params['stillonlocation'] = yesNo;
+        if(yesNo == 'yes'){
+            params['step'] = '1';
+        }
         this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
     }
 
@@ -67,12 +70,6 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
             let params = this.getQueryParams();
-
-            if( !this.routeQuery['step'] ){
-                params['step'] = '1';
-                this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
-            }
-
 
             console.log(this.routeQuery);
         });
@@ -102,9 +99,31 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     clickToStep3(){
-        
+        let params = this.getQueryParams();
+
+        params['step'] = '3';
+        this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
     }
 
+    clickConfirmNotificationSettings(){
+        let params = this.getQueryParams();
+        params['step'] = '3';
+        params['final'] = true;
+        this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
+    }
+
+    clickConfirmNoAnswer(){
+        let answer = (document.querySelectorAll('[name="no_answer"]:checked').length) ? document.querySelectorAll('[name="no_answer"]:checked')[0]['value'] : false;
+        if(answer){
+            let params = this.getQueryParams();
+            params['ans'] = answer;
+            this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
+        }
+    }
+
+    noAnswerConfirm(){
+        
+    }
 
     ngOnDestroy() {
 
