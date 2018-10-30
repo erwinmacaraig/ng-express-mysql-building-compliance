@@ -95,7 +95,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                     this.pagination.currentPage = 1;
                 }
 
-                this.generateReportDataForExport();
+                // this.generateReportDataForExport();
             });
         });
 
@@ -328,18 +328,29 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     }
 
     csvExport(){
-        let csvData = {},
-            columns = [  "User", "Training Name", "Training Date", "Status" ],
+        let a = document.createElement("a"),
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
+        a.href = location.origin+"/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        a.target = "_blank";
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        /*let csvData = {},
+            columns = [  "User", "Email", "Account", "Location", "Role", "Training Status & Date" ],
             getLength = () => {
                 return Object.keys(csvData).length;
             };
 
-        let title =  "Training Report ";
-        if(this.pagination.total > this.queries.limit){
+        let title =  "Training Report ";*/
+        /*if(this.pagination.total > this.queries.limit){
             title += " pg."+this.pagination.currentPage;
-        }
+        }*/
 
-        csvData[ getLength() ] = [title];
+       /* csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
 
         if(this.results.length == 0){
             csvData[ getLength() ] = " No record found ";
@@ -348,10 +359,14 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             for(let re of this.exportData){
                 let d = [];
                 d.push( re.first_name+' '+re.last_name );
-                d.push( re.training_requirement_name );
-                d.push( re.certification_date_formatted );
+                d.push( re.email );
+                d.push( re.account_name );
+                d.push( re.location_name );
+                d.push( re.role_name );
+                
+                let sts = '';
                 if(re.status == 'valid' && re.pass == 1){
-                    d.push( 'Compliant' );
+                   sts = 'Compliant';
                 }else{
                     let desc = '(Not Taken)';
                     if(re.pass == 0){
@@ -359,8 +374,10 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                     }else if(re.status == 'expired'){
                         desc = '(Expired)';
                     }
-                    d.push( 'Not Compliant '+desc );
+                    sts = 'Not Compliant '+desc;
                 }
+
+                d.push( re.certification_date_formatted + ' ' + sts );
                 csvData[ getLength() ] = d;
             }
 
@@ -368,7 +385,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 
         this.exportToCSV.setData(csvData, 'trainings-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
-        this.exportToCSV.export();
+        this.exportToCSV.export();*/
     }
 
     ngOnDestroy(){

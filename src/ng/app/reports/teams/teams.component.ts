@@ -109,7 +109,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
                 this.dashboardPreloader.hide();
 
-                this.generateReportDataForExport();
+                // this.generateReportDataForExport();
             });
         });
 
@@ -252,7 +252,16 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     }
 
     csvExport(){
-        let csvData = {},
+        let a = document.createElement("a");
+        a.href = location.origin+"/reports/csv-team/"+this.locationIdDecrypted+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        a.target = "_blank";
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        /*let csvData = {},
             columns = [  "Company", "Sub Location", "Contact Person", "Email", "Warden", "P.E.E.P" ],
             getLength = () => {
                 return Object.keys(csvData).length;
@@ -335,7 +344,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         }
 
         this.exportToCSV.setData(csvData, 'teams-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
-        this.exportToCSV.export();
+        this.exportToCSV.export();*/
     }
 
     ngOnDestroy(){
