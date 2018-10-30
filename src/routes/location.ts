@@ -1390,53 +1390,7 @@ const defs = require('../config/defs.json');
             response.locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
         }catch(e){
             response.locations = [];
-        }
-
-        /*let parentsAndChildIds = {};
-        for(let loc of response.locations){
-            if(!parentsAndChildIds[loc.parent_id]){ parentsAndChildIds[loc.parent_id] = { childids : [], total : 0, isBuilding : 0, replaceToBuilding : false } }
-            parentsAndChildIds[loc.parent_id]['childids'].push(loc.location_id);
-            parentsAndChildIds[loc.parent_id]['total'] = parentsAndChildIds[loc.parent_id]['childids'].length;
-            parentsAndChildIds[loc.parent_id]['isBuilding'] = loc.parent_is_building;
-
-            if( parentsAndChildIds[loc.parent_id]['isBuilding'] == 1 && parentsAndChildIds[loc.parent_id]['total'] > 1 ){
-                parentsAndChildIds[loc.parent_id]['replaceToBuilding'] = true;
-            }
-        }
-
-        let bldgIdsToReplace = [];
-        for(let id in parentsAndChildIds){
-            if( parentsAndChildIds[id]['replaceToBuilding'] ){
-                bldgIdsToReplace.push(id);
-            }
-        }
-
-        let 
-        bldgLocModel = new Location(),
-        buildingsReplacement = ( bldgIdsToReplace.length > 0 ) ? <any> await bldgLocModel.getByInIds( bldgIdsToReplace.toString() ) : [];
-
-        let newLocations = [];
-        for(let id in parentsAndChildIds ){
-            if(!parentsAndChildIds[id]['replaceToBuilding']){
-                for(let idc of parentsAndChildIds[id]['childids']){
-                    for(let loc of response.locations){
-                        if(loc.location_id == idc){
-                            newLocations.push( loc );
-                        }
-                    }
-                }
-
-            }
-        }
-
-        for(let bldg of buildingsReplacement){
-            newLocations.push(bldg);
-        }
-
-        response['locations'] = newLocations;
-        response['buildingsReplacement'] = buildingsReplacement;
-        response['bldgIdsToReplace'] = bldgIdsToReplace;
-        response['parentsAndChildIds'] = parentsAndChildIds;*/
+        }        
 
         const subLocsArr = [];
         let subLocsStr = '';
@@ -1461,18 +1415,7 @@ const defs = require('../config/defs.json');
         }
 
         for(let loc of response.locations){
-            loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];
-            /*let canLoginTenants = {},
-                locationAccountUserObj = new LocationAccountUser();
-            try {
-                canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], loc['location_id']);
-                loc['num_tenants'] = Object.keys(canLoginTenants).length;
-            } catch(e) {
-                // loc['num_tenants'] = 0;
-                const locationAccountRel = new LocationAccountRelation();
-                const temp = await locationAccountRel.getByAccountIdAndLocationId(req.user.account_id, loc['location_id']);
-                loc['num_tenants'] = temp.length;
-            }*/
+            loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];            
 
             let
                 subLocsModel = new Location(),
