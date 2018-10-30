@@ -272,16 +272,27 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
         if(this.documentType.value == 5){
             let validfiles = [],
-                invalids = [];
+                invalids = [],
+                dateStrLen = 0;
             for(let i in files){
                 let name = files[i]['name'],
                     split = name.split(/\s+/);
 
                 console.log(split);
-
-                if(split.length >= 4 && split.length <= 5){
+                // check last part if valid date format
+                dateStrLen = (split[split.length - 1]).lastIndexOf('.');
+                console.log(dateStrLen);
+                if (dateStrLen != 8) {
+                    invalids.push(files[i]);
+                    continue;
+                }
+                if (!this.isDateValid((split[split.length - 1]).substring(0,8))) {
+                    invalids.push(files[i]);
+                    continue;
+                }
+                if (split.length >= 4 && split.length <= 5){
                     validfiles.push(files[i]);
-                }else{
+                } else{
                     invalids.push(files[i]);
                 }
             }
@@ -291,5 +302,30 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
             this.files = validfiles;
         }
 
+    }
+
+    private isDateValid(dateStr=''): boolean {
+        console.log(dateStr);
+        let day = parseInt(dateStr.substring(0, 2), 10),
+        month = +dateStr.substring(2, 4),
+        year = +dateStr.substring(4, 8);
+
+        if (month < 1 || month > 12) { // check month range
+            return false;
+        }
+        if (day < 1 || day > 31) {
+            return false;
+        }
+        if ((month === 4 || month === 6 || month === 9 || month === 11) && day === 31) {
+            return false;
+        }
+        if (month == 2) { // check for february 29th
+            var isleap = (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0));
+            if (day > 29 || (day === 29 && !isleap)) {
+                return false;
+            }
+        }                
+
+        return true;
     }
 }
