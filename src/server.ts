@@ -207,6 +207,7 @@ export class Server {
         }
         return next();
       });
+      
 
       // catch 404 and forward to error handler
       this.app.use(function(req: express.Request, res: express.Response, next: express.NextFunction) {
