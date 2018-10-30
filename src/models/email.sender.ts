@@ -90,7 +90,7 @@ export class EmailSender {
         params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {
-              ToAddresses: this.options['allantaw2@gmail.com'],
+              ToAddresses: ['allantaw2@gmail.com'],
               // ToAddresses : ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
               // CcAddresses: this.options['cc']
             }, 

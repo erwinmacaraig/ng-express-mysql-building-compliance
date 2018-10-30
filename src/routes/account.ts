@@ -667,6 +667,10 @@ const RateLimiter = require('limiter').RateLimiter;
           emailType = 'trp-confirmation';
         }
       }
+      if (config['eco_user']) {
+        emailType = 'warden-confirmation';
+        emailData['role'] = u['role_name'];
+      }
       const opts = {
         from : '',
         fromName : 'EvacConnect',
