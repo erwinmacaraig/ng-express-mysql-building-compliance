@@ -743,9 +743,11 @@ export class UserEmRoleRelation extends BaseClass {
                         users.email,
                         user_em_roles_relation.location_id,
                         em_roles.role_name,
+                        em_roles.em_roles_id,
                         accounts.account_name,
                         parent_location.name as parent_location,
-                        locations.name
+                        locations.name,
+                        locations.parent_id
                       FROM
                         users
                       INNER JOIN
@@ -770,7 +772,7 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
-                      GROUP BY users.user_id`;
+                       `;
 
         this.pool.getConnection((err, connection) => {
             if (err) {                    

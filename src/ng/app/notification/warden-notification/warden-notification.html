@@ -62,7 +62,7 @@
 <ng-template #stillInLocation>
     <div class="div-center center" style="margin-top: 15%;">
         <div class="text">
-            Are you still Warden for XYZ on 123 Location
+            Are you still {{roleText}} for {{accountData.account_name}} on {{locationData.name}}
         </div>
         <div class="buttons">
             <button class="btn orange waves-effect waves-light" (click)="clickStillOnLocation('yes')" >Yes</button>
@@ -76,13 +76,22 @@
         
         <div class="row">
             <div class="col l12 m12 s12">
-                <h5 class="blue-text" style="margin-bottom: 10%;">Update Your Profile</h5>
+                <h5 class="blue-text" style="margin-bottom: 10%;">Review Your Profile</h5>
             </div>
 
-            <div class="col l12 m12 s12">
-                <div class="form-group">
-                    <label for="subLocation">Sub-Location</label>
-                    <input type="text" class="form-control" id="subLocation" placeholder="Type location here" />
+            <div class="col l6 m12 s12">
+                <div class="form-group" style="margin-right: 0px;">
+                    <label>Sub-Location</label>
+                    <select>
+                        <option>Level 123</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col l6 m12 s12">
+                <div class="form-group" style="margin-right: 0px;">
+                    <label>Role</label>
+                    <p style="font-size: 16px;">Warden</p>
                 </div>
             </div>
 

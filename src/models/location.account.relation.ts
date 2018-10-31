@@ -396,9 +396,7 @@ export class LocationAccountRelation extends BaseClass {
         let sqlGetIds = `
             SELECT
 
-            DISTINCT GROUP_CONCAT(
-                IF(p1.is_building = 1, p1.location_id, l.location_id)
-            ) as location_id
+            DISTINCT(IF(p1.is_building = 1, p1.location_id, l.location_id) ) as location_id
 
             FROM locations l
             INNER JOIN location_account_user lau ON l.location_id = lau.location_id
@@ -419,7 +417,14 @@ export class LocationAccountRelation extends BaseClass {
                 }
 
                 if(idResults.length > 0){
-                    let ids = idResults[0]['location_id'];
+                    let 
+                    arrIds = [],
+                    ids = '';
+                    for(let i in idResults){
+                        arrIds.push(idResults[i]['location_id']);
+                    }
+
+                    ids = arrIds.join(',');
 
                     let sql_get_locations = `
                         SELECT l.*, p.is_building as parent_is_building, p.name as parent_name,

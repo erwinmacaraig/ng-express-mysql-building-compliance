@@ -54,6 +54,11 @@
     margin-right: 25px;
 }
 
+.update-profile .form-group select{
+  display: block;
+  margin: 10px 0px;
+}
+
 .update-profile .form-group label{
     color: #333;
     font-size: 14px;

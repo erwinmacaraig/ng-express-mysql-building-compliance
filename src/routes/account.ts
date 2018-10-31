@@ -388,6 +388,25 @@ const RateLimiter = require('limiter').RateLimiter;
     const userRole = new UserRoleRelation();
     let hasFrpTrpRole = false;
 
+    const loginAction = async (redirectUrl) => {
+      const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
+      let stringUserData = JSON.stringify(loginResponse.data);
+      stringUserData = stringUserData.replace(/\'/gi, '');
+
+      const script = `
+          <h4>Redirecting...</h4>
+          <script>
+            localStorage.setItem('currentUser', '${loginResponse.token}');
+            localStorage.setItem('userData', '${stringUserData}');
+
+            setTimeout(function(){
+              window.location.replace("${redirectUrl}")
+            }, 1000);
+          </script>
+      `;
+      res.status(200).send(script);
+    };
+
 
     if ( !(Object.keys(tokenDbData)).length) {
       return res.redirect('/success-valiadation?verify-notified-user=0');
@@ -403,46 +422,39 @@ const RateLimiter = require('limiter').RateLimiter;
     if (!(Object.keys(userDbData)).length) {
       return res.redirect('/success-valiadation?query-notified-user=0');
     }
-    try{
-      await userRole.getByUserId(userDbData['user_id']);
-      hasFrpTrpRole = true;
-    } catch (e){
-      hasFrpTrpRole = false;
+
+    if(tokenDbData['role_text'].toLowerCase() == 'warden'){
+      const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no';
+      await loginAction(redirectUrl);
+    }else{
+      try{
+        await userRole.getByUserId(userDbData['user_id']);
+        hasFrpTrpRole = true;
+      } catch (e){
+        hasFrpTrpRole = false;
+      }
+
+      const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
+
+      // update record
+      await tokenObj.create({
+        responded: 1,
+        strStatus: 'In Progress',
+        dtResponded: moment().format('YYYY-MM-DD')
+  		});
+  		
+  		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+  		if (userResponded.indexOf(uid) == -1) {
+  			userResponded.push(uid);
+  			configDBData['responders'] = configDBData['responders'] + 1;
+  			configDBData['user_responded'] = userResponded.join(',');
+  			await configurator.create(configDBData);
+  		}
+
+      const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+      await loginAction(redirectUrl);
     }
-    const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
-    let stringUserData = JSON.stringify(loginResponse.data);
-    stringUserData = stringUserData.replace(/\'/gi, '');
-    const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
 
-    // update record
-    await tokenObj.create({
-      responded: 1,
-      strStatus: 'In Progress',
-      dtResponded: moment().format('YYYY-MM-DD')
-		});
-		
-		const userResponded: Array<number> = configDBData['user_responded'].split(',');
-		if (userResponded.indexOf(uid) == -1) {
-			userResponded.push(uid);
-			configDBData['responders'] = configDBData['responders'] + 1;
-			configDBData['user_responded'] = userResponded.join(',');
-			await configurator.create(configDBData);
-		}
-
-    const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
-    const script = `
-                <h4>Redirecting...</h4>
-                <script>
-                    localStorage.setItem('currentUser', '${loginResponse.token}');
-                    localStorage.setItem('userData', '${stringUserData}');
-
-                    setTimeout(function(){
-                        window.location.replace("${redirectUrl}")
-                    }, 1000);
-                </script>
-            `;
-
-    res.status(200).send(script);
 
 
   }
@@ -453,6 +465,8 @@ const RateLimiter = require('limiter').RateLimiter;
     const tokenObj = new NotificationToken();
     const  bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
     const strTokenDecoded: string = bytes.toString(cryptoJs.enc.Utf8);
+
+    console.log('strTokenDecoded', strTokenDecoded);
     const authRoute = new AuthenticateLoginRoute();
     
     const parts = strTokenDecoded.split('_');
@@ -469,6 +483,25 @@ const RateLimiter = require('limiter').RateLimiter;
     const configurator = new NotificationConfiguration(configId);
     const configDBData = await configurator.load();
 
+    const loginAction = async (redirectUrl) => {
+      const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
+      let stringUserData = JSON.stringify(loginResponse.data);
+      stringUserData = stringUserData.replace(/\'/gi, '');
+
+      const script = `
+          <h4>Redirecting...</h4>
+          <script>
+            localStorage.setItem('currentUser', '${loginResponse.token}');
+            localStorage.setItem('userData', '${stringUserData}');
+
+            setTimeout(function(){
+              window.location.replace("${redirectUrl}")
+            }, 1000);
+          </script>
+      `;
+      res.status(200).send(script);
+    };
+
     if ( !(Object.keys(tokenDbData)).length) {
       return res.redirect('/success-valiadation?verify-notified-user=0');
     }
@@ -480,54 +513,44 @@ const RateLimiter = require('limiter').RateLimiter;
       return res.redirect('/success-valiadation?verify-notified-user=0');
     }
 
-    try{
-      await userRole.getByUserId(uid);
-      hasFrpTrpRole = true;
-    } catch (e){
-      hasFrpTrpRole = false;
+    if(tokenDbData['role_text'].toLowerCase() == 'warden'){
+      const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1';
+      await loginAction(redirectUrl);
+    }else{
+      try{
+        await userRole.getByUserId(uid);
+        hasFrpTrpRole = true;
+      } catch (e){
+        hasFrpTrpRole = false;
+      }
+
+      const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
+      // update record
+      await tokenObj.create({
+        strToken: '',
+        strStatus: 'Validated',
+        responded: 1,
+        dtResponded: moment().format('YYYY-MM-DD'),
+        completed: 1,
+        dtCompleted: moment().format('YYYY-MM-DD')
+      });
+
+  		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+  		if (userResponded.indexOf(uid) == -1) {
+  			userResponded.push(uid);
+  			configDBData['responders'] = configDBData['responders'] + 1;
+  			configDBData['user_responded'] = userResponded.join(',');
+  			await configurator.create(configDBData);
+  		}
+
+      if (hasFrpTrpRole) {
+        const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+        await loginAction(redirectUrl);
+      } else {
+        return res.redirect('/success-valiadation?verify-notified-user=1');
+      }
     }
 
-    const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
-    // update record
-    await tokenObj.create({
-      strToken: '',
-      strStatus: 'Validated',
-      responded: 1,
-      dtResponded: moment().format('YYYY-MM-DD'),
-      completed: 1,
-      dtCompleted: moment().format('YYYY-MM-DD')
-    });
-
-		const userResponded: Array<number> = configDBData['user_responded'].split(',');
-		if (userResponded.indexOf(uid) == -1) {
-			userResponded.push(uid);
-			configDBData['responders'] = configDBData['responders'] + 1;
-			configDBData['user_responded'] = userResponded.join(',');
-			await configurator.create(configDBData);
-		}
-    
-    
-    const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
-    let stringUserData = JSON.stringify(loginResponse.data);
-    stringUserData = stringUserData.replace(/\'/gi, '');
-
-    if (hasFrpTrpRole) {
-      const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
-      const script = `
-                  <h4>Redirecting...</h4>
-                  <script>
-                    localStorage.setItem('currentUser', '${loginResponse.token}');
-                    localStorage.setItem('userData', '${stringUserData}');
-
-                    setTimeout(function(){
-                      window.location.replace("${redirectUrl}")
-                    }, 1000);
-                  </script>
-              `;
-      res.status(200).send(script);
-    } else {
-      return res.redirect('/success-valiadation?verify-notified-user=1');
-    }
   }
 
 
@@ -602,7 +625,7 @@ const RateLimiter = require('limiter').RateLimiter;
       allUsers = await lauObj.TRPUsersForNotification(sublevels);
     } else if (config['eco_user']) {
       userType = 'eco';
-      allUsers = await uemr.emUsersForNotification(sublevels);
+      eco = await uemr.emUsersForNotification(sublevels);
     } else if (config['all_users']) {
       userType = 'all';
       trp = await lauObj.TRPUsersForNotification(sublevels);
@@ -610,6 +633,47 @@ const RateLimiter = require('limiter').RateLimiter;
       allUsers = trp.concat(eco);
     }
 
+    for(let ec of eco){
+      let isUserInAllUsers = false;
+      for(let user of allUsers){
+        if(ec['user_id'] == user['user_id']){
+          isUserInAllUsers = true;
+        }
+      }
+      if(!isUserInAllUsers){
+        allUsers.push(ec);
+      }
+
+      for(let user of allUsers){
+        if(ec['user_id'] == user['user_id']){
+          if(!user['eco_roles']){
+            user['eco_roles'] = [];
+            user['eco_sublocation_names'] = [];
+            user['eco_role_names'] = [];
+          }
+
+          if(user['eco_sublocation_names'].indexOf(ec['name']) == -1){
+            user['eco_sublocation_names'].push(ec['name']);
+          }
+
+          if(user['eco_role_names'].indexOf(ec['role_name']) == -1){
+            user['eco_role_names'].push(ec['role_name']);
+          }
+
+          user['eco_roles'].push({
+            'role_id' : ec['em_roles_id'],
+            'role_name' : ec['role_name'],
+            'location_id' : ec['location_id'],
+            'parent_id' : ec['parent_id'],
+            'location_name' : ec['name']
+          });
+        }
+      }
+    }
+
+    // res.send(allUsers);
+
+    
     for (const u of allUsers) {
 
       if (allUserIds.indexOf(u['user_id']) == -1) {
@@ -649,17 +713,27 @@ const RateLimiter = require('limiter').RateLimiter;
 				dtLastSent: moment().format('YYYY-MM-DD')
       });
 			notificationToken = null;
-			if (u['name'].length > 0) {
-				locData.location_name = locData.location_name + ', ' + u['name'];
-			}
+
+      let locTextEmail = locData.location_name;
+      let emailRole = '';
+      if (u['eco_sublocation_names']) {
+        locTextEmail = locTextEmail +' '+ u['eco_sublocation_names'].join(',');
+        emailRole = u['eco_role_names'].join(',');
+      }else{
+  			if (u['name'].length > 0) {
+  				locTextEmail = locData.location_name + ', ' + u['name'];
+  			}
+      }
+
       let 
       emailData = {
         message : config['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
         users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
         account_name : u['account_name'],
-        location_name : locData.location_name,
+        location_name : locTextEmail,
         yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
+        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+        role : emailRole
       },
       emailType = 'warden-confirmation';
       if(u['role_name']){
@@ -669,7 +743,6 @@ const RateLimiter = require('limiter').RateLimiter;
       }
       if (config['eco_user']) {
         emailType = 'warden-confirmation';
-        emailData['role'] = u['role_name'];
       }
       const opts = {
         from : '',

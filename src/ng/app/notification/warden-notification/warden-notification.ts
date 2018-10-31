@@ -27,6 +27,10 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     encryptedToken = '';
     routeQuery = <any> {};
     routeParam = <any> {};
+    locationData = <any> {};
+    userData = <any> {};
+    accountData = <any> {};
+    roleText = 'Warden';
 
     constructor(
         private route: ActivatedRoute,
@@ -37,7 +41,6 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         private userService: UserService,
         private preloader: DashboardPreloaderService,
         private personDataService: PersonDataProviderService,
-        private locationsService: LocationsService,
         private adminService: AdminService,
         private platformLocation: PlatformLocation,
         public http: HttpClient,
@@ -45,6 +48,13 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         private router: Router
         ) {
 
+        this.userData = this.authService.getUserData();
+        console.log('this.userData', this.userData);
+
+        this.accountService.getById(this.userData['accountId'], (response) => {
+            this.accountData = response.data;
+            console.log('this.accountData', this.accountData);            
+        });
 
     }
 
@@ -70,8 +80,26 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
             let params = this.getQueryParams();
-
             console.log(this.routeQuery);
+
+            this.locationService.getById(this.routeQuery['locationid'], (response) => {
+                this.locationData = response.location;
+                if(response.parent.name.length > 0){
+                    this.locationData['name'] = response.parent.name+', '+this.locationData.name;
+                }
+                console.log('this.locationData', this.locationData);
+
+                let wardenRoleIds = [8, 9, 10, 11, 15, 16, 18];
+
+                for(let i in response.users_locations){
+                    if( response.users_locations[i]['location_id'] == this.routeQuery['locationid'] && 
+                        ( wardenRoleIds.indexOf(  parseInt( response.users_locations[i]['em_roles_id'] ) ) ) > -1 
+                        ){
+                        this.roleText = response.users_locations[i]['role_name'];
+                    }
+                }
+            });
+
         });
 
 

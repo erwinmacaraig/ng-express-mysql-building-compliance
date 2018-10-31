@@ -1033,11 +1033,22 @@ const defs = require('../config/defs.json');
         location = new Location(locationId),
         sublocations,
         othersub = [],
-        locAccRel = new LocationAccountRelation();
+        locAccRel = new LocationAccountRelation(),
+        userIsWarden = false;
 
       	// we need to check the role(s)
       	const userRoleRel = new UserRoleRelation();
-      	const roles = (req.user.evac_role != 'admin') ? await userRoleRel.getByUserId(req.user.user_id) : 1;
+      	let roles = <any> [];
+        if(req.user.evac_role != 'admin'){
+            try{
+                await userRoleRel.getByUserId(req.user.user_id)
+            }catch(e){
+                //Warden
+                userIsWarden = true;
+            }
+        }else{
+            roles = 1;
+        }
 
       	let response = {
       		'location' : {},
@@ -1050,7 +1061,7 @@ const defs = require('../config/defs.json');
       	};
 
       	// what is the highest rank role
-      	let r = 100;
+      	let r = (!userIsWarden) ? 100 : 0;
       	for (let i = 0; i < roles.length; i++) {
       		if(r > parseInt(roles[i]['role_id'], 10)) {
       			r = roles[i]['role_id'];
@@ -1083,10 +1094,12 @@ const defs = require('../config/defs.json');
         }catch(e){}
 
         try{
-            let locAcc = new LocationAccountUser(),
-                locAccUsers = <any> await locAcc.getByUserId(req.user.user_id);
-            for(let locacc of locAccUsers){
-                response.users_locations.push(locacc);
+            if(!userIsWarden){
+                let locAcc = new LocationAccountUser(),
+                    locAccUsers = <any> await locAcc.getByUserId(req.user.user_id);
+                for(let locacc of locAccUsers){
+                    response.users_locations.push(locacc);
+                }
             }
         }catch(e){}
 

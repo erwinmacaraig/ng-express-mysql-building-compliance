@@ -209,7 +209,7 @@ export class EmailSender {
                 filename = "trp-confirmation-email";
                 break;
             case "warden-confirmation":
-                subj = "Please confirm you are a nominated "+emailData['role'];
+                subj = "Please confirm you are nominated "+emailData['role'];
                 filename = "warden-confirmation-email";
                 break;
             case "signup":
