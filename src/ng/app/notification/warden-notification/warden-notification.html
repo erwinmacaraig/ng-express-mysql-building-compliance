@@ -82,8 +82,8 @@
             <div class="col l6 m12 s12">
                 <div class="form-group" style="margin-right: 0px;">
                     <label>Sub-Location</label>
-                    <select>
-                        <option>Level 123</option>
+                    <select id="selectSubLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
+                        <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}}</option>
                     </select>
                 </div>
             </div>
@@ -91,19 +91,19 @@
             <div class="col l6 m12 s12">
                 <div class="form-group" style="margin-right: 0px;">
                     <label>Role</label>
-                    <p style="font-size: 16px;">Warden</p>
+                    <p style="font-size: 16px;">{{displayText.yesUpdateProfile.role}}</p>
                 </div>
             </div>
 
             <div class="col l12 m12 s12">
                 <div class="form-group">
                     <label for="subLocation">Mobile</label>
-                    <input type="text" class="form-control" id="mobile" placeholder="Type mobile number" />
+                    <input type="text" class="form-control" id="mobile" placeholder="Type mobile number" value="{{displayText.yesUpdateProfile.mobile}}" />
                 </div>
             </div>
 
             <div class="col l6 m12 s12">
-                <button class="btn btn-block orange waves-effect waves-light" (click)="clickUpdateProfile()" >Update Profile</button>
+                <button class="btn btn-block orange waves-effect waves-light" #updateProfileBtn (click)="clickUpdateProfile(updateProfileBtn)" >Update Profile</button>
             </div>
 
             <div class="col l6 m12 s12">
@@ -119,10 +119,11 @@
 
     <div class="row">
         <div class="col l12 m12 s12">
-            <div id="gridContainer" class="center grid">
-                <div class="grid-container">
+            <h4 class="center" *ngIf="requiredTrainings.length == 0">No required trainings</h4>
+            <div id="gridContainer" class="center grid" *ngIf="requiredTrainings.length > 0">
+                <div class="grid-container" *ngFor="let tr of requiredTrainings">
                     
-                    <div class="grid-item card grey lighten-3">
+                    <div class="grid-item card grey lighten-3" >
                         <div class="top">
                             <div class="image close inline-block"></div>
                             <div class="text inline-block red-text">Non-Compliant</div>
@@ -131,31 +132,11 @@
                             <div class="image red-image"></div>
                         </div>
                         <div class="middle-text">
-                            Emergency Control Organisation
+                            {{tr.training_requirement_name}}
                             <p class="blue-text"></p>
                         </div>
                         <div class="buttons">
-                            <button class="btn red lighten-1 waves-effect waves-light" type="button">Go To Training</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid-container">
-                    
-                    <div class="grid-item card grey lighten-3">
-                        <div class="top">
-                            <div class="image close inline-block"></div>
-                            <div class="text inline-block red-text">Non-Compliant</div>
-                        </div>
-                        <div class="middle-image">
-                            <div class="image red-image"></div>
-                        </div>
-                        <div class="middle-text">
-                            Emergency Control Organisation
-                            <p class="blue-text"></p>
-                        </div>
-                        <div class="buttons">
-                            <button class="btn red lighten-1 waves-effect waves-light" type="button">Go To Training</button>
+                            <button [routerLink]="['/trainings/my-training-profile/', encryptedUserId ]" class="btn red lighten-1 waves-effect waves-light" type="button">Go To Training</button>
                         </div>
                     </div>
                 </div>
@@ -186,7 +167,7 @@
         </div>
 
         <div class="center">
-            <button class="btn orange wave-effect waves-light" (click)="clickConfirmNotificationSettings()" >Confirm</button>
+            <button class="btn orange wave-effect waves-light" id="btnConfirmUpdateNotif" (click)="clickConfirmNotificationSettings()" >Confirm</button>
         </div>
         
     </div>
@@ -201,7 +182,7 @@
 
 
         <div class="center">
-            <button class="btn orange waves-effect waves-light">Close</button>
+            <button [routerLink]="['/dashboard']" class="btn orange waves-effect waves-light">Close</button>
         </div>
     </div>
 </ng-template>
@@ -241,11 +222,11 @@
 
     
         <div class="margin-bottom-40 textarea">
-            <textarea placeholder="Additional message"></textarea>
+            <textarea placeholder="Additional message" id="messageTenancyMovedOut"></textarea>
         </div>
 
         <div class="center">
-            <button class="btn orange wave-effect waves-light" (click)="noAnswerConfirm()" >Confirm</button>
+            <button class="btn orange wave-effect waves-light" #btnConfirmMovedOut (click)="noAnswerConfirm(btnConfirmMovedOut)" >Confirm</button>
         </div>
         
     </div>
@@ -258,12 +239,12 @@
         </h5>
     
         <div class="check-container">
-            <input id="nominateYes" type="radio" name="nominate" value="yes" /> 
+            <input id="nominateYes" type="radio" name="nominate" value="yes" #checkYesNominate /> 
             <label for="nominateYes">Yes, I want to nominate</label> 
         </div>
 
         <div class="input-white-bg">
-            <input type="text"  placeholder="Please enter warden email" />
+            <input type="text" id="inpEmailNominate"  placeholder="Please enter warden email" [disabled]="checkYesNominate.checked == false" />
         </div>
 
         <div class="margin-bottom-20 check-container">
@@ -272,7 +253,7 @@
         </div>
 
         <div class="center">
-            <button class="btn orange wave-effect waves-light" (click)="noAnswerConfirm()" >Confirm</button>
+            <button class="btn orange wave-effect waves-light" #btnConfirmResign (click)="noAnswerConfirm(btnConfirmResign)" >Confirm</button>
         </div>
         
     </div>
@@ -289,14 +270,14 @@
         </div>
         
         <div class="input-white-bg margin-bottom-40" style="margin-right: 0px;">
-            <select>
-                <option value="test">Test name</option>
+            <select [disabled]="selectedSearchedLocations.sublocation.length == 0">
+                <option *ngFor="let sub of selectedSearchedLocations.sublocation">{{sub.name}}</option>
             </select>
         </div>
         
 
         <div class="center">
-            <button class="btn orange wave-effect waves-light" (click)="noAnswerConfirm()" >Confirm</button>
+            <button class="btn orange wave-effect waves-light" #btnConfirmChangeLocation (click)="noAnswerConfirm(btnConfirmChangeLocation)" >Confirm</button>
         </div>
         
     </div>

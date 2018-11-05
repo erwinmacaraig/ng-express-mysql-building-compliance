@@ -24,7 +24,7 @@ import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { CourseUserRelation } from '../models/course-user-relation.model';
-
+import { NotificationUserSettingsModel } from '../models/notification.user.settings';
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -197,15 +197,15 @@ export class UsersRoute extends BaseRoute {
 
       router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
           new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
-	    return res.status(200).send({
-	      'status': 'Success',
-	      'data': info
-	    });
+      	    return res.status(200).send({
+      	      'status': 'Success',
+      	      'data': info
+      	    });
           }).catch((e) => {
-	    return res.status(400).send({
-	      'status': 'Fail',
-	      'message': 'Unable to retrieve tenant invitation info'
-	    });
+      	    return res.status(400).send({
+      	      'status': 'Fail',
+      	      'message': 'Unable to retrieve tenant invitation info'
+      	    });
           });
 
       });
@@ -403,6 +403,11 @@ export class UsersRoute extends BaseRoute {
         });
 
       });
+
+      router.post('/users/update-notification-settings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new  UsersRoute().updateNotificationSettings(req, res);
+      });
+
     }
 
     public async checkIfAdmin(req: Request , res: Response){
@@ -3437,5 +3442,41 @@ export class UsersRoute extends BaseRoute {
         res.send(response);
 
     }
+
+  public async updateNotificationSettings(req:AuthRequest, res:Response){
+    let 
+    notifiUserSettingsModel = new NotificationUserSettingsModel(),
+    response = {
+      status : true, data : <any> [], message : ''
+    },
+    body = req.body;
+
+    let records = <any> await notifiUserSettingsModel.getWhereUserId(body.user_id);
+    if(records.length == 0){
+      await notifiUserSettingsModel.create({
+        'user_id' : body.user_id,
+        'frequency' : body.frequency,
+        'one_month_training_reminder' : body.one_month_training_reminder
+      });
+    }else{
+      let latestId = 0;
+      for(let i in records){
+        if(parseInt(i) > 0){
+          let deleteModel = new NotificationUserSettingsModel( records[i]['notification_user_settings_id'] );
+          await deleteModel.delete();
+        }else if(parseInt(i) == 0){
+          let updateModel = new NotificationUserSettingsModel( records[i]['notification_user_settings_id'] );
+          updateModel.set('frequency', body.frequency);
+          updateModel.set('one_month_training_reminder', body.one_month_training_reminder);
+          updateModel.set('user_id', body.user_id);
+          updateModel.set('date_created', moment().format('YYYY-MM-DD'));
+          await updateModel.dbUpdate();
+        }
+      }
+    }
+
+    res.send(response);
+
+  }
 
 }

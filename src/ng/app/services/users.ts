@@ -305,4 +305,8 @@ export class UserService {
         return this.http.post(this.baseUrl+"/users/change-password", formData);
     }
 
+    updateNotificationSettings(formData){
+        return this.http.post(this.baseUrl+"/users/update-notification-settings", formData);
+    }
+
 }

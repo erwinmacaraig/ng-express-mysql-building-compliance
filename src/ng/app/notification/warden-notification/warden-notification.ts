@@ -25,12 +25,25 @@ declare var moment: any;
 export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDestroy {
 
     encryptedToken = '';
+    encryptedUserId = '';
     routeQuery = <any> {};
     routeParam = <any> {};
     locationData = <any> {};
     userData = <any> {};
     accountData = <any> {};
     roleText = 'Warden';
+    locationRoles = <any> [];
+    requiredTrainings = <any> [];
+    displayText = {
+        yesUpdateProfile : {
+            role : '',
+            mobile : ''
+        }
+    };
+    searchedLocations = <any> [];
+    selectedSearchedLocations = <any> {
+        sublocation : []
+    };
 
     constructor(
         private route: ActivatedRoute,
@@ -49,13 +62,13 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         ) {
 
         this.userData = this.authService.getUserData();
+        this.encryptedUserId = this.cryptor.encrypt(this.userData['userId']);
         console.log('this.userData', this.userData);
 
         this.accountService.getById(this.userData['accountId'], (response) => {
             this.accountData = response.data;
             console.log('this.accountData', this.accountData);            
         });
-
     }
 
     getQueryParams(){
@@ -80,25 +93,52 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
             let params = this.getQueryParams();
-            console.log(this.routeQuery);
 
-            this.locationService.getById(this.routeQuery['locationid'], (response) => {
-                this.locationData = response.location;
-                if(response.parent.name.length > 0){
-                    this.locationData['name'] = response.parent.name+', '+this.locationData.name;
-                }
-                console.log('this.locationData', this.locationData);
+            if(Object.keys(this.locationData).length == 0){
 
-                let wardenRoleIds = [8, 9, 10, 11, 15, 16, 18];
-
-                for(let i in response.users_locations){
-                    if( response.users_locations[i]['location_id'] == this.routeQuery['locationid'] && 
-                        ( wardenRoleIds.indexOf(  parseInt( response.users_locations[i]['em_roles_id'] ) ) ) > -1 
-                        ){
-                        this.roleText = response.users_locations[i]['role_name'];
+                this.locationService.getById(this.routeQuery['locationid'], (response) => {
+                    this.locationData = response.location;
+                    if(response.parent.name.length > 0){
+                        this.locationData['name'] = response.parent.name+', '+this.locationData.name;
                     }
-                }
-            });
+
+                    let wardenRoleIds = [8, 9, 10, 11, 15, 16, 18];
+
+                    for(let i in response.users_locations){
+                        if( response.users_locations[i]['location_id'] == this.routeQuery['locationid'] && 
+                            ( wardenRoleIds.indexOf(  parseInt( response.users_locations[i]['em_roles_id'] ) ) ) > -1 
+                            ){
+                            this.roleText = response.users_locations[i]['role_name'];
+                        }
+                    }
+                });
+
+                this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
+                    this.locationRoles = response.data.locations;
+                    this.userData = Object.assign(this.userData, response.data.user);
+                    this.requiredTrainings = response.data.required_trainings;
+
+                    if( this.userData.mobile_number !== null ){
+                        if(this.userData.mobile_number.trim().length > 0){
+                            this.displayText.yesUpdateProfile.mobile = this.userData.mobile_number;
+                        }else if( this.userData.phone_number !== null ){
+                            if(this.userData.phone_number.trim().length > 0){
+                                this.displayText.yesUpdateProfile.mobile = this.userData.phone_number;
+                            }
+                        }
+                    }else if( this.userData.phone_number !== null ){
+                        if(this.userData.phone_number.trim().length > 0){
+                            this.displayText.yesUpdateProfile.mobile = this.userData.phone_number;
+                        }
+                    }
+
+                    setTimeout(() => {
+                        this.changeEventSubLocationReviewProfile();
+                    }, 500);
+                });
+
+            }
+
 
         });
 
@@ -115,8 +155,27 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         
     }
 
-    clickUpdateProfile(){
-        
+    changeEventSubLocationReviewProfile(){
+        let id = $('#selectSubLocReviewProf').val();
+        for(let i in this.locationRoles){
+            if( this.locationRoles[i]['user_em_roles_relation_id'] == id){
+                this.displayText.yesUpdateProfile.role = this.locationRoles[i]['role_name'];
+            }
+        }
+    }
+
+    clickUpdateProfile(btn){
+        btn.innerText = "Updating...";
+        btn.disabled = true;
+
+        this.userService.update({
+            user_id : this.userData['userId'],
+            mobile_number : $('#mobile').val()
+        }, (response) => {
+            console.log('update user', response);
+            btn.innerText = "Update Profile";
+            btn.disabled = false;
+        });
     }
 
     clickToStep2(){
@@ -134,10 +193,22 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     clickConfirmNotificationSettings(){
-        let params = this.getQueryParams();
-        params['step'] = '3';
-        params['final'] = true;
-        this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
+        if($('[name="settings"]:checked').length > 0){
+            $('#btnConfirmUpdateNotif').html('Updating...').prop('disabled', true);
+
+            this.userService.updateNotificationSettings({
+                user_id : this.userData['userId'],
+                frequency : ($('#threeMonths').prop('checked')) ? 3 : 0,
+                one_month_training_reminder : ($('#oneMonth').prop('checked')) ? 1 : 0
+            }).subscribe((response) => {
+                $('#btnConfirmUpdateNotif').html('Confirm').prop('disabled', false);
+                let params = this.getQueryParams();
+                params['step'] = '3';
+                params['final'] = true;
+                this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
+            });
+        }
+
     }
 
     clickConfirmNoAnswer(){
@@ -149,8 +220,41 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         }
     }
 
-    noAnswerConfirm(){
-        
+    noAnswerConfirm(btnConfirm){
+        if( this.routeQuery['ans'] ){
+            if( this.routeQuery['ans'] == 'tenancy_moved_out' ){
+
+                if( $('#messageTenancyMovedOut').val().trim().length > 0 ){
+                    btnConfirm.disabled = true;
+                    btnConfirm.innerText = "Sending...";
+                }
+
+            }else if( this.routeQuery['ans'] == 'resign' ){
+
+                if( $('[name="nominate"]:checked').length > 0 ){
+
+                    let 
+                    val = $('[name="nominate"]:checked').val(),
+                    email = $('#inpEmailNominate').val(),
+                    re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                    
+                    email = (re.test(String(email).toLowerCase())) ? email : '';
+
+                    if(  email.trim().length > 0 || val == "no" ){
+                        $('[name="nominate"]').prop('disabled', true);
+                        $('#inpEmailNominate').prop('disabled', true);
+                        btnConfirm.disabled = true;
+                        btnConfirm.innerText = "Sending...";
+                    }
+
+                }
+
+            }else if( this.routeQuery['ans'] == 'location_changed' ){
+
+            }
+        }
+
+
     }
 
     ngOnDestroy() {
