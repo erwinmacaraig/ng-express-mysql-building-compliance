@@ -28,6 +28,8 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     encryptedUserId = '';
     routeQuery = <any> {};
     routeParam = <any> {};
+    token = '';
+    notification_token_id = 0;
     locationData = <any> {};
     userData = <any> {};
     accountData = <any> {};
@@ -221,37 +223,80 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     noAnswerConfirm(btnConfirm){
+        const responses = [];
+        this.token = this.cryptor.decryptUrlParam(this.routeQuery['token']);
+        const parts: Array<string> = this.token.split('_');
+        this.notification_token_id = +parts[3];
+        let status = '';
+        responses.push({
+            question: 'Do you still hold the role to the appointed location',
+            ans: 'No'
+        });
         if( this.routeQuery['ans'] ){
             if( this.routeQuery['ans'] == 'tenancy_moved_out' ){
-
+                status = 'Tenancy Moved Out';
                 if( $('#messageTenancyMovedOut').val().trim().length > 0 ){
                     btnConfirm.disabled = true;
                     btnConfirm.innerText = "Sending...";
+
+                    responses.push({
+                        question: 'reason',
+                        ans: 'Tenancy moved out'
+                    });
+                    responses.push({
+                        question: 'addtional information',
+                        ans: $('#messageTenancyMovedOut').val().trim()
+                    });
                 }
 
             }else if( this.routeQuery['ans'] == 'resign' ){
-
-                if( $('[name="nominate"]:checked').length > 0 ){
-
+                status = 'Resigned';
+                responses.push({
+                    question: 'reason',
+                    ans: 'I want to resign'
+                });
+                if( $('[name="nominate"]:checked').length > 0 ){                    
                     let 
                     val = $('[name="nominate"]:checked').val(),
                     email = $('#inpEmailNominate').val(),
                     re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                     
                     email = (re.test(String(email).toLowerCase())) ? email : '';
-
+                    
                     if(  email.trim().length > 0 || val == "no" ){
+                        
                         $('[name="nominate"]').prop('disabled', true);
                         $('#inpEmailNominate').prop('disabled', true);
                         btnConfirm.disabled = true;
                         btnConfirm.innerText = "Sending...";
+
+                        if(  email.trim().length > 0 ) {
+                            responses.push({
+                                question: 'Who do you want to nominate for the role',
+                                ans: email
+                            });
+                        }
+                        
                     }
 
                 }
 
-            }else if( this.routeQuery['ans'] == 'location_changed' ){
-
+            } else if( this.routeQuery['ans'] == 'location_changed' ){
+                status = 'Location Changed';
             }
+
+            console.log(responses);
+            const myAns = JSON.stringify(responses);
+            this.accountService.submitQueryResponses(myAns, this.notification_token_id, 1, status).subscribe(
+                (res) => {
+                    console.log(res);
+                },
+                (error) => {
+                    console.log('There was an error processing the request answer');
+                }
+            );
+
+
         }
     }
 

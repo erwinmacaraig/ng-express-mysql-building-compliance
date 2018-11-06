@@ -295,6 +295,7 @@ const RateLimiter = require('limiter').RateLimiter;
   }
 
   public async processQueryResponses(req, res) {
+		console.log(req.body);
     const theAnswers = req.body.query_responses;
     const responsesToQueryArr = JSON.parse(req.body.query_responses);
     const notification_token_id = req.body.notification_token_id;
@@ -309,7 +310,8 @@ const RateLimiter = require('limiter').RateLimiter;
     tokenDBData['strStatus'] = status;
 
     if (completed) {
-      tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
+			tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
+			tokenDBData['dtResponded'] = moment().format('YYYY-MM-DD');
       tokenDBData['strToken'] = '';
     }
     try {
@@ -423,8 +425,10 @@ const RateLimiter = require('limiter').RateLimiter;
       return res.redirect('/success-valiadation?query-notified-user=0');
     }
 
+		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
+		
     if(tokenDbData['role_text'].toLowerCase() == 'warden'){
-      const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no';
+      const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
     }else{
       try{
@@ -433,9 +437,6 @@ const RateLimiter = require('limiter').RateLimiter;
       } catch (e){
         hasFrpTrpRole = false;
       }
-
-      const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
-
       // update record
       await tokenObj.create({
         responded: 1,
