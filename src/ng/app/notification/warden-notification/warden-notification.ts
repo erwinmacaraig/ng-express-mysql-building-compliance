@@ -45,6 +45,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         sublocation : []
     };
 
+    @ViewChild('inpChangeLocSearch') inpChangeLocSearch: ElementRef;
+    searchChangeLocSubs;
+
     constructor(
         private route: ActivatedRoute,
         private authService: AuthService,
@@ -138,21 +141,18 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 });
 
             }
-
-
         });
-
 
         this.route.params.subscribe((params) => {
             this.routeParam = params;
 
 
             console.log(this.routeParam);
-        });
+        }); 
     }
 
     ngAfterViewInit() {
-        
+        this.searchLocationEvent();
     }
 
     changeEventSubLocationReviewProfile(){
@@ -253,12 +253,22 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
             }
         }
+    }
 
+    searchLocationEvent(){
 
+        this.searchChangeLocSubs = Observable.fromEvent(this.inpChangeLocSearch.nativeElement, "keyup").distinctUntilChanged().debounceTime(500).subscribe((event) => {
+            let val = this.inpChangeLocSearch.nativeElement.value;
+
+            this.locationService.searchBuildings(val, { sublocations : true }).subscribe((response) => {
+                this.searchedLocations = response;
+            });
+
+        });
     }
 
     ngOnDestroy() {
-
+        this.searchChangeLocSubs.unsubscribe();
     }
 
 }

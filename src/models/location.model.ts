@@ -1308,7 +1308,7 @@ export class Location extends BaseClass {
                 FROM locations l 
                 LEFT JOIN locations p ON l.parent_id = p.location_id
                 WHERE l.archived = 0 AND l.is_building = 1 AND 
-                ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) LIKE "%${key}%" )
+                ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ' ', l.name), l.name ) LIKE "%${key}%" )
                 LIMIT 10
             `;
             const connection = db.createConnection(dbconfig);

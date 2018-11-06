@@ -1989,7 +1989,14 @@ const defs = require('../config/defs.json');
     public async searchBuildings(req: AuthRequest, res: Response){
         let 
         locModel = new Location(),
-        locations = await locModel.searchBuildings(req.query.key);
+        locations = <any> await locModel.searchBuildings(req.query.key);
+
+        if(req.query.sublocations){
+            for(let loc of locations){
+                let sublocs = new Location(loc.location_id);
+                loc['sublocations'] = await sublocs.getSublocations();
+            }
+        }
 
         res.send(locations);
     }
