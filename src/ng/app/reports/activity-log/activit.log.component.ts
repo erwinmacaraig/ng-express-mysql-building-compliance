@@ -85,7 +85,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
                 this.activityLogs = response.data;
                 this.dashboardService.hide();
 
-                this.generateReportDataForExport();
+                // this.generateReportDataForExport();
             });
 
         });
@@ -239,17 +239,28 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
     }
 
     csvExport(){
-        let csvData = {},
+        let a = document.createElement("a"),
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
+        a.href = location.origin+"/reports/csv-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        a.target = "_blank";
+        document.body.appendChild(a);
+
+        a.click();
+
+        a.remove();
+
+        /*let csvData = {},
             columns = [  "Locations", "File Name", "Date" ],
             getLength = () => {
                 return Object.keys(csvData).length;
             };
 
         let title =  "Activity Log ";
+        */
         /*if(this.pagination.total > this.queries.limit){
             title += " pg."+this.pagination.currentPage;
         }*/
-
+        /*
         csvData[ getLength() ] = [title];
         csvData[ getLength() ] = columns;
 
@@ -268,7 +279,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         }
 
         this.exportToCSV.setData(csvData, 'activity-log-report-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
-        this.exportToCSV.export();
+        this.exportToCSV.export();*/
     }
 
 	ngOnDestroy(){

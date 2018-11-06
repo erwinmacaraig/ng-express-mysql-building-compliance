@@ -396,9 +396,7 @@ export class LocationAccountRelation extends BaseClass {
         let sqlGetIds = `
             SELECT
 
-            DISTINCT GROUP_CONCAT(
-                IF(p1.is_building = 1, p1.location_id, l.location_id)
-            ) as location_id
+            IF(p1.is_building = 1, p1.location_id, l.location_id) as location_id
 
             FROM locations l
             INNER JOIN location_account_user lau ON l.location_id = lau.location_id
@@ -410,16 +408,26 @@ export class LocationAccountRelation extends BaseClass {
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
             AND l.archived = ${archived}
         `;
-
+        // console.log('sqlGetIds: ', sqlGetIds);
         this.pool.getConnection((err, connection) => {
             connection.query(sqlGetIds,  (error, idResults) => {
                 if(error){
                     console.log(filter['userId']);
                     throw new Error(error);
                 }
+                
+                if(idResults.length > 0){ 
 
-                if(idResults.length > 0){
-                    let ids = idResults[0]['location_id'];
+                    let
+                    arrIds = [],
+                    ids = '';
+                    for(let i in idResults){
+                        arrIds.push(idResults[i]['location_id']);
+                    }
+
+                    ids = arrIds.join(',');
+
+                    // console.log('idResults', '=======================================', idResults[0]['location_id'], '=======================================');
 
                     let sql_get_locations = `
                         SELECT l.*, p.is_building as parent_is_building, p.name as parent_name,
