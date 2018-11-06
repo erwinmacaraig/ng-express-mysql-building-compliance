@@ -268,7 +268,7 @@ export class CourseRoute extends BaseRoute {
             let sublocations = [];
             filter['responsibility'] = role;
             const locationListing = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
-            console.log('locationListing', locationListing)
+            
             for (const l of locationListing) {
               locationIdsOnAccnt.push(l['location_id']);
             }
