@@ -28,6 +28,8 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     encryptedUserId = '';
     routeQuery = <any> {};
     routeParam = <any> {};
+    token = '';
+    notification_token_id = 0;
     locationData = <any> {};
     userData = <any> {};
     accountData = <any> {};
@@ -221,40 +223,95 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     noAnswerConfirm(btnConfirm){
+        const responses = [];
+        this.token = this.cryptor.decryptUrlParam(this.routeQuery['token']);
+        let params = this.getQueryParams();
+        
+        const parts: Array<string> = this.token.split('_');
+        this.notification_token_id = +parts[3];
+        let status = '';
+        responses.push({
+            question: 'Do you still hold the role to the appointed location',
+            ans: 'No'
+        });
         if( this.routeQuery['ans'] ){
             if( this.routeQuery['ans'] == 'tenancy_moved_out' ){
-
+                status = 'Tenancy Moved Out';
+                responses.push({
+                    question: 'reason',
+                    ans: 'Tenancy moved out'
+                });
                 if( $('#messageTenancyMovedOut').val().trim().length > 0 ){
                     btnConfirm.disabled = true;
-                    btnConfirm.innerText = "Sending...";
+                    btnConfirm.innerText = "Sending...";                    
+                    responses.push({
+                        question: 'addtional information',
+                        ans: $('#messageTenancyMovedOut').val().trim()
+                    });
                 }
+                params['stillonlocation'] = 'no';                
 
             }else if( this.routeQuery['ans'] == 'resign' ){
-
-                if( $('[name="nominate"]:checked').length > 0 ){
-
+                status = 'Resigned';
+                params['stillonlocation'] = 'no';
+                params['final'] = 'true';
+                responses.push({
+                    question: 'reason',
+                    ans: 'I want to resign'
+                });
+                if( $('[name="nominate"]:checked').length > 0 ){                    
                     let 
                     val = $('[name="nominate"]:checked').val(),
                     email = $('#inpEmailNominate').val(),
                     re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
                     
                     email = (re.test(String(email).toLowerCase())) ? email : '';
-
+                    
                     if(  email.trim().length > 0 || val == "no" ){
+                        
                         $('[name="nominate"]').prop('disabled', true);
                         $('#inpEmailNominate').prop('disabled', true);
                         btnConfirm.disabled = true;
                         btnConfirm.innerText = "Sending...";
+
+                        if(  email.trim().length > 0 ) {
+                            responses.push({
+                                question: 'Who do you want to nominate for the role',
+                                ans: email
+                            });
+                        }
+                        
                     }
 
                 }
 
-            }else if( this.routeQuery['ans'] == 'location_changed' ){
+            } else if( this.routeQuery['ans'] == 'location_changed' ){
+                status = 'Location Changed';
+                
+            }            
+            const myAns = JSON.stringify(responses);
+            this.accountService.submitQueryResponses(myAns, this.notification_token_id, 1, status).subscribe(
+                (res) => {
+                    console.log(res);
+                    if( this.routeQuery['ans'] == 'tenancy_moved_out' ) {
+                        this.router.navigate(['/dashboard']);
+                    } else if( this.routeQuery['ans'] == 'resign' ) { 
+                        this.router.navigate(['/dashboard/warden-notification'], {queryParams: params});
+                    } else {
+                        this.router.navigate(['/dashboard']);
+                    }
+                },
+                (error) => {
+                    console.log('There was an error processing the request answer');
+                    
+                }
+            );
 
-            }
+
         }
     }
 
+  
     searchLocationEvent(){
 
         this.searchChangeLocSubs = Observable.fromEvent(this.inpChangeLocSearch.nativeElement, "keyup").distinctUntilChanged().debounceTime(500).subscribe((event) => {
@@ -268,7 +325,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     ngOnDestroy() {
-        this.searchChangeLocSubs.unsubscribe();
+        if (this.searchChangeLocSubs) {
+            this.searchChangeLocSubs.unsubscribe();
+        }
     }
 
 }
