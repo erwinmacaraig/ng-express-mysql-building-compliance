@@ -232,6 +232,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   
     public getEmailSelection(index: number = -1, item) {
       // console.log(this.genericEmailSearchSub[index]);
+      console.log(item);
       let userRoleId = -1;
       if ('em_role_id' in item) {
         userRoleId = item['em_role_id'];
@@ -337,7 +338,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.adminService.getAllLocationsOnAccount(accountId).subscribe((response) => {
         this.buildings = response['data']['buildings'];
         this.parentLocationOptionGroup = response['data']['levels'];
-  
+        console.log(this.parentLocationOptionGroup);
         this.parentLocationOptionGroupForNewUser = response['data']['levels'];
         this.buildingsForNewUser = response['data']['buildings'];
       });
@@ -357,6 +358,11 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.exceptionCtrl = [];
       this.adminService.getLocationLevelUsers(this.locationId.toString()).subscribe((response) => {
         this.users = response['users'];
+        console.log(response['sublocations']);
+        <Array<object>>(response['sublocations']).push({
+          name: locationName,
+          id: selectedId
+        });
         this.parentLocationOptionGroup.push({
           parent_location_name: locationName,
           parent_location_id: selectedId,
@@ -414,7 +420,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         accountId: new FormControl(this.selectedAccountId.toString(), null),
         account_name: new FormControl(this.initialAccountName, Validators.required),
         sublocation_name: new FormControl(null, null),
-        sublocation_id: new FormControl('0', Validators.required),
+        sublocation_id: new FormControl(null, Validators.required),
       });
   
     }
@@ -472,6 +478,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.genericAccountSearchSub[index].unsubscribe();
       (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
       this.exceptionCtrl.splice(index, 1);
+      
     }
   
     setDatePickerDefaultDate() {
@@ -720,7 +727,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           hasEnteredData = true;
           console.log('valid role');
           break;
-        } else if (ctrl.get('sublocation_id').value != '0') {
+        } else if (ctrl.get('sublocation_id').value) {
           hasEnteredData = true;
           console.log('valid sub loc');
           break;
