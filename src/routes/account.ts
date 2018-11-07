@@ -312,6 +312,7 @@ const RateLimiter = require('limiter').RateLimiter;
     if (completed) {
 			tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
 			tokenDBData['dtResponded'] = moment().format('YYYY-MM-DD');
+			tokenDBData['responded'] = 1;
       tokenDBData['strToken'] = '';
     }
     try {

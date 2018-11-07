@@ -38,6 +38,9 @@
             <div *ngIf="routeQuery['step'] == '3' && routeQuery['stillonlocation'] == 'yes' && routeQuery['final'] == 'true'">
                 <ng-container *ngTemplateOutlet="thankYou"></ng-container>
             </div>
+            <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['final'] == 'true'">
+                <ng-container *ngTemplateOutlet="thankYou"></ng-container>
+            </div>
 
             <div *ngIf="routeQuery['stillonlocation'] == 'no' && !routeQuery['ans']">
                 <ng-container *ngTemplateOutlet="noSelectAnswer"></ng-container>
@@ -47,7 +50,7 @@
                 <ng-container *ngTemplateOutlet="ansTenancyMovedOut"></ng-container>
             </div>
 
-            <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['ans'] == 'resign'">
+            <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['ans'] == 'resign' && !routeQuery['final']">
                 <ng-container *ngTemplateOutlet="ansResign"></ng-container>
             </div>
 
@@ -226,6 +229,7 @@
 
         <div class="center">
             <button class="btn orange wave-effect waves-light" #btnConfirmMovedOut (click)="noAnswerConfirm(btnConfirmMovedOut)" >Confirm</button>
+
         </div>
         
     </div>

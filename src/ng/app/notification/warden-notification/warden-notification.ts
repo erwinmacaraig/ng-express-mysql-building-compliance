@@ -225,9 +225,8 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     noAnswerConfirm(btnConfirm){
         const responses = [];
         this.token = this.cryptor.decryptUrlParam(this.routeQuery['token']);
-        let params = this.routeQuery;
-        params['step'] = '3';
-        params['final'] = true;
+        let params = this.getQueryParams();
+        
         const parts: Array<string> = this.token.split('_');
         this.notification_token_id = +parts[3];
         let status = '';
@@ -238,22 +237,24 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         if( this.routeQuery['ans'] ){
             if( this.routeQuery['ans'] == 'tenancy_moved_out' ){
                 status = 'Tenancy Moved Out';
+                responses.push({
+                    question: 'reason',
+                    ans: 'Tenancy moved out'
+                });
                 if( $('#messageTenancyMovedOut').val().trim().length > 0 ){
                     btnConfirm.disabled = true;
-                    btnConfirm.innerText = "Sending...";
-
-                    responses.push({
-                        question: 'reason',
-                        ans: 'Tenancy moved out'
-                    });
+                    btnConfirm.innerText = "Sending...";                    
                     responses.push({
                         question: 'addtional information',
                         ans: $('#messageTenancyMovedOut').val().trim()
                     });
                 }
+                params['stillonlocation'] = 'no';                
 
             }else if( this.routeQuery['ans'] == 'resign' ){
                 status = 'Resigned';
+                params['stillonlocation'] = 'no';
+                params['final'] = 'true';
                 responses.push({
                     question: 'reason',
                     ans: 'I want to resign'
@@ -286,14 +287,19 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
             } else if( this.routeQuery['ans'] == 'location_changed' ){
                 status = 'Location Changed';
-            }
-
-            console.log(responses);
+                
+            }            
             const myAns = JSON.stringify(responses);
             this.accountService.submitQueryResponses(myAns, this.notification_token_id, 1, status).subscribe(
                 (res) => {
                     console.log(res);
-                    this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
+                    if( this.routeQuery['ans'] == 'tenancy_moved_out' ) {
+                        this.router.navigate(['/dashboard']);
+                    } else if( this.routeQuery['ans'] == 'resign' ) { 
+                        this.router.navigate(['/dashboard/warden-notification'], {queryParams: params});
+                    } else {
+                        this.router.navigate(['/dashboard']);
+                    }
                 },
                 (error) => {
                     console.log('There was an error processing the request answer');
@@ -305,6 +311,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         }
     }
 
+  
     searchLocationEvent(){
 
         this.searchChangeLocSubs = Observable.fromEvent(this.inpChangeLocSearch.nativeElement, "keyup").distinctUntilChanged().debounceTime(500).subscribe((event) => {
@@ -318,7 +325,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     ngOnDestroy() {
-        this.searchChangeLocSubs.unsubscribe();
+        if (this.searchChangeLocSubs) {
+            this.searchChangeLocSubs.unsubscribe();
+        }
     }
 
 }
