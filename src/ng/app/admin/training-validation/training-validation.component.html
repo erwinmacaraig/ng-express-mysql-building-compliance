@@ -167,7 +167,7 @@
                                            'orange': (userForm.valid && searchLocationField.valid) == true,
                                            'waves-effect': (userForm.valid && searchLocationField.valid) == true,
                                            'waves-light': (userForm.valid && searchLocationField.valid) == true}" value="Submit"
-          [disabled]="!userForm.valid || !searchLocationField.valid" />
+          [disabled]="!userForm.valid || !searchLocationField.valid || userForm.get('levelUsers').length == 0" />
              
       </div>
     </div>
