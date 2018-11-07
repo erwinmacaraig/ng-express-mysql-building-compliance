@@ -428,7 +428,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
 		
-    if(tokenDbData['role_text'].toLowerCase() == 'warden'){
+    if(tokenDbData['role_text'].toLowerCase() != 'TRP' && tokenDbData['role_text'].toLowerCase() != 'FRP'){
       const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
     }else{
@@ -476,7 +476,7 @@ const RateLimiter = require('limiter').RateLimiter;
     const configId = parseInt(parts[3], 10);
 
     const user = new User(uid);
-    await user.load();
+    const userDbData = await user.load();
     const userRole = new UserRoleRelation();
     let hasFrpTrpRole = false;
 
@@ -515,8 +515,9 @@ const RateLimiter = require('limiter').RateLimiter;
       return res.redirect('/success-valiadation?verify-notified-user=0');
     }
 
+    const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
     if(tokenDbData['role_text'].toLowerCase() != 'TRP' && tokenDbData['role_text'].toLowerCase() != 'FRP'){
-      const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1';
+      const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
     }else{
       try{
@@ -526,7 +527,6 @@ const RateLimiter = require('limiter').RateLimiter;
         hasFrpTrpRole = false;
       }
 
-      const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
       // update record
       await tokenObj.create({
         strToken: '',

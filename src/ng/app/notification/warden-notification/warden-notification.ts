@@ -123,6 +123,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
             this.routeQuery = query;
             let params = this.getQueryParams();
 
+            this.token = this.cryptor.decryptUrlParam(this.routeQuery['token']);
+            
+            const parts: Array<string> = this.token.split('_');
+            this.notification_token_id = +parts[3];
+
             if(Object.keys(this.locationData).length == 0){
 
                 this.locationService.getById(this.routeQuery['locationid'], (response) => {
@@ -198,7 +203,6 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     ngAfterViewChecked(){
-        console.log('ngAfterViewChecked');
     }
 
     changeEventSubLocationReviewProfile(){
@@ -352,8 +356,27 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
             } else if( this.routeQuery['ans'] == 'location_changed' ){
                 status = 'Location Changed';
-                
-            }            
+                responses.push({
+                    question: 'Old location',
+                    ans: $('#selectSubLocNewLoc').val()
+                });
+
+                let 
+                sublocid = $('#selSubLocationNewLoc').val(),
+                locid = 0;
+
+                if(sublocid == -1 || sublocid == null){
+                    locid = this.selectedSearchedLocations.location_id;
+                }else{
+                    locid = sublocid;
+                }
+
+                responses.push({
+                    question: 'New location',
+                    ans: locid
+                });
+            }
+
             const myAns = JSON.stringify(responses);
             this.accountService.submitQueryResponses(myAns, this.notification_token_id, 1, status).subscribe(
                 (res) => {
@@ -461,8 +484,22 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 }
             });
         }
+    }
 
-
+    clickYesThankYou(btn){
+        btn.disabled = true;
+        this.accountService.submitQueryResponses(JSON.stringify([]), this.notification_token_id, 1, 'Validated').subscribe(
+            (res) => {
+                btn.disabled = false;
+                setTimeout(() => {
+                    this.router.navigate(['/dashboard']);
+                }, 100);
+            },
+            (error) => {
+                console.log('There was an error processing the request answer');
+                
+            }
+        );
     }
 
     ngOnDestroy() {

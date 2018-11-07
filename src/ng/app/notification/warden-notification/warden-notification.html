@@ -230,7 +230,7 @@
 
 
         <div class="center">
-            <button [routerLink]="['/dashboard']" class="btn orange waves-effect waves-light">Close</button>
+            <button #btnYesThankYou (click)="clickYesThankYou(btnYesThankYou)" class="btn orange waves-effect waves-light">Close</button>
         </div>
     </div>
 </ng-template>
@@ -296,7 +296,7 @@
         </div>
 
         <div class="margin-bottom-20 check-container">
-            <input id="nominateNo" type="radio" name="nominate" value="no" /> 
+            <input id="nominateNo" type="radio" name="nominate" checked="checked" value="no" /> 
             <label for="nominateNo">No, I don't want to nominate</label> 
         </div>
 
@@ -308,21 +308,43 @@
 </ng-template>
 
 <ng-template #ansChangedLocation>
-    <div class="div-center grey lighten-4 no-change-location boxed ">
+    <div class="div-center grey lighten-4 no-change-location boxed " style="margin-top: 2%;">
         <h5 class="margin-bottom-40 title center">
             Please enter your new location
         </h5>
 
-        <div class="input-white-bg">
-            <input type="text" #inpChangeLocSearch  placeholder="Type new location here" />
+        <div class="row">
+            <div class="col l12 m12 s12">
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                    <label>Select From Your Location</label>
+                    <select id="selectSubLocNewLoc" (change)="changeEventSubLocationReviewProfile()">
+                        <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="margin-bottom-20"></div>
+
+            <div class="col l12 m12 s12" style="position: relative;">
+                <div class="form-group input-white-bg">
+                    <label for="subLocation">Search New Location</label>
+                    <input type="text" class="form-control" #inpChangeLocSearch placeholder="Type location here" />
+                </div>
+                <div class="search-result" *ngIf="searchedLocations.length > 0">
+                    <ul>
+                        <li *ngFor="let loc of searchedLocations" (click)="selectSearchLocation(loc, inpChangeLocSearch)">{{loc.name}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col l12 m12 s12">
+                <div class="input-white-bg margin-bottom-40" style="margin-right: 0px;">
+                    <select id="selSubLocationNewLoc" [disabled]="selectedSearchedLocations.sublocations.length == 0">
+                        <option *ngFor="let sub of selectedSearchedLocations.sublocations" value="{{sub.location_id}}" >{{sub.name}}</option>
+                    </select>
+                </div>
+            </div>
         </div>
-        
-        <div class="input-white-bg margin-bottom-40" style="margin-right: 0px;">
-            <select [disabled]="selectedSearchedLocations.sublocations.length == 0">
-                <option *ngFor="let sub of selectedSearchedLocations.sublocations">{{sub.name}}</option>
-            </select>
-        </div>
-        
 
         <div class="center">
             <button class="btn orange wave-effect waves-light" #btnConfirmChangeLocation (click)="noAnswerConfirm(btnConfirmChangeLocation)" >Confirm</button>

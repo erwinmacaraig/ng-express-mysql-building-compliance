@@ -71,6 +71,7 @@ export class NotificationToken extends BaseClass {
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',        
+        ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
