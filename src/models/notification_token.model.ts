@@ -40,8 +40,9 @@ export class NotificationToken extends BaseClass {
         dtResponded,
         completed,
         dtCompleted,
-        strResponse
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        strResponse,
+        training_reminder
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         strToken = ?,
         location_id = ?,
@@ -54,7 +55,8 @@ export class NotificationToken extends BaseClass {
         dtCompleted = ?,
         strResponse = ?,
         dtLastSent = ?,
-        manually_validated_by = ?
+        manually_validated_by = ?,
+        training_reminder = ?
       `;
       const param = [
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
@@ -80,7 +82,8 @@ export class NotificationToken extends BaseClass {
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
-        ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0
+        ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
+        ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0
       ];
 
       this.pool.getConnection((err, connection) => {
@@ -123,7 +126,8 @@ export class NotificationToken extends BaseClass {
           dtCompleted = ?,
           strResponse = ?,
           dtLastSent = ?,
-          manually_validated_by = ?
+          manually_validated_by = ?,
+          training_reminder = ?
         WHERE notification_token_id = ?
       `;
       const param = [
@@ -141,6 +145,7 @@ export class NotificationToken extends BaseClass {
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
         ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
+        ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
         this.ID() ? this.ID() : 0
       ];
       this.pool.getConnection((err, connection) => {
@@ -211,6 +216,32 @@ export class NotificationToken extends BaseClass {
           } else {
             resolve({});
           }
+        });
+        connection.release();
+
+      });
+      
+
+    });
+  }
+
+  public getByUserId(userId = 0): Promise<object> {
+    return new Promise((resolve, reject) => {
+      const sql_load = `SELECT *, IF(dtExpiration < NOW(), 'expired', 'active') as expiration_status FROM notification_token
+        WHERE user_id = ?  `;
+
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
+        }
+
+        connection.query(sql_load, [userId], (error, results) => {
+          if (error) {
+            console.log('NotificationToken.loadByContraintKeys', error, sql_load);
+            throw Error(error);
+          }
+          this.dbData = results;
+          resolve(this.dbData);
         });
         connection.release();
 

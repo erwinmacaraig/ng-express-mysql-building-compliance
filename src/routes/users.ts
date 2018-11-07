@@ -25,6 +25,7 @@ import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { NotificationUserSettingsModel } from '../models/notification.user.settings';
+import { NotificationToken } from '../models/notification_token.model';
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -408,6 +409,10 @@ export class UsersRoute extends BaseRoute {
         new  UsersRoute().updateNotificationSettings(req, res);
       });
 
+      router.get('/users/get-notification-token/:userid', async (req: AuthRequest, res: Response) => {
+        res.send( await new NotificationToken().getByUserId(req.params.userid) );
+      });
+
     }
 
     public async checkIfAdmin(req: Request , res: Response){
@@ -687,6 +692,60 @@ export class UsersRoute extends BaseRoute {
                         'id' : req.body.user_id,
                         'id_type' : 'user_id'
                     });
+                }
+            }
+
+            if(req.body.location_id && req.body.role_id){
+                if(req.body.role_id > 2){
+
+                    let 
+                    locAccModel = new LocationAccountRelation(),
+                    locAccData = await locAccModel.getByAccountIdAndLocationId(userData['account_id'], req.body.location_id);
+
+                    if(locAccData.length == 0){
+                        await locAccModel.create({
+                            'account_id' : userData['account_id'],
+                            'location_id' : req.body.location_id,
+                            'responsibility' : 'Tenant'
+                        });
+                    }
+
+                    let
+                    userEmModel = new UserEmRoleRelation(),
+                    emData = <any> await userEmModel.getEmRolesByUserId(req.body.user_id),
+                    hasRecord = false;
+
+                    if(emData.length > 0){
+                        for(let em of emData){
+                            if(em.location_id == req.body.location_id && em.em_roles_id == req.body.role_id){
+                                hasRecord = true;
+                            }
+                        }
+                    }
+
+                    if(!hasRecord){
+                        await userEmModel.create({
+                            'user_id' : req.body.user_id,
+                            'em_role_id' : req.body.role_id,
+                            'location_id' : req.body.location_id
+                        });
+                    }
+
+                }
+            }
+
+            if('training_reminder' in req.body){
+                let notiTokenModel = new NotificationToken(),
+                tokens = <any> await notiTokenModel.getByUserId(req.body.user_id);
+                if(tokens.length > 0){
+                    for(let tok of tokens){
+                        let updateTokenModel = new NotificationToken(tok['notification_token_id']);
+                        for(let i in tok){
+                            updateTokenModel.set(i, tok[i]);
+                        }
+                        updateTokenModel.set('training_reminder', req.body.training_reminder);
+                        await updateTokenModel.dbUpdate();
+                    }
                 }
             }
 

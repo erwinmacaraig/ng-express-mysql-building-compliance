@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
@@ -26,14 +26,19 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
     encryptedToken = '';
     encryptedUserId = '';
+    peepDestParam = '';
+    peepDestQuery = '';
     routeQuery = <any> {};
     routeParam = <any> {};
     locationData = <any> {};
     userData = <any> {};
     accountData = <any> {};
+    ecoRolesSelection = <any> [];
+    ecoRoles = <any> {};
     roleText = 'Warden';
     locationRoles = <any> [];
     requiredTrainings = <any> [];
+    notificationTokens = <any> [];
     displayText = {
         yesUpdateProfile : {
             role : '',
@@ -42,11 +47,17 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     };
     searchedLocations = <any> [];
     selectedSearchedLocations = <any> {
-        sublocation : []
+        sublocations : []
     };
 
     @ViewChild('inpChangeLocSearch') inpChangeLocSearch: ElementRef;
     searchChangeLocSubs;
+
+    @ViewChild('inpsearchLocProfile') inpsearchLocProfile: ElementRef;
+    searchLocProfileSubs;
+
+    noSubLocs = false;
+    hasTrainingReminder = false;
 
     constructor(
         private route: ActivatedRoute,
@@ -92,6 +103,19 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
     }
 
+    getNotificationTokens(){
+        this.userService.getNotificationToken(this.userData['userId']).subscribe((tokens) => {
+            this.notificationTokens = tokens;
+
+            for(let tok of this.notificationTokens){
+                if(tok.training_reminder == 1){
+                    this.hasTrainingReminder = true;
+                }
+            }
+
+        });
+    }
+
     ngOnInit() {
         this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
@@ -120,6 +144,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     this.locationRoles = response.data.locations;
                     this.userData = Object.assign(this.userData, response.data.user);
                     this.requiredTrainings = response.data.required_trainings;
+                    this.ecoRoles = response.data.eco_roles;
 
                     if( this.userData.mobile_number !== null ){
                         if(this.userData.mobile_number.trim().length > 0){
@@ -141,6 +166,21 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 });
 
             }
+
+            this.searchedLocations = <any> [];
+            this.selectedSearchedLocations = <any> {
+                sublocations : []
+            };
+            this.noSubLocs = false;
+            this.ecoRolesSelection = [];
+
+            setTimeout(() => {
+                this.searchLocationEvent();
+                this.getNotificationTokens();
+            }, 500);
+
+            this.peepDestParam = '/dashboard/warden-notification';
+            this.peepDestQuery = '?userid='+this.userData['userId']+'&locationid='+this.routeQuery['locationid']+'&stillonlocation=yes&step=1';
         });
 
         this.route.params.subscribe((params) => {
@@ -153,6 +193,10 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
     ngAfterViewInit() {
         this.searchLocationEvent();
+    }
+
+    ngAfterViewChecked(){
+        console.log('ngAfterViewChecked');
     }
 
     changeEventSubLocationReviewProfile(){
@@ -168,13 +212,33 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         btn.innerText = "Updating...";
         btn.disabled = true;
 
-        this.userService.update({
+        let form = {
             user_id : this.userData['userId'],
             mobile_number : $('#mobile').val()
-        }, (response) => {
-            console.log('update user', response);
-            btn.innerText = "Update Profile";
-            btn.disabled = false;
+        };
+
+        if( this.selectedSearchedLocations.location_id ){
+            let sublocid = $('#selectSubLocProfile').val();
+            if(sublocid == "-1" || sublocid == null){
+                form['location_id'] = this.selectedSearchedLocations.location_id;
+            }else{
+                form['location_id'] = sublocid;
+            }
+
+            form['role_id'] = $('#selRoleUpdateProf').val();
+        }
+
+        form['training_reminder'] = ($('#checkBoxOneMonth').prop('checked')) ? 1 : 0; 
+
+        $('.update-profile').css('pointer-events', 'none');
+
+        this.userService.update(form, (response) => {
+            this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
+                this.locationRoles = response.data.locations;
+                btn.innerText = "Update Profile";
+                btn.disabled = false;
+                $('.update-profile').css('pointer-events', '');
+            });
         });
     }
 
@@ -188,6 +252,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     clickToStep3(){
         let params = this.getQueryParams();
 
+        params['final'] = true;
         params['step'] = '3';
         this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
     }
@@ -255,20 +320,103 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         }
     }
 
+    selectSearchLocation(loc, inpSearch){
+        this.searchedLocations = [];
+        console.log('loc', loc);
+        this.selectedSearchedLocations = loc;
+        inpSearch.value = loc.name;
+        if(loc.sublocations.length == 0){
+            this.noSubLocs = true;
+        }else{
+            loc.sublocations.unshift({
+                location_id : -1,
+                name : 'Building is selected, change this for sublocation'
+            });
+            this.noSubLocs = false;
+        }
+
+        setTimeout(() => {
+            this.onSelectSubLocation();
+        }, 300);
+    }
+
+    onSelectSubLocation(){
+        let id = $('#selectSubLocProfile').val();
+        let rolesInclude = [];
+        this.ecoRolesSelection = [];
+
+        if(id == "-1" || id == null){
+            rolesInclude = [15,16,18];
+        }else{
+            rolesInclude = [8,9,10,11,12,13,14];
+        }
+
+        for(let eco of this.ecoRoles){
+            if( rolesInclude.indexOf( eco['em_roles_id'] ) > -1 ){
+                this.ecoRolesSelection.push(eco);
+            }
+        }
+    }
+
     searchLocationEvent(){
 
-        this.searchChangeLocSubs = Observable.fromEvent(this.inpChangeLocSearch.nativeElement, "keyup").distinctUntilChanged().debounceTime(500).subscribe((event) => {
-            let val = this.inpChangeLocSearch.nativeElement.value;
+        if(this.searchChangeLocSubs){
+            this.searchChangeLocSubs.unsubscribe();
+        }
 
-            this.locationService.searchBuildings(val, { sublocations : true }).subscribe((response) => {
-                this.searchedLocations = response;
+        if(this.searchLocProfileSubs){
+            this.searchLocProfileSubs.unsubscribe();
+        }
+
+        if(this.inpChangeLocSearch){
+            this.searchChangeLocSubs = Observable.fromEvent(this.inpChangeLocSearch.nativeElement, "keyup").distinctUntilChanged().debounceTime(500).subscribe((event) => {
+                let val = this.inpChangeLocSearch.nativeElement.value;
+                this.selectedSearchedLocations = {
+                    sublocations : []
+                };
+                this.ecoRolesSelection = [];
+                if(val.trim().length > 0){
+                    this.locationService.searchBuildings(val, { sublocations : true, account_id: this.userData['accountId'] }).subscribe((response) => {
+                        this.searchedLocations = response;
+                    });
+                }else{
+                    this.searchedLocations = [];
+                    this.noSubLocs = false;
+                    
+                }
             });
+        }
 
-        });
+        if(this.inpsearchLocProfile){
+            this.searchLocProfileSubs = Observable.fromEvent(this.inpsearchLocProfile.nativeElement, "keyup").distinctUntilChanged().debounceTime(500).subscribe((event) => {
+                let val = this.inpsearchLocProfile.nativeElement.value;
+                this.selectedSearchedLocations = {
+                    sublocations : []
+                };
+                this.ecoRolesSelection = [];
+                if(val.trim().length > 0){
+                    this.locationService.searchBuildings(val, { sublocations : true, account_id: this.userData['accountId'] }).subscribe((response) => {
+                        this.searchedLocations = response;
+                    });
+                }else{
+                    this.searchedLocations = [];
+                    this.noSubLocs = false;
+                    
+                }
+            });
+        }
+
+
     }
 
     ngOnDestroy() {
-        this.searchChangeLocSubs.unsubscribe();
+        if(this.searchChangeLocSubs){
+            this.searchChangeLocSubs.unsubscribe();
+        }
+
+        if(this.searchLocProfileSubs){
+            this.searchLocProfileSubs.unsubscribe();
+        }
     }
 
 }

@@ -1062,7 +1062,7 @@ export class Location extends BaseClass {
       });
     }
 
-    public bulkLocationDetails(locations = [], filter = {}): Promise<Array<object>> {
+    public bulkLocationDetails(locations = [], filter = <any> {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         if (locations.length === 0) {
           resolve([]);
@@ -1296,19 +1296,43 @@ export class Location extends BaseClass {
         });
     }
 
-    public searchBuildings(key = ''){
+    public searchBuildings(key = '', accountId?){
         return new Promise((resolve, reject) => {
+            let sqlRelated = '';
+            if(accountId){
+                sqlRelated = `
+                    AND (
+                        l.location_id IN (
+                            SELECT
+                            location_id
+                            FROM location_account_relation
+                            WHERE location_account_relation.account_id = ${accountId} 
+                        )
+                        OR
+                        l.location_id IN (
+                            SELECT
+                            location_id
+                            FROM location_account_user
+                            WHERE location_account_user.account_id = ${accountId}
+                        )
+
+                    )
+                `;
+            }
+
             let sql_search = `
                 SELECT
                 l.location_id,
                 l.parent_id,
                 l.formatted_address,
                 l.is_building,
-                IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as name
+                IF(p.name IS NOT NULL AND TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as name
                 FROM locations l 
                 LEFT JOIN locations p ON l.parent_id = p.location_id
                 WHERE l.archived = 0 AND l.is_building = 1 AND 
                 ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ' ', l.name), l.name ) LIKE "%${key}%" )
+                ${sqlRelated}
+                GROUP BY l.location_id
                 LIMIT 10
             `;
             const connection = db.createConnection(dbconfig);
@@ -1331,7 +1355,7 @@ export class Location extends BaseClass {
                 l.parent_id,
                 l.formatted_address,
                 l.is_building,
-                IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as name
+                IF(p.name IS NOT NULL AND TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) as name
                 FROM locations l 
                 LEFT JOIN locations p ON l.parent_id = p.location_id
                 WHERE p.archived = 0 AND p.is_building = 1 AND 

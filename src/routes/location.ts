@@ -1493,6 +1493,9 @@ const defs = require('../config/defs.json');
                 sublocs = <any> await subLocsModel.getChildren(loc['location_id']),
                 accountModelTenantCount = new Account();
 
+            if(queries.sublocations){
+                loc['sublocations'] = sublocs;
+            }
             for(let sub of sublocs){
                 sublocsids.push(sub.location_id);
             }
@@ -1989,7 +1992,9 @@ const defs = require('../config/defs.json');
     public async searchBuildings(req: AuthRequest, res: Response){
         let 
         locModel = new Location(),
-        locations = <any> await locModel.searchBuildings(req.query.key);
+        related = (req.query.related) ? req.query.related : false,
+        accountId = (req.query.account_id) ? req.query.account_id  : false,
+        locations = <any> await locModel.searchBuildings(req.query.key, accountId);
 
         if(req.query.sublocations){
             for(let loc of locations){

@@ -513,7 +513,7 @@ const RateLimiter = require('limiter').RateLimiter;
       return res.redirect('/success-valiadation?verify-notified-user=0');
     }
 
-    if(tokenDbData['role_text'].toLowerCase() == 'warden'){
+    if(tokenDbData['role_text'].toLowerCase() != 'TRP' && tokenDbData['role_text'].toLowerCase() != 'FRP'){
       const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1';
       await loginAction(redirectUrl);
     }else{

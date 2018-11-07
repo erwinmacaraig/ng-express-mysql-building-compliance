@@ -9,9 +9,9 @@
                 <div class="dash"></div>
                 <div class="circle"></div>
                 <div class="text" [ngClass]="{ 'blue-text' : routeQuery['step'] == '2' }">Step 2</div>
-                <div class="dash"></div>
+                <!-- <div class="dash"></div>
                 <div class="circle"></div>
-                <div class="text" [ngClass]="{ 'blue-text' : routeQuery['step'] == '3' }">Step 3</div>
+                <div class="text" [ngClass]="{ 'blue-text' : routeQuery['step'] == '3' }">Step 3</div> -->
             </div>
         </div>
     </div>
@@ -75,12 +75,19 @@
     <div class="div-center update-profile">
         
         <div class="row">
-            <div class="col l12 m12 s12">
+            <div class="col l12 m12 s12">`
                 <h5 class="blue-text" style="margin-bottom: 10%;">Review Your Profile</h5>
+            </div>
+    
+            <div class="col l12 m12 s12">
+                <div class="margin-bottom-20 check-container">
+                    <input id="checkBoxOneMonth" type="checkbox" class="filled-in" [checked]="hasTrainingReminder"  /> 
+                    <label for="checkBoxOneMonth" style="color: #222; font-size: 16px;">Training Reminder: 1 month before training expiry</label> 
+                </div>
             </div>
 
             <div class="col l6 m12 s12">
-                <div class="form-group" style="margin-right: 0px;">
+                <div class="input-white-bg margin-bottom-40 form-group" style="margin-right: 0px;">
                     <label>Sub-Location</label>
                     <select id="selectSubLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
                         <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}}</option>
@@ -91,9 +98,41 @@
             <div class="col l6 m12 s12">
                 <div class="form-group" style="margin-right: 0px;">
                     <label>Role</label>
-                    <p style="font-size: 16px;">{{displayText.yesUpdateProfile.role}}</p>
+                    <p style="font-size: 16px; margin: 24px 0px;">{{displayText.yesUpdateProfile.role}}</p>
                 </div>
             </div>
+
+            <div class="col l12 m12 s12" style="position: relative;">
+                <div class="form-group">
+                    <label for="subLocation">Search Location</label>
+                    <input type="text" class="form-control" #inpsearchLocProfile placeholder="Type location here" />
+                </div>
+                <div class="search-result" *ngIf="searchedLocations.length > 0">
+                    <ul>
+                        <li *ngFor="let loc of searchedLocations" (click)="selectSearchLocation(loc, inpsearchLocProfile)">{{loc.name}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col l12 m12 s12">
+                <div class="input-white-bg margin-bottom-40 form-group" style="margin-right: 0px;">
+                    <label *ngIf="!noSubLocs">Select Sub-location</label>
+                    <label *ngIf="noSubLocs">No Sub-locations</label>
+                    <select id="selectSubLocProfile" [disabled]="selectedSearchedLocations.sublocations.length == 0" (change)="onSelectSubLocation()">
+                        <option *ngFor="let sub of selectedSearchedLocations.sublocations" value="{{sub.location_id}}">{{sub.name}}</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col l12 m12 s12">
+                <div class="input-white-bg margin-bottom-40 form-group" style="margin-right: 0px;">
+                    <label>Select Role</label>
+                    <select id="selRoleUpdateProf">
+                        <option value="{{eco.em_roles_id}}" *ngFor="let eco of ecoRolesSelection">{{eco.role_name}}</option>
+                    </select>
+                </div>
+            </div>
+
 
             <div class="col l12 m12 s12">
                 <div class="form-group">
@@ -109,6 +148,11 @@
             <div class="col l6 m12 s12">
                 <button class="btn btn-block blue waves-effect waves-light" (click)="clickToStep2()" >Next</button>
             </div>
+            
+            <div class="col l12 m12 s12">
+                <button class="btn btn-block grey" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ 'id' : encryptedUserId, 'dest' : peepDestParam, 'query' : peepDestQuery }">Register as Mobility Impaired</button>
+            </div>
+
         </div>
 
     </div>
@@ -176,9 +220,10 @@
 <ng-template #thankYou>
     <div class="div-center center">
         <h5 class="margin-bottom-30">
-            <strong>Thank you for informing us!</strong>
+            <!--   -->
+            <strong>Thank you for your time.</strong>
         </h5>
-        <h5 class="margin-bottom-60">We will notify your tenancy manager now.</h5>
+        <h5 class="margin-bottom-60">No further action required from your end.</h5>
 
 
         <div class="center">
@@ -270,8 +315,8 @@
         </div>
         
         <div class="input-white-bg margin-bottom-40" style="margin-right: 0px;">
-            <select [disabled]="selectedSearchedLocations.sublocation.length == 0">
-                <option *ngFor="let sub of selectedSearchedLocations.sublocation">{{sub.name}}</option>
+            <select [disabled]="selectedSearchedLocations.sublocations.length == 0">
+                <option *ngFor="let sub of selectedSearchedLocations.sublocations">{{sub.name}}</option>
             </select>
         </div>
         
