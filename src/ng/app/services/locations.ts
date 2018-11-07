@@ -140,6 +140,8 @@ export class LocationsService {
             callBack(res);
         }, err => {
             callBack( JSON.parse(err.error) );
+        }, () => {
+            console.log('Request done');
         });
     }
 

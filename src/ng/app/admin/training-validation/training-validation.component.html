@@ -107,7 +107,7 @@
               </select>
             </td>
             <td>
-                <select formControlName="sublocation_id" style="display: block;" id="trainingCourse">
+                <select formControlName="sublocation_id" style="display: block;" id="sublocation_id-{{i}}">
                   <optgroup *ngFor="let parent of parentLocationOptionGroup" label="{{parent['parent_location_name']}}">
                       <option *ngFor="let sub of parent['sublocations']" [value]="sub.id">{{sub.name}}</option>
                   </optgroup>
@@ -142,16 +142,7 @@
             </td>
           </tr>
         </tbody>
-        <tfoot>
-          <!--
-          <tr>
-            <td class="paper-attendance">
-                <span style="padding-left: 10px;">Upload Paper Attendance Record</span>
-            </td>
-            <td colspan="6">
-              <input type="file" name="file" id="file" class="inputfile" (change)="onFileChange($event)" #fileInput />
-            </td>
-          </tr> -->
+        <tfoot>          
           <tr>
             <td colspan="7">
               <a class="btn blue" (click)="addUserFormItem($event)">+ Add more rows</a>
@@ -167,7 +158,7 @@
           <pre>
                userForm is {{userForm.valid}}
                searchLocationField is {{searchLocationField.valid}}
-             </pre>
+          </pre>
           -->
           <input type="submit" [ngClass]="{'btn': true,
                                            'grey': (userForm.valid && searchLocationField.valid) == false,
@@ -176,7 +167,7 @@
                                            'orange': (userForm.valid && searchLocationField.valid) == true,
                                            'waves-effect': (userForm.valid && searchLocationField.valid) == true,
                                            'waves-light': (userForm.valid && searchLocationField.valid) == true}" value="Submit"
-          [disabled]="!userForm.valid || !searchLocationField.valid" />
+          [disabled]="!userForm.valid || !searchLocationField.valid || userForm.get('levelUsers').length == 0" />
              
       </div>
     </div>

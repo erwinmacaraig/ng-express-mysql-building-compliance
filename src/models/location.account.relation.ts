@@ -395,9 +395,7 @@ export class LocationAccountRelation extends BaseClass {
 
         let sqlGetIds = `
             SELECT
-
             DISTINCT(IF(p1.is_building = 1, p1.location_id, l.location_id) ) as location_id
-
             FROM locations l
             INNER JOIN location_account_user lau ON l.location_id = lau.location_id
             LEFT JOIN locations p1 ON l.parent_id = p1.location_id
@@ -408,14 +406,14 @@ export class LocationAccountRelation extends BaseClass {
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
             AND l.archived = ${archived}
         `;
-
+        // console.log('sqlGetIds: ', sqlGetIds);
         this.pool.getConnection((err, connection) => {
             connection.query(sqlGetIds,  (error, idResults) => {
                 if(error){
                     console.log(filter['userId']);
                     throw new Error(error);
                 }
-
+                
                 if(idResults.length > 0){
                     let 
                     arrIds = [],

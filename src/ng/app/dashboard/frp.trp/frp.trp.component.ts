@@ -112,17 +112,29 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
         this.getLocationsForListing((response:any) => {
             this.locations = response.locations;
-            for(let loc of this.locations){
-                loc['fetchingCompliance'] = true;
-                loc['compliance_percentage'] = 0;
+            for(let loc of this.locations) {
+                if (loc['is_building'] == 1) {
+                    loc['fetchingCompliance'] = true;
+                    loc['compliance_percentage'] = 0;
+                } else {
+                    loc['fetchingCompliance'] = false;
+                }
+
+                
             }
 
             for(let loc of this.locations){
-                this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
-                    loc['fetchingCompliance'] = false;
-                    loc['compliance_percentage'] = compRes.percent;
-                    loc['compliance'] = compRes.data;
-                });
+                if (loc['is_building'] == 1) {
+                    console.log(`requesting ${loc.location_id}`);
+                    this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
+                        loc['fetchingCompliance'] = false;
+                        loc['compliance_percentage'] = compRes.percent;
+                        loc['compliance'] = compRes.data;
+                    });
+                } else {
+                    console.log(`Skipping ${loc.location_id}`);
+                }
+
             }
 
             if(this.locations.length > 0){

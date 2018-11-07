@@ -67,11 +67,14 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   tenants = <any> [];
   fetchingWardenList = true;
   complianceDocuments: object = {    
+    1: [],    
     2: [],   
     4: [],
     5: [],
-    6: [],        
-    9: [],    
+    6: [],
+    8: [],        
+    9: [],
+    12: [],    
     13: []
   };
 
@@ -262,14 +265,18 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   
   public getUploadedDocumentsFromSelectedKPI(kpi, reload: boolean = false) {
     console.log(kpi);
+    this.selectedCompliance = {};
+    this.selectedCompliance = kpi;
+    // console.log(this.selectedCompliance.compliance['docs']);    
+    console.log(this.selectedCompliance.compliance);
     this.selectedKPI = kpi['compliance_kpis_id'];
     this.documentFiles = [];
     this.displayKPIName = kpi['name']; 
     this.displayKPIDescription = kpi['description'];
     
     this.showLoadingForSignedURL = false;
-    this.myKPI = kpi;
-    console.log(`selected kpi is ${this.selectedKPI}`);
+    this.myKPI = kpi;    
+
     if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
       this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
         this.documentFiles = response['data'];        
@@ -290,13 +297,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         alert("There was a problem getting the list of documents. Try again at a later time.");
       });
     }
-
-   
-    for(let k of this.KPIS){
-      if(k['compliance_kpis_id'] == this.selectedKPI){
-        this.selectedCompliance = k;
-      }
-    }
+    
   }
 
   downloadPaperAttendanceFile(filename, kpi, index) {    
