@@ -225,6 +225,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     noAnswerConfirm(btnConfirm){
         const responses = [];
         this.token = this.cryptor.decryptUrlParam(this.routeQuery['token']);
+        let params = this.routeQuery;
+        params['step'] = '3';
+        params['final'] = true;
         const parts: Array<string> = this.token.split('_');
         this.notification_token_id = +parts[3];
         let status = '';
@@ -290,9 +293,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
             this.accountService.submitQueryResponses(myAns, this.notification_token_id, 1, status).subscribe(
                 (res) => {
                     console.log(res);
+                    this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
                 },
                 (error) => {
                     console.log('There was an error processing the request answer');
+                    
                 }
             );
 
