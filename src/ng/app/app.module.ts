@@ -125,6 +125,8 @@ import { NotifiedUsersListComponent } from './notification/notified-users-list/n
 import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
 import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
 import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
+import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
+
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -247,6 +249,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     NotificationQueryComponent,
     NotificationWardenListComponent,
     NotificationPEEPListComponent,
+    SummaryViewComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,
