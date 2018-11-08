@@ -534,6 +534,7 @@ export class Location extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
+                    this.dbData = results;
                     resolve(results);
                 });
 

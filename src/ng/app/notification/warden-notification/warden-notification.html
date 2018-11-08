@@ -318,7 +318,7 @@
                 <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
                     <label>Select From Your Location</label>
                     <select id="selectSubLocNewLoc" (change)="changeEventSubLocationReviewProfile()">
-                        <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
+                        <option value="{{loc.user_em_roles_relation_id}}" [attr.locid]="loc.location_id" [attr.parentid]="loc.parent_id" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
                     </select>
                 </div>
             </div>
@@ -352,3 +352,11 @@
         
     </div>
 </ng-template>
+
+<div class="modal" id="modalNewLocation">
+    <div class="modal-content">
+        <h5 class="center">
+            We sent a confirmation message to tenancy and admin. Redirecting page...
+        </h5>
+    </div>    
+</div>

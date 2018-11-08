@@ -305,3 +305,28 @@
     background-color: #f7f5ae;
     cursor: pointer;
 }
+
+.no-change-location .tagline{
+    display: block;
+    font-size: 15px;
+    line-height: 22px;
+    width: 295px;
+    margin: 0 auto;
+    margin-top: 10px;
+}
+
+#modalNewLocation{
+    width: 30%;
+}
+
+@media screen and (max-width: 1024px) {
+    #modalNewLocation{
+        width: 50%;
+    }
+}
+
+@media screen and (max-width: 700px) {
+    #modalNewLocation{
+        width: 80%;
+    }
+}

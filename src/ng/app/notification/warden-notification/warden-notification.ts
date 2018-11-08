@@ -354,16 +354,27 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
                 }
 
-            } else if( this.routeQuery['ans'] == 'location_changed' ){
-                status = 'Location Changed';
-                responses.push({
-                    question: 'Old location',
-                    ans: $('#selectSubLocNewLoc').val()
-                });
+            }
 
-                let 
-                sublocid = $('#selSubLocationNewLoc').val(),
-                locid = 0;
+            let 
+            idEmrolesRel = parseInt($('#selectSubLocNewLoc').val()),
+            idFromLoc = 0,
+            sublocid = parseInt($('#selSubLocationNewLoc').val()),
+            locid = 0,
+            fromLoc = <any> {},
+            differentLocation = false;
+
+            for(let i in this.locationRoles){
+                if(idEmrolesRel == this.locationRoles[i]['user_em_roles_relation_id']){
+                    fromLoc = this.locationRoles[i];
+                    idFromLoc = fromLoc.location_id;
+                }
+            }
+
+            if( this.routeQuery['ans'] == 'location_changed' ){
+                if( !this.selectedSearchedLocations.location_id ){
+                    return false;
+                }
 
                 if(sublocid == -1 || sublocid == null){
                     locid = this.selectedSearchedLocations.location_id;
@@ -371,9 +382,37 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     locid = sublocid;
                 }
 
+                if( fromLoc.location_id == locid  ){
+                    return false;
+                }
+
+                if( fromLoc.is_building == 1 ){
+                    if( fromLoc.location_id != this.selectedSearchedLocations.location_id ){
+                        differentLocation = true;
+                    }
+                }else{
+                    if( fromLoc.parent_id != this.selectedSearchedLocations.location_id ){
+                        differentLocation = true;
+                    }
+                }
+
+                btnConfirm.disabled = true;
+                btnConfirm.innerText = "Sending...";  
+
+                status = 'Location Changed';
+                responses.push({
+                    question: 'Old location',
+                    ans: idFromLoc
+                });
+
                 responses.push({
                     question: 'New location',
                     ans: locid
+                });
+
+                responses.push({
+                    question: 'user_em_roles_relation_id',
+                    ans: idEmrolesRel
                 });
             }
 
@@ -386,7 +425,19 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     } else if( this.routeQuery['ans'] == 'resign' ) { 
                         this.router.navigate(['/dashboard/warden-notification'], {queryParams: params});
                     } else {
-                        this.router.navigate(['/dashboard']);
+
+                        if(differentLocation){
+                            $('#modalNewLocation').modal({ dismissible : false });
+                            $('#modalNewLocation').modal('open');
+                            setTimeout(() => {
+                                $('#modalNewLocation').modal('close');
+                            }, 1500);
+                            setTimeout(() => {
+                                this.router.navigate(['/dashboard']);
+                            }, 2000);
+                        }else{
+                            this.router.navigate(['/dashboard']);
+                        }
                     }
                 },
                 (error) => {
