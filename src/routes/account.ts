@@ -698,10 +698,7 @@ const RateLimiter = require('limiter').RateLimiter;
       building_manager: req.user.user_id,
       dtLastSent: moment().format('YYYY-MM-DD')
     });
-
-    // create token
-    // for (let uid = 0; uid < allUserIds.length; uid++) {
-
+    
     for (const u of allUsers) {
       let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${u['user_id']}_${u['location_id']}_${configurator.ID()}`, process.env.KEY).toString();
       let notificationToken = new NotificationToken();
@@ -756,14 +753,14 @@ const RateLimiter = require('limiter').RateLimiter;
         subject : 'EvacConnect Email Notification'
       };
       const email = new EmailSender(opts);
-
+			
       limiter.removeTokens(1, (err, remainingRequests) => {
         email.sendFormattedEmail(emailType, emailData, res, 
           (data) => console.log(data),
           (err) => console.log(err)
         );
       });
-
+			
     }
 
     return res.status(200).send({

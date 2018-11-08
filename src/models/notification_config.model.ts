@@ -119,6 +119,7 @@ export class NotificationConfiguration extends BaseClass {
             throw new Error(err);
           }
           this.id = results.insertId;
+          console.log('Config ID is ' + results.insertId);
           this.dbData['notification_config_id'] = this.id;
           resolve(true);
         });
