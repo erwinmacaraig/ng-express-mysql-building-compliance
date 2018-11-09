@@ -116,12 +116,13 @@ export class AccountsDataProviderService {
      return this.http.get(`${this.baseUrl}/accounts/list-notified-users/`, this.options);
 	}
 
-	submitQueryResponses(responses='', notification_token_id = 0, completed=0, status='In Progress') {
+	submitQueryResponses(responses='', notification_token_id = 0, completed=0, status='In Progress', toUpdate = true) {
        return this.http.post(this.baseUrl + '/accounts/process-query-notified-user-responses/', {
 			      query_responses: responses,
 				    notification_token_id: notification_token_id,
 						completed: completed,
-						strStatus: status
+						strStatus: status,
+            update_token: toUpdate
 			 });
   }
 

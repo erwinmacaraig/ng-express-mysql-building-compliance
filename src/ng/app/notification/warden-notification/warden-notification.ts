@@ -44,7 +44,8 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     displayText = {
         yesUpdateProfile : {
             role : '',
-            mobile : ''
+            mobile : '',
+            role_id : 0
         }
     };
     searchedLocations = <any> [];
@@ -148,7 +149,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 });
 
                 this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
-                    this.locationRoles = response.data.locations;
+                    for(let loc of response.data.locations){
+                        if(loc.user_em_roles_relation_id){
+                            this.locationRoles.push(loc);
+                        }
+                    }
                     this.userData = Object.assign(this.userData, response.data.user);
                     this.requiredTrainings = response.data.required_trainings;
                     this.ecoRoles = response.data.eco_roles;
@@ -206,10 +211,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     changeEventSubLocationReviewProfile(){
-        let id = $('#selectSubLocReviewProf').val();
+        let id = $('#selectLocReviewProf').val();
         for(let i in this.locationRoles){
             if( this.locationRoles[i]['user_em_roles_relation_id'] == id){
                 this.displayText.yesUpdateProfile.role = this.locationRoles[i]['role_name'];
+                this.displayText.yesUpdateProfile.role_id = this.locationRoles[i]['role_id'];
             }
         }
     }
@@ -218,33 +224,112 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         btn.innerText = "Updating...";
         btn.disabled = true;
 
-        let form = {
+        let 
+        idEmrolesRel = parseInt($('#selectLocReviewProf').val()),
+        idFromLoc = 0,
+        sublocid = parseInt($('#selectSubLocProfile').val()),
+        locid = 0,
+        fromLoc = <any> {},
+        differentLocation = false,
+        form = {
             user_id : this.userData['userId'],
-            mobile_number : $('#mobile').val()
-        };
+            mobile_number : $('#mobile').val(),
+            training_reminder : ($('#checkBoxOneMonth').prop('checked')) ? 1 : 0
+        },
+        status = 'Location Changed',
+        responses = <any> [];
 
-        if( this.selectedSearchedLocations.location_id ){
-            let sublocid = $('#selectSubLocProfile').val();
-            if(sublocid == "-1" || sublocid == null){
-                form['location_id'] = this.selectedSearchedLocations.location_id;
-            }else{
-                form['location_id'] = sublocid;
+        for(let i in this.locationRoles){
+            if(idEmrolesRel == this.locationRoles[i]['user_em_roles_relation_id']){
+                fromLoc = this.locationRoles[i];
+                idFromLoc = fromLoc.location_id;
             }
-
-            form['role_id'] = $('#selRoleUpdateProf').val();
         }
 
-        form['training_reminder'] = ($('#checkBoxOneMonth').prop('checked')) ? 1 : 0; 
+        if(sublocid == -1 || sublocid == null){
+            locid = this.selectedSearchedLocations.location_id;
+        }else{
+            locid = sublocid;
+        }
+
+        if( fromLoc.is_building == 1 ){
+            if( fromLoc.location_id != this.selectedSearchedLocations.location_id ){
+                differentLocation = true;
+            }
+        }else{
+            if( fromLoc.parent_id != this.selectedSearchedLocations.location_id ){
+                differentLocation = true;
+            }
+        }
+
+        responses.push({
+            question: 'Old location',
+            ans: idFromLoc
+        });
+
+        responses.push({
+            question: 'New location',
+            ans: locid
+        });
+
+        responses.push({
+            question: 'user_em_roles_relation_id',
+            ans: idEmrolesRel
+        });
 
         $('.update-profile').css('pointer-events', 'none');
 
-        this.userService.update(form, (response) => {
+        let getUserLocationTrainingsEcoRoles = (callBack) => {
             this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
-                this.locationRoles = response.data.locations;
+                this.locationRoles = [];
+                for(let loc of response.data.locations){
+                    if(loc.user_em_roles_relation_id){
+                        this.locationRoles.push(loc);
+                    }
+                }
                 btn.innerText = "Update Profile";
                 btn.disabled = false;
                 $('.update-profile').css('pointer-events', '');
+
+                if(callBack){
+                    callBack();
+                }
+
+                if(differentLocation){
+                    setTimeout(() => {
+                        $('#modalNewLocation').modal('close');
+                    }, 1500);
+                }
             });
+        };
+
+        this.userService.update(form, (response) => {
+
+            if(this.selectedSearchedLocations.location_id > 0){
+                const myAns = JSON.stringify(responses);
+                this.accountService.submitQueryResponses(myAns, this.notification_token_id, 0, status).subscribe(
+                    (res) => {
+                        if(differentLocation){
+                            $('#modalNewLocation').modal({ dismissible : false });
+                            $('#modalNewLocation').modal('open');
+                        }
+
+                        getUserLocationTrainingsEcoRoles(() => {
+                            if(differentLocation){
+                                setTimeout(() => {
+                                    $('#modalNewLocation').modal('close');
+                                }, 1500);
+                            }
+                        });
+                    },
+                    (error) => {
+                        console.log('There was an error processing the request answer');
+                    }
+                );
+            }else{
+                getUserLocationTrainingsEcoRoles(false);
+            }
+           
         });
     }
 

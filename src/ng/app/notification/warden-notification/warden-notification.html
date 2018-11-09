@@ -89,25 +89,18 @@
                 </div>
             </div>
 
-            <div class="col l6 m12 s12">
+            <div class="col l12 m12 s12">
                 <div class="input-white-bg margin-bottom-40 form-group" style="margin-right: 0px;">
-                    <label>Sub-Location</label>
-                    <select id="selectSubLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
-                        <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}}</option>
+                    <label>Location</label>
+                    <select id="selectLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
+                        <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
                     </select>
-                </div>
-            </div>
-
-            <div class="col l6 m12 s12">
-                <div class="form-group" style="margin-right: 0px;">
-                    <label>Role</label>
-                    <p style="font-size: 16px; margin: 24px 0px;">{{displayText.yesUpdateProfile.role}}</p>
                 </div>
             </div>
 
             <div class="col l12 m12 s12" style="position: relative;">
                 <div class="form-group">
-                    <label for="subLocation">Search Location</label>
+                    <label for="subLocation">Search New Location</label>
                     <input type="text" class="form-control" #inpsearchLocProfile placeholder="Type location here" />
                 </div>
                 <div class="search-result" *ngIf="searchedLocations.length > 0">
@@ -118,7 +111,7 @@
             </div>
 
             <div class="col l12 m12 s12">
-                <div class="input-white-bg margin-bottom-40 form-group" style="margin-right: 0px;">
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
                     <label *ngIf="!noSubLocs">Select Sub-location</label>
                     <label *ngIf="noSubLocs">No Sub-locations</label>
                     <select id="selectSubLocProfile" [disabled]="selectedSearchedLocations.sublocations.length == 0" (change)="onSelectSubLocation()">
@@ -126,16 +119,6 @@
                     </select>
                 </div>
             </div>
-
-            <div class="col l12 m12 s12">
-                <div class="input-white-bg margin-bottom-40 form-group" style="margin-right: 0px;">
-                    <label>Select Role</label>
-                    <select id="selRoleUpdateProf">
-                        <option value="{{eco.em_roles_id}}" *ngFor="let eco of ecoRolesSelection">{{eco.role_name}}</option>
-                    </select>
-                </div>
-            </div>
-
 
             <div class="col l12 m12 s12">
                 <div class="form-group">
@@ -356,7 +339,7 @@
 <div class="modal" id="modalNewLocation">
     <div class="modal-content">
         <h5 class="center">
-            We sent a confirmation message to tenancy and admin. Redirecting page...
+            We sent a confirmation message to tenancy and admin for changing different location
         </h5>
     </div>    
 </div>

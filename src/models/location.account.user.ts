@@ -868,14 +868,14 @@ export class LocationAccountUser extends BaseClass {
                       ON
                         locations.location_id = location_account_user.location_id
                       LEFT JOIN
-                        locations as parent_location
+                        locations parent_location
                       ON
                         locations.parent_id = parent_location.location_id
                       WHERE
                         location_account_user.location_id IN (${locationStr})
                     AND
                       user_role_relation.role_id = 2`;
-
+                      
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);

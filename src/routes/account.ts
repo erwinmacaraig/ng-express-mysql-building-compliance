@@ -299,6 +299,7 @@ const RateLimiter = require('limiter').RateLimiter;
     const theAnswers = req.body.query_responses;
     const responsesToQueryArr = JSON.parse(req.body.query_responses);
     const notification_token_id = req.body.notification_token_id;
+    const update_token = req.body.update_token;
     let nominatedUserName = '';
     let nominatedUserEmail = '';
     let changeLocation = {
@@ -321,7 +322,9 @@ const RateLimiter = require('limiter').RateLimiter;
       tokenDBData['strToken'] = '';
     }
     try {
-      await tokenObj.create(tokenDBData);
+      if(update_token){
+        await tokenObj.create(tokenDBData);
+      }
 
       // email
       for (const item of responsesToQueryArr) {
@@ -417,20 +420,29 @@ const RateLimiter = require('limiter').RateLimiter;
             }
           }
 
-          if( fromLoc.is_building == 1 ){
+          if( toLoc.is_building == 1 && fromLoc.is_building == 1 ){
             if( fromLoc.location_id != toLoc.location_id ){
               isDiffLoc = true;
             }
-          }else{
-            if( fromLoc.parent_id != toLoc.location_id ){
+          }else if(fromLoc.is_building == 1 && toLoc.is_building == 0){
+            if(fromLoc.location_id != toLoc.parent_id){
               isDiffLoc = true;
             }
+          }else if(fromLoc.is_building == 0 && toLoc.is_building == 1){
+            if(fromLoc.parent_id != toLoc.location_id){
+              isDiffLoc = true;
+            }
+          }else if(fromLoc.parent_id != toLoc.parent_id){
+            isDiffLoc = true;
           }
 
           /*Send Email To TRP and Admin*/
           if(isDiffLoc){
             await this.sendChangeLocationEmails(fromLoc, toLoc, emData);
           }else{
+            for(let i in emData){
+              emRoleRelModel.set(i, emData[i]);
+            }
             emRoleRelModel.set('location_id', toLoc.location_id);
             await emRoleRelModel.dbUpdate();
           }
@@ -769,17 +781,21 @@ const RateLimiter = require('limiter').RateLimiter;
     }catch(e){}
 
     // filter these sublevels that belongs to the account
-    if (config['trp_user']) {
-      userType = 'trp';
-      allUsers = await lauObj.TRPUsersForNotification(sublevels);
-    } else if (config['eco_user']) {
-      userType = 'eco';
-      eco = await uemr.emUsersForNotification(sublevels);
-    } else if (config['all_users']) {
-      userType = 'all';
-      trp = await lauObj.TRPUsersForNotification(sublevels);
-      eco = await uemr.emUsersForNotification(sublevels);
-      allUsers = trp.concat(eco);
+    try{
+      if (config['user_type'] == 'trp') {
+        userType = 'trp';
+        allUsers = await lauObj.TRPUsersForNotification(sublevels);
+      } else if (config['user_type'] == 'eco') {
+        userType = 'eco';
+        eco = await uemr.emUsersForNotification(sublevels);
+      } else if (config['user_type'] == 'all_users') {
+        userType = 'all';
+        trp = await lauObj.TRPUsersForNotification(sublevels);
+        eco = await uemr.emUsersForNotification(sublevels);
+        allUsers = trp.concat(eco);
+      }
+    }catch(e){
+      console.log(e);
     }
 
     for(let ec of eco){
@@ -819,8 +835,6 @@ const RateLimiter = require('limiter').RateLimiter;
         }
       }
     }
-
-    // res.send(allUsers);
 
     
     for (const u of allUsers) {

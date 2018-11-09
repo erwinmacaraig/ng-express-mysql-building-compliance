@@ -772,6 +772,8 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
+
+                      GROUP BY user_em_roles_relation.user_id, em_roles.em_roles_id
                        `;
 
         this.pool.getConnection((err, connection) => {
