@@ -32,6 +32,10 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
 
   accountId = 0;
   locationId: number;
+  @Input() locationIdInput = 0;
+  @Input() accountIdInput = 0;
+  @Input() selectedKPIinput = 2;
+  @Input() hideAccountComponent = false;
   KPIS: object[] = [];
   selectedKPI;
   documentFiles = [];
@@ -106,7 +110,16 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     this.dashboard.show();
     this.accountId = this.route.snapshot.params['accntId'];
     this.locationId = this.route.snapshot.params['locationId'];
+    if(this.locationIdInput){
+        this.locationId = this.locationIdInput;
+    }
+    if(this.accountIdInput){
+        this.accountId = this.accountIdInput;
+    }
     this.selectedKPI = this.route.snapshot.params['kpi'];
+    if(this.selectedKPIinput){
+        this.selectedKPI = this.selectedKPIinput;
+    }
     this.setDatePickerDefaultDate();
     this.adminService.getKPIS().subscribe((response) => {
       let initKPI;
