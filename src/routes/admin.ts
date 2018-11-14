@@ -38,7 +38,7 @@ import {NotificationToken } from '../models/notification_token.model';
 import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
-
+const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
@@ -1043,8 +1043,12 @@ export class AdminRoute extends BaseRoute {
       const accountUsers = [];
       const allUserObject = {};
       const locations = {};
+      
       for (let i = 0; i < allUsers.length; i++) {
         if (allUsers[i]['user_id'] in allUserObject) {
+          if ( (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).indexOf(allUsers[i]['role_id']) == -1 && allUsers[i]['role_id'] != null &&  allUsers[i]['role_id'] < 3) {
+            (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).push(allUsers[i]['role_id']);
+          }
           if (allUsers[i]['location_id'] in allUserObject[allUsers[i]['user_id']]['locations']) {
             if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
 
@@ -1060,10 +1064,11 @@ export class AdminRoute extends BaseRoute {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
             }
-
-
           } else {
             if (allUsers[i]['location_id'] !== null) {
+              if ((allUserObject[allUsers[i]['user_id']]['location-ids']).indexOf(allUsers[i]['location_id']) == -1) {
+                allUserObject[allUsers[i]['user_id']]['location-ids'].push(allUsers[i]['location_id']);
+              }
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']] = {
                 'em-role': [],
                 'account-role': [],
@@ -1099,8 +1104,13 @@ export class AdminRoute extends BaseRoute {
             'account_id': allUsers[i]['account_id'],
             'mobile_number': allUsers[i]['mobile_number'],
             'locations': {},
-            'locations-arr': []
+            'locations-arr': [],
+            'allAccountRoles': []
           };
+
+          if (allUsers[i]['role_id'] != null && allUsers[i]['role_id'] < 3) {
+            allUserObject[allUsers[i]['user_id']]['allAccountRoles'].push(allUsers[i]['role_id']);
+          }
           // console.log(typeof allUsers[i]['location_id']);
           // console.log(allUsers[i]['location_id'] === null);
           if (allUsers[i]['location_id'] && allUsers[i]['location_id'] != null) {
@@ -1992,7 +2002,71 @@ export class AdminRoute extends BaseRoute {
       new AdminRoute().tagAccountToExistingLocation(req, res);
     });
 
+    router.post('/admin/manual-send-notification-summary-link/', new MiddlewareAuth().authenticate, 
+    (req: AuthRequest, res: Response) => {
+      new AdminRoute().manualSendNotificationSummaryLink(req, res);
+    });
   // ===============
+  }
+
+  public async manualSendNotificationSummaryLink(req: AuthRequest, res: Response) {
+    const user = req.body.userId;
+    const role = req.body.roleId;
+    const account = req.body.accountId;
+
+    // get the location based on the role and account.
+    const userObj = new User();
+    const userInLocations = await userObj.getUserInLocationByRole(role, account, user);
+    
+    let strToken;
+    const limiter = new RateLimiter(2, 'second');
+    for (let u of userInLocations) {
+      strToken = cryptoJs.AES.encrypt(`${user}_${u['location_id']}_${role}_${account}_${Date.now()}`, process.env.KEY).toString();      
+      u['token'] = strToken;
+      // send the email to user
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : ['emacaraig@evacgroup.com.au'],
+        cc: [],
+        body : '',
+        attachments: [],
+        subject : ''
+      };
+      const email = new EmailSender(opts);
+      
+      limiter.removeTokens(1, (err, remainingRequests) => {
+        email.sendFormattedEmail('send-summary-notification-link', {
+          users_fullname: `${u['first_name']} ${u['last_name']}`,
+          link: 'http://' + req.get('host') + '/accounts/process-summary-link-token/?token=' + encodeURIComponent(u['token']),
+          role: defs['summary_role_label'][role],
+          location: `${u['name']} ${u['Building']}`,
+          account: u['account_name']
+        }, res, 
+          (data) => {
+            console.log(data);
+            const token = new Token();
+            token.create({
+              token: u['token'],
+              action: 'view',
+              verified: 0,
+              expiration_date: moment().add(2, 'day').format('YYYY-MM-DD HH:MM:ss'),
+              id: u['location_id'],
+              id_type: 'location_account_user.location_id'
+            }).then(() => {             
+              strToken = null;
+            });
+          },
+          (err) => console.log(err)
+        );
+      });
+    }
+    res.status(200).send({
+      message: 'Success'
+    });
+
+    
+
   }
 
   public async tagAccountToExistingLocation(req: AuthRequest, res: Response) {

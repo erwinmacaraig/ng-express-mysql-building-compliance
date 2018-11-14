@@ -110,6 +110,7 @@
                 <option value="invite">Send Training Invitation</option>
                 <!-- <option value="assign">Assign Trainings</option> -->
                 <option value="location-role">Assign Location & Role</option>
+                <option value="send-summary-link" *ngIf="user['allAccountRoles'].length > 0">Send Summary Notification Link</option>
                 
               </select>
           </td>

@@ -146,7 +146,7 @@ const appRoutes: Routes = [
       { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
       { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
       { path: 'peep-form', component: PeepFormComponent },
-      { path: 'notification-summary-view/:buildingId', component: SummaryViewComponent }
+      { path: 'notification-summary-view/:token', component: SummaryViewComponent }
     ]
   },
   

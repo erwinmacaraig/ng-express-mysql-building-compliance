@@ -11,6 +11,11 @@
     "FRP",
     "TRP"
   ],
+  "summary_role_label": [
+    "EM Role",
+    "TRP",
+    "Warden and General Occupant"
+  ],
   "em_roles": {
     "GENERAL_OCCUPANT": 8,
     "WARDEN": 9,
@@ -49,7 +54,7 @@
   "ADMIN_EMAIL": "admin@evacconnect.com",
   "DEFAULT_USER_PASSWORD" : "123456Uni",
   "ALLOWED_ORIGINS": [    
-    "https://portal.evacconnect.com"
+    "http://localhost:3000"
   ]  
    
 }

@@ -224,6 +224,11 @@ export class EmailSender {
                 subj = "EvacConnect Account Setup";
                 filename = "set-passwd-invite";
                 break;
+            case "send-summary-notification-link":
+                subj = "EvacConnect Notification List Summary Link";
+                filename = "send-notification-summary-link";
+                break;
+            
         }
 
         fs.readFile(dir+'/footer-email.hbs', 'utf8', (err, footer) => {

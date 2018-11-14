@@ -20,6 +20,7 @@ import * as moment from 'moment';
 import { AuthenticateLoginRoute } from './authenticate_login';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
+import { Token } from '../models/token.model';
 const RateLimiter = require('limiter').RateLimiter;
 
 /**
@@ -126,7 +127,13 @@ const RateLimiter = require('limiter').RateLimiter;
 		    new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 				new AccountRoute().performNotificationAction(req, res);
 			}			
-	  );
+		);
+		
+		router.get('/accounts/process-summary-link-token/',
+			(req: Request, res: Response, next: NextFunction) => {
+				new AccountRoute().processNotificationSummaryLink(req, res);
+			}
+		);
 
   }
 
@@ -140,6 +147,63 @@ const RateLimiter = require('limiter').RateLimiter;
 		super();
 	}
 	
+	public async processNotificationSummaryLink(req: Request, res: Response) {
+		let strToken = decodeURIComponent(req.query.token);
+		console.log(strToken);
+
+		const bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
+		const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+		const parts = strTokenDecoded.split('_');
+		console.log(parts);
+		if (parts.length != 5) {
+			return res.redirect('/success-valiadation?verify-notified-user=2');
+		}
+
+		const tk = new Token();
+		try {
+			const tkdbData = await tk.getByToken(strToken);
+			tkdbData['verified'] = 1;
+			await tk.create(tkdbData);
+		} catch (e) {
+			return res.redirect('/success-valiadation?verify-notified-user=2');
+		}
+
+		const uid = parts[0];
+		const lid = parts[1];
+		const rid = parts[2];
+		const aid = parts[3];
+
+		const user = new User(uid);
+		const userDbData = await user.load();
+		const authRoute = new AuthenticateLoginRoute();
+    const userRole = new UserRoleRelation();
+		let hasFrpTrpRole = false;
+		try{
+      await userRole.getByUserId(userDbData['user_id']);
+      hasFrpTrpRole = true;
+    } catch (e){
+      hasFrpTrpRole = false;
+    }
+    const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
+    let stringUserData = JSON.stringify(loginResponse.data);
+		stringUserData = stringUserData.replace(/\'/gi, '');
+		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${lid}_${rid}_${aid}`, 'NifLed').toString();
+		const redirectUrl = 'http://' + req.get('host') + '/dashboard/notification-summary-view/' + encodeURIComponent(cipherText);
+    const script = `
+                <h4>Redirecting...</h4>
+                <script>
+                    localStorage.setItem('currentUser', '${loginResponse.token}');
+                    localStorage.setItem('userData', '${stringUserData}');
+
+                    setTimeout(function(){
+                        window.location.replace("${redirectUrl}")
+                    }, 500);
+                </script>
+            `;
+
+    res.status(200).send(script);
+
+	}
 	public async performNotificationAction(req, res) {
 		// console.log(req.body);
 		const action = req.body.action;
@@ -429,7 +493,7 @@ const RateLimiter = require('limiter').RateLimiter;
 			await configurator.create(configDBData);
 		}
 
-    const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+    const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>

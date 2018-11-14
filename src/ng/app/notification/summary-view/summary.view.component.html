@@ -1,8 +1,71 @@
 <div class="row">
     <div class="col s6">
-        Building Email Notification List
+        <h5 class="title">Building Email Notification List</h5>
     </div>
-    <div class="col s6">
-
+    <div class="col s6" right-align>
+        <div class="row">
+            <div class="col s4">
+                <h6 class="tally">No. of Receiver:</h6>
+            </div>
+            <div class="col s4">
+                <h6 class="tally">No. of Responder:</h6>
+            </div>
+            <div class="col s4">
+                <h6 class="tally">No. of Exceptions:</h6>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row filter-container">
+    <div class="col l6 m6 s12">
+        <div class="search-field">
+            <input type="text" placeholder="Search Location" id="searchLocation">
+            <span class="material-icons">search</span>
+        </div>
+    </div>
+    <div class="col l2 m4 s6">
+        <select class="filter-by">
+            <option value="0" selected>Filter By (All)</option>
+            <option value=""></option>
+        </select>
+    </div>
+    <div class="col l2 m6 s6">
+        <select class="sort-by">
+            <option value="0" selected>Sort By</option>
+            <option value="user-name-desc">User Name Descending</option>
+            <option value="user-name-asc">User Name Ascending</option>
+        </select>
+    </div>
+    <div class="col l2 m6 s12">
+        <select class="bulk-manage">
+            <option value="0" selected disabled>Select Action</option>
+            <option value="archive">Archive selected</option>
+        </select>
+    </div>
+</div>
+<div class="row">
+    <div class="col s12">
+        <table class="table striped table-peep">
+            <thead>
+                <tr class="grey darken-4 white-text">
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Tenancy Name</th>
+                    <th>Location</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>John Snow</td>
+                    <td>johnsnow@emapta.com</td>
+                    <td>Pending</td>
+                    <td>Apple</td>
+                    <td>Level</td>
+                    <td><button class="waves-effect waves-light btn green">Resend</button> <button class="waves-effect waves-light btn red">Remove</button></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
