@@ -1090,7 +1090,8 @@ export class User extends BaseClass {
                                 location_account_user.location_id,
                                 locations.name,
                                 IF (parent.name IS NULL, '', parent.name) as Building,
-                                accounts.account_name
+                                accounts.account_name,
+                                IF (locations.is_building = 1, locations.location_id, locations.parent_id) as building_id
                             FROM
                                 users
                             INNER JOIN

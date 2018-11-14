@@ -135,6 +135,12 @@ const RateLimiter = require('limiter').RateLimiter;
 			}
 		);
 
+		router.post('/accounts/generate-notification-summary-list/',
+			new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response, next:NextFunction) => {
+				new AccountRoute().generateUserListOfNotifiedUsers(req, res);
+			}
+		);
+
   }
 
 	/**
@@ -146,16 +152,17 @@ const RateLimiter = require('limiter').RateLimiter;
 	constructor() {
 		super();
 	}
-	
+	public async generateUserListOfNotifiedUsers(req: AuthRequest, res: Response) {
+		
+	}
 	public async processNotificationSummaryLink(req: Request, res: Response) {
 		let strToken = decodeURIComponent(req.query.token);
-		console.log(strToken);
-
+		
 		const bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
 		const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
 		const parts = strTokenDecoded.split('_');
 		console.log(parts);
-		if (parts.length != 5) {
+		if (parts.length != 6) {
 			return res.redirect('/success-valiadation?verify-notified-user=2');
 		}
 
@@ -170,8 +177,9 @@ const RateLimiter = require('limiter').RateLimiter;
 
 		const uid = parts[0];
 		const lid = parts[1];
-		const rid = parts[2];
-		const aid = parts[3];
+		const bid = parts[2]
+		const rid = parts[3];
+		const aid = parts[4];
 
 		const user = new User(uid);
 		const userDbData = await user.load();
@@ -187,7 +195,7 @@ const RateLimiter = require('limiter').RateLimiter;
     const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
     let stringUserData = JSON.stringify(loginResponse.data);
 		stringUserData = stringUserData.replace(/\'/gi, '');
-		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${lid}_${rid}_${aid}`, 'NifLed').toString();
+		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${lid}_${bid}_${rid}_${aid}`, 'NifLed').toString();
 		const redirectUrl = 'http://' + req.get('host') + '/dashboard/notification-summary-view/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>

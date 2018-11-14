@@ -2021,7 +2021,7 @@ export class AdminRoute extends BaseRoute {
     let strToken;
     const limiter = new RateLimiter(2, 'second');
     for (let u of userInLocations) {
-      strToken = cryptoJs.AES.encrypt(`${user}_${u['location_id']}_${role}_${account}_${Date.now()}`, process.env.KEY).toString();      
+      strToken = cryptoJs.AES.encrypt(`${user}_${u['location_id']}_${u['building_id']}_${role}_${account}_${Date.now()}`, process.env.KEY).toString();      
       u['token'] = strToken;
       // send the email to user
       const opts = {
