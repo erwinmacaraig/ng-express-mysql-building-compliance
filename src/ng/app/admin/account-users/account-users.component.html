@@ -25,7 +25,16 @@
         <option value="archive">Archive selected</option>
       </select>
   </div> -->
-  <div class="col l10 m6 s12"></div>
+  <div class="col l10 m6 s12">
+        <div class="row filter-container">
+            <div class="col l4 m5 s12">
+                <div class="search-field">
+                    <input type="text" placeholder="Search User" id="searchUsers" (keyup)="searchByUserAndEmail($event)">
+                    <span class="material-icons">search</span>
+                </div>
+            </div>
+        </div>    
+  </div>
   <div class="col l2 m6 s12 ">
 		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/admin', 'add-account-user', accountId]">
 			<span class="image"></span>

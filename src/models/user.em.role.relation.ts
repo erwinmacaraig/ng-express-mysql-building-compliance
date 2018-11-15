@@ -742,7 +742,9 @@ export class UserEmRoleRelation extends BaseClass {
                         users.last_name,
                         users.email,
                         user_em_roles_relation.location_id,
+                        user_em_roles_relation.em_role_id,
                         em_roles.role_name,
+                        accounts.account_id,
                         accounts.account_name,
                         parent_location.name as parent_location,
                         locations.name
@@ -788,4 +790,6 @@ export class UserEmRoleRelation extends BaseClass {
         
       });
     }
+
+
 }

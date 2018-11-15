@@ -144,5 +144,11 @@ export class AccountsDataProviderService {
 		});
 	}
 
+	generateSummaryListItem(building=0, role=0) {
+		return this.http.post(`${this.baseUrl}/accounts/generate-notification-summary-list/`, {
+			building: building,
+			role: role,
+		});
+	}
 
 }

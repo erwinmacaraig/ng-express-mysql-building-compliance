@@ -5,7 +5,7 @@
     <div class="col s6" right-align>
         <div class="row">
             <div class="col s4">
-                <h6 class="tally">No. of Receiver:</h6>
+                <h6 class="tally">No. of Receiver: {{list.length}}</h6>
             </div>
             <div class="col s4">
                 <h6 class="tally">No. of Responder:</h6>
@@ -57,6 +57,7 @@
                 </tr>
             </thead>
             <tbody>
+                <!--
                 <tr>
                     <td>John Snow</td>
                     <td>johnsnow@emapta.com</td>
@@ -64,6 +65,39 @@
                     <td>Apple</td>
                     <td>Level</td>
                     <td><button class="waves-effect waves-light btn green">Resend</button> <button class="waves-effect waves-light btn red">Remove</button></td>
+                </tr>
+                -->
+                <tr *ngFor="let u of hasNotSent">
+                    <td>{{u['first_name']}} {{u['last_name']}}</td>
+                    <td>{{u['email']}}</td>
+                    <td> <span class="pending">No Notification</span></td>
+                    <td>{{u['account_name']}}</td>
+                    <td>{{u['name']}}</td>
+                    <td><button class="waves-effect waves-light btn green">Send</button></td>
+                </tr>
+                <tr *ngFor="let u of isPending">
+                    <td>{{u['first_name']}} {{u['last_name']}}</td>
+                    <td>{{u['email']}}</td>
+                    <td><span class="pending">Pending</span></td>
+                    <td>{{u['account_name']}}</td>                    
+                    <td>{{u['name']}}</td>
+                    <td><button class="waves-effect waves-light btn green">Resend</button></td>
+                </tr>
+                <tr *ngFor="let u of hasResigned">
+                    <td>{{u['first_name']}} {{u['last_name']}}</td>
+                    <td>{{u['email']}}</td>
+                    <td><span class="resigned">Resigned</span></td>
+                    <td>{{u['account_name']}}</td>                    
+                    <td>{{u['name']}}</td>
+                    <td><button class="waves-effect waves-light btn green">Re-assign</button> <button class="waves-effect waves-light btn red">Remove</button></td>
+                </tr>
+                <tr *ngFor="let u of isValidated">
+                    <td>{{u['first_name']}} {{u['last_name']}}</td>
+                    <td>{{u['email']}}</td>
+                    <td><span class="validated">Validated</span> </td>
+                    <td>{{u['account_name']}}</td>                    
+                    <td>{{u['name']}}</td>
+                    <td></td>
                 </tr>
             </tbody>
         </table>

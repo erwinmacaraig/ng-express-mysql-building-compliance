@@ -153,7 +153,49 @@ const RateLimiter = require('limiter').RateLimiter;
 		super();
 	}
 	public async generateUserListOfNotifiedUsers(req: AuthRequest, res: Response) {
-		
+		const buildingId = req.body.building;
+		const roleId = req.body.role;
+		const accountId = req.user.account_id;
+		const accountUsers = new LocationAccountUser();
+		const accountUserIds = [];
+		const emUserIds = [];
+		const token = new NotificationToken();
+		const emUsers = new UserEmRoleRelation();
+		let list;
+		// Get all sublevels from the building
+		const buildingLocationObj = new Location(buildingId);
+		const sublocations = await buildingLocationObj.getChildren(buildingId);
+		const sublocationIds = [];
+		for (let sub of sublocations) {
+			sublocationIds.push(sub['location_id']);
+		}
+
+		if (roleId == 1) {
+			// filter TRP users
+			const trpUsers = await accountUsers.TRPUsersForNotification(sublocationIds);
+			for (let tu of trpUsers) {
+				accountUserIds.push(tu['user_id']);
+			}
+			list = await token.generateSummaryList({
+				user_ids: accountUserIds
+			});
+		} else if (roleId == 2) {
+			const emergencyUsers = await emUsers.emUsersForNotification(sublocationIds);
+			// get only related to account and only GO and Warden
+			for (let em of emergencyUsers) {
+				if (em['account_id'] == accountId && (em['em_role_id'] == 8  || em['em_role_id'] == 9)) {
+					emUserIds.push(em['user_id']);
+				}
+			}
+			list = await token.generateSummaryList({
+				user_ids: emUserIds
+			});
+		}
+
+		return res.status(200).send({
+			list: list
+		});
+
 	}
 	public async processNotificationSummaryLink(req: Request, res: Response) {
 		let strToken = decodeURIComponent(req.query.token);

@@ -70,3 +70,12 @@ table tr td .btn{
     max-height: 30px;
     line-height: 29px;
 }
+span.pending {
+    color: #ff0000;
+}
+span.resigned {
+    color: #ffa500;
+}
+span.validated {
+    color: green;
+}
