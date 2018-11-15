@@ -405,7 +405,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 }
                 params['stillonlocation'] = 'no';                
 
-            }else if( this.routeQuery['ans'] == 'resign' ){
+            } else if( this.routeQuery['ans'] == 'resign' ) {
                 status = 'Resigned';
                 params['stillonlocation'] = 'no';
                 params['final'] = 'true';
