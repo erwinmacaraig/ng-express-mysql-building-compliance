@@ -295,6 +295,7 @@ export class Location extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
+                    this.dbData = results;
                     resolve(results);
                 });
 
@@ -1301,8 +1302,13 @@ export class Location extends BaseClass {
         });
     }
 
-    public searchBuildings(key = ''){
+    public searchBuildings(key = '', accountId = 0){
         return new Promise((resolve, reject) => {
+            let sqlAccount = '';
+            if(accountId > 0){
+                sqlAccount = ` AND ( l.location_id IN ( SELECT location_id FROM location_account_user WHERE account_id = ${accountId} ) OR l.location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ${accountId} ) ) `;
+            }
+
             let sql_search = `
                 SELECT
                 l.location_id,
@@ -1314,6 +1320,8 @@ export class Location extends BaseClass {
                 LEFT JOIN locations p ON l.parent_id = p.location_id
                 WHERE l.archived = 0 AND l.is_building = 1 AND 
                 ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) LIKE "%${key}%" )
+
+                ${sqlAccount}
                 LIMIT 10
             `;
             const connection = db.createConnection(dbconfig);

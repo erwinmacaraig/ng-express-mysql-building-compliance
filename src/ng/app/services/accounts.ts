@@ -72,7 +72,9 @@ export class AccountsDataProviderService {
 	      });
 	}
 
-	searhByName(name, callBack){
+	searhByName(name, callBack, params = {}){
+        let opt = this.options;
+        opt['params'] = params;
 		this.http.get(this.baseUrl+"/accounts/search/"+name, this.options)
 	      .subscribe(res => {
 	        callBack(res);
