@@ -18,7 +18,7 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
     public accountId = 0;
     private decryptedToken = '';
     public hasNotSent = [];
-    public hasResigend = [];
+    public hasResigned = [];
     public isPending = [];
     public isValidated = [];
 
@@ -49,7 +49,7 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
                         } else if (u['strStatus'] == 'Pending') {
                             this.isPending.push(u);
                         } else if (u['strStatus'] == 'Resigned') {
-                            this.hasResigend.push(u);
+                            this.hasResigned.push(u);
                         } else if (u['strStatus'] == 'Validated') {
                             this.isValidated.push(u);
                         }
