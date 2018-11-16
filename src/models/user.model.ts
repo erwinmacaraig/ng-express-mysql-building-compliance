@@ -1072,4 +1072,65 @@ export class User extends BaseClass {
         });
     }
 
+    public getUserInLocationByRole(roleId=0, accountId=0, userId?): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw new Error(err);
+                }                
+                let id = this.ID();
+                if (userId) {
+                    id = userId;
+                }
+                const sql = `SELECT
+                                users.first_name,
+                                users.last_name,
+                                users.email,
+                                location_account_user.location_id,
+                                locations.name,
+                                IF (parent.name IS NULL, '', parent.name) as Building,
+                                accounts.account_name,
+                                IF (locations.is_building = 1, locations.location_id, locations.parent_id) as building_id
+                            FROM
+                                users
+                            INNER JOIN
+                                location_account_user
+                            ON ( 
+                                users.user_id = location_account_user.user_id
+                                AND users.account_id = location_account_user.account_id
+                            )
+                            INNER JOIN
+                                user_role_relation ON users.user_id = user_role_relation.user_id
+                            INNER JOIN
+                                accounts
+                            ON
+                                accounts.account_id = users.account_id
+                            INNER JOIN
+                                locations
+                            ON
+                                location_account_user.location_id = locations.location_id
+                            LEFT JOIN
+                                locations as parent
+                            ON
+                                locations.parent_id = parent.location_id
+                            WHERE
+                                user_role_relation.role_id = ?
+                            AND
+                                users.user_id = ?
+                            AND
+                            location_account_user.account_id = ?
+                `;
+                connection.query(sql, [roleId, id, accountId], (error, results) => {
+                    if (error) {
+                        return console.log(error);
+                    }                
+                    resolve(results);
+
+                });
+                connection.release();
+            });
+        });
+    }
+
 }

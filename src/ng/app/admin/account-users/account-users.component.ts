@@ -544,7 +544,18 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             this.adminService.sendPasswordSetupInvite({user: user['user_id']}).subscribe((response) => {
                 alert('Send invite successful!');
             });
+        } else if (val == 'send-summary-link') {            
+            this.adminService.sendNotificationSummaryLink(user['user_id'], user['allAccountRoles'][0], this.accountId)
+                .subscribe((response) => {
+                    console.log('Email Sent');                   
+                });
 
+            if (user['allAccountRoles'].length > 1) {
+                this.adminService.sendNotificationSummaryLink(user['user_id'], user['allAccountRoles'][1], this.accountId)
+                .subscribe((response) => {
+                    console.log('Email Sent');                   
+                });
+            }
         }
 
         event.target.value = "0";

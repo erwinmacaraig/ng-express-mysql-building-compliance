@@ -330,4 +330,69 @@ export class NotificationToken extends BaseClass {
     });
   }
 
+  public generateSummaryList(filter={}): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      let userIds = [];
+      let whereClause = '';
+      if ('user_ids' in filter) {
+        userIds = filter['user_ids'];
+        userIds.push(0);
+        whereClause += `AND users.user_id IN (` + userIds.join(',') + `) `; 
+      }
+      if ('role_text' in filter) {
+        whereClause += `AND notification_token.role_text ${filter['role_text']} `;
+      }
+      const sql = `SELECT
+                  users.user_id,
+                  users.first_name,
+                  users.last_name,
+                  users.email,
+                  users.mobile_number,
+                  accounts.account_name,
+                  notification_token.notification_token_id,                  
+                  notification_token.role_text,
+                  notification_token.dtLastSent,
+                  users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
+               FROM
+                 users
+               INNER JOIN
+				         accounts
+			         ON
+                 accounts.account_id = users.account_id
+               LEFT JOIN
+                 notification_token
+               ON
+                 users.user_id = notification_token.user_id               
+               LEFT JOIN
+                 notification_config
+               ON
+                 notification_token.notification_config_id = notification_config.notification_config_id
+               LEFT JOIN
+                 locations ON locations.location_id = notification_token.location_id
+               LEFT JOIN
+                 locations as parent_loctions ON locations.parent_id = parent_loctions.location_id
+               WHERE notification_token.notification_config_id <> 0
+                 ${whereClause}
+               ORDER BY accounts.account_name, users.user_id`;
+
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
+        }
+
+        connection.query(sql, [], (error, results) => {
+         if (error) {
+           console.log('NotificationToken.generateSummaryList', sql, error);
+           throw Error(error);
+         }
+         resolve(results);
+        });
+        connection.release();
+
+      });
+      
+    });
+
+  }
+
 }

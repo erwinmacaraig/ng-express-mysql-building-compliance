@@ -20,6 +20,7 @@ import * as moment from 'moment';
 import { AuthenticateLoginRoute } from './authenticate_login';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
+import { Token } from '../models/token.model';
 const RateLimiter = require('limiter').RateLimiter;
 
 /**
@@ -126,7 +127,19 @@ const RateLimiter = require('limiter').RateLimiter;
 		    new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 				new AccountRoute().performNotificationAction(req, res);
 			}			
-	  );
+		);
+		
+		router.get('/accounts/process-summary-link-token/',
+			(req: Request, res: Response, next: NextFunction) => {
+				new AccountRoute().processNotificationSummaryLink(req, res);
+			}
+		);
+
+		router.post('/accounts/generate-notification-summary-list/',
+			new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response, next:NextFunction) => {
+				new AccountRoute().generateUserListOfNotifiedUsers(req, res);
+			}
+		);
 
   }
 
@@ -139,7 +152,115 @@ const RateLimiter = require('limiter').RateLimiter;
 	constructor() {
 		super();
 	}
-	
+	public async generateUserListOfNotifiedUsers(req: AuthRequest, res: Response) {
+		const buildingId = req.body.building;
+		const roleId = req.body.role;
+		const accountId = req.user.account_id;
+		const accountUsers = new LocationAccountUser();
+		const accountUserIds = [];
+		const emUserIds = [];
+		const token = new NotificationToken();
+		const emUsers = new UserEmRoleRelation();
+		let list;
+		// Get all sublevels from the building
+		const buildingLocationObj = new Location(buildingId);
+		const sublocations = await buildingLocationObj.getChildren(buildingId);
+		const sublocationIds = [];
+		for (let sub of sublocations) {
+			sublocationIds.push(sub['location_id']);
+		}
+		// we still need to include the building itself
+		sublocationIds.push(buildingId);
+		
+		if (roleId == 1) {
+			// filter TRP users
+			const trpUsers = await accountUsers.TRPUsersForNotification(sublocationIds);
+			for (let tu of trpUsers) {
+				accountUserIds.push(tu['user_id']);
+			}
+			list = await token.generateSummaryList({
+				user_ids: accountUserIds,
+				role_text: `= 'TRP'`
+			});
+		} else if (roleId == 2) {
+			
+			const emergencyUsers = await emUsers.emUsersForNotification(sublocationIds);
+			// get only related to account and only GO and Warden
+			
+			for (let em of emergencyUsers) { 
+				
+				if (em['account_id'] == accountId && (em['em_role_id'] == 8  || em['em_role_id'] == 9)) {
+					emUserIds.push(em['user_id']);
+				}
+			}
+			list = await token.generateSummaryList({
+				user_ids: emUserIds,
+				role_text: `<> 'TRP'`
+			});
+		}
+
+		return res.status(200).send({
+			list: list
+		});
+
+	}
+	public async processNotificationSummaryLink(req: Request, res: Response) {
+		let strToken = decodeURIComponent(req.query.token);
+		
+		const bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
+		const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
+		const parts = strTokenDecoded.split('_');
+		console.log(parts);
+		if (parts.length != 6) {
+			return res.redirect('/success-valiadation?verify-notified-user=2');
+		}
+
+		const tk = new Token();
+		try {
+			const tkdbData = await tk.getByToken(strToken);
+			tkdbData['verified'] = 1;
+			await tk.create(tkdbData);
+		} catch (e) {
+			return res.redirect('/success-valiadation?verify-notified-user=2');
+		}
+
+		const uid = parts[0];
+		const lid = parts[1];
+		const bid = parts[2]
+		const rid = parts[3];
+		const aid = parts[4];
+
+		const user = new User(uid);
+		const userDbData = await user.load();
+		const authRoute = new AuthenticateLoginRoute();
+    const userRole = new UserRoleRelation();
+		let hasFrpTrpRole = false;
+		try{
+      await userRole.getByUserId(userDbData['user_id']);
+      hasFrpTrpRole = true;
+    } catch (e){
+      hasFrpTrpRole = false;
+    }
+    const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
+    let stringUserData = JSON.stringify(loginResponse.data);
+		stringUserData = stringUserData.replace(/\'/gi, '');
+		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${lid}_${bid}_${rid}_${aid}`, 'NifLed').toString();
+		const redirectUrl = 'http://' + req.get('host') + '/dashboard/notification-summary-view/' + encodeURIComponent(cipherText);
+    const script = `
+                <h4>Redirecting...</h4>
+                <script>
+                    localStorage.setItem('currentUser', '${loginResponse.token}');
+                    localStorage.setItem('userData', '${stringUserData}');
+
+                    setTimeout(function(){
+                        window.location.replace("${redirectUrl}")
+                    }, 500);
+                </script>
+            `;
+
+    res.status(200).send(script);
+
+	}
 	public async performNotificationAction(req, res) {
 		// console.log(req.body);
 		const action = req.body.action;

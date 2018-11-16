@@ -99,6 +99,7 @@ import { NotificationWardenListComponent } from './notification/warden-list/ward
 import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
 import { WardenNotificationComponent } from './notification/warden-notification/warden-notification';
 
+import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -140,17 +141,17 @@ const appRoutes: Routes = [
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path: 'send-invite', component : SendInviteComponent },      
+      { path: 'send-invite', component : SendInviteComponent },
       { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'security-privacy', component : SecurityPrivacyComponent },
       { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
       { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
       { path: 'peep-form', component: PeepFormComponent },
-      { path: 'warden-notification', component : WardenNotificationComponent }
+      { path: 'warden-notification', component : WardenNotificationComponent },
+      { path: 'notification-summary-view/:token', component: SummaryViewComponent }
     ]
   },
-  
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },

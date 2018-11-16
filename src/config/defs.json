@@ -11,6 +11,11 @@
     "FRP",
     "TRP"
   ],
+  "summary_role_label": [
+    "EM Role",
+    "TRP",
+    "Warden and General Occupant"
+  ],
   "em_roles": {
     "GENERAL_OCCUPANT": 8,
     "WARDEN": 9,
