@@ -39,7 +39,7 @@
                 <ng-container *ngTemplateOutlet="thankYou"></ng-container>
             </div>
             <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['final'] == 'true'">
-                <ng-container *ngTemplateOutlet="thankYou"></ng-container>
+                <ng-container *ngTemplateOutlet="NothankYou"></ng-container>
             </div>
 
             <div *ngIf="routeQuery['stillonlocation'] == 'no' && !routeQuery['ans']">
@@ -214,6 +214,18 @@
 
         <div class="center">
             <button #btnYesThankYou (click)="clickYesThankYou(btnYesThankYou)" class="btn orange waves-effect waves-light">Close</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #NothankYou>
+    <div class="div-center center">
+        <h5 class="margin-bottom-30">           
+            <strong>Thank you for your time.</strong>
+        </h5>
+        <h5 class="margin-bottom-60">No further action required from your end.</h5>
+        <div class="center">
+            <button [routerLink]="['/dashboard']" class="btn orange waves-effect waves-light">Close</button>
         </div>
     </div>
 </ng-template>

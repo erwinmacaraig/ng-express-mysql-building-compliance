@@ -179,7 +179,8 @@ const RateLimiter = require('limiter').RateLimiter;
 				accountUserIds.push(tu['user_id']);
 			}
 			list = await token.generateSummaryList({
-				user_ids: accountUserIds
+				user_ids: accountUserIds,
+				role_text: `= 'TRP'`
 			});
 		} else if (roleId == 2) {
 			
@@ -193,7 +194,8 @@ const RateLimiter = require('limiter').RateLimiter;
 				}
 			}
 			list = await token.generateSummaryList({
-				user_ids: emUserIds
+				user_ids: emUserIds,
+				role_text: `<> 'TRP'`
 			});
 		}
 

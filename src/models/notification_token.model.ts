@@ -337,7 +337,10 @@ export class NotificationToken extends BaseClass {
       if ('user_ids' in filter) {
         userIds = filter['user_ids'];
         userIds.push(0);
-        whereClause += ` users.user_id IN (` + userIds.join(',') + `)`; 
+        whereClause += `AND users.user_id IN (` + userIds.join(',') + `) `; 
+      }
+      if ('role_text' in filter) {
+        whereClause += `AND notification_token.role_text ${filter['role_text']} `;
       }
       const sql = `SELECT
                   users.user_id,
@@ -368,7 +371,7 @@ export class NotificationToken extends BaseClass {
                  locations ON locations.location_id = notification_token.location_id
                LEFT JOIN
                  locations as parent_loctions ON locations.parent_id = parent_loctions.location_id
-               WHERE
+               WHERE notification_token.notification_config_id <> 0
                  ${whereClause}
                ORDER BY accounts.account_name, users.user_id`;
 
