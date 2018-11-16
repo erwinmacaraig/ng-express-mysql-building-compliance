@@ -8,10 +8,10 @@
                 <h6 class="tally">No. of Receiver: {{list.length}}</h6>
             </div>
             <div class="col s4">
-                <h6 class="tally">No. of Responder:</h6>
+                <h6 class="tally">No. of Responder: {{ responders }}</h6>
             </div>
             <div class="col s4">
-                <h6 class="tally">No. of Exceptions:</h6>
+                <h6 class="tally">No. of Exceptions: {{ exceptioners }}</h6>
             </div>
         </div>
     </div>
@@ -53,6 +53,7 @@
                     <th>Status</th>
                     <th>Tenancy Name</th>
                     <th>Location</th>
+                    <th>Activity Log</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -67,21 +68,14 @@
                     <td><button class="waves-effect waves-light btn green">Resend</button> <button class="waves-effect waves-light btn red">Remove</button></td>
                 </tr>
                 -->
-                <tr *ngFor="let u of hasNotSent">
+                <tr *ngFor="let u of tenancyMovedOut">
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
-                    <td> <span class="pending">No Notification</span></td>
-                    <td>{{u['account_name']}}</td>
-                    <td>{{u['name']}}</td>
-                    <td><button class="waves-effect waves-light btn green">Send</button></td>
-                </tr>
-                <tr *ngFor="let u of isPending">
-                    <td>{{u['first_name']}} {{u['last_name']}}</td>
-                    <td>{{u['email']}}</td>
-                    <td><span class="pending">Pending</span></td>
+                    <td><span class="resigned">Tenancy Moved Out</span></td>
                     <td>{{u['account_name']}}</td>                    
                     <td>{{u['name']}}</td>
-                    <td><button class="waves-effect waves-light btn green">Resend</button></td>
+                    <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
+                    <td><button class="waves-effect waves-light btn green">Assign</button></td>
                 </tr>
                 <tr *ngFor="let u of hasResigned">
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
@@ -89,6 +83,7 @@
                     <td><span class="resigned">Resigned</span></td>
                     <td>{{u['account_name']}}</td>                    
                     <td>{{u['name']}}</td>
+                    <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td><button class="waves-effect waves-light btn green">Re-assign</button> <button class="waves-effect waves-light btn red">Remove</button></td>
                 </tr>
                 <tr *ngFor="let u of locChanged">
@@ -97,22 +92,35 @@
                     <td><span class="resigned">Location Changed</span></td>
                     <td>{{u['account_name']}}</td>                    
                     <td>{{u['name']}}</td>
+                    <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td><button class="waves-effect waves-light btn green">Assign</button></td>
                 </tr>
-                <tr *ngFor="let u of tenancyMovedOut">
+                <tr *ngFor="let u of isPending">
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
-                    <td><span class="resigned">Tenancy Moved Out</span></td>
+                    <td><span class="pending">Pending</span></td>
                     <td>{{u['account_name']}}</td>                    
                     <td>{{u['name']}}</td>
-                    <td><button class="waves-effect waves-light btn green">Assign</button></td>
+                    <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
+                    <td><button class="waves-effect waves-light btn green">Resend</button></td>
                 </tr>
+                <tr *ngFor="let u of hasNotSent">
+                    <td>{{u['first_name']}} {{u['last_name']}}</td>
+                    <td>{{u['email']}}</td>
+                    <td> <span class="pending">No Notification</span></td>
+                    <td>{{u['account_name']}}</td>
+                    <td>{{u['name']}}</td>
+                    <td>--</td>
+                    <td><button class="waves-effect waves-light btn green">Send</button></td>
+                </tr>                               
+                               
                 <tr *ngFor="let u of others">
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
                     <td><span class="resigned">{{u['strStatus']}}</span></td>
                     <td>{{u['account_name']}}</td>                    
                     <td>{{u['name']}}</td>
+                    <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td></td>
                 </tr>
                 <tr *ngFor="let u of isValidated">
@@ -121,6 +129,7 @@
                     <td><span class="validated">Validated</span> </td>
                     <td>{{u['account_name']}}</td>                    
                     <td>{{u['name']}}</td>
+                    <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td></td>
                 </tr>
             </tbody>

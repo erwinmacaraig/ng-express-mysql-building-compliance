@@ -24,6 +24,8 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
     public tenancyMovedOut = [];
     public locChanged = [];
     public others = [];
+    public responders = 0;
+    public exceptioners = 0;
 
     private paramSub:Subscription;
     public list = [];
@@ -51,18 +53,25 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
                             this.isPending.push(u);
                         } else if (u['strStatus'] == 'Pending') {
                             this.isPending.push(u);
+                            this.exceptioners++;
                         } else if (u['strStatus'] == 'Resigned') {
                             this.hasResigned.push(u);
+                            this.responders++;
+                            this.exceptioners++;
                         } else if (u['strStatus'] == 'Validated') {
                             this.isValidated.push(u);
+                            this.responders++;
                         } else if (u['strStatus'] == 'Location Changed') {
                             this.locChanged.push(u);
+                            this.responders++;
+                            this.exceptioners++;
                         } else if (u['strStatus'] == 'Tenancy Moved Out') {
                             this.tenancyMovedOut.push(u);
+                            this.responders++;
+                            this.exceptioners++;
                         } else {
                             this.others.push(u);
                         }
-
                     }
                 }
             );
