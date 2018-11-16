@@ -330,3 +330,22 @@
         width: 80%;
     }
 }
+
+#training iframe {
+  height: 90%;
+  width: 97%;
+  position: absolute;
+}
+
+#training{
+  top: 11% !important;
+  left: 1%;
+  width: 98vw;
+  height: 92vh;
+  max-height: 100vh;
+}
+
+#training .modal-footer{
+  position: absolute;
+  bottom: 10px;
+}

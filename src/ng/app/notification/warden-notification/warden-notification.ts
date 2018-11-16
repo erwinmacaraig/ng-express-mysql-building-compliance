@@ -12,15 +12,19 @@ import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { HttpParams, HttpClient } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { DomSanitizer } from '@angular/platform-browser';
+import { ComplianceService } from './../../services/compliance.service';
 
 declare var $: any;
 declare var Materialize: any;
 declare var moment: any;
+declare var user_course_relation: any;
+
 @Component({
     selector: 'app-warden-notification',
     templateUrl: './warden-notification.html',
     styleUrls: ['./warden-notification.css'],
-    providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, UserService, AdminService, LocationsService]
+    providers: [EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, UserService, AdminService, ComplianceService, LocationsService]
 })
 export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -62,6 +66,10 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     noSubLocs = false;
     hasTrainingReminder = false;
 
+    selectedCourse;
+    baseUrl = '';
+    courses = [];
+
     constructor(
         private route: ActivatedRoute,
         private authService: AuthService,
@@ -75,9 +83,12 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         private platformLocation: PlatformLocation,
         public http: HttpClient,
         private locationService: LocationsService,
+        private sanitizer: DomSanitizer,
+        private complianceService: ComplianceService,
         private router: Router
         ) {
 
+        this.baseUrl = (platformLocation as any).location.origin;
         this.userData = this.authService.getUserData();
         this.encryptedUserId = this.cryptor.encrypt(this.userData['userId']);
         console.log('this.userData', this.userData);
@@ -234,7 +245,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         form = {
             user_id : this.userData['userId'],
             mobile_number : $('#mobile').val(),
-            training_reminder : ($('#checkBoxOneMonth').prop('checked')) ? 1 : 0
+            training_reminder : (this.hasTrainingReminder) ? 1 : 0
         },
         status = 'Location Changed',
         responses = <any> [];
@@ -340,12 +351,18 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
     }
 
-    clickToStep3(){
-        let params = this.getQueryParams();
+    clickToStep3(btn){
+        btn.disabled = true;
+        this.userService.update({
+            user_id : this.userData['userId'],
+            training_reminder : ($('#checkBoxOneMonth').prop('checked')) ? 1 : 0
+        }, (response) => {
+            let params = this.getQueryParams();
 
-        params['final'] = true;
-        params['step'] = '3';
-        this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
+            params['final'] = true;
+            params['step'] = '3';
+            this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
+        });
     }
 
     clickConfirmNotificationSettings(){
@@ -636,6 +653,40 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 
             }
         );
+    }
+
+    loadTrainingCourse(course: object = {}) {
+        user_course_relation = course['course_user_relation_id'] || 0;
+        this.selectedCourse = course;
+        this.selectedCourse['formatted_launcher_url'] =
+        this.sanitizer.bypassSecurityTrustResourceUrl(this.baseUrl + '/' + this.selectedCourse['course_launcher']);
+        this.complianceService.initializeLRS(user_course_relation).subscribe((data) => {
+            setTimeout(() => {
+                console.log(this.selectedCourse);
+                $('.modal').modal({
+                    dismissible : false,
+                    startingTop : '0%',
+                    endingTop: '5%'
+                });
+                $('#training').modal('open');
+            }, 600);
+        }, (error) => {
+            alert('There was an error loading course. Try again later');
+        });
+    }
+
+    onCloseCourseModule(course: object = {}) {
+
+        this.complianceService.getAllRegisteredCourses().subscribe((data) => {
+            console.log(data);
+            if (data['courses'].length > 0) {
+                this.courses = data['courses'];
+                console.log('At onCloseCourseModule', this.courses);
+            }
+        }, (error) => {
+            console.log('At onCloseCourseModule', error);
+            this.courses = [];
+        });
     }
 
     ngOnDestroy() {
