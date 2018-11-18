@@ -360,7 +360,7 @@
 
 
 <div class="modal" id="training">
-    <div class="modal-content">
+    <div class="modal-content" *ngIf="selectedCourse.formatted_launcher_url">
         <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
     </div>
     <div class="modal-footer">

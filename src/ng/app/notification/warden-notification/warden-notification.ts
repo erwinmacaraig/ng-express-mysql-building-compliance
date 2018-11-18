@@ -66,7 +66,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     noSubLocs = false;
     hasTrainingReminder = false;
 
-    selectedCourse;
+    selectedCourse = <any>{};
     baseUrl = '';
     courses = [];
 
@@ -216,6 +216,15 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
     ngAfterViewInit() {
         this.searchLocationEvent();
+
+
+        $('body').off('change', '#checkBoxOneMonth').on('change', '#checkBoxOneMonth', () => {
+            this.userService.update({
+                user_id : this.userData['userId'],
+                training_reminder : ($('#checkBoxOneMonth').prop('checked')) ? 1 : 0
+            }, (response) => { });
+        });
+
     }
 
     ngAfterViewChecked(){
@@ -352,17 +361,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     clickToStep3(btn){
-        btn.disabled = true;
-        this.userService.update({
-            user_id : this.userData['userId'],
-            training_reminder : ($('#checkBoxOneMonth').prop('checked')) ? 1 : 0
-        }, (response) => {
-            let params = this.getQueryParams();
+        let params = this.getQueryParams();
 
-            params['final'] = true;
-            params['step'] = '3';
-            this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
-        });
+        params['final'] = true;
+        params['step'] = '3';
+        this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
     }
 
     clickConfirmNotificationSettings(){
