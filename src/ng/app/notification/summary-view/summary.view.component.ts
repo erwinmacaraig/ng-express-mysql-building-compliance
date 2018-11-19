@@ -81,4 +81,19 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
     ngAfterViewInit() {}
 
     ngOnDestroy() {}
+
+    performAction(user: object = {}, action='') {
+
+        const info = JSON.stringify(user);
+        const postBody = {
+            info: info,
+            role: this.roleId,
+            action: action
+        };
+        this.accountService.performNotificationSummaryAction(postBody).subscribe((response) => {
+            console.log(response);
+        })
+
+
+    }
 }

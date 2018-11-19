@@ -21,6 +21,7 @@ import { AuthenticateLoginRoute } from './authenticate_login';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { Token } from '../models/token.model';
+import { UtilsSync } from '../models/util.sync';
 const RateLimiter = require('limiter').RateLimiter;
 
 /**
@@ -140,6 +141,11 @@ const RateLimiter = require('limiter').RateLimiter;
 				new AccountRoute().generateUserListOfNotifiedUsers(req, res);
 			}
 		);
+
+		router.post('/accounts/perform-notification-summ-action',
+			new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+				new AccountRoute().performActionOnSummaryList(req, res);
+			});
 
   }
 
@@ -570,7 +576,11 @@ const RateLimiter = require('limiter').RateLimiter;
 
         }
 
-      }
+			} else if (status == 'Tenancy Moved Out') {
+				const trpLocationToQuery = tokenObj['location_id'];
+			}
+			
+		
 
       return res.status(200).send({
         message: 'Success',
@@ -584,7 +594,76 @@ const RateLimiter = require('limiter').RateLimiter;
       });
     }
 
-  }
+	}
+	
+	public async performActionOnSummaryList(req: AuthRequest, res: Response) {
+
+		const reqData = JSON.parse(req.body.info);
+		const role = req.body.role;
+		
+		const action = req.body.action;
+		const tokenDbData = await new NotificationToken(reqData['notification_token_id']).load();
+		let emailType = '';
+		if (role == 1) {
+			emailType = 'trp-confirmation';
+		} else if (role == 2) {
+			emailType = 'warden-confirmation';
+		}
+		const allData = { ...tokenDbData, 
+			host: req.get('host'),
+			emailType: emailType,
+			role_name: reqData['role_name'],
+			first_name: reqData['first_name'],
+			last_name: reqData['last_name'],
+			account_name: reqData['account_name'],
+			parent: reqData['parent'],
+			name: reqData['name']
+		};		
+		let util;
+
+		switch(action) {
+			case 'resend':
+				util = new UtilsSync();
+				util.sendToNotification(0,'resend-notification', 0, '', allData, res).then(() => {
+					return res.status(200).send({
+						'message': 'Notification sent'
+					});
+				});
+
+			break;
+			case 'tenancy-moved-out':
+				// get FRPs in the building
+				const locationObj = await new Location(tokenDbData['location_id']).load();
+				const parentLocationId = locationObj['parent_id'] == -1 ? tokenDbData['location_id'] : locationObj['parent_id'];
+        const frpUsersInBuilding = await new LocationAccountUser().getFRPinBuilding(parentLocationId);
+				// to improve
+				console.log(frpUsersInBuilding);
+				for (let frp of frpUsersInBuilding) {
+					const opts = {
+						from : '',
+						fromName : 'EvacConnect',
+						to : ['emacaraig@evacgroup.com.au'],
+						cc: ['adelfing@evacgroup.com.au'],
+						body : new EmailSender().getEmailHTMLHeader() + `
+						Hi ${frp['first_name']} ${frp['last_name']}, <br><br>
+						${reqData['first_name']} ${reqData['last_name']} of ${reqData['account_name']} has notified that their tenancy has moved out. <br>
+						Confirmation is required. <br>`
+						+ new EmailSender().getEmailHTMLFooter(),
+						attachments: [],
+						subject : 'EvacConnect Notification'
+					};
+					new EmailSender(opts).send(
+						(data) => console.log(data),
+						(err) => console.log(err)
+					);
+				} 
+				return res.status(200).send({
+					'message': 'Email sent',
+					'FRP': frpUsersInBuilding 
+				});
+			
+		}
+	}
 
   private async sendChangeLocationEmails(fromLoc, toLocations, emData){
     let 
