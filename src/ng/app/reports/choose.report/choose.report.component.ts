@@ -55,6 +55,9 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
         },
         'tr' : {
             name : 'training', locations : [], active : false, searches : [], searching : false, code : 'tr', allloc: false
+        },
+        'war' : {
+            name : 'warden', locations : [], active : false, searches : [], searching : false, code : 'war', allloc: false
         }
     };
 
@@ -176,6 +179,8 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
             indexSelected = 'tm';
         }else if(classNames.indexOf('box-training') > -1){
             indexSelected = 'tr';
+        }else if(classNames.indexOf('box-warden') > -1){
+            indexSelected = 'war';
         }
 
         this.selectedReport = this.collection[indexSelected];
@@ -239,6 +244,8 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
                 indexSelected = 'tm';
             }else if(parentClass.indexOf('box-training') > -1){
                 indexSelected = 'tr';
+            }else if(parentClass.indexOf('box-warden') > -1){
+                indexSelected = 'war';
             }
             $(elem).attr('code', indexSelected);
 
@@ -294,6 +301,8 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
                 url = '/reports/teams/';
             }else if( this.selectedReport.code == 'tr' ){
                 url = '/reports/trainings/';
+            }else if( this.selectedReport.code == 'war' ){
+                url = '/reports/warden/';
             }
 
 

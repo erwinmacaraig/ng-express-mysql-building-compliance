@@ -83,7 +83,7 @@
             </div>
 
             <div class="col l12 m12 s12">
-                <div class="input-white-bg margin-bottom-40 form-group" style="margin-right: 0px;">
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
                     <label>Location</label>
                     <select id="selectLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
                         <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
@@ -91,7 +91,14 @@
                 </div>
             </div>
 
-            <div class="col l12 m12 s12" style="position: relative;">
+            <div class="col l12 m12 s12 margin-bottom-40">
+                <div class="form-group">
+                    <label for="subLocation">Mobile</label>
+                    <input type="text" class="form-control" id="mobile" placeholder="Type mobile number" value="{{displayText.yesUpdateProfile.mobile}}" />
+                </div>
+            </div>
+
+            <!-- <div class="col l12 m12 s12" style="position: relative;" [hidden]="!showLocationSelect">
                 <div class="form-group">
                     <label for="subLocation">Search New Location</label>
                     <input type="text" class="form-control" #inpsearchLocProfile placeholder="Type location here" />
@@ -101,27 +108,30 @@
                         <li *ngFor="let loc of searchedLocations" (click)="selectSearchLocation(loc, inpsearchLocProfile)">{{loc.name}}</li>
                     </ul>
                 </div>
+            </div> -->
+            
+            <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
+                <!-- buildingSelections -->
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                    <label>Select Location</label>
+                    <select id="selectBuildingSelections"  (change)="onSelectBuilding()">
+                        <option *ngFor="let bldg of buildingSelections" value="{{bldg.location_id}}">{{bldg.name}}</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="col l12 m12 s12">
+            <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
                 <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
-                    <label *ngIf="!noSubLocs">Select Sub-location</label>
-                    <label *ngIf="noSubLocs">No Sub-locations</label>
+                    <label>Select Sublocation</label>
                     <select id="selectSubLocProfile" [disabled]="selectedSearchedLocations.sublocations.length == 0" (change)="onSelectSubLocation()">
                         <option *ngFor="let sub of selectedSearchedLocations.sublocations" value="{{sub.location_id}}">{{sub.name}}</option>
                     </select>
                 </div>
             </div>
 
-            <div class="col l12 m12 s12">
-                <div class="form-group">
-                    <label for="subLocation">Mobile</label>
-                    <input type="text" class="form-control" id="mobile" placeholder="Type mobile number" value="{{displayText.yesUpdateProfile.mobile}}" />
-                </div>
-            </div>
-
             <div class="col l6 m12 s12">
-                <button class="btn btn-block grey waves-effect waves-light" #updateProfileBtn (click)="clickUpdateProfile(updateProfileBtn)" >Update Profile</button>
+                <button class="btn btn-block grey waves-effect waves-light" *ngIf="!showLocationSelect" #updateProfileBtn (click)="clickUpdateProfile(updateProfileBtn, 1)" >Update Profile</button>
+                <button class="btn btn-block grey waves-effect waves-light" *ngIf="showLocationSelect" #updateProfileBtn2 (click)="clickUpdateProfile(updateProfileBtn2, 2)" >Submit</button>
             </div>
 
             <div class="col l6 m12 s12">
