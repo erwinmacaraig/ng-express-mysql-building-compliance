@@ -37,6 +37,18 @@
     margin: 0px auto;
 }
 
+.box .image.warden{
+    background: url(/assets/images/compliance/icons/warden_training.png);
+    background-color: #f44336;
+    margin: 0px auto;
+    background-repeat: no-repeat;
+    background-size: 45%;
+    border-radius: 200px;
+    width: 165px;
+    height: 165px;
+    background-position: 55%, 0%;
+}
+
 .summary-of-compliance{
 	background-position: 1.7% 10% !important;
 }

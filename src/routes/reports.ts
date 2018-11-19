@@ -328,13 +328,12 @@ export class ReportsRoute extends BaseRoute {
         if(!toPdf && !toCsv){
           res.status(200).send(response);
         }else if(toPdf || toCsv){
-          response['title'] = 'Team Report';
+          response['title'] = 'Stack Plan Report';
           response['tables'] = [];
           for(let data of response.data){
             let tblData = {
-              title : data.location.name + ' Current Team Information',
               data : [], 
-              headers : ['Company', 'Sub Location', 'Contact Person', 'Email', 'Warden', 'P.E.E.P']
+              headers : ['Building', 'Sublocation', 'Account', 'TRP', 'Email', '# Warden', '# P.E.E.P']
             };
 
             let totalWardens = 0;
@@ -370,7 +369,7 @@ export class ReportsRoute extends BaseRoute {
               }
 
               tblData.data.push([
-                accnts, d.name, trps, emails, d.total_wardens, d.peep_total
+                data.location.name, d.name, accnts, trps, emails, d.total_wardens, d.peep_total
               ]);
 
               totalWardens += parseInt(d.total_wardens);
@@ -1139,10 +1138,10 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : 'Activity Report',
             data : [], 
-            headers : ['Locations', 'File name', 'Date']
+            headers : ['Location', 'Type', 'File name', 'Date Uploaded']
           };
           for(let d of response.data){
-            tblData.data.push([ d.location_name, d.file_name, d.timestamp_formatted ]);
+            tblData.data.push([ d.location_name, d.document_type, d.file_name, d.timestamp_formatted ]);
           }
           response['tables'].push(tblData);
 

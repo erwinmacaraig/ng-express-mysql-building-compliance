@@ -3177,6 +3177,9 @@ export class UsersRoute extends BaseRoute {
             user = new User(req.body.user_id);
             try {
                 await user.load();
+
+                console.log( user.getDBData() );
+
                 await user.create({
                     'mobility_impaired': 1
                 });

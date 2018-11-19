@@ -53,27 +53,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
     emailInvalidMessage = 'Invalid email';
 
     versionTwo = false;
-    signUpV2data = {
-        first_name : '',
-        last_name : '',
-        email : '',
-        account_id : 0,
-        account_name : '',
-        building_id : 0,
-        building_name : '',
-        level_id : 0,
-        level_name : '',
-        role_id : 0
-    };
-    signUpV2Submitted = false;
-    @ViewChild('inputBuilding') inputBuilding : ElementRef;
-    @ViewChild('inpBldgModel') inpBldgModel;
-    searchBuildingSubs;
-    searchedBuildings = <any> [];
-    @ViewChild('inputOrg') inputOrg : ElementRef;
-    searchAccountSubs;
-    searchedAccounts = <any> [];
-    searchBuildingLevels = <any> [];
+     
     @ViewChild('formSignInV2') formSignInV2 : NgForm;
 
     constructor(
@@ -139,84 +119,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         if(this.versionTwo){
             $('#roleId').val(this.selectAccountType).material_select();
         }
-
-        if(this.versionTwo){
-            this.searchBuildingEvent();
-            this.searchAccountEvent();
-            $('#selectLevel').prop('disabled', true).material_select();
-        }
-    }
-
-    searchBuildingEvent(){
-        this.searchBuildingSubs = Observable.fromEvent(this.inputBuilding.nativeElement, 'keyup')
-        .debounceTime(500).distinctUntilChanged().subscribe((event) => {
-            let val = this.inputBuilding.nativeElement.value.trim();
-            if(val.length > 0){
-                this.locationsService.searchBuildings(val, { get_sublocation : true, account_id : this.signUpV2data.account_id }).subscribe((response) => {
-                    this.searchedBuildings = response;
-                });
-            }else{
-                this.searchedBuildings = [];
-                this.searchBuildingLevels = [];
-                $('#selectLevel').material_select('destroy');
-                setTimeout(() => {
-                    $('#selectLevel').material_select();
-                }, 500);
-            }
-        });
-    }
-
-    searchAccountEvent(){
-        this.searchAccountSubs = Observable.fromEvent(this.inputOrg.nativeElement, 'keyup')
-        .debounceTime(500).distinctUntilChanged().subscribe((event) => {
-            let val = this.inputOrg.nativeElement.value.trim();
-            if(val.length > 0){
-                this.accountService.searhByName(val, (response) => {
-                    this.searchedAccounts = response.data;
-                }, {
-                    limit : 10
-                });
-            }else{
-                this.searchedAccounts = [];
-                this.searchedBuildings = [];
-                this.searchBuildingLevels = [];
-                this.inputBuilding.nativeElement.value = '';
-                this.signUpV2data.account_id = 0;
-                this.signUpV2data.building_id = 0;
-                this.inputBuilding.nativeElement.disabled = true;
-
-                this.formSignInV2.controls.building_name.reset();
-                $('label[for="building_name"]').removeClass('active');
-                $('#selectLevel').material_select('destroy');
-                setTimeout(() => {
-                    $('#selectLevel').prop('disabled', true).material_select();
-                }, 500);
-            }
-        });
-    }
-
-    clickOrgSelected(account){
-        this.inputOrg.nativeElement.value = account.account_name;
-        this.signUpV2data.account_id = account.account_id;
-        this.searchedAccounts = [];
-        this.searchedBuildings = [];
-        this.searchBuildingLevels = [];
-        this.inputBuilding.nativeElement.value = '';
-        $('#selectLevel').material_select('destroy');
-        setTimeout(() => {
-            $('#selectLevel').prop('disabled', true).material_select();
-        }, 500);
-    }
-
-    clickBldgSelected(location){
-        this.inputBuilding.nativeElement.value = location.name;
-        this.signUpV2data.building_id = location.location_id;
-        this.searchedBuildings = [];
-        this.searchBuildingLevels = location.sublocations;
-        $('#selectLevel').material_select('destroy');
-        setTimeout(() => {
-            $('#selectLevel').material_select();
-        }, 500);
+ 
     }
 
     submitSignUpV2(form, btn){
@@ -227,23 +130,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
             this.elems['modalSignup'].modal('close');
             this.elems['modalLoader'].modal('open');
 
-            this.emailTaken = false;
-
-            let 
-            locationId = this.signUpV2data.building_id,
-            levelId = ($('#selectLevel').length > 0) ? parseInt($('#selectLevel').val()) : 0;
-            if(levelId > 0){
-                locationId = levelId;
-            }
-
-            this.signupService.submitSignUpV2({
-                first_name : this.signUpV2data.first_name,
-                last_name : this.signUpV2data.last_name,
-                email : this.signUpV2data.email,
-                role_id : this.roleId,
-                location_id : locationId,
-                account_id : this.signUpV2data.account_id
-            }).subscribe((res) => {
+            this.signupService.submitSignUpV2(form.value).subscribe((res) => {
                 this.modalLoader.showLoader = false;
                 this.modalLoader.showMessage = true;
                 if(res.status){
@@ -397,11 +284,6 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
         this.elems['modalSignup'].modal('close');
         this.elems['modalLoader'].modal('close');
-
-        if(this.searchBuildingSubs){
-            this.searchBuildingSubs.unsubscribe();
-            this.searchAccountSubs.unsubscribe();
-        }
     }
 
 }

@@ -114,6 +114,7 @@ import { ReportsLocationsComplianceComponent } from './reports/location-complian
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
+import { WardenReportsComponent } from './reports/warden/warden.component';
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
@@ -240,6 +241,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     ReportsLocationsStatementComplianceComponent,
     ReportsTeamsComponent,
     ReportsTrainingsComponent,
+    WardenReportsComponent,
     ReportsActivityLogComponent,
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,

@@ -69,6 +69,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     selectedCourse = <any>{};
     baseUrl = '';
     courses = [];
+    showLocationSelect = false;
+
+    buildingSelections = <any> [];
 
     constructor(
         private route: ActivatedRoute,
@@ -218,6 +221,14 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
             console.log(this.routeParam);
         }); 
+
+        this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
+            this.buildingSelections = response.locations;
+
+            setTimeout(() => {
+                this.onSelectBuilding();
+            },500);
+        }, { sublocations:true });
     }
 
     ngAfterViewInit() {
@@ -246,7 +257,12 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         }
     }
 
-    clickUpdateProfile(btn){
+    clickUpdateProfile(btn, num){
+        if(num == 1){
+            this.showLocationSelect = true;
+            return false;
+        }
+
         btn.innerText = "Updating...";
         btn.disabled = true;
 
@@ -273,7 +289,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         }
 
         if(sublocid == -1 || sublocid == null){
-            locid = this.selectedSearchedLocations.location_id;
+            locid = parseInt($('#selectBuildingSelections').val());
         }else{
             locid = sublocid;
         }
@@ -335,6 +351,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 const myAns = JSON.stringify(responses);
                 this.accountService.submitQueryResponses(myAns, this.notification_token_id, 0, status).subscribe(
                     (res) => {
+
+                        this.showLocationSelect = false;
+
                         if(differentLocation){
                             $('#modalNewLocation').modal({ dismissible : false });
                             $('#modalNewLocation').modal('open');
@@ -390,7 +409,6 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
             });
         }
-
     }
 
     clickConfirmNoAnswer(){
@@ -579,6 +597,18 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         setTimeout(() => {
             this.onSelectSubLocation();
         }, 300);
+    }
+
+    onSelectBuilding(){
+        let bldgid = parseInt($('#selectBuildingSelections').val());
+
+
+        for(let bldg of this.buildingSelections){
+            if(bldg.location_id == bldgid){
+                this.selectedSearchedLocations = bldg;
+            }
+        }
+
     }
 
     onSelectSubLocation(){
