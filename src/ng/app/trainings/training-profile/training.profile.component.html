@@ -510,7 +510,7 @@
                         <td *ngIf="!loc.deleted">
                             <select name="role_id[{{i}}]" style="display: block;" (change)="onChangeSelectRole(loc, $event.currentTarget.value)" >
                                 <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
-                                <option value="1" [selected]="loc.role_id == 1">Building Manager</option>
+                                <option value="1" [selected]="loc.role_id == 1" [disabled]="!isFrp">Building Manager</option>
                                 <option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
                                 <option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.role_id == eco.em_roles_id ">
                                     {{eco.role_name}}
