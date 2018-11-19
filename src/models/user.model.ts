@@ -142,7 +142,7 @@ export class User extends BaseClass {
                 }
                 const sql_user = `SELECT users.*, token.verified, token.expiration_date, token.action, token.token_id FROM users
                                   LEFT JOIN token ON users.user_id = token.id `
-                                  + whereClause + ` AND password = ?`;
+                                  + whereClause + ` AND password = ? AND archived = 0 `;
                 // const sql_user = `SELECT * FROM users `+ whereClause + ` AND password = ? `;
                 const newPasswd = md5('Ideation' + passwd + 'Max');
                 const credential = [username, newPasswd];

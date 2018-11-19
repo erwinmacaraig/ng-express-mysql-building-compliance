@@ -101,22 +101,13 @@ const md5 = require('md5');
       data : [],
       message : ''
     },
-    locModel = new Location(req.body.location_id),
-    accModel = new Account(req.body.account_id),
     userName = this.toTitleCase(reqBody.first_name+' '+reqBody.last_name),
-    userEmail = reqBody.email.toLowerCase();
+    userEmail = reqBody.email.toLowerCase(),
+    orgName = reqBody.organization,
+    bldgName = reqBody.building_name,
+    levName = reqBody.level_name;
 
     try{
-      await locModel.getByInIds(req.body.location_id, 0, true);
-      await accModel.load();
-
-      let loc = <any> locModel.getDBData();
-      if(loc[0]){
-        loc = loc[0];
-      }else{
-        throw "No Location";
-      }
-
       let roleName = 'ECO';
       if(reqBody.role_id == 1){
         roleName = 'Building Manager';
@@ -130,7 +121,7 @@ const md5 = require('md5');
         A user would like to create an account <br/>
         Please review the following details below<br/><br/>
         
-        <table style="border: 1px solid #9e9e9e; border-collapse: collapse; padding: 5px;">
+        <table style="border: 1px solid #9e9e9e; border-collapse: collapse; padding: 5px; min-width: 400px;">
           <tbody>
             <tr>
               <td style="${tdStyle}"><strong>Name:</strong> </td> <td style="${tdStyle}"> ${userName}</td>
@@ -139,10 +130,13 @@ const md5 = require('md5');
               <td style="${tdStyle}"><strong>Email:</strong> </td> <td style="${tdStyle}"> ${userEmail}</td>
             </tr>
             <tr>
-              <td style="${tdStyle}"><strong>Account:</strong> </td> <td style="${tdStyle}"> ${accModel.get('account_name')}</td>
+              <td style="${tdStyle}"><strong>Organization:</strong> </td> <td style="${tdStyle}"> ${orgName}</td>
             </tr>
             <tr>
-              <td style="${tdStyle}"><strong>Location:</strong> </td> <td style="${tdStyle}"> ${loc.name}</td>
+              <td style="${tdStyle}"><strong>Building:</strong> </td> <td style="${tdStyle}"> ${bldgName}</td>
+            </tr>
+            <tr>
+              <td style="${tdStyle}"><strong>Level:</strong> </td> <td style="${tdStyle}"> ${levName}</td>
             </tr>
             <tr>
               <td style="${tdStyle}"><strong>Role:</strong> </td> <td style="${tdStyle}"> ${roleName}</td>

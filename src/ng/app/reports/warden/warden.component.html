@@ -1,0 +1,154 @@
+<div class="print-no-margin" id="printContainer" #printContainer>
+    <div class="row row-margined-top">
+        <div class="col s12">
+            <h5>Training Report</h5>
+        </div>
+        <div class="col s12 no-print">
+
+            <div class="left filter-container">
+
+                <div class="select-container locations " style="margin-left: 0px;">
+                    <select multiple class="select-location" id="selectLocation"  >
+                        <option value="0" class="select-location-option id-0">All Location</option>
+                        <option value="{{loc.location_id}}" class="select-location-option id-{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb" >{{loc.name}}</option>
+                    </select>
+                </div>
+
+
+                <div class="search-field no-print">
+                    <input type="text" placeholder="Search member name" id="searchMemberInput" #searchMember>
+                    <span class="material-icons">search</span>
+                </div>
+
+
+                <div class="select-container no-print">
+                    <select class="select-filter" id="selectFilter">
+                        <option value="null" selected>Filter</option>
+                        <option value="offline">Face to Face</option>
+                        <option value="online">Online Training</option>
+                    </select>
+                </div>
+
+                <div class="switch-container no-print">
+
+                    <div class="switch">
+                        <input type="checkbox" id="compliantToggle" checked>
+                        <div class="yes">Compliant</div>
+                        <div class="no">Non-Compliant</div>
+                        <div class="highlight"></div>
+                        <div class="background"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="right right-buttons no-print">
+                <!-- <div style="width: 35px;" *ngIf="pdfLoader">
+                    <div class="progress" style="margin: 2px auto;">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div> -->
+
+                <a #aPdf (click)="pdfExport(aPdf, printContainer)"  >
+                    <div class="text">Export to</div>
+                    <div class="image pdf"></div>
+                </a>
+
+                <!-- <div style="width: 35px;" *ngIf="csvLoader">
+                        <div class="progress" style="margin: 2px auto;">
+                            <div class="indeterminate"></div>
+                        </div>
+                    </div> -->
+
+                <a (click)="csvExport()"  >
+                    <div class="image excel"></div>
+                </a>
+
+                <a  (click)="printResult()">
+                    <div class="text">Print</div>
+                    <div class="image print"></div>
+                </a>
+
+            </div>
+
+            <div class="clearfix"></div>
+        </div>
+
+
+    </div>
+
+    <div class="row">
+
+        <div class="col l12 m12 s12" >
+            <table class="striped">
+                <thead>
+                    <tr class="grey darken-5 white-text">
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Account</th>
+                        <th>Location</th>
+                        <th>Role</th>
+                        <th>Training Status & Date</th>
+                    </tr>
+                </thead>
+                <tbody [hidden]="!loadingTable">
+                    <tr>
+                        <td colspan="7" class="center">
+                            <h6>Loading records...</h6>
+                        </td>
+                    </tr>
+                </tbody>
+                <tbody [hidden]="loadingTable">
+                    <tr *ngIf="results.length == 0">
+                        <td colspan="6" class="center">
+                            <h6>No result found</h6>
+                        </td>
+                    </tr>
+                    <tr *ngFor="let re of results">
+                        <td>{{re.first_name}} {{re.last_name}}</td>
+                        <td>{{re.email}}</td>
+                        <td>{{re.account_name}}</td>
+                        <td>{{re.location_name}}</td>
+                        <td>{{re.role_name}}</td>
+                        <td>
+                            <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
+                            <span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">
+                                Not Compliant
+                                <small *ngIf="re.pass == 0">(Failed)</small>
+                                <small *ngIf="re.status == 'expired'">(Expired)</small>
+                                <small *ngIf="re.status == 'not taken'">(Not Taken)</small>
+                            </span>
+
+                            {{re.certification_date_formatted}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="row no-print">
+        <div class="col l12 m12 s12 center pagination" [hidden]="results.length == 0 || pagination.pages < 2 || loadingTable">
+            <div class="inline-block">
+                <button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+            </div>
+
+            <div class="inline-block select">
+                <select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
+                    <option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
+                </select>
+            </div>
+
+            <div class="inline-block">
+                <button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<div id="cloneContainer" style="">
+    <div class="clones"></div>
+</div>
+<div id="canvasContainer" style="display: none;"></div>

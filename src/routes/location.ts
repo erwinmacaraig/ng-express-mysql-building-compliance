@@ -1328,7 +1328,7 @@ const defs = require('../config/defs.json');
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?, pagination?) {
 	    const
-            queries = req.body,
+            queries =  (req.method == 'POST') ? req.body : req.query,
             locAccntRelObj = new LocationAccountRelation(),
             userRoleRel = new UserRoleRelation(),
             filter = {
@@ -1455,7 +1455,7 @@ const defs = require('../config/defs.json');
 
             sublocsids.push(loc['location_id']);
 
-            loc['sublocsids'] = sublocsids.join(',');
+            // loc['sublocsids'] = sublocsids.join(',');
 
             loc['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds(locsIds.join(','));
 

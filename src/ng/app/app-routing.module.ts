@@ -87,6 +87,7 @@ import { ReportsLocationsComplianceComponent } from './reports/location-complian
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent  } from './reports/trainings/trainings.component';
+import { WardenReportsComponent  } from './reports/warden/warden.component';
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
@@ -228,7 +229,8 @@ const appRoutes: Routes = [
       { path : 'statement-compliance/:locationId', component : ReportsLocationsStatementComplianceComponent },
       { path : 'teams/:location', component : ReportsTeamsComponent },
       { path : 'trainings/:locationId', component : ReportsTrainingsComponent },
-      { path : 'activity-log/:location', component : ReportsActivityLogComponent }
+      { path : 'activity-log/:location', component : ReportsActivityLogComponent },
+      { path : 'warden/:locationId', component : WardenReportsComponent }
     ]
   },
   {

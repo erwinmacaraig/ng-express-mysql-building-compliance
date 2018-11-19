@@ -45,19 +45,20 @@
 			<table class="striped">
 				<thead>
 					<tr class="grey darken-5 white-text">
-						<th>Locations</th>
+                        <th>Location</th>
+						<th>Type</th>
 						<th>File Name</th>
-						<th style="width: 170px;">Date</th>
+						<th style="width: 170px;">Date Uploaded</th>
 					</tr>
 				</thead>
                 <tbody *ngIf="loadingTable">
                     <tr>
-                        <td colspan="3" class="center">Fetching records</td>               
+                        <td colspan="4" class="center">Fetching records</td>               
                     </tr>
                 </tbody>
 				<tbody *ngIf="activityLogs.length == 0 && !loadingTable">
 					<tr>
-                        <td colspan="3" class="center">No records found</td>               
+                        <td colspan="4" class="center">No records found</td>               
                     </tr>
 				</tbody>
                 <tbody *ngIf="activityLogs.length > 0 && !loadingTable">
@@ -68,6 +69,7 @@
                                 <span>{{log.location_name}}</span>
                             </a>
                         </td>
+                        <td>{{log.document_type}}</td>
                         <td>
                             <a href="{{log.url}}" target="blank"> {{log.file_name}} </a>
                         </td>
