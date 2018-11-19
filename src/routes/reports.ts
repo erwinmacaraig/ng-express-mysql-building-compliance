@@ -632,27 +632,24 @@ export class ReportsRoute extends BaseRoute {
             }
         }
 
-        if(role == 1 || getAll){
-            let userEmRole = new UserEmRoleRelation();
-            
-            users = <any> await userEmRole.getUsersInLocationIds(allLocationIds.join(','),0, config);
-        }else{
-            if ( location_id == 0 || getAll ) {
-                let accountModel = new Account();
-                users = <any> await accountModel.getAllEMRolesOnThisAccount(accountId, {
-                    search : (config['searchKey']) ? config['searchKey'] : ''
-                });
-            }else{
-                let locAccUser = new UserEmRoleRelation();
-                users = <any> await locAccUser.getUsersInLocationIds(allLocationIds.join(','),0, config);
-            }
-        }
+        let 
+        usersModel = new User(),
+        frpAndTrp = [];
+
+        users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
 
         for(let user of users){
             if(allUserIds.indexOf(user.user_id) == -1){
                 allUserIds.push(user.user_id);
             }
+
+            if(user.role_id == 1 || user.role_id == 2){
+                frpAndTrp.push(user);
+            }
         }
+
+        response['users'] = users;
+        // response['allLocationIds'] = allLocationIds.join(',');
 
         let offsetLimit = (getAll || filterExceptLocation) ? false : offset+','+limit,
             courseMethod = (course_method == 'online' && !getAll && !filterExceptLocation) ? 'online_by_evac' : (course_method == 'offline' && !getAll && !filterExceptLocation) ? 'offline_by_evac' : '',
@@ -682,6 +679,14 @@ export class ReportsRoute extends BaseRoute {
 
             if(cert['training_requirement_name'] == null){
                 cert['training_requirement_name'] = '';
+            }
+
+            for(let ft of frpAndTrp){
+                if(ft.user_id == cert.user_id){
+                    if(cert.role_name == null){
+                        cert['role_name'] = ft.role_name;
+                    }
+                }
             }
         }
 

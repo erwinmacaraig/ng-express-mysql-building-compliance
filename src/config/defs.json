@@ -54,7 +54,7 @@
   "ADMIN_EMAIL": "admin@evacconnect.com",
   "DEFAULT_USER_PASSWORD" : "123456Uni",
   "ALLOWED_ORIGINS": [    
-    "http://localhost:3000"
+    "https://portal.evacconnect.com"
   ]  
    
 }
