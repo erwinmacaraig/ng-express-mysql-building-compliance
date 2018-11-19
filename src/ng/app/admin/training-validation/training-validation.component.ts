@@ -100,10 +100,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       role_id: 11,
       role_name: 'Chief Warden',
     },
+    /*
     {
       role_id: 12,
       role_name: 'Fire Safety Advisor',
     },
+    */
     {
       role_id: 13,
       role_name: 'EPC Member',
@@ -116,14 +118,17 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       role_id: 15,
       role_name: 'Deputy Chief Warden',
     },
+    /*
     {
       role_id: 16,
       role_name: 'Building Warden',
     },
+    
     {
       role_id: 18,
       role_name: 'Deputy Building Warden',
     },
+    */
   ];
   addedUserExceptions: object = {};
   ngDateObjects = [];
@@ -161,11 +166,22 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.setDatePickerDefaultDate();
       this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
       this.courseTraining = new FormControl({value: '', disabled: true}, Validators.required),
+      /*
       this.adminService.getTrainingRequirementList().subscribe((response) => {
         this.training_requirements = response['data'];
         // console.log(this.training_requirements);
       });
-      
+      */
+      this.training_requirements = [
+        {training_requirement_id: 16, training_requirement_name: 'General Occupant and First Response'},
+        {training_requirement_id: 17, training_requirement_name: 'Emergency Control Organisation'},
+        {training_requirement_id: 18, training_requirement_name: 'Bomb Threat'},
+        {training_requirement_id: 21, training_requirement_name: 'Fire Extinguisher, Fire Hose & Fire Blanket'},
+        {training_requirement_id: 23, training_requirement_name: 'Chief Warden'},
+        {training_requirement_id: 24, training_requirement_name: 'Deputy Chief Warden'},
+        {training_requirement_id: 28, training_requirement_name: 'Active Shooter'}
+        
+      ];
     }
   
     ngAfterViewInit() {

@@ -151,5 +151,8 @@ export class AccountsDataProviderService {
 			role: role,
 		});
 	}
+	performNotificationSummaryAction(reqBody = {}) {
+		return this.http.post(`${this.baseUrl}/accounts/perform-notification-summ-action`, reqBody);
+	}
 
 }

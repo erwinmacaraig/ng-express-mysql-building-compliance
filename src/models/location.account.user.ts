@@ -894,6 +894,45 @@ export class LocationAccountUser extends BaseClass {
       });
     }
 
+    public getFRPinBuilding(buildingId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw Error(error);
+                }
+                const sql = `
+                SELECT
+                    users.user_id,
+                    users.first_name,
+                    users.last_name,
+                    users.email
+                FROM
+                    users
+                INNER JOIN
+                    location_account_user
+                ON
+                    users.user_id = location_account_user.user_id
+                INNER JOIN
+                    user_role_relation
+                ON
+                    users.user_id = user_role_relation.user_id
+                WHERE
+                    location_account_user.location_id = ?
+                AND
+                    user_role_relation.role_id = 1
+                `;
+                connection.query(sql, [buildingId],(err, results) => {
+                    if (err) {
+                        console.log('location_account_user.getFRPinBuilding', err, sql);
+                        throw Error(err);                        
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
 
 
 }
