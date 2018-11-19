@@ -28,7 +28,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     public wardenArr = <any>[];
 
     copyOfList = [];
-    userData = {};
+    userData = <any> {};
     showModalLoader = false;
     selectedToArchive = {
         first_name : '', last_name : '', parent_data : {},  locations : [], parent_name: '', name: ''
@@ -63,7 +63,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         pagination : true,
         user_training : true,
         users_locations : true,
-        search : ''
+        search : '',
+        location_id : 0
     };
 
     multipleLocations = [];
@@ -92,6 +93,21 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     isOnlineTrainingAvailable = false;
 
+    isFRP = false;
+    locations = <any> [];
+    locationPagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+    locationQueries = {
+        offset :  0,
+        limit : 20,
+        search : '',
+        sort : '',
+        archived : 0,
+        showparentonly: false,
+        parent_id : 0
+    };
+
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -105,12 +121,26 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     ) {
 
         this.userData = this.authService.getUserData();
+        for(let role of this.userData.roles){
+            if(role.role_id == 1){
+                this.isFRP = true;
+            }
+        }
 
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
         this.courseService.getAllEmRolesTrainings((response) => {
             this.emTrainings = response.data;
+        });
+
+        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
+            this.locations = response.locations;
+            this.locationPagination.pages = response.pagination.pages;
+            this.locationPagination.total = response.pagination.total;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select();
+            },500);
         });
     }
 
@@ -213,6 +243,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
         $('#modalMobility select').material_select();
         this.filterByEvent();
+        this.locationChangeEvent();
         this.sortByEvent();
         this.dashboardService.show();
         this.bulkManageActionEvent();
@@ -243,6 +274,36 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                     this.singleCheckboxChangeEvent(this.wardenArr[i], { target : { checked : elem.checked } } );
                 }
             }
+        });
+    }
+
+    locationChangeEvent(){
+        let __this = this;
+        $('select.location').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            let selected = $('select.location').val();
+            __this.dashboardService.show();
+            
+            __this.queries.location_id = selected;
+            __this.queries.offset = 0;
+
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
+
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
         });
     }
 

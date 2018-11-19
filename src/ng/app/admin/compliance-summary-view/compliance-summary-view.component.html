@@ -1,4 +1,4 @@
-<app-admin-account-info [accountId]="accountId"></app-admin-account-info>
+<app-admin-account-info [accountId]="accountId" [hidden]="hideAccountComponent"></app-admin-account-info>
 
 <div class="row">
     <div class="col l12 m12 s12">
@@ -217,6 +217,49 @@
             <div class="background"></div>
         </div>
     </div>
+    <div class="diagram-top-of-table">
+        <h5 class="blue-text title">Document List</h5>
+        <div class="buttons">
+            <button class="btn btn-block orange waves-effect waves-light" (click)="showModalUploadDocs()" style="display: block;">Upload Document</button>
+        </div>
+    </div>
+    <table class="striped table">
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Filename</th>
+                <th>Date Of Activity</th>
+                <th>Validity (months)</th>
+                <th>Expiry</th>
+                <th>Timestamp</th>
+                <th style="width: 10%;">Action</th>
+            </tr>
+        </thead>
+        
+        <tbody>
+            <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index;">
+                <td>{{doc['document_type']}}</td>
+                <td>{{doc['file_name']}}</td>
+                <td>{{doc['date_of_activity'] | date: 'yyyy-MM-dd' }}</td>
+                <td>{{doc['validity_in_months']}}</td>
+                <td>{{doc['expiry_date'] | date: 'yyyy-MM-dd' }}</td>
+                <td>{{doc['timestamp'] | date: 'yyyy-MM-dd' }}</td>
+                <td>
+                    <a *ngIf="!doc['downloadCtrl']" (click)="downloadKPIFile(doc['urlPath'], doc['file_name'], selectedCompliance.compliance_kpis_id, i)" target="_blank">Download</a>
+                    <div *ngIf="doc['downloadCtrl']" class="progress">
+                        <div class="indeterminate"></div>
+                    </div>  
+                </td>
+            </tr>
+            <tr *ngIf="showLoadingForSignedURL">
+                <td colspan="7">
+                    <div class="progress">
+                        <div class="indeterminate"></div>
+                    </div>                                  
+                </td>
+            </tr>
+        </tbody>
+    </table>
 </ng-template>
 
 <ng-template #templateKpis4>

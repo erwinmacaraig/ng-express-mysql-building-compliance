@@ -1,7 +1,7 @@
 <div id="modalSignup" class="modal">
 	<div class="modal-content">
 
-		<form  novalidate (ngSubmit)="signUpFormSubmit(formSignIn, $event)" #formSignIn="ngForm"  >
+		<form  novalidate (ngSubmit)="signUpFormSubmit(formSignIn, $event)" #formSignIn="ngForm" *ngIf="!versionTwo" >
 
 			<div class="container">
 				<div class="row">
@@ -123,6 +123,126 @@
 			</div>
 
 		</form>
+
+        <form novalidate #formSignInV2="ngForm" (submit)="submitSignUpV2(formSignInV2, btnSubmitV2)" *ngIf="versionTwo" autocomplete="off" id="formV2">
+            <div class="container">
+                <div class="row">
+
+                    <div class="col m12 center-align">
+                        <h4 class="title">
+                            Welcome to EvacConnect Safety
+                            <br>
+                            Management Tools
+                        </h4>
+                        <p class="center-align please-fill-up">
+                            Please fill up all fields and submit
+                        </p>
+                    </div>
+
+                    <div class="col m12">
+                        <div class="input-container">
+                            <div class="input-field col m12">
+                                <input id="first_name" type="text" name="first_name" [(ngModel)]="signUpV2data.first_name" ngModel  #inputFirstName="ngModel" [ngClass]="{ 'invalid' : !inputFirstName.valid  && inputFirstName.dirty }" required>
+                                <label for="first_name">First Name
+                                    <small *ngIf=" !inputFirstName.valid && inputFirstName.dirty "> *Required </small>
+                                </label>
+                            </div>
+
+                            <div class="input-field col m12">
+                                <input id="last_name" type="text" name="last_name" [(ngModel)]="signUpV2data.last_name" ngModel #inputLastName="ngModel" [ngClass]="{ 'invalid' : !inputLastName.valid  && inputLastName.dirty }" required>
+                                <label for="last_name">Last Name
+                                    <small *ngIf=" !inputLastName.valid && inputLastName.dirty "> *Required </small>
+                                </label>
+                            </div>
+
+                            <div class="input-field col m12">
+                                <input id="email" type="email" name="email"
+                                    email
+                                    ngModel
+                                    [(ngModel)]="signUpV2data.email"
+                                    ngModel
+                                    #inputEmail="ngModel"
+                                    [ngClass]="{ 'invalid' : !inputEmail.valid && inputEmail.dirty  }"
+                                    required>
+                                <label for="email">Email
+                                    <small *ngIf=" !inputEmail.valid && inputEmail.dirty "> {{ emailInvalidMessage }} </small>
+                                    <span *ngIf=" emailTaken " email-taken class="red-text"> *Email taken </span>
+                                </label>
+                            </div>
+
+                            <div class="input-field col m12">
+                                <input id="organization" type="text" name="organization" [ngModel]="signUpV2data.account_name" #inputOrg #inputOrgModel="ngModel" [ngClass]="{ 'invalid' : !inputOrgModel.valid  && inputOrgModel.dirty }"  >
+                                <label for="organization">Organization
+                                    <small *ngIf=" !inputOrgModel.valid && inputOrgModel.dirty "> *Required </small>
+                                </label>
+
+                                <div class="search-container" *ngIf="searchedAccounts.length > 0">
+                                    <div class="results">
+                                        <ul>
+                                            <li *ngFor="let result of searchedAccounts"  (click)="clickOrgSelected(result)">
+                                                {{result.account_name}}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="input-field col m12">
+                                <input id="building_name" type="text" name="building_name" [ngModel]="signUpV2data.building_name" #inputBuilding ngModel #inpBldgModel="ngModel" [ngClass]="{ 'invalid' : !inpBldgModel.valid  && inpBldgModel.dirty }" [disabled]="signUpV2data.account_id < 1"   >
+                                <label for="building_name">
+                                    Building
+                                    <span *ngIf="signUpV2data.account_id < 1" style="font-size: 10px;">(Search organization first)</span>
+                                    <small *ngIf=" !inpBldgModel.valid && inpBldgModel.dirty "> *Required </small>
+                                </label>
+
+                                <div class="search-container" *ngIf="searchedBuildings.length > 0">
+                                    <div class="results">
+                                        <ul>
+                                            <li *ngFor="let result of searchedBuildings" (click)="clickBldgSelected(result)">
+                                                {{result.name}}
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="select-field col m12 s12"  *ngIf="roleId > 1">
+                                <select id="selectLevel"  name="level_name" *ngIf="signUpV2data.building_id < 1">
+                                    <option value="-1">Search building first</option>
+                                </select>
+                                <select id="selectLevel" name="level_name" *ngIf="signUpV2data.building_id > 0 && searchBuildingLevels.length == 0">
+                                    <option value="-1">No levels</option>
+                                </select>
+                                <select id="selectLevel" name="level_name" *ngIf="signUpV2data.building_id > 0">
+                                    <option value="-1" disabled selected >Select floor/level</option>
+                                    <option *ngFor="let level of searchBuildingLevels" value="{{ level.location_id }}"> {{ level.name }} </option>
+                                </select>
+                            </div>
+
+                            <div class="select-field col m12 s12"  >
+                                <select id="roleId" [(ngModel)]="signUpV2data.role_id" required disabled name="role_id">
+                                    <option value="-1" disabled selected>Please select account type</option>
+                                    <option *ngFor="let utype of arrUserType" value="{{ utype.role_id }}"  > {{ utype.description }} </option>
+                                </select>
+                                <!-- <label class="select-label">Account Type</label> -->
+                            </div>
+
+                            <div class="input-field col m6">
+                                <a class="btn block waves-effect waves-light btn-close grey lighten-1" (click)="onCloseSelfSignUp()">Back</a>
+                            </div>
+
+                            <div class="input-field col m6">
+                              <button type="submit" #btnSubmitV2 [disabled]="
+                                !formSignInV2.valid || signUpV2data.building_id < 1 || signUpV2data.account_id < 1 ||
+                                (roleId > 1 && signUpV2data.level_id < 1) == false " 
+                                class="btn block waves-effect waves-light btn-submit">Submit</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </form>
 
 	</div>
 </div>

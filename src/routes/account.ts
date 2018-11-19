@@ -1755,7 +1755,12 @@ const RateLimiter = require('limiter').RateLimiter;
 
 			if(!validator.isEmpty(req.params['name'])){
 
-				account.searchByAccountName(req.params['name']).then(
+                let limit = false;
+                if(req.query.limit){
+                    limit = req.query.limit;
+                }
+
+				account.searchByAccountName(req.params['name'], limit).then(
 					(results) => {
 						res.statusCode = 200;
 						response.data = results;
