@@ -136,6 +136,29 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getByUserIds(userIds = ''){
+        return new Promise((resolve, reject) => {
+             
+            const sql_load = `SELECT * FROM location_account_user WHERE user_id IN (${userIds}) `;
+
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
+            });
+        });
+    }
+
     public getMany(arrWhere){
         return new Promise((resolve, reject) => {
             let sql_load = '',

@@ -8,6 +8,8 @@ import { Token } from '../models/token.model';
 import { UserInvitation } from './../models/user.invitation.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
+import { Location } from '../models/location.model';
+import { Account } from '../models/account.model';
 import { SecurityQuestions } from '../models/security-questions.model';
 import { SecurityAnswers } from '../models/security-answers.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
@@ -41,6 +43,10 @@ const md5 = require('md5');
       // add register route
       router.post('/register', (req: Request, res: Response, next: NextFunction) => {
         new RegisterRoute().index(req, res, next);
+      });
+
+      router.post('/register/v2', (req: Request, res: Response) => {
+        new RegisterRoute().signUpV2(req, res);
       });
 
       /* Remove before moving to production */
@@ -86,6 +92,87 @@ const md5 = require('md5');
 	constructor() {
 		super();
 	}
+
+  public async signUpV2(req: Request, res: Response){
+    let 
+    reqBody = req.body,
+    response = {
+      status : false,
+      data : [],
+      message : ''
+    },
+    locModel = new Location(req.body.location_id),
+    accModel = new Account(req.body.account_id),
+    userName = this.toTitleCase(reqBody.first_name+' '+reqBody.last_name),
+    userEmail = reqBody.email.toLowerCase();
+
+    try{
+      await locModel.getByInIds(req.body.location_id, 0, true);
+      await accModel.load();
+
+      let loc = <any> locModel.getDBData();
+      if(loc[0]){
+        loc = loc[0];
+      }else{
+        throw "No Location";
+      }
+
+      let roleName = 'ECO';
+      if(reqBody.role_id == 1){
+        roleName = 'Building Manager';
+      }else if(reqBody.role_id == 2){
+        roleName = 'Tenant';
+      }
+
+      let tdStyle = 'padding: 5px; border: 1px solid #9e9e9e;';
+      let emailBody = `
+        <h4>Hi!</h4> 
+        A user would like to create an account <br/>
+        Please review the following details below<br/><br/>
+        
+        <table style="border: 1px solid #9e9e9e; border-collapse: collapse; padding: 5px;">
+          <tbody>
+            <tr>
+              <td style="${tdStyle}"><strong>Name:</strong> </td> <td style="${tdStyle}"> ${userName}</td>
+            </tr>
+            <tr>
+              <td style="${tdStyle}"><strong>Email:</strong> </td> <td style="${tdStyle}"> ${userEmail}</td>
+            </tr>
+            <tr>
+              <td style="${tdStyle}"><strong>Account:</strong> </td> <td style="${tdStyle}"> ${accModel.get('account_name')}</td>
+            </tr>
+            <tr>
+              <td style="${tdStyle}"><strong>Location:</strong> </td> <td style="${tdStyle}"> ${loc.name}</td>
+            </tr>
+            <tr>
+              <td style="${tdStyle}"><strong>Role:</strong> </td> <td style="${tdStyle}"> ${roleName}</td>
+            </tr>
+          </tbody>
+        </table>
+      `;
+
+      let opts = {
+          from : 'admin@evacconnect.com',
+          fromName : 'EvacConnect',
+          to : ['jmanoharan@evacgroup.com.au'],
+          body : emailBody,
+          attachments: [],
+          subject : 'EvacConnect Signup Notification'
+      };
+
+      let email = new EmailSender(opts);
+      response.status = true;
+      await email.send(
+        () => {},
+        () => {}
+      );
+
+    }catch(e){
+      response.message = (e.message) ? e.message : e;
+    }
+
+    res.send(response);
+  }
 
   public async verifyUserLocation(req: Request, res: Response, next: NextFunction) {
 

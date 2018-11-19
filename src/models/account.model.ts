@@ -243,13 +243,14 @@ export class Account extends BaseClass {
         });
     }
 
-    public searchByAccountName(name: String) {
+    public searchByAccountName(name: String, limit:any = false) {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     throw new Error(err);
                 }
-                const sql_load = `SELECT * FROM accounts WHERE account_name LIKE "%`+name+`%" AND archived = 0 ORDER BY account_name ASC `;
+                let limitSql = (limit) ? 'LIMIT '+limit : '';
+                const sql_load = `SELECT * FROM accounts WHERE account_name LIKE "%`+name+`%" AND archived = 0 ORDER BY account_name ASC ${limitSql} `;
                 connection.query(sql_load, (error, results, fields) => {
                   if (error) {
                     return console.log(error);

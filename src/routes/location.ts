@@ -219,7 +219,7 @@ const defs = require('../config/defs.json');
           new LocationRoute().createBuildingAndAddAccount(req, res);
       });
 
-      router.get('/location/search-buildings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      router.get('/location/search-buildings', (req: AuthRequest, res: Response) => {
           new LocationRoute().searchBuildings(req, res);
       });
 
@@ -1935,14 +1935,15 @@ const defs = require('../config/defs.json');
     public async searchBuildings(req: AuthRequest, res: Response){
         let 
         locModel = new Location(),
-        related = (req.query.related) ? req.query.related : false,
-        accountId = (req.query.account_id) ? req.query.account_id  : false,
-        locations = <any> await locModel.searchBuildings(req.query.key, accountId);
+        locations = <any> [];
 
-        if(req.query.sublocations){
+        let accountId = (req.query.account_id) ? req.query.account_id : 0;
+
+        locations = await locModel.searchBuildings(req.query.key, accountId);
+        if(req.query.get_sublocation){
             for(let loc of locations){
-                let sublocs = new Location(loc.location_id);
-                loc['sublocations'] = await sublocs.getSublocations();
+                let locSubModel = new Location(loc.location_id);
+                loc['sublocations'] = await locSubModel.getSublocations();
             }
         }
 

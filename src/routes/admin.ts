@@ -1793,7 +1793,7 @@ export class AdminRoute extends BaseRoute {
         description = req.body.description;
         viewable_by_trp = 1; // to change
         validityDuration = kpisModels[kpis]['validity_in_months'];
-        override_document = req.body.override_document;
+        override_document = (req.body.override_document) ? req.body.override_document : null;
 
         arrWhereCompliance.push([`compliance_kpis_id = ${kpis}`]);
         arrWhereCompliance.push([`building_id = ${building_id}`]);
@@ -1830,36 +1830,39 @@ export class AdminRoute extends BaseRoute {
             }
             // console.log(i, params);
             const complianceDocObj = new ComplianceDocumentsModel();
-              await complianceDocObj.create({
-                account_id: account_id,
-                building_id: building_id,
-                compliance_kpis_id: kpis,
-                override_document: override_document,
-                document_type: document_type,
-                file_name: item['originalname'].replace(/\s+/g, '_'),
-                date_of_activity: dtActivity,
-                viewable_by_trp: viewable_by_trp,
-                description: description,
-                file_size: item['size'],
-                file_type: item['mimetype'],
-                timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
-              });
-              const today = moment();
-              const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
-              let status = 0;
-              if (dtActivityValidity.isAfter(today)) {
-                status = 1;
-              }
-              await complianceModel.create({
-                compliance_kpis_id: kpis,
-                compliance_status: status,
-                building_id: building_id,
-                account_id: account_id,
-                valid_till: dtActivityValidity.format('YYYY-MM-DD'),
-                required: kpisModels[kpis]['required'],
-                account_role: account_role,
-                override_by_evac: 0
-              });
+            await complianceDocObj.create({
+              account_id: account_id,
+              building_id: building_id,
+              compliance_kpis_id: kpis,
+              override_document: override_document,
+              document_type: document_type,
+              file_name: item['originalname'].replace(/\s+/g, '_'),
+              date_of_activity: dtActivity,
+              viewable_by_trp: viewable_by_trp,
+              description: description,
+              file_size: item['size'],
+              file_type: item['mimetype'],
+              timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+
+            const today = moment();
+            const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
+            let status = 0;
+            if (dtActivityValidity.isAfter(today)) {
+              status = 1;
+            }
+
+            await complianceModel.create({
+              compliance_kpis_id: kpis,
+              compliance_status: status,
+              building_id: building_id,
+              account_id: account_id,
+              valid_till: dtActivityValidity.format('YYYY-MM-DD'),
+              required: kpisModels[kpis]['required'],
+              account_role: account_role,
+              override_by_evac: 0
+            });
+
             marker++;
             // console.log(d);
             // console.log(marker);

@@ -84,12 +84,10 @@ export class LocationsService {
         return this.http.post<any>(this.baseUrl + '/location/search-db-location/', location);
     }
 
-    searchBuildings(key, params?){
-        let opts = Object.apply({}, this.options);
-        if(params){
-            opts['params'] = params;
-        }
-        return <any> this.http.get<any>(this.baseUrl + '/location/search-buildings?key='+key, opts);
+    searchBuildings(key, params = {}){
+        let opt = this.options;
+        opt['params'] = params;
+        return this.http.get<any>(this.baseUrl + '/location/search-buildings?key='+key, opt);
     }
 
     searchLevels(key){

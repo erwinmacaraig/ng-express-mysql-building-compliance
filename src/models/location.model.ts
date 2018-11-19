@@ -274,13 +274,18 @@ export class Location extends BaseClass {
         });
     }
 
-    public getByInIds(ids, archived?){
+    public getByInIds(ids, archived?, withParentName?){
         return new Promise((resolve) => {
             if(archived == undefined){
                 archived = 0;
             }
 
-            const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
+            let sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
+            if(withParentName){
+                sql_load = `SELECT l.*, IF(p.location_id IS NOT NULL, CONCAT(p.name, ', ', l.name), l.name) as name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id 
+                WHERE l.location_id IN (`+ids+`) AND l.archived = `+archived + ` ORDER BY l.location_id ASC `;
+            }
+
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     throw new Error(err);
@@ -290,6 +295,7 @@ export class Location extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
+                    this.dbData = results;
                     resolve(results);
                 });
 
@@ -1297,28 +1303,11 @@ export class Location extends BaseClass {
         });
     }
 
-    public searchBuildings(key = '', accountId?){
+    public searchBuildings(key = '', accountId = 0){
         return new Promise((resolve, reject) => {
-            let sqlRelated = '';
-            if(accountId){
-                sqlRelated = `
-                    AND (
-                        l.location_id IN (
-                            SELECT
-                            location_id
-                            FROM location_account_relation
-                            WHERE location_account_relation.account_id = ${accountId} 
-                        )
-                        OR
-                        l.location_id IN (
-                            SELECT
-                            location_id
-                            FROM location_account_user
-                            WHERE location_account_user.account_id = ${accountId}
-                        )
-
-                    )
-                `;
+            let sqlAccount = '';
+            if(accountId > 0){
+                sqlAccount = ` AND ( l.location_id IN ( SELECT location_id FROM location_account_user WHERE account_id = ${accountId} ) OR l.location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ${accountId} ) ) `;
             }
 
             let sql_search = `
@@ -1331,13 +1320,13 @@ export class Location extends BaseClass {
                 FROM locations l 
                 LEFT JOIN locations p ON l.parent_id = p.location_id
                 WHERE l.archived = 0 AND l.is_building = 1 AND 
-                ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ' ', l.name), l.name ) LIKE "%${key}%" )
-                ${sqlRelated}
-                GROUP BY l.location_id
+                ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) LIKE "%${key}%" )
+
+                ${sqlAccount}
                 LIMIT 10
             `;
             const connection = db.createConnection(dbconfig);
-            connection.query(sql_search, [], (error, results) => {
+            connection.query(sql_search, [], (error,  results) => {
                 if (error) {
                     console.log('location.model.searchBuildings', error, sql_search);
                     throw Error('There was an error searchBuildings');
