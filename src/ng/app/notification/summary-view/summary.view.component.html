@@ -96,7 +96,10 @@
                     <td>{{u['account_name']}}</td>                    
                     <td>{{u['name']}}</td>
                     <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
-                    <td><button class="waves-effect waves-light btn green">Assign</button></td>
+                    <td>
+                        <button type="button" (click)="performAction(u, 'change-location')" class="waves-effect waves-light btn green">Yes</button>
+                        <button type="button" class="waves-effect waves-light btn red">No</button>
+                    </td>
                 </tr>
                 <tr *ngFor="let u of isPending">
                     <td>{{u['first_name']}} {{u['last_name']}}</td>

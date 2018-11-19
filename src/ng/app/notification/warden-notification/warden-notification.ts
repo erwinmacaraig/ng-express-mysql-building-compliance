@@ -147,6 +147,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     if(response.parent.name.length > 0){
                         this.locationData['name'] = response.parent.name+', '+this.locationData.name;
                     }
+                    if (response.sublocations) {
+                        this.locationData['sublocations'] = response.sublocations;
+                    } else {
+                        this.locationData['sublocations'] = [];
+                    }
 
                     let wardenRoleIds = [8, 9, 10, 11, 15, 16, 18];
 
@@ -157,6 +162,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                             this.roleText = response.users_locations[i]['role_name'];
                         }
                     }
+                    
                 });
 
                 this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
@@ -478,7 +484,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
             if( this.routeQuery['ans'] == 'location_changed' ){
                 if( !this.selectedSearchedLocations.location_id ){
-                    return false;
+                    // return false;
                 }
 
                 if(sublocid == -1 || sublocid == null){

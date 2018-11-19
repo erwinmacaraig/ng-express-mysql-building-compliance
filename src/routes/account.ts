@@ -554,15 +554,17 @@ const RateLimiter = require('limiter').RateLimiter;
           }else if(fromLoc.is_building == 1 && toLoc.is_building == 0){
             if(fromLoc.location_id != toLoc.parent_id){
               isDiffLoc = true;
-            }
+						}
+						if(fromLoc.location_id != toLoc.location_id){
+              isDiffLoc = true;
+						}
           }else if(fromLoc.is_building == 0 && toLoc.is_building == 1){
             if(fromLoc.parent_id != toLoc.location_id){
               isDiffLoc = true;
-            }
-          }else if(fromLoc.parent_id != toLoc.parent_id){
+						}						
+          } else if(fromLoc.parent_id != toLoc.parent_id){
             isDiffLoc = true;
           }
-
           /*Send Email To TRP and Admin*/
           if(isDiffLoc){
             await this.sendChangeLocationEmails(fromLoc, toLoc, emData);
@@ -631,6 +633,42 @@ const RateLimiter = require('limiter').RateLimiter;
 				});
 
 			break;
+			case 'change-location':
+				const responsesToQuery = JSON.parse(tokenDbData['strResponse']);
+				console.log(responsesToQuery);
+				let newLocationId = 0;
+				let emRoleRelId = 0;
+				for (let r of responsesToQuery) {
+					if (r['question'] == 'New location') {
+						newLocationId = r['ans'];
+						console.log(`new location id = ${newLocationId}`);
+					}
+					if (r['question'] == 'user_em_roles_relation_id') {
+						emRoleRelId = r['ans']; 
+						// console.log(`em role id is ${emRoleRelId}`);
+						const emRoleRel = new UserEmRoleRelation(emRoleRelId);
+						const emData = await emRoleRel.load();
+            // console.log(emData);
+						if (emData['location_id'] != newLocationId) {
+							emData['location_id'] = newLocationId;
+							emRoleRel.create(emData).then(() => {
+								res.status(200).send({
+									message: 'Success re-assignment'
+								});
+							}).catch((e) => {
+								res.status(400).send({
+									message: e.toString()
+								});
+							});
+						} else {
+							res.status(200).send({
+								message: 'User is already assigned to the location'
+							});
+						}						
+					}
+				}				
+			break;
+
 			case 'tenancy-moved-out':
 				// get FRPs in the building
 				const locationObj = await new Location(tokenDbData['location_id']).load();
