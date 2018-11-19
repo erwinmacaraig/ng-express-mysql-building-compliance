@@ -1024,6 +1024,77 @@ export class User extends BaseClass {
         });
     }
 
+    public getAllRolesInLocationIds(locationIds = '', config = <any>{}){
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw new Error(err);
+                }
+
+                let configFilter = '';
+                if ('searchKey' in config && config['searchKey'].length > 0) {
+                    configFilter += `AND CONCAT(u.first_name, ' ', u.last_name) LIKE "%${config['searchKey']}%" `;
+                }
+                if('account_id' in config){
+                    configFilter += ` AND u.account_id = ${config['account_id']} `;
+                }
+                let archived = ('archived' in config) ? config['archived'] : '0';
+
+                const sql_load = `
+                SELECT 
+                u.*,
+                userolelocation.role_id,
+                userolelocation.role_name,
+                userolelocation.location_id,
+                a.account_name,
+                l.name,
+                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name
+                FROM (
+                    SELECT
+                    emr.user_id,
+                    emr.em_role_id as role_id,
+                    em.role_name as role_name,
+                    emr.location_id
+                    FROM user_em_roles_relation emr 
+                    INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
+                    WHERE emr.location_id IN (${locationIds}) AND emr.user_id = 10630
+
+                    UNION
+
+                    SELECT 
+                    lau.user_id,
+                    urr.role_id,
+                    IF(urr.role_id = 1, 'FRP', 'TRP') as role_name,
+                    lau.location_id
+                    FROM user_role_relation urr 
+                    INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
+                    WHERE  lau.location_id IN (${locationIds}) AND urr.user_id = 10630  
+
+                ) userolelocation
+                INNER JOIN users u ON userolelocation.user_id = u.user_id
+                INNER JOIN locations l ON l.location_id = userolelocation.location_id
+                INNER JOIN locations p ON p.location_id = l.parent_id
+                INNER JOIN accounts a ON a.account_id = u.account_id
+                WHERE u.archived = ${archived}
+                ${configFilter}
+                `;
+
+                connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    this.dbData = results;
+                    resolve(results);
+    
+                });
+                connection.release();
+
+            });
+
+        });
+    }
+
     public getAllRolesAndLocations(userId): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
