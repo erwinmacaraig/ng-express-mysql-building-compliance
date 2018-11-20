@@ -274,10 +274,18 @@ const RateLimiter = require('limiter').RateLimiter;
 		const notificationTokenObj = new NotificationToken(notification_token_id);
 		const notificationTokenDbData = await notificationTokenObj.load();
 		
+		let emailType;		
 		if (Object.keys(notificationTokenDbData).length == 0) {
 			return res.status(400).send({
 				message: 'No such token exists'
 			});
+		}
+		if (notificationTokenDbData['role_text'] == 'TRP') {
+			emailType = 'trp-confirmation';
+		} else if(notificationTokenDbData['role_text'] == 'FRP') {
+			emailType = 'frp-confirmation';
+		} else {
+			emailType = 'warden-confirmation';
 		}
     
 		const notificationConfigObj = new NotificationConfiguration(notificationTokenDbData['notification_config_id']);
@@ -288,6 +296,15 @@ const RateLimiter = require('limiter').RateLimiter;
 		const buildingDbData = await buildingObj.load();		
 		const sublocationObj = new Location(notificationTokenDbData['location_id']);
 		const sublocationDbData = await sublocationObj.load();
+
+		let locTextEmail;
+		if (notificationConfigDbData['building_id'] == notificationTokenDbData['location_id']) {
+			locTextEmail = buildingDbData['name'];
+		} else {
+			locTextEmail = `${buildingDbData['name']},  ${sublocationDbData['name']}`;
+		}
+
+
 		const account = new Account(userDbData['account_id']);
 		const accountDbData = await account.load();
 		switch(action) {
@@ -302,31 +319,21 @@ const RateLimiter = require('limiter').RateLimiter;
         attachments: [],
         subject : 'EvacConnect Email Notification'
 			};
-			const email = new EmailSender(opts);
-			const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
-      let emailBody = email.getEmailHTMLHeader();
-			
-			emailBody += `<pre>Hi ${userDbData['first_name']} ${userDbData['last_name']},</pre>`;
-      emailBody += `<pre>Please confirm you are still the Tenant Responsible Person (TRP)* for ${accountDbData['account_name']} at ${buildingDbData['name']}, ${sublocationDbData['name']}</pre><br />`;
-      emailBody += `<a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a><br />
-      <pre>${notificationConfigDbData['message']}</pre><br />`;
-      emailBody += `<pre>Would you like more information on EvacConnect or Emergency Planning?</pre>
 
-      <p style="margin-top: 30px;"><a href="https://www.evacservices.com.au/emergency-planning-101-why-plan-for-emergencies/" target="_blank" style="text-decoration:none; color: black; border:2px solid #ff9800; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 203px 10px 20px;">The importance of planning for emergencies</a></p>
-      <p style="margin-top: 35px;"><a href="https://www.evacservices.com.au/updating-and-managing-warden-lists-is-now-easier-with-evacconnect/" target="_blank" style="text-decoration:none; color: black; border:2px solid #2196F3; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 45px 10px 20px;">EvacConnect for Tenant Responsible Persons - an instructional video</a></p>
-      <p style="margin-top: 35px;"><a href="http://evachub.com/limesurvey/index.php/662295?newtest=Y&lang=en" target="_blank" style="text-decoration:none; color: black; border:2px solid black; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 120px 10px 20px;">Provide feedback on your experience using EvacConnect</a></p>
-      `;
 
-			emailBody += email.getEmailHTMLFooter();
-      email.assignOptions({
-        body : emailBody
-			});
-			
-			email.send(
-				(data) => {
-					console.log(data)					
-				},
+			let 
+      emailData = {
+        message : notificationConfigDbData['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
+        users_fullname : this.toTitleCase(userDbData['first_name']+' '+ userDbData['last_name']),
+        account_name : accountDbData['account_name'],
+        location_name : locTextEmail,
+        yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+        role : notificationTokenDbData['role_text']
+			};			
+			const email = new EmailSender(opts);			
+			email.sendFormattedEmail(emailType, emailData, res, 
+				(data) => console.log(data),
 				(err) => console.log(err)
 			);
 
