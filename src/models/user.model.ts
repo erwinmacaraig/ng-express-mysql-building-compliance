@@ -1025,6 +1025,7 @@ export class User extends BaseClass {
     }
 
     public getAllRolesInLocationIds(locationIds = '', config = <any>{}){
+
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
@@ -1058,7 +1059,7 @@ export class User extends BaseClass {
                     emr.location_id
                     FROM user_em_roles_relation emr 
                     INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
-                    WHERE emr.location_id IN (${locationIds}) AND emr.user_id = 10630
+                    WHERE emr.location_id IN (${locationIds})
 
                     UNION
 
@@ -1069,7 +1070,7 @@ export class User extends BaseClass {
                     lau.location_id
                     FROM user_role_relation urr 
                     INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
-                    WHERE  lau.location_id IN (${locationIds}) AND urr.user_id = 10630  
+                    WHERE  lau.location_id IN (${locationIds})
 
                 ) userolelocation
                 INNER JOIN users u ON userolelocation.user_id = u.user_id
