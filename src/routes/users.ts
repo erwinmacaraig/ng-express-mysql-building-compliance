@@ -936,9 +936,10 @@ export class UsersRoute extends BaseRoute {
                 if(userRole != 'frp' && r.role_id == 2){
                     userRole = 'trp'
                 }
-                if(r.role_id == 1){
-                    userRole = 'frp';
-                }
+            }
+
+            if(r.role_id == 1){
+                userRole = 'frp';
             }
         }
 

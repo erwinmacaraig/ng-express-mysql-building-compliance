@@ -224,10 +224,6 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
         this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
             this.buildingSelections = response.locations;
-
-            setTimeout(() => {
-                this.onSelectBuilding();
-            },500);
         }, { sublocations:true });
     }
 
@@ -270,7 +266,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         idEmrolesRel = parseInt($('#selectLocReviewProf').val()),
         idFromLoc = 0,
         sublocid = parseInt($('#selectSubLocProfile').val()),
-        locid = 0,
+        locid = sublocid,
         fromLoc = <any> {},
         differentLocation = false,
         form = {
@@ -285,22 +281,6 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
             if(idEmrolesRel == this.locationRoles[i]['user_em_roles_relation_id']){
                 fromLoc = this.locationRoles[i];
                 idFromLoc = fromLoc.location_id;
-            }
-        }
-
-        if(sublocid == -1 || sublocid == null){
-            locid = parseInt($('#selectBuildingSelections').val());
-        }else{
-            locid = sublocid;
-        }
-
-        if( fromLoc.is_building == 1 ){
-            if( fromLoc.location_id != this.selectedSearchedLocations.location_id ){
-                differentLocation = true;
-            }
-        }else{
-            if( fromLoc.parent_id != this.selectedSearchedLocations.location_id ){
-                differentLocation = true;
             }
         }
 
@@ -347,33 +327,29 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
         this.userService.update(form, (response) => {
 
-            if(this.selectedSearchedLocations.location_id > 0){
-                const myAns = JSON.stringify(responses);
-                this.accountService.submitQueryResponses(myAns, this.notification_token_id, 0, status).subscribe(
-                    (res) => {
+            const myAns = JSON.stringify(responses);
+            this.accountService.submitQueryResponses(myAns, this.notification_token_id, 0, status).subscribe(
+                (res) => {
 
-                        this.showLocationSelect = false;
+                    this.showLocationSelect = false;
 
-                        if(differentLocation){
-                            $('#modalNewLocation').modal({ dismissible : false });
-                            $('#modalNewLocation').modal('open');
-                        }
-
-                        getUserLocationTrainingsEcoRoles(() => {
-                            if(differentLocation){
-                                setTimeout(() => {
-                                    $('#modalNewLocation').modal('close');
-                                }, 1500);
-                            }
-                        });
-                    },
-                    (error) => {
-                        console.log('There was an error processing the request answer');
+                    if(differentLocation){
+                        $('#modalNewLocation').modal({ dismissible : false });
+                        $('#modalNewLocation').modal('open');
                     }
-                );
-            }else{
-                getUserLocationTrainingsEcoRoles(false);
-            }
+
+                    getUserLocationTrainingsEcoRoles(() => {
+                        if(differentLocation){
+                            setTimeout(() => {
+                                $('#modalNewLocation').modal('close');
+                            }, 1500);
+                        }
+                    });
+                },
+                (error) => {
+                    console.log('There was an error processing the request answer');
+                }
+            );
            
         });
     }
@@ -600,14 +576,14 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     onSelectBuilding(){
-        let bldgid = parseInt($('#selectBuildingSelections').val());
+        /*let bldgid = parseInt($('#selectBuildingSelections').val());
 
 
         for(let bldg of this.buildingSelections){
             if(bldg.location_id == bldgid){
                 this.selectedSearchedLocations = bldg;
             }
-        }
+        }*/
 
     }
 
