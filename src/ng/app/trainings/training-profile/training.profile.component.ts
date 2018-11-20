@@ -98,6 +98,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
   searchModalLocationSubs;
 
   isFrp = false;
+  isTrp = false;
 
 	constructor(
     private auth: AuthService,
@@ -123,6 +124,9 @@ export class TrainingProfile implements OnInit, OnDestroy {
     for(let role of this.userData['roles']){
       if(role.role_id == 1){
         this.isFrp = true;
+      }
+      if(role.role_id == 2){
+        this.isTrp = true;
       }
     }
 

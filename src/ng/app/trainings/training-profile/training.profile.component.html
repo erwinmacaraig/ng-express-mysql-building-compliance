@@ -57,7 +57,7 @@
 				<option value="0" disabled selected>Select Action</option>
 				<option value="profile">Update Profile</option>
                 <option value="credential">Update Credential</option>
-				<option value="location">Assign Location & Role</option>
+				<option value="location" *ngIf="isTrp || isFrp">Assign Location & Role</option>
 			</select>
 		</div>
 	</div>
