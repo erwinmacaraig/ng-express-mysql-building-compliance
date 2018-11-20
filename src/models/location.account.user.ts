@@ -330,6 +330,7 @@ export class LocationAccountUser extends BaseClass {
             const sql_load =
             `SELECT
                 user_role_relation.role_id,
+                user_role_relation.user_role_relation_id,
                 IF (user_role_relation.role_id = 1, 'Facility Responsible Person', 'Tenancy Responsible Person') as role_name,
                 lau.*,
                 u.first_name,

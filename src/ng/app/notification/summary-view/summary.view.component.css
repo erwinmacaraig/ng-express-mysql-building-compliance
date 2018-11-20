@@ -79,3 +79,7 @@ span.resigned {
 span.validated {
     color: green;
 }
+button.explore {
+    margin: 20px 14px 0px 0px !important;
+    width: 95%;
+}

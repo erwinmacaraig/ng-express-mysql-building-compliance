@@ -677,6 +677,27 @@ export class AdminRoute extends BaseRoute {
            console.log(e, u);
            invalidUsers.push(u['email']);
          }
+
+         // PERFORM UPDATES HERE
+         if (u['user_em_roles_relation_id'] != null) {
+           let userEmRoleRelObj = null;           
+           let dbUserEmRoleDbData = {};
+           userEmRoleRelObj = new UserEmRoleRelation(u['user_em_roles_relation_id']);
+           dbUserEmRoleDbData = await userEmRoleRelObj.load();
+           dbUserEmRoleDbData['em_role_id'] = u['role_id'];
+           dbUserEmRoleDbData['location_id'] = u['location_id'];
+           await userEmRoleRelObj.create(dbUserEmRoleDbData);
+         }
+         if (u['location_accout_user_id'] != null) {
+           let locAcctUserObj = null;
+           let locAcctUserDbData = {};
+           locAcctUserObj = new LocationAccountUser(u['location_accout_user_id']);
+           locAcctUserDbData = await locAcctUserObj.load();
+           // For now we update the location
+           locAcctUserDbData['location_id'] = u['location_id'];
+           await locAcctUserObj.create(locAcctUserDbData);
+
+         } 
        }
       }
       return res.status(200).send({
@@ -755,19 +776,27 @@ export class AdminRoute extends BaseRoute {
         tempArr.push(s['location_id']);
         s['id'] = s['location_id'];
       }
-
+      
       const userAccountRoles = await lauObj.getUsersInLocationId(tempArr);
       const userEMRoles = await emrrObj.getUsersInLocationIds(tempArr.join(','));
       const allUsers = userAccountRoles.concat(userEMRoles);
-      tempArr = [];
       
+      tempArr = [];
       const uniqUsers = [];
-      for (const u of allUsers) {
-        if (tempArr.indexOf(u['user_id']) == -1) {
-          tempArr.push(u['user_id']);
-          uniqUsers.push(u);
+      
+      for (let uem of userEMRoles) {
+        if (tempArr.indexOf(uem['user_id']) == -1) {
+          tempArr.push(uem['user_id']);
+          uniqUsers.push(uem);
         }
       }
+      for (let acctUser of userAccountRoles) {
+        if (tempArr.indexOf(acctUser['user_id']) == -1) {
+          tempArr.push(acctUser['user_id']);
+          uniqUsers.push(acctUser);
+        }
+      }
+
       res.status(200).send({
         sublocations: sublocations,
         users: uniqUsers

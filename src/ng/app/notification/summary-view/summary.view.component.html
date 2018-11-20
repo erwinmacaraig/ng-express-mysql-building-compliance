@@ -51,7 +51,8 @@
                     <th>Name</th>
                     <th>Email</th>
                     <th>Status</th>
-                    <th>Tenancy Name</th>
+                    <th *ngIf="roleId == 1">Tenancy Name</th>
+                    <th *ngIf="roleId == 2">Role</th>
                     <th>Location</th>
                     <th>Activity Log</th>
                     <th>Action</th>
@@ -72,7 +73,8 @@
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
                     <td><span class="resigned">Tenancy Moved Out</span></td>
-                    <td>{{u['account_name']}}</td>                    
+                    <td *ngIf="roleId == 1">{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 2">{{u['role_text']}}</td>                      
                     <td>{{u['name']}}</td>
                     <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td>
@@ -85,7 +87,8 @@
                     <td>{{u['email']}}</td>
                     <td><span class="resigned">Resigned</span></td>
                     <td>{{u['account_name']}}</td>                    
-                    <td>{{u['name']}}</td>
+                    <td *ngIf="roleId == 1">{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 2">{{u['role_text']}}</td>   
                     <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td><button class="waves-effect waves-light btn green">Re-assign</button> <button class="waves-effect waves-light btn red">Remove</button></td>
                 </tr>
@@ -93,7 +96,8 @@
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
                     <td><span class="resigned">Location Changed</span></td>
-                    <td>{{u['account_name']}}</td>                    
+                    <td *ngIf="roleId == 1">{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 2">{{u['role_text']}}</td>                      
                     <td>{{u['name']}}</td>
                     <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td>
@@ -105,7 +109,8 @@
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
                     <td><span class="pending">Pending</span></td>
-                    <td>{{u['account_name']}}</td>                    
+                    <td *ngIf="roleId == 1">{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 2">{{u['role_text']}}</td>                       
                     <td>{{u['name']}}</td>
                     <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td><button type="button" (click)="performAction(u, 'resend')" class="waves-effect waves-light btn green">Resend</button></td>
@@ -114,7 +119,8 @@
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
                     <td> <span class="pending">No Notification</span></td>
-                    <td>{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 1">{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 2">{{u['role_text']}}</td>   
                     <td>{{u['name']}}</td>
                     <td>--</td>
                     <td><button class="waves-effect waves-light btn green">Send</button></td>
@@ -125,7 +131,8 @@
                     <td>{{u['email']}}</td>
                     <td><span class="resigned">{{u['strStatus']}}</span></td>
                     <td>{{u['account_name']}}</td>                    
-                    <td>{{u['name']}}</td>
+                    <td *ngIf="roleId == 1">{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 2">{{u['role_text']}}</td> 
                     <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td></td>
                 </tr>
@@ -133,12 +140,19 @@
                     <td>{{u['first_name']}} {{u['last_name']}}</td>
                     <td>{{u['email']}}</td>
                     <td><span class="validated">Validated</span> </td>
-                    <td>{{u['account_name']}}</td>                    
+                    <td *ngIf="roleId == 1">{{u['account_name']}}</td>
+                    <td *ngIf="roleId == 2">{{u['role_text']}}</td>                     
                     <td>{{u['name']}}</td>
                     <td>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td></td>
                 </tr>
             </tbody>
-        </table>
+        </table>        
+    </div>
+    <div class="row">
+        <div class="col s10"></div>
+        <div class="col s2">
+            <button type="button" class="btn blue waves-effect waves-light explore" routerLink="/dashboard">Explore EvacConnect</button>
+        </div>
     </div>
 </div>

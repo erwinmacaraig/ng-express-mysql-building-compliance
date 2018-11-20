@@ -387,7 +387,7 @@ export class UserEmRoleRelation extends BaseClass {
           let
           limitQuery = ('limit' in config) ? ' LIMIT '+config['limit'] : '',
           selectQuery = ('count' in config) ? ' COUNT(u.user_id) as count ' : `
-                    u.*, em.em_role_id,
+                    u.*, em.em_role_id, em.user_em_roles_relation_id,
                     er.role_name,
                     accounts.account_name,
                     l.name,
@@ -400,7 +400,7 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 INNER JOIN locations l ON l.location_id = em.location_id
-                INNER JOIN locations p ON p.location_id = l.parent_id
+                LEFT JOIN locations p ON p.location_id = l.parent_id
                 INNER JOIN accounts ON accounts.account_id = u.account_id
                 WHERE u.archived = ${archived} ${configFilter} ${limitQuery}`;
 
