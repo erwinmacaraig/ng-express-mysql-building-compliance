@@ -81,13 +81,6 @@
             <div class="col l12 m12 s12">`
                 <h5 class="blue-text" style="margin-bottom: 10%;">Review Your Profile</h5>
             </div>
-    
-            <div class="col l12 m12 s12">
-                <div class="margin-bottom-20 check-container">
-                    <input id="checkBoxOneMonth" type="checkbox" class="filled-in" [checked]="hasTrainingReminder"  /> 
-                    <label for="checkBoxOneMonth" style="color: #222; font-size: 16px;">Training Reminder: 1 month before training expiry</label> 
-                </div>
-            </div>
 
             <div class="col l12 m12 s12">
                 <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
@@ -142,11 +135,11 @@
             </div>
 
             <div class="col l6 m12 s12">
-                <button class="btn btn-block blue waves-effect waves-light" (click)="clickToStep2()" >Next</button>
+                <button class="btn btn-block orange waves-effect waves-light" (click)="clickToStep2()" >Next</button>
             </div>
             
             <div class="col l12 m12 s12">
-                <button class="btn btn-block grey" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ 'id' : encryptedUserId, 'dest' : peepDestParam, 'query' : peepDestQuery }">Register as Mobility Impaired</button>
+                <button class="btn btn-block blue" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ 'id' : encryptedUserId, 'dest' : peepDestParam, 'query' : peepDestQuery }">Register as Mobility Impaired</button>
             </div>
 
         </div>
@@ -156,6 +149,15 @@
 
 <ng-template #yesTrainings>
     <h5 class="blue-text center" style="margin-bottom: 5%;">Required Trainings</h5>
+    
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <div class="margin-bottom-20 center check-container">
+                <input id="checkBoxOneMonth" type="checkbox" class="filled-in" [checked]="hasTrainingReminder"  /> 
+                <label for="checkBoxOneMonth" style="color: #222; font-size: 16px;">Training Reminder: 1 month before training expiry</label> 
+            </div>
+        </div>
+    </div>
 
     <div class="row">
         <div class="col l12 m12 s12">
@@ -176,7 +178,7 @@
                             <p class="blue-text"></p>
                         </div>
                         <div class="buttons">
-                            <button [routerLink]="['/trainings/my-training-profile/', encryptedUserId ]" class="btn red lighten-1 waves-effect waves-light" type="button">Go To Training</button>
+                            <button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button">Go To Training</button>
                         </div>
                     </div>
                 </div>
@@ -186,7 +188,7 @@
     
     <div class="row">
         <div class="col l12 m12 s12 center">
-            <button class="btn orange waves-effect waves-light center" (click)="clickToStep3()" >Next</button>
+            <button class="btn orange waves-effect waves-light center" #btnStep3 (click)="clickToStep3(btnStep3)" >Next</button>
         </div>
     </div>
 </ng-template>
@@ -217,9 +219,9 @@
     <div class="div-center center">
         <h5 class="margin-bottom-30">
             <!--   -->
-            <strong>Thank you for your time.</strong>
+            <strong>Hurray, your training looks up to date.</strong>
         </h5>
-        <h5 class="margin-bottom-60">No further action required from your end.</h5>
+        <h5 class="margin-bottom-60">You can retake the training now or download your certificate.</h5>
 
 
         <div class="center">
@@ -329,10 +331,8 @@
             </div>
 
             <div class="margin-bottom-20"></div>
-            <!--
+
             <div class="col l12 m12 s12" style="position: relative;">
-                
-                    
                 <div class="form-group input-white-bg">
                     <label for="subLocation">Search New Location</label>
                     <input type="text" class="form-control" #inpChangeLocSearch placeholder="Type location here" />
@@ -343,13 +343,11 @@
                     </ul>
                 </div>
             </div>
-        -->
-            <div class="col l12 m12 s12" style="position: relative;">               
+
+            <div class="col l12 m12 s12">
                 <div class="input-white-bg margin-bottom-40" style="margin-right: 0px;">
-                    <label for="subLocation">Select New Location</label>
-                    <select id="selSubLocationNewLoc" [disabled]="locationData.sublocations?.length == 0">
-                        <option value="" selected></option>
-                        <option *ngFor="let sub of locationData.sublocations" value="{{sub.location_id}}" >{{sub.name}}</option>
+                    <select id="selSubLocationNewLoc" [disabled]="selectedSearchedLocations.sublocations.length == 0">
+                        <option *ngFor="let sub of selectedSearchedLocations.sublocations" value="{{sub.location_id}}" >{{sub.name}}</option>
                     </select>
                 </div>
             </div>
@@ -368,4 +366,14 @@
             We sent a confirmation message to tenancy and admin for changing different location
         </h5>
     </div>    
+</div>
+
+
+<div class="modal" id="training">
+    <div class="modal-content" *ngIf="selectedCourse.formatted_launcher_url">
+        <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
+    </div>
 </div>
