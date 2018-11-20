@@ -97,6 +97,7 @@
 .grid-container{
   margin: 10px;
   display: inline-block;
+  vertical-align: top;
 }
 
 .grid-container > p:first-child{

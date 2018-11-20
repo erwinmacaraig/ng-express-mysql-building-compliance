@@ -44,8 +44,10 @@
     background-repeat: no-repeat;
     background-size: 45%;
     border-radius: 200px;
-    width: 165px;
-    height: 165px;
+    width: 145px;
+    height: 145px;
+    margin-top: 10px;
+    margin-bottom: 10px;
     background-position: 55%, 0%;
 }
 

@@ -72,6 +72,10 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     showLocationSelect = false;
 
     buildingSelections = <any> [];
+    isCompliant = false;
+    availableTrainings = <any> [];
+    validTrainings = <any> [];
+    trainingItems = <any> [];
 
     constructor(
         private route: ActivatedRoute,
@@ -133,6 +137,10 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         });
     }
 
+    formatDate(dt: string): string {
+        return moment(dt).format('DD/MM/YYYY')
+    }
+
     ngOnInit() {
         this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
@@ -176,6 +184,22 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     }
                     this.userData = Object.assign(this.userData, response.data.user);
                     this.requiredTrainings = response.data.required_trainings;
+                    this.availableTrainings = response.data.trainings;
+                    this.validTrainings = response.data.valid_trainings;
+
+                    for(let vl of this.validTrainings){
+                        vl['valid'] = true;
+                    }
+
+                    this.trainingItems = JSON.parse( JSON.stringify(this.validTrainings) );
+
+                    for(let tr of this.requiredTrainings){
+                        tr['valid'] = false;
+                        this.trainingItems.push(tr);
+                    }
+
+                    this.isCompliant = (response.data.valid_trainings.length > 0 && response.data.required_trainings.length == 0) ? true : false;
+
                     this.ecoRoles = response.data.eco_roles;
 
                     if( this.userData.mobile_number !== null ){
@@ -654,8 +678,8 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         }
     }
 
-    clickYesThankYou(btn){
-        btn.disabled = true;
+    closeStep2(){
+        /*btn.disabled = true;
         this.accountService.submitQueryResponses(JSON.stringify([]), this.notification_token_id, 1, 'Validated').subscribe(
             (res) => {
                 btn.disabled = false;
@@ -667,7 +691,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 console.log('There was an error processing the request answer');
                 
             }
-        );
+        );*/
+
+        this.router.navigate(['/dashboard']);
     }
 
     loadTrainingCourse(course: object = {}) {
