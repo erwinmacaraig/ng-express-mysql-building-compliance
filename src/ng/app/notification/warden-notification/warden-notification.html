@@ -110,21 +110,23 @@
                 </div>
             </div> -->
             
-            <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
-                <!-- buildingSelections -->
+            <!-- <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
+                buildingSelections
                 <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
                     <label>Select Location</label>
                     <select id="selectBuildingSelections"  (change)="onSelectBuilding()">
                         <option *ngFor="let bldg of buildingSelections" value="{{bldg.location_id}}">{{bldg.name}}</option>
                     </select>
                 </div>
-            </div>
+            </div> -->
 
             <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
                 <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
                     <label>Select Sublocation</label>
-                    <select id="selectSubLocProfile" [disabled]="selectedSearchedLocations.sublocations.length == 0" (change)="onSelectSubLocation()">
-                        <option *ngFor="let sub of selectedSearchedLocations.sublocations" value="{{sub.location_id}}">{{sub.name}}</option>
+                    <select id="selectSubLocProfile" (change)="onSelectSubLocation()">
+                        <optgroup *ngFor="let loc of buildingSelections" label="{{loc.name}}">
+                            <option *ngFor="let sub of loc.sublocations" value="{{sub.location_id}}">{{sub.name}}</option>
+                        </optgroup>
                     </select>
                 </div>
             </div>
