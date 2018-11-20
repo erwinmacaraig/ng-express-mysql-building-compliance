@@ -274,10 +274,18 @@ const RateLimiter = require('limiter').RateLimiter;
 		const notificationTokenObj = new NotificationToken(notification_token_id);
 		const notificationTokenDbData = await notificationTokenObj.load();
 		
+		let emailType;		
 		if (Object.keys(notificationTokenDbData).length == 0) {
 			return res.status(400).send({
 				message: 'No such token exists'
 			});
+		}
+		if (notificationTokenDbData['role_text'] == 'TRP') {
+			emailType = 'trp-confirmation';
+		} else if(notificationTokenDbData['role_text'] == 'FRP') {
+			emailType = 'frp-confirmation';
+		} else {
+			emailType = 'warden-confirmation';
 		}
     
 		const notificationConfigObj = new NotificationConfiguration(notificationTokenDbData['notification_config_id']);
@@ -288,6 +296,15 @@ const RateLimiter = require('limiter').RateLimiter;
 		const buildingDbData = await buildingObj.load();		
 		const sublocationObj = new Location(notificationTokenDbData['location_id']);
 		const sublocationDbData = await sublocationObj.load();
+
+		let locTextEmail;
+		if (notificationConfigDbData['building_id'] == notificationTokenDbData['location_id']) {
+			locTextEmail = buildingDbData['name'];
+		} else {
+			locTextEmail = `${buildingDbData['name']},  ${sublocationDbData['name']}`;
+		}
+
+
 		const account = new Account(userDbData['account_id']);
 		const accountDbData = await account.load();
 		switch(action) {
@@ -302,31 +319,21 @@ const RateLimiter = require('limiter').RateLimiter;
         attachments: [],
         subject : 'EvacConnect Email Notification'
 			};
-			const email = new EmailSender(opts);
-			const link = 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken);
-      const yesLink = 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken);
-      let emailBody = email.getEmailHTMLHeader();
-			
-			emailBody += `<pre>Hi ${userDbData['first_name']} ${userDbData['last_name']},</pre>`;
-      emailBody += `<pre>Please confirm you are still the Tenant Responsible Person (TRP)* for ${accountDbData['account_name']} at ${buildingDbData['name']}, ${sublocationDbData['name']}</pre><br />`;
-      emailBody += `<a href="${yesLink}" target="_blank" style="text-decoration:none; border: none; color: White; line-height: 36px; padding:15px 50px 15px 50px; background-color: #ff9800; box-sizing: border-box; border-radius: 5px;">Yes</a> &nbsp; <a href="${link}" target="_blank" style="text-decoration:none;border: none; color: White; width: 250px; line-height: 50px; padding: 15px 50px 15px 50px; background-color: #2196F3; box-sizing: border-box; border-radius: 5px;">No</a><br />
-      <pre>${notificationConfigDbData['message']}</pre><br />`;
-      emailBody += `<pre>Would you like more information on EvacConnect or Emergency Planning?</pre>
 
-      <p style="margin-top: 30px;"><a href="https://www.evacservices.com.au/emergency-planning-101-why-plan-for-emergencies/" target="_blank" style="text-decoration:none; color: black; border:2px solid #ff9800; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 203px 10px 20px;">The importance of planning for emergencies</a></p>
-      <p style="margin-top: 35px;"><a href="https://www.evacservices.com.au/updating-and-managing-warden-lists-is-now-easier-with-evacconnect/" target="_blank" style="text-decoration:none; color: black; border:2px solid #2196F3; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 45px 10px 20px;">EvacConnect for Tenant Responsible Persons - an instructional video</a></p>
-      <p style="margin-top: 35px;"><a href="http://evachub.com/limesurvey/index.php/662295?newtest=Y&lang=en" target="_blank" style="text-decoration:none; color: black; border:2px solid black; box-sizing: border-box; border-radius: 5px; line-height: 36px; padding:10px 120px 10px 20px;">Provide feedback on your experience using EvacConnect</a></p>
-      `;
 
-			emailBody += email.getEmailHTMLFooter();
-      email.assignOptions({
-        body : emailBody
-			});
-			
-			email.send(
-				(data) => {
-					console.log(data)					
-				},
+			let 
+      emailData = {
+        message : notificationConfigDbData['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
+        users_fullname : this.toTitleCase(userDbData['first_name']+' '+ userDbData['last_name']),
+        account_name : accountDbData['account_name'],
+        location_name : locTextEmail,
+        yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+        role : notificationTokenDbData['role_text']
+			};			
+			const email = new EmailSender(opts);			
+			email.sendFormattedEmail(emailType, emailData, res, 
+				(data) => console.log(data),
 				(err) => console.log(err)
 			);
 
@@ -812,7 +819,7 @@ const RateLimiter = require('limiter').RateLimiter;
     if (tokenDbData['completed']) {
       return res.redirect('/success-valiadation?verify-notified-user=0');
     }
-    // todo token expired
+    // todo token expireds
     if (tokenDbData['expiration_status'] == 'expired') {
       return res.redirect('/success-valiadation?verify-notified-user=0');
     }
@@ -826,7 +833,38 @@ const RateLimiter = require('limiter').RateLimiter;
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
       const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
-    }else{
+    } else if (tokenDbData['role_text'] == 'FRP') {
+			await tokenObj.create({
+				responded: 1,
+				completed: 1,
+				strResponse: 'No',
+        strStatus: 'Resigned',
+				dtResponded: moment().format('YYYY-MM-DD'),
+				dtCompleted: moment().format('YYYY-MM-DD')
+			});
+			const accountDbData = await new Account(userDbData['account_id']).load();
+			const locationDbData = await new Location(tokenDbData['location_id']).load();
+
+			// send email notification to admin
+			const opts = {
+				from : '',
+				fromName : 'EvacConnect',
+				to : ['jmanoharan@evacgroup.com.au'],				
+				cc: ['emacaraig@evacgroup.com.au'],
+				body : new EmailSender().getEmailHTMLHeader() + `<br> ${userDbData['first_name']} ${userDbData['last_name']} of ${accountDbData['account_name']} <br>
+				says that he/she is <strong>NO LONGER</strong> the FRP at ${locationDbData['name']}.` + 
+				new EmailSender().getEmailHTMLFooter(),
+				attachments: [],
+				subject : 'EvacConnect Email Notification'
+			};
+			const email = new EmailSender(opts);
+			email.send((success) => {
+				console.log('Sent successfully');
+			}, (error) => {
+				console.log('Email cannot be sent');
+			});
+			return res.redirect('/success-valiadation?verify-notified-user=3');
+		} else {
       try{
         await userRole.getByUserId(userDbData['user_id']);
         hasFrpTrpRole = true;
@@ -848,8 +886,11 @@ const RateLimiter = require('limiter').RateLimiter;
   			await configurator.create(configDBData);
   		}
 
+			
       const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
-      await loginAction(redirectUrl);
+			await loginAction(redirectUrl);
+			
+
     }
 
 
@@ -871,7 +912,8 @@ const RateLimiter = require('limiter').RateLimiter;
     const configId = parseInt(parts[3], 10);
 
     const user = new User(uid);
-    const userDbData = await user.load();
+		const userDbData = await user.load();
+		
     const userRole = new UserRoleRelation();
     let hasFrpTrpRole = false;
 
@@ -908,11 +950,11 @@ const RateLimiter = require('limiter').RateLimiter;
     // todo token expired
     if (tokenDbData['expiration_status'] == 'expired') {
       return res.redirect('/success-valiadation?verify-notified-user=0');
-    }
+		}	
+		
 
     const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
-    
-    console.log( 'tole', tokenDbData['role_text'].toLowerCase() );
+        
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
       const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
@@ -942,10 +984,34 @@ const RateLimiter = require('limiter').RateLimiter;
   			await configurator.create(configDBData);
   		}
 
-      if (hasFrpTrpRole) {
+			
+      if (hasFrpTrpRole && tokenDbData['role_text'] != 'FRP') {
         const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
         await loginAction(redirectUrl);
-      } else {
+      } else if (tokenDbData['role_text'] == 'FRP') {
+				const accountDbData = await new Account(userDbData['account_id']).load();
+				const locationDbData = await new Location(tokenDbData['location_id']).load();
+
+				// send email notification to admin
+				const opts = {
+					from : '',
+					fromName : 'EvacConnect',
+					to : ['jmanoharan@evacgroup.com.au'],				
+					cc: ['emacaraig@evacgroup.com.au'],
+					body : new EmailSender().getEmailHTMLHeader() + `<br> ${userDbData['first_name']} ${userDbData['last_name']} of ${accountDbData['account_name']} <br>
+					says that he/she is <strong>STILL</strong> the FRP at ${locationDbData['name']}.` + 
+					new EmailSender().getEmailHTMLFooter(),
+					attachments: [],
+					subject : 'EvacConnect Email Notification'
+				};
+				const email = new EmailSender(opts);
+				email.send((success) => {
+					console.log('Sent successfully');
+				}, (error) => {
+					console.log('Email cannot be sent');
+				});
+				return res.redirect('/success-valiadation?verify-notified-user=1');
+			} else {
         return res.redirect('/success-valiadation?verify-notified-user=1');
       }
     }
@@ -1003,13 +1069,15 @@ const RateLimiter = require('limiter').RateLimiter;
     }catch(e){}
 
     let trp = [];
-    let eco = [];
+		let eco = [];
+		let frp = [];
     let allUsers = [];
     const allUserIds = [];
     let allUserIdStr = '';
     let location_ids = [];
     const lauObj = new LocationAccountUser();
-    const uemr = new UserEmRoleRelation();
+		const uemr = new UserEmRoleRelation();
+		// const frpUsersInBuilding = await new LocationAccountUser().getFRPinBuilding(config['building_id']);
     let accountModel = new Account(req.user.account_id);
     let account = <any> {
       account_name : ''
@@ -1029,9 +1097,15 @@ const RateLimiter = require('limiter').RateLimiter;
       } else if (config['user_type'] == 'all_users') {
         userType = 'all';
         trp = await lauObj.TRPUsersForNotification(sublevels);
-        eco = await uemr.emUsersForNotification(sublevels);
-        allUsers = trp.concat(eco);
-      }
+				eco = await uemr.emUsersForNotification(sublevels);
+				frp = await new LocationAccountUser().getFRPinBuilding(config['building_id']);
+				// allUsers = trp.concat(eco);
+				allUsers = [...trp, ...eco, ...frp];
+      } else if (config['user_type'] == 'frp') {
+				userType = 'frp';
+				allUsers = await new LocationAccountUser().getFRPinBuilding(config['building_id']);
+				// console.log(frp);
+			}
     }catch(e){
       console.log(e);
     }
@@ -1118,7 +1192,7 @@ const RateLimiter = require('limiter').RateLimiter;
         locTextEmail = locTextEmail +' '+ u['eco_sublocation_names'].join(',');
         emailRole = u['eco_role_names'].join(',');
       }else{
-  			if (u['name'].length > 0) {
+  			if (u['name'] && u['name'].length > 0) {
   				locTextEmail = locData.location_name + ', ' + u['name'];
   			}
       }
@@ -1129,15 +1203,17 @@ const RateLimiter = require('limiter').RateLimiter;
         users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
         account_name : u['account_name'],
         location_name : locTextEmail,
-        yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+        yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
         role : emailRole
       },
       emailType = 'warden-confirmation';
       if(u['role_name']){
         if(u['role_name'] == 'TRP'){
           emailType = 'trp-confirmation';
-        }
+        } else if (u['role_name'] == 'FRP') {
+					emailType = 'frp-confirmation';
+				}
       }
       if (config['eco_user']) {
         emailType = 'warden-confirmation';
@@ -1145,8 +1221,8 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : [u['email']],
-        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+				to : [u['email']],				
+        cc: ['emacaraig@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'

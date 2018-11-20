@@ -929,7 +929,10 @@ export class LocationAccountUser extends BaseClass {
                     users.user_id,
                     users.first_name,
                     users.last_name,
-                    users.email
+                    users.email,
+                    accounts.account_name,
+                    location_account_user.location_id,
+                    'FRP' as role_name                   
                 FROM
                     users
                 INNER JOIN
@@ -937,9 +940,13 @@ export class LocationAccountUser extends BaseClass {
                 ON
                     users.user_id = location_account_user.user_id
                 INNER JOIN
+                    accounts
+                ON
+                  accounts.account_id = users.account_id
+                INNER JOIN
                     user_role_relation
                 ON
-                    users.user_id = user_role_relation.user_id
+                    users.user_id = user_role_relation.user_id                
                 WHERE
                     location_account_user.location_id = ?
                 AND

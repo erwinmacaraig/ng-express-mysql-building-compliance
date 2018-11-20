@@ -95,8 +95,10 @@ export class EmailSuccessVerficiationComponent implements OnInit {
         `;
         this.showClose = true;
         this.showLogin = true;
-      } 
-       else {
+      } else if (verification == 3) { // FRP answered  NO in the notification email
+        this.message = 'Thank you for letting us know.';
+
+      } else {
         this.showCheckIcon = false;
         this.message = `Your token has expired.
 
