@@ -26,6 +26,7 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
     public others = [];
     public responders = 0;
     public exceptioners = 0;
+    public showLoadingIcon = false;
 
     private paramSub:Subscription;
     public list = [];
@@ -41,7 +42,8 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
             this.buildingId = +parts[2];
             this.roleId = +parts[3];            
 
-            // generate the list of sublocations
+            this.showLoadingIcon = true;
+            // generate the list of sublocations            
             this.accountService.generateSummaryListItem(this.buildingId,this.roleId).subscribe(
                 (response) => {
                     this.list = response['list'];
@@ -73,6 +75,7 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
                             this.others.push(u);
                         }
                     }
+                    this.showLoadingIcon = false;
                 }
             );
         });
@@ -92,6 +95,12 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         this.accountService.performNotificationSummaryAction(postBody).subscribe((response) => {
             console.log(response);
+            switch(action) {
+                case 'resend':
+                    const iTarget = this.isPending.findIndex(el => el['notification_token_id'] == user['notification_token_id']);
+                    this.isPending[iTarget]['lastActionTaken'] = response['dbData']['lastActionTaken'];
+                break;
+            }
         })
 
 
