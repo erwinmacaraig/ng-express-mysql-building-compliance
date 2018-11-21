@@ -607,7 +607,7 @@ export class UserEmRoleRelation extends BaseClass {
 
     public getLocationsByUserIds(userIds, notRoleIdsOrLocId?, isLocParam?) {
         return new Promise((resolve, reject) => {
-            let whereLoc = (notRoleIdsOrLocId && isLocParam) ? ` AND uemr.location_id = ${notRoleIdsOrLocId} ` : '';
+            let whereLoc = (notRoleIdsOrLocId && isLocParam) ? ` AND uemr.location_id IN (${notRoleIdsOrLocId}) ` : '';
             let sql_load = `SELECT
                     uemr.user_id,
                     uemr.em_role_id as role_id,
