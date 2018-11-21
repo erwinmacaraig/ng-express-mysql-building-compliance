@@ -1,0 +1,97 @@
+.main{
+    width: 100vw;
+    min-height: calc(100vh - 94px);
+    display: table;
+}
+
+.left-nav{
+    width: 265px;
+    background-color: #f1f1f1;
+    padding: 20px;
+    height: 100%;
+    float: none !important;
+    display: table-cell;
+}
+
+.right-container{
+    height: 100%;
+    float: none !important;
+    display: table-cell;
+}
+
+.right-container .top{
+    height: 80px;
+    border-bottom: 1px solid #bbbbbb;
+    padding-left: 30px;
+}
+
+.right-container .top .title{
+    margin: 0px;
+    line-height: 80px;
+    font-size: 22px;
+}
+
+.right-container .right{
+    line-height: 80px;
+}
+
+.right-container .right ul{
+    margin: 0px;
+    font-size: 15px;
+}
+
+.right-container .right ul li{
+    display: inline-block;
+    padding: 0px 10px;
+}
+
+.box-container{
+    padding: 40px;
+}
+
+.box-container .box{
+    padding: 30px;
+    width: 300px;
+    height: 440px;
+    border-radius: 10px;
+    margin: 20px;
+    display: inline-block;
+    background-color: #f1f1f1;
+    position: relative;
+}
+
+.box-container .box .image{
+    width: 150px;
+    height: 150px;
+    background-color: #ddd;
+    border-radius: 150px;
+    display: block;
+    margin: 0 auto;
+}
+
+.box .button-container .btn{
+    width: 100%;
+    font-size: 16px !important;
+}
+
+.box-container .box  .module{
+    font-size: 20px;
+}
+
+.box-container .box  .title{
+    font-size: 22px;
+}
+
+.box-container .box  .bottom-text{
+    font-size: 16px;
+    line-height: 20px;
+}
+
+.box-container .box .icon-right{
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 40px;
+    height: 40px;
+    background-color: #ddd;
+}
