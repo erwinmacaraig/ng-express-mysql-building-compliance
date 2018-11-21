@@ -2122,15 +2122,20 @@ export class AdminRoute extends BaseRoute {
         };
     }
 
-    private async getLocationsOfUsersReport(req: AuthRequest, userIds, frptrp?){
+    private async getLocationsOfUsersReport(req: AuthRequest, userIds, frptrp?, emAndFrpTrp?, allLocationIds = ''){
         let
-        locationId = (req.body.location_id) ? req.body.location_id : 0,
+        locationId = (allLocationIds.length > 0) ? allLocationIds : (req.body.location_id) ? req.body.location_id : 0,
         locAccUser = new LocationAccountUser(),
         userEmModel = new UserEmRoleRelation(),
         locations = <any> [];
 
         if(userIds.length > 0){
-            if(frptrp){
+
+            if(emAndFrpTrp){
+                let frptrp = locations = <any> await locAccUser.getLocationsByUserIds(userIds.join(','), locationId);
+                let ems = locations = <any> await userEmModel.getLocationsByUserIds(userIds.join(','), locationId);
+                locations = frptrp.concat(ems);
+            }else if(frptrp){
                 locations = <any> await locAccUser.getLocationsByUserIds(userIds.join(','), locationId);
             }else{
                 locations = <any> await userEmModel.getLocationsByUserIds(userIds.join(','), locationId);
@@ -2157,7 +2162,8 @@ export class AdminRoute extends BaseRoute {
         allUserIds = [],
         isFrpTrp = (type == 'account') ? true : false,
         locationModel = new Location(),
-        locations = <any> [];
+        locations = <any> [],
+        locBothEmAndFrpTrp = (type == 'training') ? true : false;
 
         let useraAndCountResponse = <any> await this.getUsersOfReport(req, isFrpTrp);
 
@@ -2167,7 +2173,7 @@ export class AdminRoute extends BaseRoute {
             allUserIds.push(user.user_id);
         }
 
-        locations = <any> await this.getLocationsOfUsersReport(req, allUserIds, isFrpTrp);
+        locations = <any> await this.getLocationsOfUsersReport(req, allUserIds, isFrpTrp, locBothEmAndFrpTrp, useraAndCountResponse.allLocationIds);
         response['locations'] = locations;
 
         for(let user of users){
