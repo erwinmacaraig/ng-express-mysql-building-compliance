@@ -48,7 +48,8 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         searchKey: '',
         compliant: 1,
         getall : false,
-        nofilter_except_location : false
+        nofilter_except_location : false,
+        eco_only : true
     };
     totalCountResult = 0;
 
@@ -82,6 +83,54 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         this.routeSubs = this.activatedRoute.params.subscribe((params) => {
             this.locationId = this.encryptDecrypt.decrypt( params.locationId );
             this.arrLocationIds = this.locationId.toString().split('-');
+
+            this.getWardenListReport((response) => {
+                this.dashboardPreloader.hide();
+                if(response.data.length > 0){
+                    this.pagination.currentPage = 1;
+                }
+            });
+        });
+
+        let qParams = undefined;
+        if(this.userData['evac_role'] == 'admin'){
+            qParams = {
+                'account_id' : this.accountId
+            };
+        }
+
+        this.reportService.getParentLocationsForReporting(qParams).subscribe((response) => {
+            this.rootLocationsFromDb = response['data'];
+
+            setTimeout(() => {
+
+                if(this.locationId == 0){
+                    $('#selectLocation option[value="0"]').prop('selected', true);
+                }else{
+                    $('#selectLocation option[value="0"]').prop('selected', false);
+                    for(let i in this.arrLocationIds){
+                        $('#selectLocation option[value="'+this.arrLocationIds[i]+'"]').prop('selected', true);
+                    }
+                }
+
+                $('#selectLocation').material_select(() => {
+                    let values = $('#selectLocation').val(),
+                        urlparam = '';
+
+                    urlparam = values.join('-');
+                });
+            },100);
+        });
+
+        this.courseService.getTrainingRequirements((response) => {
+            this.trainingRequirements = response.data;
+
+            let selectFilter = $('#selectFilter');
+            for(let training of this.trainingRequirements){
+                selectFilter.append(' <option value="training-'+training.training_requirement_id+'">'+training.training_requirement_name+'</option> ');
+            }
+
+            selectFilter.material_select();
         });
     }
 
@@ -89,6 +138,37 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     }
 
     ngAfterViewInit(){
+
+        $('#selectFilter').off('change.filter').on('change.filter', () => {
+
+            let selVal = $('#selectFilter').val();
+            if(selVal == 'offline'){
+                this.queries.course_method = 'offline';
+            }else if(selVal == 'online'){
+                this.queries.course_method = 'online';
+            }else if(selVal.indexOf('training-') > -1){
+                let trainingId = selVal.replace('training-', '');
+                this.queries.training_id = trainingId;
+            }else{
+                this.queries.course_method = '';
+                this.queries.training_id = 0;
+            }
+
+
+            this.queries.offset = 0;
+            this.loadingTable = true;
+
+            this.getWardenListReport((response:any) => {
+                this.loadingTable = false;
+                if(response.data.length > 0){
+                    this.pagination.currentPage = 1;
+                    this.totalCountResult = response.pagination.total;
+                }else{
+                    this.pagination.currentPage = 0;
+                }
+            });
+
+        });
 
         $('body').off('close.location').on('close.location', '.select-wrapper.select-location input.select-dropdown', (e) => {
             e.preventDefault();
@@ -120,25 +200,59 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
 
         });
 
+        $('#compliantToggle').off('change.compliant').on('change.compliant', () => {
+            let checked = $('#compliantToggle').prop('checked');
+            if(checked){
+                this.queries.compliant = 1;
+            }else{
+                this.queries.compliant = 0;
+            }
+
+            this.queries.offset = 0;
+            this.loadingTable = true;
+
+            this.reportService.getWardenListReport(this.queries).subscribe((response:any) => {
+              this.results = response['data'];
+              this.backupResults = JSON.parse( JSON.stringify(this.results) );
+              this.pagination.pages = response.pagination.pages;
+              this.pagination.total = response.pagination.total;
+
+              this.pagination.selection = [];
+              for(let i = 1; i<=this.pagination.pages; i++){
+                  this.pagination.selection.push({ 'number' : i });
+              }
+              this.loadingTable = false;
+            });
+        });
+
         this.print = new PrintService({
             content : this.printContainer.nativeElement.outerHTML
         });
 
-        // this.dashboardPreloader.show();
+        this.dashboardPreloader.show();
 
         this.searchUser();
     }
 
-    getWardenListReport(callBack?){
-        this.reportService.getWardenListReport((response) => {
+    getWardenListReport(callBack?, forExport?){
+        this.queries.location_id = this.locationId;
+        this.reportService.getWardenListReport(this.queries).subscribe((response:any) => {
+            if(!forExport){
+                this.results = response['data'];
+                this.backupResults = JSON.parse( JSON.stringify(this.results) );
+                this.pagination.pages = response.pagination.pages;
+                this.pagination.total = response.pagination.total;
 
+                this.pagination.selection = [];
+                for (let i = 1; i<=this.pagination.pages; i++){
+                    this.pagination.selection.push({ 'number' : i });
+                }
 
-            if(callBack){
-                callBack(response);
+                this.loadingTable = false;
             }
+            callBack(response);
         });
     }
-
 
     pageChange(type){
 
@@ -185,7 +299,7 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     pdfExport(aPdf, printContainer){
         let a = document.createElement("a"),
         accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        a.href = location.origin+"/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -197,7 +311,7 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     csvExport(){
         let a = document.createElement("a"),
         accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        a.href = location.origin+"/reports/csv-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -215,7 +329,22 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
 
         this.searchSub =  Observable.fromEvent(this.searchMember.nativeElement, 'keyup').debounceTime(800).subscribe((event: KeyboardEvent) => {
             const searchKey = (<HTMLInputElement>event.target).value;
-            console.log(searchKey);
+            
+            this.loadingTable = true;
+
+            this.queries.searchKey = searchKey;
+            this.reportService.getWardenListReport(this.queries).subscribe((response: any) => {
+                this.results = response['data'];
+                this.backupResults = JSON.parse( JSON.stringify(this.results) );
+                this.pagination.pages = response.pagination.pages;
+                this.pagination.total = response.pagination.total;
+                this.pagination.selection = [];
+                for (let i = 1; i <= this.pagination.pages; i++) {
+                  this.pagination.selection.push({ 'number' : i });
+                }
+                this.loadingTable = false;
+            });
+
         });
     }
 
