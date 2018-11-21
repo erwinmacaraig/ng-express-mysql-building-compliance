@@ -76,7 +76,7 @@
                         <input type="checkbox" class="filled-in"  id="checkWarden" #checkWarden (click)="clickAllLocation('war', checkWarden)" /><label for="checkWarden">All Locations</label>
                     </div>
 
-                    <button class="btn blue waves-effect waves-light" [disabled]="collection.war.locations.length === 0 && collection.war.allloc == false" (click)="clickGenerate()" >Warden</button>
+                    <button class="btn blue waves-effect waves-light" [disabled]="collection.war.locations.length === 0 && collection.war.allloc == false" (click)="clickGenerate()" >Warden List</button>
 
                 </div>
             </div>
@@ -95,7 +95,7 @@
                         <input type="checkbox" class="filled-in"  id="checkActivity" #checkActivity (click)="clickAllLocation('acl', checkActivity)" /><label for="checkActivity">All Locations</label>
                     </div>
 
-					<button class="btn blue waves-effect waves-light" [disabled]="collection.acl.locations.length === 0 && collection.acl.allloc == false" (click)="clickGenerate()" >Activity Log</button>
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.acl.locations.length === 0 && collection.acl.allloc == false" (click)="clickGenerate()" >Activity Log Building</button>
 
 				</div>
 			</div>
@@ -113,7 +113,7 @@
                     <div class="select-all">
                         <input type="checkbox" class="filled-in"  id="checkTeam" #checkTeam (click)="clickAllLocation('tm', checkTeam)" /><label for="checkTeam">All Locations</label>
                     </div>
-					<button class="btn blue waves-effect waves-light" [disabled]="collection.tm.locations.length === 0 && collection.tm.allloc == false" (click)="clickGenerate()">Stack Plan</button>
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.tm.locations.length === 0 && collection.tm.allloc == false" (click)="clickGenerate()">Stack Plan Building</button>
 
 				</div>
 			</div>
@@ -132,7 +132,7 @@
                         <input type="checkbox" class="filled-in"  id="checkTraining" #checkTraining (click)="clickAllLocation('tr', checkTraining)" /><label for="checkTraining">All Locations</label>
                     </div>
 
-					<button class="btn blue waves-effect waves-light" [disabled]="collection.tr.locations.length === 0 && collection.tr.allloc == false" (click)="clickGenerate()" >Training</button>
+					<button class="btn blue waves-effect waves-light" [disabled]="collection.tr.locations.length === 0 && collection.tr.allloc == false" (click)="clickGenerate()" >Training Report</button>
 
 				</div>
 			</div>

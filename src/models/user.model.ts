@@ -783,7 +783,7 @@ export class User extends BaseClass {
                 }
 
                 let select = `
-                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired, users.archived,
                     users.last_login, users.mobile_number, users.phone_number, 
                     DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
                 `;
@@ -827,7 +827,7 @@ export class User extends BaseClass {
                 }
 
                 let select = `
-                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired, users.archived,
                     users.last_login, users.mobile_number, users.phone_number, 
                     DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
                 `;

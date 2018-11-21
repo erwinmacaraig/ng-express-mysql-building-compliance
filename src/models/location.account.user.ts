@@ -96,7 +96,7 @@ export class LocationAccountUser extends BaseClass {
 
     public getLocationsByUserIds(userIds, locId?, roleIds?) {
         return new Promise((resolve, reject) => {
-            let whereLoc = (locId) ? ` AND lau.location_id = ${locId} ` : '';
+            let whereLoc = (locId) ? ` AND lau.location_id IN (${locId}) ` : '';
             let whereRoles = (locId && locId.length > 0 && roleIds) ? ` AND urr.role_id IN ${roleIds} ` : '';
 
             const sql_load = `SELECT

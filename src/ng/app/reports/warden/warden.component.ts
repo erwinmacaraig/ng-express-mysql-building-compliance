@@ -97,6 +97,8 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
 
             urlparam = values.join('-');
 
+            console.log('urlparam', urlparam);
+
             if( this.arrLocationIds.join('-') != urlparam ){
                 if(values.indexOf('0') > -1){
                     $('#selectLocation option').prop('selected', false);
@@ -125,6 +127,16 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         // this.dashboardPreloader.show();
 
         this.searchUser();
+    }
+
+    getWardenListReport(callBack?){
+        this.reportService.getWardenListReport((response) => {
+
+
+            if(callBack){
+                callBack(response);
+            }
+        });
     }
 
 
@@ -160,9 +172,9 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
             this.queries.offset = offset;
             this.loadingTable = true;
 
-            /*this.getLocationReport((response:any) => {
+            this.getWardenListReport((response:any) => {
                 this.loadingTable = false;
-            });*/
+            });
         }
     }
 

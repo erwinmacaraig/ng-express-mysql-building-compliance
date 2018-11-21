@@ -132,6 +132,10 @@ export class ReportsRoute extends BaseRoute {
            new ReportsRoute().getActivityReport(req, res);
        });
 
+        router.post('/reports/warden-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new ReportsRoute().locationTrainings(req, res);
+        })
+
        router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
            req.body['limit'] = req.params.limit;
