@@ -181,6 +181,7 @@ const RateLimiter = require('limiter').RateLimiter;
 		if (roleId == 1) {
 			// filter TRP users
 			const trpUsers = await accountUsers.TRPUsersForNotification(sublocationIds);
+			// console.log('=================== TRP ======================' , trpUsers);
 			for (let tu of trpUsers) {
 				accountUserIds.push(tu['user_id']);
 			}
@@ -192,7 +193,7 @@ const RateLimiter = require('limiter').RateLimiter;
 			
 			const emergencyUsers = await emUsers.emUsersForNotification(sublocationIds);
 			// get only related to account and only GO and Warden
-			
+			// console.log('=================== EM ======================' ,emergencyUsers);
 			for (let em of emergencyUsers) { 
 				
 				if (em['account_id'] == accountId && (em['em_role_id'] == 8  || em['em_role_id'] == 9)) {
@@ -632,11 +633,21 @@ const RateLimiter = require('limiter').RateLimiter;
 
 		switch(action) {
 			case 'resend':
+				
 				util = new UtilsSync();
 				util.sendToNotification(0,'resend-notification', 0, '', allData, res).then(() => {
-					return res.status(200).send({
-						'message': 'Notification sent'
+					tokenDbData['lastActionTaken'] = 'Resend';
+					new NotificationToken().create(tokenDbData).then(() => {
+						return res.status(200).send({
+							'message': 'Notification sent',
+							'dbData': tokenDbData
+						});
+					}).catch((e) => {
+						return res.status(400).send({
+							'message': 'There was a problem resending notification.'							
+						});
 					});
+					
 				});
 
 			break;
