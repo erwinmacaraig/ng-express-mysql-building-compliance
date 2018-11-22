@@ -413,8 +413,71 @@ export class UsersRoute extends BaseRoute {
         res.send( await new NotificationToken().getByUserId(req.params.userid) );
       });
 
+      router.post('/users/user-info/', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response) => {
+            new UsersRoute().getUserInfo(req, res);
+        }
+      );
+
+      router.post('/users/update-trp-assigned-location', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response ) => {
+            new UsersRoute().updateLocationAccountUser(req, res);
+        }
+      );
+
     }
 
+
+    public updateLocationAccountUser(req: AuthRequest, res: Response) {
+        const locationAcctUserId = req.body.location_account_user;
+        const newLevelLocation = req.body.level_location;
+
+        const locAcctUserObj = new LocationAccountUser(locationAcctUserId);
+        locAcctUserObj.load().then((dbData) => {
+            dbData['location_id'] = newLevelLocation;
+            return locAcctUserObj.create(dbData);
+        })
+        .then(() => {
+            return res.status(200).send({
+                message: 'Update Successful'
+            });
+        })
+        .catch((e) => {
+            console.log('cannot update location account user data');
+            return res.status(400).send({
+                message: 'Unable to update location account user data'
+            });
+        })
+        .catch((e) => {
+            console.log('cannot load location account user data');
+            return res.status(400).send({
+                message: 'Unable to retrieve location account user data'
+            });
+        });
+
+    }
+
+
+    public getUserInfo(req: AuthRequest, res: Response) {
+        const userId = req.body.user;
+        const userObj = new User(userId);
+        userObj.load().then((data) => {
+            res.status(200).send({
+                user_id: data['user_id'],
+                first_name: data['first_name'],
+                last_name: data['last_name'],
+                email: data['email'],
+                phone_number: data['phone_number'],
+                mobile_number: data['mobile_number'],
+                mobility_impaired: data['mobility_impaired'], 
+                evac_role: data['evac_role']
+            });
+        }).catch((e) => {
+            res.status(400).send({
+                message: 'There was an error retrieving user info'
+            });
+        });
+    }
     public async checkIfAdmin(req: Request , res: Response){
 		let userModel = new User(req.params.user_id),
 			response = {

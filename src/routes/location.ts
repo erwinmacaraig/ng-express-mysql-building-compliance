@@ -231,6 +231,23 @@ const defs = require('../config/defs.json');
           new LocationRoute().requestAddLocationToUser(req, res);
       });
 
+      router.post('/location/get-building-levels/', new MiddlewareAuth().authenticate,
+      (req: AuthRequest, res: Response) => {
+        new LocationRoute().getBuildingLevels(req, res);
+      });
+
+      router.post('/location/get-info/', new MiddlewareAuth().authenticate,
+      (req: AuthRequest, res: Response) => {
+        new LocationRoute().getLocationInformation(req, res);
+      });
+
+      router.post('/location/list-levels-for-trp', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response) => {
+            new LocationRoute().getTaggedLocationsForTRP(req, res);
+        }
+      );
+
+
    	}
 
 
@@ -243,9 +260,51 @@ const defs = require('../config/defs.json');
   	*/
   	constructor() {
   		super();
-  	}
+      }
+      
+      public getTaggedLocationsForTRP(req: AuthRequest, res: Response) {
+          const userId = req.body.user;
+          const building = req.body.building;
+          const locationObj = new Location();
+          const locAcctUserObject = new LocationAccountUser();
+          locationObj.getChildren(building).then((children) => {
+              const sublevelsArr = [building];
+              for (let child of children) {
+                sublevelsArr.push(child['location_id']);                
+              }
+              return locAcctUserObject.getAssignedLevelsFromBuildingOfTRP(userId, building, sublevelsArr); 
+          })
+          .then((data) => {            
+            res.status(200).send(data);
+          })
+          .catch((e) => {
+              console.log('error getting children');
+          });
+      }
 
+      public getLocationInformation(req: AuthRequest, res: Response) {        
+        const locationId = req.body.location;
+        const location = new Location(locationId);
+        location.load().then((data) => {
+            return res.status(200).send(data);
+        }).catch((e) => {
+            return res.status(400).send({
+                message: 'Fail'
+            });
+        });
+      }
 
+    public getBuildingLevels(req: AuthRequest, res: Response) {
+        const location = new Location();
+        const buildingId = req.body.building;
+        location.getChildren(buildingId).then((data) => {
+            return res.status(200).send(data);
+        }).catch((e) => {
+            return res.status(400).send({
+                message: 'Fail'
+            });
+        });
+    }
   	public searchDbForLocation(req: AuthRequest, res: Response) {
         const location = new Location();
         location.search(

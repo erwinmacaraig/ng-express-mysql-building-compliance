@@ -128,7 +128,7 @@ import { NotificationWardenListComponent } from './notification/warden-list/ward
 import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
 import { WardenNotificationComponent } from './notification/warden-notification/warden-notification';
 import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
-
+import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -253,6 +253,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     NotificationWardenListComponent,
     NotificationPEEPListComponent,
     WardenNotificationComponent,
+    NotifiedTrpUpdateProfileComponent,
     SummaryViewComponent,
     // ADMIN COMPONENTS
     AdminComponent,

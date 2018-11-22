@@ -114,7 +114,7 @@
                     <td *ngIf="roleId == 1">{{u['account_name']}}</td>
                     <td *ngIf="roleId == 2">{{u['role_text']}}</td>                       
                     <td>{{u['name']}}</td>
-                    <td><span *ngIf="u['lastActionTaken'] != null">Last Action Taken: {{u['lastActionTaken']}} on </span>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
+                    <td><span *ngIf="u['lastActionTaken'] != null">Last Action Taken: {{u['lastActionTaken']}} on <br></span>{{u['dtLastSent'] | date: 'dd/MM/yyyy' }}</td>
                     <td><button type="button" (click)="performAction(u, 'resend')" class="waves-effect waves-light btn green">Resend</button></td>
                 </tr>
                 <tr *ngFor="let u of hasNotSent">
@@ -152,9 +152,12 @@
         </table>        
     </div>
     <div class="row">
-        <div class="col s10"></div>
+        <div class="col s8"></div>
         <div class="col s2">
-            <button type="button" class="btn blue waves-effect waves-light explore" routerLink="/dashboard">Explore EvacConnect</button>
+            <button type="button" class="btn orange waves-effect waves-light explore">Accept Changes</button>
+        </div>
+        <div class="col s2">
+            <button type="button" class="btn blue waves-effect waves-light explore" [routerLink]="['/dashboard', 'notification-warden-list', encryptedToken]">Next</button>
         </div>
     </div>
 </div>

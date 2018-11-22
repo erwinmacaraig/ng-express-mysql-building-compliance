@@ -1,0 +1,44 @@
+
+.update-profile{
+    margin-top: 0%;
+}
+
+.update-profile .form-group .form-control{
+    border-radius: 5px;
+    margin: 8px 0px 20px 0px;
+    border-bottom: 0px;
+    padding: 5px 10px 5px 15px;
+    border: 1px solid #f1f1f1;
+}
+
+.update-profile .form-group .form-control:focus{
+    border: 1px solid #f1f1f1 !important;
+}
+
+.update-profile .form-group{
+    margin-right: 25px;
+}
+
+.update-profile .form-group select{
+  display: block;
+  margin: 10px 0px;
+}
+
+.update-profile .form-group label{
+    color: #333;
+    font-size: 14px;
+}
+
+.update-profile .form-group .form-control:focus{
+    border-bottom: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+.update-profile .btn{
+    margin-bottom: 20px;
+}
+.div-center{
+    width: 500px;
+    margin: 8% auto;
+}

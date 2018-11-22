@@ -27,6 +27,8 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
     private userId = 0;
     private location_id = 0;
     private configId = 0;
+    private role = 0;
+    private accountId = 0;
     private notification_token_id = 0;
     private building_id = 0;
     public wardens = [];
@@ -112,16 +114,20 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
             const parts: Array<string> = token.split('_');
             this.userId = +parts[0];
             this.location_id = +parts[1];
-            this.configId = +parts[2];
-            this.notification_token_id = +parts[3];
-            this.building_id = +parts[4];
+            this.building_id = +parts[2];
+            this.role = +parts[3];
+            this.accountId = +parts[4];
+
+            // this.configId = +parts[2];
+            // this.notification_token_id = +parts[3];
+            // this.building_id = +parts[4];
 
             const userId = +this.authService.userDataItem('userId');
             if (isNaN(this.building_id) ||
                 isNaN(this.userId) ||
                 isNaN(this.location_id) ||
-                isNaN(this.notification_token_id) ||
-                isNaN(this.configId) ||
+                isNaN(this.role) ||
+                isNaN(this.accountId) ||
                 userId != this.userId
               ) {
 

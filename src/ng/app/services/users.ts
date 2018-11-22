@@ -311,6 +311,27 @@ export class UserService {
 
     getNotificationToken(userId = 0) {
         return this.http.get(this.baseUrl + '/users/get-notification-token/'+userId, this.options);
-    }
+	}
+	
+	userInfo(userId=0) {
+		return this.http.post<{
+			user_id: number,
+			first_name: string,
+			last_name: string,
+			email: string,
+			phone_number: string,
+			mobile_number: string,
+			mobility_impaired: number, 
+			evac_role: string
+		}>(this.baseUrl + '/users/user-info/', {user: userId});
+	}
+
+	updateLocationAccountUser(location_account_user_id = 0, level_location = 0) {
+		return this.http.post<{message: string}>(this.baseUrl + '/users/update-trp-assigned-location', {
+			location_account_user: location_account_user_id,
+			level_location: level_location
+		});
+
+	}
 
 }

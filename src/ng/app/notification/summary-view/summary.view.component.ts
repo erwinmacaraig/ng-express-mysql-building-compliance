@@ -27,6 +27,7 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
     public responders = 0;
     public exceptioners = 0;
     public showLoadingIcon = false;
+    public encryptedToken = '';
 
     private paramSub:Subscription;
     public list = [];
@@ -35,6 +36,7 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
     
     ngOnInit() {
         this.route.params.subscribe((urlParams) => {
+            this.encryptedToken = urlParams['token'];
             this.decryptedToken = this.cryptor.decryptUrlParam(urlParams['token']);
             // split string
             const parts: Array<string> = this.decryptedToken.split('_');
