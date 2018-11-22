@@ -115,7 +115,7 @@ export class LocationAccountUser extends BaseClass {
                     FROM location_account_user lau
                     INNER JOIN locations l ON l.location_id = lau.location_id
                     LEFT JOIN locations ploc ON ploc.location_id = l.parent_id
-                    LEFT JOIN user_role_relation urr ON urr.user_id = lau.user_id
+                    INNER JOIN user_role_relation urr ON urr.user_id = lau.user_id
                     WHERE lau.user_id IN (`+userIds+`) ${whereLoc} ${whereRoles} `;
 
             this.pool.getConnection((err, connection) => {

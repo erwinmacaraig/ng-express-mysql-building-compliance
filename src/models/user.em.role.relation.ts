@@ -633,6 +633,7 @@ export class UserEmRoleRelation extends BaseClass {
                 }
             }
 
+            // console.log(sql_load);
 
             this.pool.getConnection((err, connection) => {
                 if (err) {

@@ -704,10 +704,10 @@ export class User extends BaseClass {
                 let accntWhere = (accountId) ? ' AND users.account_id = '+accountId : '';
                 let sql_load =  ` 
                     SELECT users.*, accounts.account_name FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
-                    WHERE users.archived = 0 ${accntWhere} `;
+                    WHERE users.archived = 0 ${accntWhere} GROUP BY users.user_id `;
                 if(count){
                     sql_load =  ` SELECT COUNT(users.user_id) as count FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
-                    WHERE users.archived = 0 ${accntWhere} `;
+                    WHERE users.archived = 0 ${accntWhere} GROUP BY users.user_id `;
                 }
                 const param = [ ];
                 connection.query(sql_load, param, (error, results, fields) => {
@@ -1041,16 +1041,24 @@ export class User extends BaseClass {
                     configFilter += ` AND u.account_id = ${config['account_id']} `;
                 }
                 let archived = ('archived' in config) ? config['archived'] : '0';
+                let select = `
+                    u.*,
+                    userolelocation.role_id,
+                    userolelocation.role_name,
+                    userolelocation.location_id,
+                    a.account_name,
+                    l.name,
+                    IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
+                    DATE_FORMAT(u.last_login, '%d/%m/%Y') as last_login_formatted
+                `;
+
+                if(config['count']){
+                    select = ' COUNT(*) as count ';
+                }
 
                 const sql_load = `
                 SELECT 
-                u.*,
-                userolelocation.role_id,
-                userolelocation.role_name,
-                userolelocation.location_id,
-                a.account_name,
-                l.name,
-                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name
+                    ${select}
                 FROM (
                     SELECT
                     emr.user_id,
@@ -1071,7 +1079,6 @@ export class User extends BaseClass {
                     FROM user_role_relation urr 
                     INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
                     WHERE  lau.location_id IN (${locationIds})
-
                 ) userolelocation
                 INNER JOIN users u ON userolelocation.user_id = u.user_id
                 INNER JOIN locations l ON l.location_id = userolelocation.location_id
@@ -1083,6 +1090,7 @@ export class User extends BaseClass {
 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
+                        console.log(sql_load);
                         return console.log(error);
                     }
                     this.dbData = results;
