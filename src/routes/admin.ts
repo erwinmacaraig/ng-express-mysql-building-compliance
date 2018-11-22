@@ -2083,13 +2083,11 @@ export class AdminRoute extends BaseRoute {
         }
 
         if(accountId > 0){
-            users = <any> await usersModel.getAllActive(accountId);
+            users = <any> await usersModel.getAllActive(accountId, false, offLimit);
             usersCount = <any> await usersModel.getAllActive(accountId, true);
-        }else if(type == 'face' && locationId > 0){
-            users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','));
-            usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), { count : true } );
-        }else if(type == 'training'){
-            users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','));
+
+        }else if(type == 'face' && locationId > 0 || type == 'training'){
+            users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), { 'limit' : offLimit });
             usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), { count : true } );
         }else{
             if(frptrp){
