@@ -27,6 +27,7 @@ export class NotifiedTrpUpdateProfileComponent implements OnInit, AfterViewInit,
     public notification_token_id = 0;
     public building_id = 0;
     public showUpdateField = false;
+    public encryptedUserId;
     public buildingData:{
         parent_id: number,
         name: string,
@@ -152,6 +153,7 @@ export class NotifiedTrpUpdateProfileComponent implements OnInit, AfterViewInit,
             this.building_id = +parts[4];
             console.log(parts);
             this.encryptedToken = cryptoJs.AES.encrypt(`${this.userId}_${this.location_id}_${this.building_id}_${2}_${this.authService.userDataItem('accountId')}`, 'NifLed').toString();
+            this.encryptedUserId = this.cryptor.encrypt(this.userId);
         });
         
         this.getLocationData().subscribe(responseDataList => {
