@@ -2082,9 +2082,15 @@ export class AdminRoute extends BaseRoute {
             }catch(e){  }
         }
 
-        if(type == 'face'){
+        if(accountId > 0){
             users = <any> await usersModel.getAllActive(accountId);
             usersCount = <any> await usersModel.getAllActive(accountId, true);
+        }else if(type == 'face' && locationId > 0){
+            users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','));
+            usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), { count : true } );
+        }else if(type == 'training'){
+            users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','));
+            usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), { count : true } );
         }else{
             if(frptrp){
                 users = <any> await usersModel.getIsFrpTrp(accountId, false, offLimit, allLocationIds.join(','));
@@ -2094,7 +2100,6 @@ export class AdminRoute extends BaseRoute {
                 usersCount = <any> await usersModel.getIsEm(accountId, true, undefined, allLocationIds.join(','));
             }
         }
-
 
         let total = (usersCount[0]) ? usersCount[0]['count'] : 0;
         let pages = 0;
@@ -2116,6 +2121,7 @@ export class AdminRoute extends BaseRoute {
         }
 
         return {
+            'allLocationIds' : allLocationIds,
             'users' : users,
             'total' : (usersCount[0]) ? usersCount[0]['count'] : 0,
             'pages' : pages
@@ -2174,7 +2180,6 @@ export class AdminRoute extends BaseRoute {
         }
 
         locations = <any> await this.getLocationsOfUsersReport(req, allUserIds, isFrpTrp, locBothEmAndFrpTrp, useraAndCountResponse.allLocationIds);
-        response['locations'] = locations;
 
         for(let user of users){
             if(!user['locations']){
@@ -2197,6 +2202,7 @@ export class AdminRoute extends BaseRoute {
             }
         }
 
+        response['locations'] = locations;
         response['users'] = users;
         response.pagination.total = useraAndCountResponse.total;
         response.pagination.pages = useraAndCountResponse.pages;
@@ -2219,6 +2225,7 @@ export class AdminRoute extends BaseRoute {
         if(type.trim().length > 0){
             let data = <any> await this.getUsersAndPaginations(req);
             response['data'] = data.users;
+            // response['locations'] = data.locations;
 
             for(let user of data.users){
                 user['full_name'] = user.first_name+' '+user.last_name;
