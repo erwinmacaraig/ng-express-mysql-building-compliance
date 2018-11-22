@@ -2202,7 +2202,7 @@ export class AdminRoute extends BaseRoute {
             }
         }
 
-        response['locations'] = locations;
+        // response['locations'] = locations;
         response['users'] = users;
         response.pagination.total = useraAndCountResponse.total;
         response.pagination.pages = useraAndCountResponse.pages;
