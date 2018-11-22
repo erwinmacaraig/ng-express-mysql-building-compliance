@@ -61,12 +61,12 @@
 }
 
 .box-container .box .image{
-    width: 150px;
-    height: 150px;
-    background-color: #ddd;
+    width: 135px;
+    height: 135px;
     border-radius: 150px;
     display: block;
-    margin: 0 auto;
+    margin: 15px auto;
+    /* border: 1px solid; */
 }
 
 .box .button-container .btn{
@@ -91,7 +91,22 @@
     position: absolute;
     right: 20px;
     top: 20px;
-    width: 40px;
-    height: 40px;
-    background-color: #ddd;
+    width: 30px;
+    height: 30px;
+}
+
+.box .icon-right,
+.image-container .image{
+    background-image: url('/assets/images/trainings/newtrainings.png');
+    background-repeat: no-repeat;
+}
+
+.locked .icon-right{
+    background-size: 2500%;
+    background-position: 45.8% 86%;
+}
+
+.gen-occ-bas-tra .image-container .image{
+    background-size: 699%;
+    background-position: 6.09% 17%;
 }
