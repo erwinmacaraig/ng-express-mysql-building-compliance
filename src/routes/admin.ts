@@ -2202,7 +2202,7 @@ export class AdminRoute extends BaseRoute {
             }
         }
 
-        // response['locations'] = locations;
+        response['locations'] = locations;
         response['users'] = users;
         response.pagination.total = useraAndCountResponse.total;
         response.pagination.pages = useraAndCountResponse.pages;
@@ -2225,7 +2225,7 @@ export class AdminRoute extends BaseRoute {
         if(type.trim().length > 0){
             let data = <any> await this.getUsersAndPaginations(req);
             response['data'] = data.users;
-            response['locations'] = data.locations;
+            // response['locations'] = data.locations;
 
             for(let user of data.users){
                 user['full_name'] = user.first_name+' '+user.last_name;
