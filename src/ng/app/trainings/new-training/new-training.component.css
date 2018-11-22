@@ -61,6 +61,7 @@
     background-color: #ececec;
     position: relative;
     box-shadow: 0px 5px 10px 0px #ddd;
+    vertical-align: top;
 }
 
 .box-container .box .image{
@@ -109,14 +110,51 @@
     background-repeat: no-repeat;
 }
 
+.bonus .icon-right{
+    background-size: 2616%;
+    background-position: 66.65% 86%;
+    background-color: #fff;
+    border-radius: 20px;
+}
+
 .locked .icon-right{
     background-size: 2500%;
+    background-position: 56% 86%;
+}
+
+.unlocked .icon-right{
+    background-size: 2500%;
     background-position: 45.8% 86%;
+}
+
+.check .icon-right{
+    background-size: 3000%;
+    background-position: 6.4% 59%;
 }
 
 .badge-1{
     background-size: 699%;
     background-position: 6.09% 17%;
+}
+
+.badge-2{
+    background-size: 699%;
+    background-position: 28.10% 16.8%;
+}
+
+.badge-3{
+    background-size: 699%;
+    background-position: 49.99% 16.89%;
+}
+
+.badge-4{
+    background-size: 699%;
+    background-position: 72.2% 16.89%;
+}
+
+.badge-5{
+    background-size: 699%;
+    background-position: 94.67% 16.89%;
 }
 
 .right-container .right ul li .image{
@@ -256,10 +294,20 @@
     display: inline-block;
     width: 60px;
     height: 60px;
-    border: 1px solid;
     border-radius: 30px;
     vertical-align: middle;
     margin-right: 10px;
+    background-image: url(/assets/images/trainings/newtrainings.png);
+    background-repeat: no-repeat;
+    background-size: 1350%;
+}
+
+.role-icon.general-occupant{
+    background-position: 44.92% 63.5%;
+}
+
+.role-icon.warden{
+    background-position: 56.12% 62.8%;
 }
 
 .role-list-container .role-text-compliant{
@@ -281,7 +329,7 @@
 .compliant-container .image{
     width: 20px;
     height: 20px;
-    border: 1px solid;
+    /*border: 1px solid;*/
     border-radius: 10px;
     display: inline-block;
     vertical-align: middle; 
@@ -309,6 +357,19 @@
     content: 'Compliant';
 }
 
+.compliant-container.non-compliant .image{
+    background-image: url('/assets/images/expired_icon.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.compliant-container.compliant .image{
+    background-image: url(/assets/images/trainings/newtrainings.png);
+    background-repeat: no-repeat;
+    background-size: 3300%;
+    background-position: 6.5% 58.8%;
+}
+
 .training-requirements{
     text-align: center;
     margin: 15px 0px;  
@@ -320,9 +381,10 @@
     height: 23px;
     margin-right: 5px;
     vertical-align: top;
-    background-image: url(/assets/images/trainings/newtrainings.png);
+    background-image: url('/assets/images/trainings/newtrainings.png');
     background-repeat: no-repeat;
-    background-size: 1350%;
+    background-size: 3700%;
+    background-position: 65.5% 62.7%;
 }
 
 .training-requirements .icon .general-occupant{
