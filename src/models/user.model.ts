@@ -695,7 +695,7 @@ export class User extends BaseClass {
         });
     }
 
-    public getAllActive(accountId?, count?){
+    public getAllActive(accountId?, count?, offLimit?){
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if(err){ 
@@ -707,7 +707,11 @@ export class User extends BaseClass {
                     WHERE users.archived = 0 ${accntWhere} GROUP BY users.user_id `;
                 if(count){
                     sql_load =  ` SELECT COUNT(users.user_id) as count FROM users INNER JOIN accounts ON users.account_id = accounts.account_id 
-                    WHERE users.archived = 0 ${accntWhere} GROUP BY users.user_id `;
+                    WHERE users.archived = 0 ${accntWhere} `;
+                }else{
+                    if(offLimit){
+                        sql_load += ' LIMIT  '+offLimit;
+                    }
                 }
                 const param = [ ];
                 connection.query(sql_load, param, (error, results, fields) => {
@@ -1054,6 +1058,12 @@ export class User extends BaseClass {
 
                 if(config['count']){
                     select = ' COUNT(*) as count ';
+                }else{
+
+                    if(config['limit']){
+                        configFilter += ' LIMIT '+config['limit'];
+                    }
+
                 }
 
                 const sql_load = `
