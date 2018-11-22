@@ -11,12 +11,14 @@
     height: 100%;
     float: none !important;
     display: table-cell;
+    vertical-align: top;
 }
 
 .right-container{
     height: 100%;
     float: none !important;
     display: table-cell;
+    vertical-align: top;
 }
 
 .right-container .top{
@@ -71,7 +73,10 @@
 
 .box .button-container .btn{
     width: 100%;
-    font-size: 16px !important;
+    padding: 10px;
+    font-size: 15px !important;
+    line-height: 20px;
+    height: 100% !important;
 }
 
 .box-container .box  .module{
@@ -96,7 +101,9 @@
 }
 
 .box .icon-right,
-.image-container .image{
+.image-container .image,
+.right-container .right ul li .image,
+.avatar-container .doll{
     background-image: url('/assets/images/trainings/newtrainings.png');
     background-repeat: no-repeat;
 }
@@ -109,4 +116,33 @@
 .gen-occ-bas-tra .image-container .image{
     background-size: 699%;
     background-position: 6.09% 17%;
+}
+
+.right-container .right ul li .image{
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.right-container .right ul li .star{
+    background-size: 2400%;
+    background-position: 14% 60.5%;
+}
+
+.right-container .right ul li .calendar{
+    background-size: 2700%;
+    background-position: 22% 59.5%;
+}
+
+.right-container .right ul li .gift{
+    background-size: 2700%;
+    background-position: 29% 58.9%;
+}
+
+.avatar-container .doll{
+    width: 50px;
+    height: 200px;
+    border: 1px solid;
 }
