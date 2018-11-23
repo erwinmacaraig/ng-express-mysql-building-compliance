@@ -2086,7 +2086,7 @@ export class AdminRoute extends BaseRoute {
             users = <any> await usersModel.getAllActive(accountId, false, offLimit);
             usersCount = <any> await usersModel.getAllActive(accountId, true);
 
-        }else if(type == 'face' && locationId > 0 || type == 'training'){
+        }else if(locationId > 0 && type != 'account'){
             users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), { 'limit' : offLimit });
             usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), { count : true } );
         }else{
@@ -2194,12 +2194,16 @@ export class AdminRoute extends BaseRoute {
                         user['locations'].push(loc.name);
                     }
                     if(user['roles'].indexOf(loc.role_name) == -1){
-                        user['roles'].push(loc.role_name);
+                        if(loc.role_name.trim().length > 0){
+                            user['roles'].push(loc.role_name);
+                        }
                     }
                 }
             }
         }
 
+
+        
         response['locations'] = locations;
         response['users'] = users;
         response.pagination.total = useraAndCountResponse.total;

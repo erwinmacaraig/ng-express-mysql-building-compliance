@@ -1056,17 +1056,16 @@ export class User extends BaseClass {
                     DATE_FORMAT(u.last_login, '%d/%m/%Y') as last_login_formatted
                 `;
 
-                if(config['count']){
-                    select = ' COUNT(*) as count ';
-                }else{
+                let groupBy = 'GROUP BY u.user_id';
 
+                if(!config['count']){
                     if(config['limit']){
                         configFilter += ' LIMIT '+config['limit'];
                     }
-
                 }
 
-                const sql_load = `
+                let sql_load = '';
+                let sql = `
                 SELECT 
                     ${select}
                 FROM (
@@ -1076,7 +1075,7 @@ export class User extends BaseClass {
                     em.role_name as role_name,
                     emr.location_id
                     FROM user_em_roles_relation emr 
-                    INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
+                    LEFT JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
                     WHERE emr.location_id IN (${locationIds})
 
                     UNION
@@ -1087,16 +1086,26 @@ export class User extends BaseClass {
                     IF(urr.role_id = 1, 'FRP', 'TRP') as role_name,
                     lau.location_id
                     FROM user_role_relation urr 
-                    INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
+                    LEFT JOIN location_account_user lau ON urr.user_id = lau.user_id
                     WHERE  lau.location_id IN (${locationIds})
                 ) userolelocation
                 INNER JOIN users u ON userolelocation.user_id = u.user_id
                 INNER JOIN locations l ON l.location_id = userolelocation.location_id
-                INNER JOIN locations p ON p.location_id = l.parent_id
+                LEFT JOIN locations p ON p.location_id = l.parent_id
                 INNER JOIN accounts a ON a.account_id = u.account_id
                 WHERE u.archived = ${archived}
+                ${groupBy}
                 ${configFilter}
                 `;
+
+                if(config['count']){
+                    sql_load = `
+                        SELECT  COUNT(*) as count FROM
+                        (${sql}) usersdata
+                    `;
+                }else{
+                    sql_load = sql;
+                }
 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
