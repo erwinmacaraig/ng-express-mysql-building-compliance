@@ -138,7 +138,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
             this.generateWardenList();
 
             this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
-                this.sublocations.push(response['building']);
+                // this.sublocations.push(response['building']); Only FRP can add user to a building
                 this.sublocations =  this.sublocations.concat(response['data']);
             }, (error) => {
                 console.log(error);
@@ -510,14 +510,31 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
 
     createUser() {
         const values = [];
-        values.push({
+        const newUserInfo = {
+            'first_name': this.addUserForm.get('first_name_field').value,
+            'last_name': this.addUserForm.get('last_name_field').value,
+            'email': this.addUserForm.get('email_field').value,
+            'mobile_number': this.addUserForm.get('mobile_contact_field').value,
+            'account_location_id': this.addUserForm.get('location_field').value
+        };
+
+        if (parseInt(this.addUserForm.get('role_field').value, 10) == 2) {
+            newUserInfo['account_role_id'] = this.addUserForm.get('role_field').value;
+        } else {
+            newUserInfo['eco_role_id'] = this.addUserForm.get('role_field').value;
+        }
+        /*
+        {
             'first_name': this.addUserForm.get('first_name_field').value,
             'last_name': this.addUserForm.get('last_name_field').value,
             'email': this.addUserForm.get('email_field').value,
             'eco_role_id': this.addUserForm.get('role_field').value,
             'mobile_number': this.addUserForm.get('mobile_contact_field').value,
             'account_location_id': this.addUserForm.get('location_field').value
-        });
+        }
+        */
+
+        values.push(newUserInfo);
         this.userService.createBulkUsers(values, (response) => {
             this.generateWardenList();
             this.addUserForm.reset();

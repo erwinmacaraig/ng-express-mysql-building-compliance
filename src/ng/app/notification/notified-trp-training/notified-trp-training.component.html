@@ -1,0 +1,60 @@
+<h5 class="blue-text center" style="margin-bottom: 5%;">Required Trainings</h5>
+    <div class="row">
+        <div class="col l12 m12 s12 center">
+            <h5 *ngIf="isCompliant">
+                Hurray, your training looks up to date. <br/>
+                You can retake the training now or download your certificate.
+            </h5>
+            <h5 *ngIf="!isCompliant">
+                Want to know, what needs to be done in Emergency, <br/> Please undergo training by clicking below
+            </h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+
+            <div id="gridContainer" class="center grid">
+                <div class="grid-container" *ngFor="let tr of trainingItems">
+                    
+                    <div class="grid-item card grey lighten-3" >
+                        <div class="top">
+                            <div class="image close inline-block"  *ngIf="!tr.valid"></div>
+                            <div class="image check inline-block" *ngIf="tr.valid"></div>
+                            <div class="text inline-block red-text" *ngIf="!tr.valid">Non-Compliant</div>
+                            <div class="text inline-block green-text" *ngIf="tr.valid">Compliant</div>
+                        </div>
+                        <div class="middle-image">
+                            <div class="image red-image" *ngIf="!tr.valid"></div>
+                            <div class="image green-image" *ngIf="tr.valid"></div>
+                        </div>
+                        <div class="middle-text">
+                            {{tr.training_requirement_name}}
+                            <p class="blue-text" >
+                                <span *ngIf="tr.valid">{{ formatDate(tr.certification_date) }}</span>
+                            </p>
+                        </div>
+                        <div class="buttons">
+                            <button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="!tr.valid">Go To Training</button>
+                            <a *ngIf="tr.valid" href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{tr.scorm_course_id}}&amp;c={{tr.certifications_id}}" target="_blank" class="btn blue waves-effect waves-light" style="line-height: 42px;">Download Certificate</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <div class="margin-bottom-20 center check-container">
+                <input id="checkBoxOneMonth" type="checkbox" class="filled-in" [checked]="hasTrainingReminder"  /> 
+                <label for="checkBoxOneMonth" style="color: #222; font-size: 16px;">Training Reminder: 1 month before training expiry</label> 
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col l12 m12 s12 center">
+            <button class="btn grey waves-effect waves-light center" #btnStep3 (click)="closeStep2()"  >Close</button>
+        </div>
+    </div>

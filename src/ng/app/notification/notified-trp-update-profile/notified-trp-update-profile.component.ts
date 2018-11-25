@@ -28,6 +28,7 @@ export class NotifiedTrpUpdateProfileComponent implements OnInit, AfterViewInit,
     public building_id = 0;
     public showUpdateField = false;
     public encryptedUserId;
+    public oldToken = '';
     public buildingData:{
         parent_id: number,
         name: string,
@@ -143,6 +144,7 @@ export class NotifiedTrpUpdateProfileComponent implements OnInit, AfterViewInit,
 
     ngOnInit() {
         this.route.params.subscribe((params) => {
+            this.oldToken = '/dashboard/update-notified-trp-profile/' + params['token'];
             const token = this.cryptor.decryptUrlParam(params['token']);
             this.encryptedToken = params['token'];
             const parts: Array<string> = token.split('_');
