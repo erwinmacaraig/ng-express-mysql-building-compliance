@@ -83,6 +83,7 @@ import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.w
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 import { NgDatepickerModule } from 'ng2-datepicker';
 import { ListGeneralOccupantComponent } from './teams/list-gen-occ/list.gen.occ.component';
+import { TeamsAddGeneralOccupantComponent } from './teams/add-gen-occ/add.gen.occ.component';
 
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
@@ -210,6 +211,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     ViewChiefWardenComponent,
     AllUsersArchivedComponent,
     ListGeneralOccupantComponent,
+    TeamsAddGeneralOccupantComponent,
 
     ComplianceComponent,
     ViewComplianceComponent,

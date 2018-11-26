@@ -548,11 +548,13 @@ export class UserEmRoleRelation extends BaseClass {
               } else {
                 for (let i = 0; i <  results.length; i++) {
                   if (results[i]['location_id'] in r) {
-                    (r[results[i]['user_id']]['data']).push({
-                      'em_role_id': results[i]['em_role_id'],
-                      'user_id': results[i]['user_id'],
-                      'em_role_name': results[i]['role_name']
-                    });
+                    if(r[results[i]['user_id']]){
+                      (r[results[i]['user_id']]['data']).push({
+                        'em_role_id': results[i]['em_role_id'],
+                        'user_id': results[i]['user_id'],
+                        'em_role_name': results[i]['role_name']
+                      });
+                    }
                   } else {
                     r[results[i]['location_id']] = {
                       'data': [{

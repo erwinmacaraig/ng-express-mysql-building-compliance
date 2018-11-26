@@ -456,3 +456,11 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
 {
     display: block !important;
 }
+
+.filter-container{
+    margin-bottom: 0px !important;
+}
+
+.filter-container > .col{
+    margin-bottom: 20px;
+}

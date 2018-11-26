@@ -116,10 +116,10 @@ export class TeamsComponent implements OnInit, OnDestroy {
 				$('.teams-navigation .wardens').addClass('active');
 			}else if(teamRoute[2] == 'mobility-impaired' || teamRoute[2] == 'add-mobility-impaired'){
 				$('.teams-navigation .mobility').addClass('active');
-			}else if(teamRoute[2] == 'all-users' || teamRoute[2] == 'add-user'){
-				$('.teams-navigation .all-users').addClass('active');
 			}else if(teamRoute[2] == 'list-general-occupant' || teamRoute[2] == 'add-general-occupant'){
-                $('.teams-navigation .general-occupant').addClass('active');
+				$('.teams-navigation .general-occupant').addClass('active');
+			}else if(teamRoute[2].indexOf('list-administrators') > -1  || teamRoute[2] == 'add-administrators'){
+                $('.teams-navigation .administrator').addClass('active');
             }
 		}
 

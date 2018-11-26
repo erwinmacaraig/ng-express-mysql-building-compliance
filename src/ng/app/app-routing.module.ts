@@ -60,6 +60,7 @@ import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 import { ListGeneralOccupantComponent } from './teams/list-gen-occ/list.gen.occ.component';
+import { TeamsAddGeneralOccupantComponent } from './teams/add-gen-occ/add.gen.occ.component';
 
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
@@ -192,7 +193,10 @@ const appRoutes: Routes = [
       { path : 'view-warden', component : ViewWardenComponent },
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
       { path : 'view-chief-warden', component : ViewChiefWardenComponent },
-      { path : 'list-general-occupant', component : ListGeneralOccupantComponent }
+      { path : 'list-general-occupant', component : ListGeneralOccupantComponent },
+      { path : 'add-general-occupant', component : TeamsAddGeneralOccupantComponent },
+      { path : 'list-administrators', component : AllUsersComponent },
+      { path : 'add-administrator', component : AddUserComponent },
     ]
   },
   {

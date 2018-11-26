@@ -9,6 +9,7 @@ import { AccountsDataProviderService  } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { CourseService } from '../../services/course';
+import { LocationsService } from '../../services/locations';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -55,7 +56,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     };
 
     queries = {
-        roles : 'frp,trp,users,no_roles',
+        roles : 'frp,trp,users',
         impaired : 1,
         type : 'client',
         offset :  0,
@@ -65,7 +66,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         user_training : true,
         users_locations : true,
         search : '',
-        online_trainings : true
+        online_trainings : true,
+        location_id : false
     };
 
     multipleLocations = [];
@@ -94,6 +96,21 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     isOnlineTrainingAvailable = false;
 
+    isFRP = false;
+    locations = <any> [];
+    locationPagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+    locationQueries = {
+        offset :  0,
+        limit : 20,
+        search : '',
+        sort : '',
+        archived : 0,
+        showparentonly: false,
+        parent_id : 0
+    };
+
     constructor(
         private userService : UserService,
         private authService : AuthService,
@@ -101,12 +118,14 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         private encDecrService : EncryptDecryptService,
         private router : Router,
         private courseService : CourseService,
-        private accountService : AccountsDataProviderService
+        private accountService : AccountsDataProviderService,
+        private locationService : LocationsService
         ){
         this.userData = this.authService.getUserData();
 
         for(let role of this.userData.roles){
             if(role.role_id == 1){
+                this.isFRP = true;
                 this.filters.unshift({
                     value : 1, name : 'Building Manager'
                 })
@@ -118,6 +137,15 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
         this.courseService.getAllEmRolesTrainings((response) => {
             this.emTrainings = response.data;
+        });
+
+        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
+            this.locations = response.locations;
+            this.locationPagination.pages = response.pagination.pages;
+            this.locationPagination.total = response.pagination.total;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select();
+            },500);
         });
     }
 
@@ -238,10 +266,41 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         });
 
         this.filterByEvent();
+        this.locationChangeEvent();
         this.sortByEvent();
         this.bulkManageActionEvent();
         this.searchMemberEvent();
         this.clickViewPeepEvent();
+    }
+
+    locationChangeEvent(){
+        let __this = this;
+        $('select.location').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            let selected = $('select.location').val();
+            __this.dashboardService.show();
+            
+            __this.queries.location_id = selected;
+            __this.queries.offset = 0;
+
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
+
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
+        });
     }
 
     filterByEvent(){

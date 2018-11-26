@@ -274,13 +274,18 @@ export class Location extends BaseClass {
         });
     }
 
-    public getByInIds(ids, archived?){
+    public getByInIds(ids, archived?, withParentName?){
         return new Promise((resolve) => {
             if(archived == undefined){
                 archived = 0;
             }
 
-            const sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
+            let sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
+            if(withParentName){
+                sql_load = `SELECT l.*, IF(p.location_id IS NOT NULL, CONCAT(p.name, ', ', l.name), l.name) as name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id 
+                WHERE l.location_id IN (`+ids+`) AND l.archived = `+archived + ` ORDER BY l.location_id ASC `;
+            }
+
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     throw new Error(err);
@@ -290,6 +295,7 @@ export class Location extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
+                    this.dbData = results;
                     resolve(results);
                 });
 
