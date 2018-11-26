@@ -127,11 +127,13 @@
 	background-position: 18.4% 53%;
 }
 
-.teams-navigation .all-users .default{
+.teams-navigation .all-users .default,
+.teams-navigation .general-occupant .default{
 	background-position: 30.4% 71%;
 }
 
-.teams-navigation .all-users .hover{
+.teams-navigation .all-users .hover,
+.teams-navigation .general-occupant .hover{
 	background-position: 29% 53.3%;
 }
 

@@ -68,7 +68,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 			$('li.nav-list-team').addClass('active');
 
 			if('roles' in this.oUserData){
-				let roles = this.oUserData['roles'],
+				let roles = <any> this.oUserData['roles'],
 					frp = false,
 					trp = false,
 					warden = false,
@@ -93,7 +93,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 
 					if(teamRoute.length == 2){
 						if(frp || trp){
-							this.router.navigate(["/teams/all-users"]);
+							this.router.navigate(["/teams/list-general-occupant"]);
 						}else if(chiefWarden){
 							this.router.navigate(["/teams/view-chief-warden"]);
 						}else if(warden){
@@ -118,7 +118,9 @@ export class TeamsComponent implements OnInit, OnDestroy {
 				$('.teams-navigation .mobility').addClass('active');
 			}else if(teamRoute[2] == 'all-users' || teamRoute[2] == 'add-user'){
 				$('.teams-navigation .all-users').addClass('active');
-			}
+			}else if(teamRoute[2] == 'list-general-occupant' || teamRoute[2] == 'add-general-occupant'){
+                $('.teams-navigation .general-occupant').addClass('active');
+            }
 		}
 
 	}

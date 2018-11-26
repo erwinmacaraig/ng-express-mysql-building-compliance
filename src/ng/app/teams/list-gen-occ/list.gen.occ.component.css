@@ -1,0 +1,390 @@
+.row.top .col{
+	position: relative;
+}
+
+.row.top .right-actions{
+	position: absolute;
+    right: 0px;
+    top: 17px;
+}
+
+.row.top .right-actions .switch-container,
+.row.top .right-actions .archived-container{
+	margin-right: 20px;
+}
+
+.row.top .right-actions .switch-container,
+.row.top .right-actions .archived-container,
+.row.top .right-actions .switch-container .text,
+.row.top .right-actions .switch-container .switch{
+	display: inline-block;
+}
+
+.row.top .right-actions .switch-container .switch,
+.row.top .right-actions .switch-container .text{
+	vertical-align: middle;
+}
+
+.row.top .right-actions .switch-container .switch{
+	margin: 0px 10px;
+}
+
+.row.top .right-actions .switch-container .text{
+	font-size: 14px;
+}
+
+
+.switch{
+    width: 110px;
+    position: relative;
+    margin: 0 auto;
+    height: 36px;
+}
+
+.switch input[type="checkbox"]{
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    pointer-events: visible;
+    z-index: 4;
+}
+
+.switch .background{
+    background-color: #505050;
+    border-radius: 5px;
+    padding: 5px;
+    position: relative;
+    height: 100%;
+    width: 100%;
+    z-index: 1;
+}
+
+.switch .yes,
+.switch .no{
+    font-size: 14px;
+    color: #fff;
+    z-index: 3;
+    position: absolute;
+}
+
+.switch .yes{
+    top: 18%;
+    left: 16%;
+}
+
+.switch .no{
+    top: 16%;
+    right: 16%;
+}
+
+.switch .highlight{
+    position: absolute;
+    top: 14%;
+    padding: 5px;
+    border-radius: 3px;
+    background-color: #39a1ff;
+    z-index: 2;
+    height: 72%;
+    width: 35%;
+    transition: all 0.4s;
+}
+
+.switch input[type="checkbox"]:not(:checked) + .yes + .no + .highlight{
+    right: 8%;
+}
+
+.switch input[type="checkbox"]:checked + .yes + .no + .highlight{
+    right: 56%;
+}
+
+.row.top .right-actions .archived-container a{
+	font-size: 14px;
+	color: #333;
+}
+
+.row.top .right-actions .archived-container a:hover{
+	text-decoration: underline;
+}
+
+.row.top .right-actions .archived-container a > .image{
+	background: url('/assets/images/team_icons.png') no-repeat;
+	width: 20px;
+	height: 27px;
+	background-position: 30.7% 36%;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.filter-container > .col{
+    height: 50px !important;
+}
+
+.filter-container .add-peep .image{
+    background: url(/assets/images/team_icons.png) no-repeat;
+    width: 35px;
+    height: 35px;
+    background-position: 18% 36%;
+    vertical-align: middle;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.filter-container .btn{
+    width: 100%;
+    padding: 0px;
+    height: 50px !important;
+}
+
+.filter-container .search-field{
+    background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+.filter-container .search-field input{
+    margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+
+.filter-container .search-field input:focus{
+    border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
+}
+
+.btn-add-warden{
+	font-size: 14px !important;
+	width: 100%;
+	height: 100% !important;
+}
+
+.btn-add-warden .image{
+	background: url(/assets/images/team_icons.png) no-repeat;
+    background-position: 18% 35.6%;
+    width: 35px;
+    height: 36px;
+    vertical-align: middle;
+    display: inline-block;
+}
+
+.filter-container .select-field{
+	margin-top: 0px !important;
+}
+
+table{
+	margin-top: 20px;
+}
+
+
+table thead tr th{
+	background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+	border: 1px solid #ddd;
+	font-size: 14px;
+}
+
+table tfoot td{
+	padding: 0px;
+}
+
+table tfoot td button{
+	width: 100%;
+    border-radius: 0px !important;
+    font-size: 14px !important;
+    height: 45px !important;
+    line-height: 35px;
+}
+
+table select{
+    display: block;
+    background-color: inherit;
+    font-size: 14px;
+}
+
+table select:focus{
+    outline: 0px;
+}
+
+table tbody td input{
+    margin: 0px;
+    border: 0px;
+    font-size: 14px;
+}
+
+table tbody td input:focus{
+    border-bottom: 0px;
+    box-shadow: 0 1px 0 0 #0089ec;
+}
+
+table tbody td a{
+    font-size: 14px;
+}
+
+table th .checkbox [type="checkbox"]+label,
+table td .checkbox [type="checkbox"]+label{
+	padding-left: 35px;
+	line-height: 20px;
+}
+
+table td .checkbox [type="checkbox"]+label{
+	color: #333;
+    height: 15px;
+}
+
+table thead tr th .checkbox label{
+	color: #fff;
+}
+
+table .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
+	background-color: #ffffff;
+	border: 1px solid #ddd;
+}
+
+table tr td .checkbox{
+    margin: 0px 10px;
+}
+
+table thead tr th .checkbox {
+    margin: 0px 10px;
+    display: inline-block;
+}
+
+table tr td .text{
+    display: inline-block;
+}
+
+table tr td .image-container{
+    width: 50px;
+    height: 50px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #fff;
+    border-radius: 30px;
+    margin: 0px 10px;
+    overflow: hidden;
+}
+
+table tr td .image{
+    overflow: hidden;
+}
+
+table tr td .image img{
+  max-width: 50px;
+  max-height: 50px;
+}
+
+table tr td.with-image .impaired{
+    width: 40px;
+    height: 40px;
+    display: inline-block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: #dc4453;
+    border-radius: 45px;
+    margin: 0px 0px;
+    overflow: hidden;
+    background-image: url(/assets/images/team_icons.png);
+    background-repeat: no-repeat;
+    background-size: 440px;
+    background-position: 73.2% 71.4%;
+
+}
+
+.inline-block{
+    display: inline-block;
+}
+
+.pagination button{
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+    vertical-align: inherit;
+}
+
+.pagination select:not(.to-materialize){
+    display: inline-block;
+    font-size: 14px !important;
+    padding: 0px 20px !important;
+    height: 40px !important;
+}
+
+.pagination .select{
+    margin: 0px 10px;
+}
+
+@media only screen 
+  and (max-width: 768px){
+	.row.top .right-actions{
+		position: inherit;
+	}
+}
+
+#modalArchiveBulk,
+#modalArchive,
+#modalSendInvitation{
+    width: 35%;
+}
+
+#modalArchiveBulk ul li{
+    font-size: 14px;
+}
+
+#modalMobilityHealty{
+    width: 35%;
+}
+
+@media only screen and (max-width: 1400px) {
+    #modalArchiveBulk,
+    #modalArchive{
+        width: 50%;
+    }
+}
+
+@media only screen and (max-width: 1024px) {
+    #modalArchiveBulk,
+    #modalArchive,
+    #modalMobilityHealty,
+    #modalSendInvitation{
+        width: 60%;
+    }
+
+    #modalMobility{
+        width : 90%;
+    }
+}
+
+@media only screen and (max-width: 500px) {
+    #modalArchiveBulk,
+    #modalArchive,
+    #modalMobility,
+    #modalMobilityHealty,
+    #modalSendInvitation{
+        width: 90%;
+    }
+}
