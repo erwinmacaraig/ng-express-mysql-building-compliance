@@ -1,0 +1,119 @@
+
+.grid {
+}
+
+.grid:after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.grid-container{
+  margin: 10px;
+  display: inline-block;
+  vertical-align: top;
+}
+
+.grid-container > p:first-child{
+  font-size: 18px;
+  margin:0px;
+}
+
+.grid .grid-item{
+    width: 260px;
+    box-shadow: none;
+    border-radius: 10px;
+    height: 350px;
+    position: relative;
+    padding-bottom: 15px;
+    padding-top: 10px;
+}
+
+.grid-item .top{
+    text-align: center;
+    margin: 10px 0px;
+}
+
+.grid-item .top .image{
+    width: 30px;
+    height: 30px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+}
+
+.grid-item .top .text{
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.grid-item .top .image.close{
+    background-position: 6.2% 86.5%;
+}
+
+.grid-item .top .image.check{
+    background-position: 18.7% 86.5%;
+}
+
+.grid-item .top .text,
+.grid-item .top .image{
+    vertical-align: middle;
+}
+
+.grid-item .buttons{
+    width: 100%;
+}
+
+.grid-item .buttons .btn{
+    width: 235px !important;
+    margin: 0px auto;
+    display: block;
+    margin-bottom: 5px;
+}
+
+
+.grid-item .btn{
+    font-size: 14px !important;
+}
+
+.grid-item .middle-text{
+    font-size: 18px;
+    line-height: 20px;
+    width: 250px;
+    padding: 10px 30px;
+    text-align: center;
+    height: 130px;
+    max-height: 135px;
+}
+
+.grid-item .middle-text p{
+    font-size: 14px;
+}
+
+.grid-item .middle-image{
+    margin: 20px 0px 15px 0px;
+}
+
+.grid-item .middle-image .image{
+    width: 69px;
+    display: block;
+    height: 69px;
+    box-sizing: border-box;
+    background: url(/assets/images/team_icons.png) no-repeat;
+    margin: 0 auto;
+}
+
+.grid-item .red-image{
+    background-position: 5.5% 11% !important;
+}
+
+.grid-item .green-image{
+    background-position: 25% 11% !important;
+}
+
+.grid-item .yellow-image{
+    background-position: 45.5% 11% !important;
+}
+
+.inline-block{
+    display: inline-block;
+  }

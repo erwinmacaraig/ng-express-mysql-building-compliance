@@ -425,6 +425,119 @@ export class UsersRoute extends BaseRoute {
         }
       );
 
+      router.post('/users/training-info', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response) => {
+            new UsersRoute().userTrainingInfo(req, res);
+        }
+      )
+
+    }
+
+    public userTrainingInfo(req: AuthRequest, res: Response) {
+        const emergencyRoles = JSON.parse(req.body.roles);
+        const user = req.body.user;
+        let requiredTrainings = [];
+        let requiredTrainingIds = [];
+        let validTrainings = [];
+        let invalidTrainings = [];
+        let invalidTrainingIds = [];
+
+        // get required trainings for the given role        
+        new TrainingRequirements().allEmRolesTrainings()
+            .then((trainingRequirements) => {
+                for (let tr of trainingRequirements) {
+                    if (emergencyRoles.indexOf(tr['em_role_id']) != -1) {
+                        requiredTrainingIds.push(tr['training_requirement_id']);
+                        requiredTrainings.push(tr);
+                    }                     
+                }
+                // search certifications
+                return new TrainingCertification().getCertificationsInUserIds(user);
+            })
+            .then((certificates) => {                
+                console.log(requiredTrainingIds);
+                for (let rtid of requiredTrainingIds) {                    
+                    const i = certificates.findIndex(cert => cert['training_requirement_id'] == rtid);                    
+                    const j = requiredTrainings.findIndex(rt => rt['training_requirement_id'] == rtid);                    
+                    
+                    if (i == -1) {
+                        invalidTrainings.push({
+                            'validity': 'non-compliant',                            
+                            ...requiredTrainings[j]
+                        });
+                        invalidTrainingIds.push(rtid);
+                    } else if (certificates[i]['validity'] == 'expired') {
+                        invalidTrainings.push({
+                            ...certificates[i],
+                            ...requiredTrainings[j]
+                        });
+                        invalidTrainingIds.push(rtid);
+                    } else {                        
+                        validTrainings.push({
+                            ...certificates[i],
+                            ...requiredTrainings[j]
+                        });
+                    }
+
+                }
+                if (invalidTrainings.length == 0) {
+                    return res.status(200).send({
+                        message: 'Success',
+                        required_trainings: requiredTrainings,
+                        valid_trainings: validTrainings,
+                        invalid_trainings: invalidTrainings
+                    });
+                }
+               return new CourseUserRelation().getRelation({
+                    user: user,
+                    bulk_training_requirement: invalidTrainingIds
+               });
+
+                
+            })
+            .then((rels) => {
+                const invalidTrainingsWithCourse = [];
+                for (let trainings of invalidTrainings) {
+                    const i = rels.findIndex(r => r['training_requirement_id'] == trainings['training_requirement_id']);
+                    if (i == -1) {
+                        invalidTrainingsWithCourse.push({
+                            course_user_relation_id: 0,
+                            ...trainings
+                        });
+                    } else {
+                        invalidTrainingsWithCourse.push({
+                            course_user_relation_id: rels[i]['course_user_relation_id'],
+                            ...trainings
+                        });
+                    }
+                }
+                return res.status(200).send({
+                    message: 'Success',
+                    required_trainings: requiredTrainings,
+                    valid_trainings: validTrainings,
+                    invalid_trainings: invalidTrainingsWithCourse
+                });
+            })
+            .catch((error_rel) => {
+                console.log(error_rel);
+                return res.status(400).send({
+                    message: 'cannot get relationships'
+                });
+            })
+            .catch((error_ct) => {
+                console.log(error_ct);
+                console.log('Error in getting certifications');
+                return res.status(400).send({
+                    message: 'cannot get certifications'
+                });
+            })
+            .catch((error_tr) => {
+                console.log('Error in getting training requirements');
+                return res.status(400).send({
+                    message: 'cannot get training requirements'
+                });
+            })
+
     }
 
 

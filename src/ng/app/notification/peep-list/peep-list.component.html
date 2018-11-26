@@ -70,7 +70,8 @@
             </table>
 
             <div class="right-align">
-                <button (click)="nextAction()" class="btn btn-proceed orange waves-effect waves-light">Next</button>
+                <!-- <button (click)="nextAction()" class="btn btn-proceed orange waves-effect waves-light">Next</button> -->
+                <button [routerLink]="['/dashboard', 'trainings-for-notified-trp', encryptedToken]" class="btn btn-proceed orange waves-effect waves-light">Next</button>
             </div>
 
         </div>

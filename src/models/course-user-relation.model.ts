@@ -157,9 +157,10 @@ export class CourseUserRelation extends BaseClass {
     });
   }
 
-  public getRelation(filter = {}): Promise<number> {
+  public getRelation(filter = {}): Promise<any> {
     return new Promise((resolve, reject) => {
       let whereClause = '';
+      let bulk = false;
       const values = [];
       if ('user' in filter) {
         whereClause += ` AND user_id = ?`;
@@ -173,11 +174,18 @@ export class CourseUserRelation extends BaseClass {
         whereClause += ` AND training_requirement_id = ?`;
         values.push(filter['training_requirement']);
       }
+      if ('bulk_training_requirement' in filter && Array.isArray(filter['bulk_training_requirement'])) {
+        const trainingIds = (filter['bulk_training_requirement'] as Array<number>).join(',');
+        whereClause += ` AND training_requirement_id IN (${trainingIds})`;
+        bulk = true;
+      }
       const sql_get = `SELECT
+                        training_requirement_id,
                         course_user_relation_id
                       FROM
                         course_user_relation
                       WHERE 1=1 ${whereClause}`;
+                      console.log(sql_get);
       this.pool.getConnection((err, connection) => {
           if(err){
               throw new Error(err);
@@ -188,12 +196,16 @@ export class CourseUserRelation extends BaseClass {
                   console.log('course-user-relation.model', error, sql_get);
                   throw new Error('There was an error getting relationship');
               }
-              if (results.length) {
+              if (results.length && !bulk) {
                   resolve(results[0]['course_user_relation_id']);
-              } else {
-                  reject({
-                      'message': 'There are no relation between user and course'
-                  });
+              } else if (results.length && bulk) {
+                resolve(results);
+              } else if (!results.length && bulk) {
+                resolve([])
+              } else {                
+                reject({
+                  'message': 'There are no relation between user and course'
+              });
               }
           });
           connection.release();

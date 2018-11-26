@@ -19,24 +19,26 @@
                     
                     <div class="grid-item card grey lighten-3" >
                         <div class="top">
-                            <div class="image close inline-block"  *ngIf="!tr.valid"></div>
-                            <div class="image check inline-block" *ngIf="tr.valid"></div>
-                            <div class="text inline-block red-text" *ngIf="!tr.valid">Non-Compliant</div>
-                            <div class="text inline-block green-text" *ngIf="tr.valid">Compliant</div>
+                            <div class="image close inline-block"  *ngIf="tr.validity !='active'"></div>                            
+                            <div class="image check inline-block" *ngIf="tr.validity == 'active'"></div>
+                            <div class="text inline-block red-text" *ngIf="tr.validity != 'active'">Non-Compliant</div>                            
+                            <div class="text inline-block green-text" *ngIf="tr.validity=='active'">Compliant</div>
                         </div>
                         <div class="middle-image">
-                            <div class="image red-image" *ngIf="!tr.valid"></div>
-                            <div class="image green-image" *ngIf="tr.valid"></div>
+                            <div class="image red-image" *ngIf="tr.validity != 'active'"></div>                            
+                            <div class="image green-image" *ngIf="tr.validity == 'active'"></div>
                         </div>
                         <div class="middle-text">
                             {{tr.training_requirement_name}}
                             <p class="blue-text" >
-                                <span *ngIf="tr.valid">{{ formatDate(tr.certification_date) }}</span>
+                                <span *ngIf="tr.validity == 'active'">{{ tr.certification_date | date: 'yyyy/MM/dd' }}</span>
                             </p>
                         </div>
                         <div class="buttons">
-                            <button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="!tr.valid">Go To Training</button>
-                            <a *ngIf="tr.valid" href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{tr.scorm_course_id}}&amp;c={{tr.certifications_id}}" target="_blank" class="btn blue waves-effect waves-light" style="line-height: 42px;">Download Certificate</a>
+                            <!--<button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="!tr.valid">Go To Training</button>-->
+                            <button class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="tr.validity != 'active' && tr.course_user_relation_id != 0">Go To Training</button>
+                            <button class="btn red lighten-1 waves-effect waves-light" disabled type="button" *ngIf="tr.validity != 'active' && tr.course_user_relation_id == 0">No Account Training</button>
+                            <a *ngIf="tr.validity == 'active'" href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?c={{tr.certifications_id}}" target="_blank" class="btn blue waves-effect waves-light" style="line-height: 42px;">Download Certificate</a>
                         </div>
                     </div>
                 </div>
@@ -55,6 +57,15 @@
     
     <div class="row">
         <div class="col l12 m12 s12 center">
-            <button class="btn grey waves-effect waves-light center" #btnStep3 (click)="closeStep2()"  >Close</button>
+            <button class="btn grey waves-effect waves-light center" #btnStep3>Close</button>
+        </div>
+    </div>
+
+    <div class="modal" id="training">
+        <div class="modal-content" *ngIf="selectedCourse.formatted_launcher_url">
+            <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
         </div>
     </div>

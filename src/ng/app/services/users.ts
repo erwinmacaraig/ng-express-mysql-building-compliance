@@ -329,4 +329,18 @@ export class UserService {
 
 	}
 
+	getTrainingData(userId=0, emergencyRoles=[]) {
+		const roles = JSON.stringify(emergencyRoles);
+		return this.http.post<{
+			message: string,
+			required_trainings: Array<object>,
+			valid_trainings: Array<object>
+			invalid_trainings: Array<object>
+		}>(this.baseUrl + '/users/training-info', {
+			user: userId,
+			roles: roles
+		});
+
+	}
+
 }

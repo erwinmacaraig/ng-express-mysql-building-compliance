@@ -34,10 +34,8 @@ export class CourseService {
         });
     }
 
-    getCourseUserRelation(callBack){
-        this.http.get('/courses/get-course-user-ralation').subscribe((res) => {
-            callBack(res);
-        });
+    getCourseUserRelation(){
+        return this.http.get('/courses/get-course-user-ralation');
     }
 
     saveAccountCourses(data, callBack){
