@@ -412,7 +412,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		let selected = event.target.value;
 		if(selected == 'view'){
 			this.router.navigate(["/teams/view-user/", list.id_encrypted]);
-		}else if(selected == 'archive'){
+		}else if(selected == 'archive' || selected == 'restore'){
 			event.target.value = "0";
 			this.showModalLoader = false;
 			this.selectedToArchive = list;
@@ -436,15 +436,22 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	archiveClick(){
 		this.showModalLoader = true;
-		this.userService.archiveUsers([ this.selectedToArchive['user_id'] ], (response) => {
-			this.showModalLoader = false;
-			$('#modalArchive').modal('close');
-			this.dashboardService.show();
-			this.selectedToArchive = {
-				first_name : '', last_name : '', parent_data : {}, locations : []
-			};
-			this.getListData(() => { this.dashboardService.hide(); });
-		});
+
+        let cb = (response) => {
+            this.showModalLoader = false;
+            $('#modalArchive').modal('close');
+            this.dashboardService.show();
+            this.selectedToArchive = {
+                first_name : '', last_name : '', parent_data : {}, locations : []
+            };
+            this.getListData(() => { this.dashboardService.hide(); });
+        };
+
+        if(!this.showArchived){
+		    this.userService.archiveUsers([ this.selectedToArchive['user_id'] ], cb);
+        }else{
+            this.userService.unArchiveUsers([ this.selectedToArchive['user_id'] ], cb);
+        }
 	}
 
 	selectAllCheckboxEvent(event){
@@ -544,14 +551,21 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			arrIds.push(this.selectedFromList[i]['user_id']);
 		}
 
-		this.userService.archiveUsers(arrIds, (response) => {
-			$('#allLocations').prop('checked', false);
-			this.showModalLoader = false;
-			$('#modalArchiveBulk').modal('close');
-			this.dashboardService.show();
-			this.selectedFromList = [];
-			this.getListData(() => { this.dashboardService.hide(); });
-		});
+        let cb = (response) => {
+            $('#allLocations').prop('checked', false);
+            this.showModalLoader = false;
+            $('#modalArchiveBulk').modal('close');
+            this.dashboardService.show();
+            this.selectedFromList = [];
+            this.getListData(() => { this.dashboardService.hide(); });
+        };
+
+        if(!this.showArchived){
+		    this.userService.archiveUsers(arrIds, cb);
+        }else{
+            this.userService.unArchiveUsers(arrIds, cb);
+        }
+
 	}
 
 	pageChange(type){

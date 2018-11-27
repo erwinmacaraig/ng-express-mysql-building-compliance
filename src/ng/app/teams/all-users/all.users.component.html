@@ -64,7 +64,7 @@
 	<div class="col l2 m6 s6 margin-bottom-20">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
-			<option value="archive" >Archive selected</option>
+			<option value="archive" ><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span> selected</option>
             <option value="invite-selected" *ngIf="isOnlineTrainingAvailable">Send training invite to selected</option>
             <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable">Send training invite to all non-compliant</option>
             <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
@@ -161,12 +161,13 @@
 						<select (change)="onSelectFromTable($event, list)">
 							<option value="0" class="blue-text" selected disabled>Select action</option>
 							<option value="view" class="blue-text">View</option>
-                            <option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId)" >Archive</option>
-							<option  [value]=" (list.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
+                            <option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId)" *ngIf="!showArchived">Archive</option>
+                            <option value="restore" class="blue-text" [hidden]="(list.user_id == userData.userId)" *ngIf="showArchived">Restore</option>
+							<option  [value]=" (list.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" *ngIf="!showArchived">
                                 <span *ngIf="list.mobility_impaired == 0">Mark as peep</span>
                                 <span *ngIf="list.mobility_impaired == 1">Mark as healthy</span>
                             </option>
-                            <option value="invite" *ngIf="list.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
+                            <option value="invite" *ngIf="list.sendinvitation && isOnlineTrainingAvailable && !showArchived" class="blue-text">Send invitation</option>
 						</select>
 					</td>
                     <td *ngIf="list.profile_completion == 0"> 
@@ -222,13 +223,13 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to archive
+			Are you sure you want to <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()"><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span></a>
 	</div>
 </div>
 
@@ -250,7 +251,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive the following users?
+			Are you sure you want <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span> the following users?
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
@@ -260,7 +261,9 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">
+            <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>      
+        </a>
 	</div>
 </div>
 
