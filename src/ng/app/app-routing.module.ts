@@ -196,7 +196,7 @@ const appRoutes: Routes = [
       { path : 'list-general-occupant', component : ListGeneralOccupantComponent },
       { path : 'add-general-occupant', component : TeamsAddGeneralOccupantComponent },
       { path : 'list-administrators', component : AllUsersComponent },
-      { path : 'add-administrator', component : AddUserComponent },
+      { path : 'add-administrators', component : AddUserComponent },
     ]
   },
   {

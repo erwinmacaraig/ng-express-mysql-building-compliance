@@ -319,9 +319,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	filterByEvent(){
         let __this = this;
-		$('select.filter-by').on('change', function(e){
-            e.preventDefault();
-            e.stopPropagation();
+		$('select.filter-by').off('change').on('change', function(){
 			let selected = $('select.filter-by').val();
             __this.dashboardService.show();
 			if(parseInt(selected) != 0 && selected != 'pending'){
@@ -343,6 +341,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             __this.pagination = {
                 pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
             };
+
+            __this.queries.offset = 0;
 
             __this.getListData(() => { 
                 if(__this.pagination.pages > 0){
