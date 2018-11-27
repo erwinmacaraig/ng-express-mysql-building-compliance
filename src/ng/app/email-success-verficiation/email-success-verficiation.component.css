@@ -52,7 +52,7 @@ p {
 
 
 #modalMsg{
-    width: 30%;
+    width: 90%;
     top: calc(100% - 85%) !important;
 }
 
@@ -98,4 +98,43 @@ and (max-width: 1024px){
 
 .font-28{
     font-size: 28px;
+}
+
+.img-container{
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    border-radius: 40px;
+    background-color: #79d2bc;
+    display: inline-block;
+    padding: 0px;
+    vertical-align: middle;
+    margin: 0px;
+    font-size: 17px;
+    line-height: 41px;
+    text-align: center;
+  }
+
+ .middle-text{
+	font-size: 18px;
+    line-height: 20px;
+    width: 250px;
+    padding: 10px 30px;
+    text-align: center;
+}  
+
+.middle-text p{
+	font-size: 14px;
+}
+
+.middle-image .image{
+    width: 69px;
+    display: block;
+    height: 69px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+}
+
+.image .mobility {
+    background: url(/assets/images/dash01.png) no-repeat;
 }

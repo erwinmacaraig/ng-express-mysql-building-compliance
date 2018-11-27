@@ -32,7 +32,7 @@ export class FileUploader {
         },
         filename: (rq, file, callback) => {
           this.extname = this.getFileExtension(file.originalname);
-          this.filename = `${Date.now()}_` + file.originalname.replace(/\s+/g, '_') + this.extname;          
+          this.filename = `${Date.now()}_` + file.originalname.replace(/\s+/g, '_');
           callback(null, this.filename);
         }
       });
