@@ -488,14 +488,19 @@ export class UsersRoute extends BaseRoute {
                         invalid_trainings: invalidTrainings
                     });
                 }
+               /*
                return new CourseUserRelation().getRelation({
                     user: user,
                     bulk_training_requirement: invalidTrainingIds
                });
-
+               */
+              
+               
+              return new CourseUserRelation().getAllCourseForUser(user);
                 
-            })
-            .then((rels) => {
+                
+            })            
+            .then((rels:Array<object>) => {
                 const invalidTrainingsWithCourse = [];
                 for (let trainings of invalidTrainings) {
                     const i = rels.findIndex(r => r['training_requirement_id'] == trainings['training_requirement_id']);
@@ -506,7 +511,7 @@ export class UsersRoute extends BaseRoute {
                         });
                     } else {
                         invalidTrainingsWithCourse.push({
-                            course_user_relation_id: rels[i]['course_user_relation_id'],
+                            ...rels[i],
                             ...trainings
                         });
                     }
@@ -517,7 +522,7 @@ export class UsersRoute extends BaseRoute {
                     valid_trainings: validTrainings,
                     invalid_trainings: invalidTrainingsWithCourse
                 });
-            })
+            })            
             .catch((error_rel) => {
                 console.log(error_rel);
                 return res.status(400).send({

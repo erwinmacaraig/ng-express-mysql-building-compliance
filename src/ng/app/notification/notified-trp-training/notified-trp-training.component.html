@@ -1,71 +1,109 @@
-<h5 class="blue-text center" style="margin-bottom: 5%;">Required Trainings</h5>
+<div class="main" *ngIf="!showThankYouScreen; else thanksContent">
     <div class="row">
-        <div class="col l12 m12 s12 center">
-            <h5 *ngIf="isCompliant">
-                Hurray, your training looks up to date. <br/>
-                You can retake the training now or download your certificate.
-            </h5>
-            <h5 *ngIf="!isCompliant">
-                Want to know, what needs to be done in Emergency, <br/> Please undergo training by clicking below
-            </h5>
+        <div class="steps-text">
+            <div class="circle"></div>
+            <div class="text">Step 1</div>
+    
+            <div class="dash"></div>
+            <div class="circle"></div>
+            <div class="text">Step 2</div>
+    
+            <div class="dash"></div>
+            <div class="circle"></div>
+            <div class="text">Step 3</div>
+    
+            <div class="dash"></div>
+            <div class="circle"></div>
+            <div class="text">Step 4</div>
+    
+            <div class="dash"></div>
+            <div class="circle"></div>
+            <div class="text blue-text">Step 5</div>
         </div>
     </div>
-
-    <div class="row">
-        <div class="col l12 m12 s12">
-
-            <div id="gridContainer" class="center grid">
-                <div class="grid-container" *ngFor="let tr of trainingItems">
-                    
-                    <div class="grid-item card grey lighten-3" >
-                        <div class="top">
-                            <div class="image close inline-block"  *ngIf="tr.validity !='active'"></div>                            
-                            <div class="image check inline-block" *ngIf="tr.validity == 'active'"></div>
-                            <div class="text inline-block red-text" *ngIf="tr.validity != 'active'">Non-Compliant</div>                            
-                            <div class="text inline-block green-text" *ngIf="tr.validity=='active'">Compliant</div>
-                        </div>
-                        <div class="middle-image">
-                            <div class="image red-image" *ngIf="tr.validity != 'active'"></div>                            
-                            <div class="image green-image" *ngIf="tr.validity == 'active'"></div>
-                        </div>
-                        <div class="middle-text">
-                            {{tr.training_requirement_name}}
-                            <p class="blue-text" >
-                                <span *ngIf="tr.validity == 'active'">{{ tr.certification_date | date: 'yyyy/MM/dd' }}</span>
-                            </p>
-                        </div>
-                        <div class="buttons">
-                            <!--<button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="!tr.valid">Go To Training</button>-->
-                            <button class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="tr.validity != 'active' && tr.course_user_relation_id != 0">Go To Training</button>
-                            <button class="btn red lighten-1 waves-effect waves-light" disabled type="button" *ngIf="tr.validity != 'active' && tr.course_user_relation_id == 0">No Account Training</button>
-                            <a *ngIf="tr.validity == 'active'" href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?c={{tr.certifications_id}}" target="_blank" class="btn blue waves-effect waves-light" style="line-height: 42px;">Download Certificate</a>
+    <h5 class="blue-text center" style="margin-bottom: 5%;">Required Trainings</h5>
+        <div class="row">
+            <div class="col l12 m12 s12 center">
+                <h5 *ngIf="isCompliant">
+                    Hurray, your training looks up to date. <br/>
+                    You can retake the training now or download your certificate.
+                </h5>
+                <h5 *ngIf="!isCompliant">
+                    Want to know, what needs to be done in Emergency, <br/> Please undergo training by clicking below
+                </h5>
+            </div>
+        </div>
+    
+        <div class="row">
+            <div class="col l12 m12 s12">
+    
+                <div id="gridContainer" class="center grid">
+                    <div class="grid-container" *ngFor="let tr of trainingItems">
+                        
+                        <div class="grid-item card grey lighten-3" >
+                            <div class="top">
+                                <div class="image close inline-block"  *ngIf="tr.validity !='active'"></div>                            
+                                <div class="image check inline-block" *ngIf="tr.validity == 'active'"></div>
+                                <div class="text inline-block red-text" *ngIf="tr.validity != 'active'">Non-Compliant</div>                            
+                                <div class="text inline-block green-text" *ngIf="tr.validity=='active'">Compliant</div>
+                            </div>
+                            <div class="middle-image">
+                                <div class="image red-image" *ngIf="tr.validity != 'active'"></div>                            
+                                <div class="image green-image" *ngIf="tr.validity == 'active'"></div>
+                            </div>
+                            <div class="middle-text">
+                                {{tr.training_requirement_name}}
+                                <p class="blue-text" >
+                                    <span *ngIf="tr.validity == 'active'">{{ tr.certification_date | date: 'yyyy/MM/dd' }}</span>
+                                </p>
+                            </div>
+                            <div class="buttons">
+                                <!--<button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="!tr.valid">Go To Training</button>-->
+                                <button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="tr.validity != 'active' && tr.course_user_relation_id != 0">Go To Training</button>
+                                <button class="btn red lighten-1 waves-effect waves-light" disabled type="button" *ngIf="tr.validity != 'active' && tr.course_user_relation_id == 0">No Account Training</button>
+                                <a *ngIf="tr.validity == 'active'" href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?c={{tr.certifications_id}}" target="_blank" class="btn blue waves-effect waves-light" style="line-height: 42px;">Download Certificate</a>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="row">
-        <div class="col l12 m12 s12">
-            <div class="margin-bottom-20 center check-container">
-                <input id="checkBoxOneMonth" type="checkbox" class="filled-in" [checked]="hasTrainingReminder"  /> 
-                <label for="checkBoxOneMonth" style="color: #222; font-size: 16px;">Training Reminder: 1 month before training expiry</label> 
+    
+        <div class="row">
+            <div class="col l12 m12 s12">
+                <div class="margin-bottom-20 center check-container">
+                    <input id="checkBoxOneMonth" type="checkbox" class="filled-in" [checked]="hasTrainingReminder" (change)="setTrainingReminder($event)"  /> 
+                    <label for="checkBoxOneMonth" style="color: #222; font-size: 16px;">Training Reminder: 1 month before training expiry</label> 
+                </div>
             </div>
         </div>
-    </div>
-    
-    <div class="row">
-        <div class="col l12 m12 s12 center">
-            <button class="btn grey waves-effect waves-light center" #btnStep3>Close</button>
+        
+        <div class="row">
+            <div class="col l12 m12 s12 center">
+                <button (click)="showThankYouScreen = true" class="btn btn-block blue waves-effect waves-light center">Next</button>
+            </div>
         </div>
-    </div>
+</div>
+<!---  ----------------------------   -->
 
-    <div class="modal" id="training">
-        <div class="modal-content" *ngIf="selectedCourse.formatted_launcher_url">
-            <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
+<div class="modal" id="training">
+    <div class="modal-content" *ngIf="selectedCourse.formatted_launcher_url">
+        <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule()">Close</button>
+    </div>
+</div>
+
+<ng-template #thanksContent>
+    <div class="row">
+        <div class="col l12 m12 s12 center-align" style="margin: 40px 0px;">
+            <p class="fs25" style="margin-bottom: 50px;">Thank you for validating records for your tenancy and helping us in planning for Emergency</p>
+
+            <button [routerLink]="['/teams']"  class="btn btn-same-size blue waves-effect waves-light">EXPLORE EvacConnect</button>
+            <button [routerLink]="['/signout']" class="btn btn-same-size orange waves-effect waves-light">LOGOUT</button>
         </div>
     </div>
+</ng-template>
+
+    
