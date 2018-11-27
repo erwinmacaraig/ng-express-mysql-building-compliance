@@ -219,7 +219,7 @@ const defs = require('../config/defs.json');
           new LocationRoute().createBuildingAndAddAccount(req, res);
       });
 
-      router.get('/location/search-buildings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      router.get('/location/search-buildings', (req: AuthRequest, res: Response) => {
           new LocationRoute().searchBuildings(req, res);
       });
 
@@ -1033,11 +1033,22 @@ const defs = require('../config/defs.json');
         location = new Location(locationId),
         sublocations,
         othersub = [],
-        locAccRel = new LocationAccountRelation();
+        locAccRel = new LocationAccountRelation(),
+        userIsWarden = false;
 
       	// we need to check the role(s)
       	const userRoleRel = new UserRoleRelation();
-      	const roles = (req.user.evac_role != 'admin') ? await userRoleRel.getByUserId(req.user.user_id) : 1;
+      	let roles = <any> [];
+        if(req.user.evac_role != 'admin'){
+            try{
+                await userRoleRel.getByUserId(req.user.user_id)
+            }catch(e){
+                //Warden
+                userIsWarden = true;
+            }
+        }else{
+            roles = 1;
+        }
 
       	let response = {
       		'location' : {},
@@ -1050,7 +1061,7 @@ const defs = require('../config/defs.json');
       	};
 
       	// what is the highest rank role
-      	let r = 100;
+      	let r = (!userIsWarden) ? 100 : 0;
       	for (let i = 0; i < roles.length; i++) {
       		if(r > parseInt(roles[i]['role_id'], 10)) {
       			r = roles[i]['role_id'];
@@ -1083,10 +1094,12 @@ const defs = require('../config/defs.json');
         }catch(e){}
 
         try{
-            let locAcc = new LocationAccountUser(),
-                locAccUsers = <any> await locAcc.getByUserId(req.user.user_id);
-            for(let locacc of locAccUsers){
-                response.users_locations.push(locacc);
+            if(!userIsWarden){
+                let locAcc = new LocationAccountUser(),
+                    locAccUsers = <any> await locAcc.getByUserId(req.user.user_id);
+                for(let locacc of locAccUsers){
+                    response.users_locations.push(locacc);
+                }
             }
         }catch(e){}
 
@@ -1315,7 +1328,7 @@ const defs = require('../config/defs.json');
 
 	public async getParentLocationsByAccount(req: AuthRequest, res: Response, archived?, pagination?) {
 	    const
-            queries = req.body,
+            queries =  (req.method == 'POST') ? req.body : req.query,
             locAccntRelObj = new LocationAccountRelation(),
             userRoleRel = new UserRoleRelation(),
             filter = {
@@ -1423,6 +1436,9 @@ const defs = require('../config/defs.json');
                 sublocs = <any> await subLocsModel.getChildren(loc['location_id']),
                 accountModelTenantCount = new Account();
 
+            if(queries.sublocations){
+                loc['sublocations'] = sublocs;
+            }
             for(let sub of sublocs){
                 sublocsids.push(sub.location_id);
             }
@@ -1439,7 +1455,7 @@ const defs = require('../config/defs.json');
 
             sublocsids.push(loc['location_id']);
 
-            loc['sublocsids'] = sublocsids.join(',');
+            // loc['sublocsids'] = sublocsids.join(',');
 
             loc['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds(locsIds.join(','));
 
@@ -1919,7 +1935,17 @@ const defs = require('../config/defs.json');
     public async searchBuildings(req: AuthRequest, res: Response){
         let 
         locModel = new Location(),
-        locations = await locModel.searchBuildings(req.query.key);
+        locations = <any> [];
+
+        let accountId = (req.query.account_id) ? req.query.account_id : 0;
+
+        locations = await locModel.searchBuildings(req.query.key, accountId);
+        if(req.query.get_sublocation){
+            for(let loc of locations){
+                let locSubModel = new Location(loc.location_id);
+                loc['sublocations'] = await locSubModel.getSublocations();
+            }
+        }
 
         res.send(locations);
     }

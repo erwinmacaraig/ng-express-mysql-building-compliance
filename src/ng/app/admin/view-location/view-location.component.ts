@@ -45,6 +45,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   sublocations: Object[] = [];
   traversal: Object = {};
 
+  accountIdParam = 0;
 
   activeLink = '';
   subRouter;
@@ -97,6 +98,11 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
           queryParams['active'] = 'locations';
           this.router.navigate(['/admin/view-location/'+this.locationId], { queryParams: queryParams });
         }
+
+        if(observer['accntId']){
+          this.accountIdParam = observer['accntId'];
+        }
+
       });
 
       this.adminService.getLocationDetails(this.locationId).subscribe((response) => {

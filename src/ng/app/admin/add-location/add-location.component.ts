@@ -100,7 +100,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             this.searchText = this.searchElementRef.nativeElement.value;
             this.showTextSearch = true;
             this.locationService.searchBuildings(this.searchElementRef.nativeElement.value)
-            .subscribe((locs) => {
+            .subscribe((locs:any) => {
                 if(locs.length == 0){
                     this.searchText = "No result found";
                     this.showTextSearch = true;

@@ -116,6 +116,7 @@ import { ReportsLocationsComplianceComponent } from './reports/location-complian
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
+import { WardenReportsComponent } from './reports/warden/warden.component';
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
@@ -127,6 +128,9 @@ import { NotifiedUsersListComponent } from './notification/notified-users-list/n
 import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
 import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
 import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
+import { WardenNotificationComponent } from './notification/warden-notification/warden-notification';
+import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
+
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -241,6 +245,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     ReportsLocationsStatementComplianceComponent,
     ReportsTeamsComponent,
     ReportsTrainingsComponent,
+    WardenReportsComponent,
     ReportsActivityLogComponent,
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
@@ -251,6 +256,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     NotificationQueryComponent,
     NotificationWardenListComponent,
     NotificationPEEPListComponent,
+    WardenNotificationComponent,
+    SummaryViewComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,

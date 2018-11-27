@@ -305,4 +305,12 @@ export class UserService {
         return this.http.post(this.baseUrl+"/users/change-password", formData);
     }
 
+    updateNotificationSettings(formData){
+        return this.http.post(this.baseUrl+"/users/update-notification-settings", formData);
+    }
+
+    getNotificationToken(userId = 0) {
+        return this.http.get(this.baseUrl + '/users/get-notification-token/'+userId, this.options);
+    }
+
 }

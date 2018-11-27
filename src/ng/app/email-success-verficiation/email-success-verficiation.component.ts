@@ -87,6 +87,17 @@ export class EmailSuccessVerficiationComponent implements OnInit {
           }
         }
 
+      } else if (verification == 2) {
+        this.showCheckIcon = false;
+        this.message = `Invalid token used.
+
+        There is no such token exists in our system.
+        `;
+        this.showClose = true;
+        this.showLogin = true;
+      } else if (verification == 3) { // FRP answered  NO in the notification email
+        this.message = 'Thank you for letting us know.';
+
       } else {
         this.showCheckIcon = false;
         this.message = `Your token has expired.

@@ -1,7 +1,7 @@
 <div class="print-no-margin" id="printContainer" #printContainer>
     <div class="row row-margined-top">
         <div class="col s12">
-            <h5>Training Report</h5>
+            <h5>Warden Report</h5>
         </div>
         <div class="col s12 no-print">
 
@@ -39,6 +39,7 @@
                         <div class="background"></div>
                     </div>
                 </div>
+
             </div>
 
             <div class="right right-buttons no-print">
@@ -84,14 +85,15 @@
                     <tr class="grey darken-5 white-text">
                         <th>Region</th>
                         <th>Building</th>
+                        <th>Emergency Role</th>
                         <th>Sublocation</th>
                         <th>Account</th>
-                        <th>User</th>
+                        <th>Name</th>
                         <th>Email</th>
-                        <th>Role</th>
-                        <th>Training Status & Date</th>
+                        <th>Overall Status</th>
                     </tr>
                 </thead>
+                
                 <tbody [hidden]="!loadingTable">
                     <tr>
                         <td colspan="8" class="center">
@@ -99,33 +101,35 @@
                         </td>
                     </tr>
                 </tbody>
+
                 <tbody [hidden]="loadingTable">
                     <tr *ngIf="results.length == 0">
                         <td colspan="8" class="center">
                             <h6>No result found</h6>
                         </td>
                     </tr>
-                    <tr *ngFor="let re of results">
-                        <td>{{re.region}}</td>
-                        <td>{{re.building}}</td>
-                        <td>{{re.sublocation}}</td>
-                        <td>{{re.account_name}}</td>
-                        <td>{{re.first_name}} {{re.last_name}}</td>
-                        <td>{{re.email}}</td>
-                        <td>{{re.role_name}}</td>
+                    <tr *ngFor="let res of results">
+                        <td>{{res.region}}</td>
+                        <td>{{res.building}}</td>
+                        <td>{{res.role_name}}</td>
+                        <td>{{res.sublocation}}</td>
+                        <td>{{res.account_name}}</td>
+                        <td>{{res.first_name}} {{res.last_name}}</td>
+                        <td>{{res.email}}</td>
                         <td>
-                            <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
-                            <span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">
+                            <span *ngIf="res.status == 'valid' && res.pass == 1 " class="blue-text">Compliant</span>
+                            <span *ngIf="res.status != 'valid' || res.pass == 0 " class="grey-text">
                                 Not Compliant
-                                <small *ngIf="re.pass == 0">(Failed)</small>
-                                <small *ngIf="re.status == 'expired'">(Expired)</small>
-                                <small *ngIf="re.status == 'not taken'">(Not Taken)</small>
+                                <small *ngIf="res.pass == 0">(Failed)</small>
+                                <small *ngIf="res.status == 'expired'">(Expired)</small>
+                                <small *ngIf="res.status == 'not taken'">(Not Taken)</small>
                             </span>
 
-                            {{re.certification_date_formatted}}
+                            <!-- {{res.certification_date_formatted}} -->
                         </td>
                     </tr>
                 </tbody>
+
             </table>
         </div>
 

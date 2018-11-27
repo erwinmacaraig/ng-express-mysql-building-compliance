@@ -1,7 +1,10 @@
 import {Location} from './location.model';
 import { Account } from './account.model';
 import { ComplianceKpisModel } from './comliance.kpis.model';
-
+import { NotificationToken } from './notification_token.model';
+import { NotificationConfiguration } from './notification_config.model';
+import { EmailSender } from './email.sender';
+import * as moment from 'moment';
 /**
  * @class
  * @description
@@ -77,6 +80,56 @@ export class UtilsSync {
     const kpis_dbData = await new ComplianceKpisModel(compliance_item).load();
     console.log(`${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`);
     return `${account_dbData['account_directory_name']}/${location_dir}/${kpis_dbData['directory_name']}/${document_type}/`;    
+  }
+
+
+  public async sendToNotification(userId=0, type='', id=0, idType='', data={}, res?) {
+
+    switch(type) {
+      case 'resend-notification':
+        const config = await new NotificationConfiguration(data['notification_config_id']).load();
+        let strToken = data['strToken'];
+        let notificationToken = new NotificationToken();
+        await notificationToken.create({
+          strToken: strToken,
+          notification_token_id: data['notification_token_id'],
+          user_id: data['user_id'],
+          location_id: data['location_id'],
+          role_text: data['role_text'],
+          notification_config_id: data['notification_config_id'],
+          dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD'),
+          dtLastSent: moment().format('YYYY-MM-DD')
+        });
+        notificationToken = null;
+        let parentName = ''
+        let 
+          emailData = {
+            message : config['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
+            users_fullname : data['first_name']+' '+data['last_name'],
+            account_name : data['account_name'],
+            location_name : data['parent'] ?  `${data['parent']} ${data['name']}` : `${data['name']}`,
+            yes_link : 'http://' + data['host'] + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+            no_link : 'http://' + data['host'] + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+            role : data['role_text']
+          }
+          const opts = {
+            from : '',
+            fromName : 'EvacConnect',
+            to : ['adelfin@evacgroup.com.au'],
+            cc: ['emacaraig@evacgroup.com.au'],
+            body : '',
+            attachments: [],
+            subject : 'EvacConnect Email Notification'
+          };
+          const email = new EmailSender(opts);
+          email.sendFormattedEmail(data['emailType'], emailData, res, 
+            (data) => console.log(data),
+            (err) => console.log(err)
+          );
+
+      break;
+    }
+
   }
 
 }

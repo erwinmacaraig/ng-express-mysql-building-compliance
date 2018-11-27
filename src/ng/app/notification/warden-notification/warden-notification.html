@@ -1,0 +1,399 @@
+<div class="container">
+
+    <div class="row">
+        <div class="col l12 m12 s12" *ngIf=" routeQuery['step'] && routeQuery['stillonlocation'] != 'no' ">
+
+            <div class="steps-text">
+                <div class="circle"></div>
+                <div class="text" [ngClass]="{ 'blue-text' : routeQuery['step'] == '1' }" >Step 1</div>
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text" [ngClass]="{ 'blue-text' : routeQuery['step'] == '2' }">Step 2</div>
+                <!-- <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text" [ngClass]="{ 'blue-text' : routeQuery['step'] == '3' }">Step 3</div> -->
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            
+            <div *ngIf=" !routeQuery['step']  && routeQuery['stillonlocation'] != 'yes' && routeQuery['stillonlocation'] != 'no'" style="position: relative;">
+                <ng-container *ngTemplateOutlet="stillInLocation"> </ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['step'] == '1' && routeQuery['stillonlocation'] == 'yes' && !routeQuery['final'] " style="position: relative;">
+                <ng-container  *ngTemplateOutlet="yesUpdateProfile"> </ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['step'] == '2' && routeQuery['stillonlocation'] == 'yes' && !routeQuery['final'] " style="position: relative;">
+                <ng-container  *ngTemplateOutlet="yesTrainings"> </ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['step'] == '3' && routeQuery['stillonlocation'] == 'yes' && !routeQuery['final'] " style="position: relative;">
+                <ng-container *ngTemplateOutlet="yesUpdateNotification"></ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['step'] == '3' && routeQuery['stillonlocation'] == 'yes' && routeQuery['final'] == 'true'">
+                <ng-container *ngTemplateOutlet="thankYou"></ng-container>
+            </div>
+            <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['final'] == 'true'">
+                <ng-container *ngTemplateOutlet="NothankYou"></ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['stillonlocation'] == 'no' && !routeQuery['ans']">
+                <ng-container *ngTemplateOutlet="noSelectAnswer"></ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['ans'] == 'tenancy_moved_out'">
+                <ng-container *ngTemplateOutlet="ansTenancyMovedOut"></ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['ans'] == 'resign' && !routeQuery['final']">
+                <ng-container *ngTemplateOutlet="ansResign"></ng-container>
+            </div>
+
+            <div *ngIf="routeQuery['stillonlocation'] == 'no' && routeQuery['ans'] == 'location_changed'">
+                <ng-container *ngTemplateOutlet="ansChangedLocation"></ng-container>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<ng-template #stillInLocation>
+    <div class="div-center center" style="margin-top: 15%;">
+        <div class="text">
+            Are you still {{roleText}} for {{accountData.account_name}} on {{locationData.name}}
+        </div>
+        <div class="buttons">
+            <button class="btn orange waves-effect waves-light" (click)="clickStillOnLocation('yes')" >Yes</button>
+            <button class="btn blue waves-effect waves-light" (click)="clickStillOnLocation('no')" >No</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #yesUpdateProfile>
+    <div class="div-center update-profile">
+        
+        <div class="row">
+            <div class="col l12 m12 s12">`
+                <h5 class="blue-text" style="margin-bottom: 10%;">Review Your Profile</h5>
+            </div>
+
+            <div class="col l12 m12 s12">
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                    <label>Location</label>
+                    <select id="selectLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
+                        <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col l12 m12 s12 margin-bottom-40">
+                <div class="form-group">
+                    <label for="subLocation">Mobile</label>
+                    <input type="text" class="form-control" id="mobile" placeholder="Type mobile number" value="{{displayText.yesUpdateProfile.mobile}}" />
+                </div>
+            </div>
+
+            <!-- <div class="col l12 m12 s12" style="position: relative;" [hidden]="!showLocationSelect">
+                <div class="form-group">
+                    <label for="subLocation">Search New Location</label>
+                    <input type="text" class="form-control" #inpsearchLocProfile placeholder="Type location here" />
+                </div>
+                <div class="search-result" *ngIf="searchedLocations.length > 0">
+                    <ul>
+                        <li *ngFor="let loc of searchedLocations" (click)="selectSearchLocation(loc, inpsearchLocProfile)">{{loc.name}}</li>
+                    </ul>
+                </div>
+            </div> -->
+            
+            <!-- <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
+                buildingSelections
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                    <label>Select Location</label>
+                    <select id="selectBuildingSelections"  (change)="onSelectBuilding()">
+                        <option *ngFor="let bldg of buildingSelections" value="{{bldg.location_id}}">{{bldg.name}}</option>
+                    </select>
+                </div>
+            </div> -->
+
+            <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                    <label>Select Sublocation</label>
+                    <select id="selectSubLocProfile" (change)="onSelectSubLocation()">
+                        <optgroup *ngFor="let loc of buildingSelections" label="{{loc.name}}">
+                            <option *ngFor="let sub of loc.sublocations" value="{{sub.location_id}}">{{sub.name}}</option>
+                        </optgroup>
+                    </select>
+                </div>
+            </div>
+
+            <div class="col l6 m12 s12">
+                <button class="btn btn-block grey waves-effect waves-light" *ngIf="!showLocationSelect" #updateProfileBtn (click)="clickUpdateProfile(updateProfileBtn, 1)" >Update Profile</button>
+                <button class="btn btn-block grey waves-effect waves-light" *ngIf="showLocationSelect" #updateProfileBtn2 (click)="clickUpdateProfile(updateProfileBtn2, 2)" >Submit</button>
+            </div>
+
+            <div class="col l6 m12 s12">
+                <button class="btn btn-block orange waves-effect waves-light" (click)="clickToStep2()" >Next</button>
+            </div>
+            
+            <div class="col l12 m12 s12">
+                <button class="btn btn-block blue" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ 'id' : encryptedUserId, 'dest' : peepDestParam, 'query' : peepDestQuery }">Register as Mobility Impaired</button>
+            </div>
+
+        </div>
+
+    </div>
+</ng-template>
+
+<ng-template #yesTrainings>
+    <h5 class="blue-text center" style="margin-bottom: 5%;">Required Trainings</h5>
+
+    <div class="row">
+        <div class="col l12 m12 s12 center">
+            <h5 *ngIf="isCompliant">
+                Hurray, your training looks up to date. <br/>
+                You can retake the training now or download your certificate.
+            </h5>
+            <h5 *ngIf="!isCompliant">
+                Want to know, what needs to be done in Emergency, <br/> Please undergo training by clicking below
+            </h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+
+            <div id="gridContainer" class="center grid" *ngIf="trainingItems.length > 0">
+                <div class="grid-container" *ngFor="let tr of trainingItems">
+                    
+                    <div class="grid-item card grey lighten-3" >
+                        <div class="top">
+                            <div class="image close inline-block"  *ngIf="!tr.valid"></div>
+                            <div class="image check inline-block" *ngIf="tr.valid"></div>
+                            <div class="text inline-block red-text" *ngIf="!tr.valid">Non-Compliant</div>
+                            <div class="text inline-block green-text" *ngIf="tr.valid">Compliant</div>
+                        </div>
+                        <div class="middle-image">
+                            <div class="image red-image" *ngIf="!tr.valid"></div>
+                            <div class="image green-image" *ngIf="tr.valid"></div>
+                        </div>
+                        <div class="middle-text">
+                            {{tr.training_requirement_name}}
+                            <p class="blue-text" >
+                                <span *ngIf="tr.valid">{{ formatDate(tr.certification_date) }}</span>
+                            </p>
+                        </div>
+                        <div class="buttons">
+                            <button (click)="loadTrainingCourse(tr)" class="btn red lighten-1 waves-effect waves-light" type="button" *ngIf="!tr.valid">Go To Training</button>
+                            <a *ngIf="tr.valid" href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{tr.scorm_course_id}}&amp;c={{tr.certifications_id}}" target="_blank" class="btn blue waves-effect waves-light" style="line-height: 42px;">Download Certificate</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col l12 m12 s12">
+            <div class="margin-bottom-20 center check-container">
+                <input id="checkBoxOneMonth" type="checkbox" class="filled-in" [checked]="hasTrainingReminder"  /> 
+                <label for="checkBoxOneMonth" style="color: #222; font-size: 16px;">Training Reminder: 1 month before training expiry</label> 
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col l12 m12 s12 center">
+            <button class="btn grey waves-effect waves-light center" #btnStep3 (click)="closeStep2()"  >Close</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #yesUpdateNotification>
+    <div class="div-center grey lighten-4 notification-settings boxed">
+        <h5 class="margin-bottom-20">Update notification settings</h5>
+
+    
+        <div class="margin-bottom-20 check-container">
+            <input id="threeMonths" type="radio" name="settings" value="3_months" /> 
+            <label for="threeMonths">Email frequency every 3 months</label> 
+        </div>
+
+        <div class="margin-bottom-20 check-container">
+            <input id="oneMonth" type="radio" name="settings" value="1_month" /> 
+            <label for="oneMonth">Training Reminder: 1 month before training expiry</label> 
+        </div>
+
+        <div class="center">
+            <button class="btn orange wave-effect waves-light" id="btnConfirmUpdateNotif"  >Confirm</button>
+        </div>
+        
+    </div>
+</ng-template>
+
+<ng-template #thankYou>
+    <div class="div-center center">
+        <h5 class="margin-bottom-30">
+            <!--   -->
+            <strong>Thany youy!</strong>
+        </h5>
+        <h5 class="margin-bottom-60"> </h5>
+
+
+        <div class="center">
+            <button #btnYesThankYou class="btn orange waves-effect waves-light">Close</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #NothankYou>
+    <div class="div-center center">
+        <h5 class="margin-bottom-30">           
+            <strong>Thank you for your time.</strong>
+        </h5>
+        <h5 class="margin-bottom-60">No further action required from your end.</h5>
+        <div class="center">
+            <button [routerLink]="['/dashboard']" class="btn orange waves-effect waves-light">Close</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #noSelectAnswer> 
+    <div class="div-center grey lighten-4 select-answer boxed">
+        <h5 class="margin-bottom-20">Please select the answer below.</h5>
+    
+        <div class="margin-bottom-20 check-container">
+            <input id="tenancyMovedOut" type="radio" name="no_answer" value="tenancy_moved_out" /> 
+            <label for="tenancyMovedOut">Tenancy moved out</label> 
+        </div>
+
+        <div class="margin-bottom-20 check-container">
+            <input id="iWantToResign" type="radio" name="no_answer" value="resign" /> 
+            <label for="iWantToResign">I want to resign</label> 
+        </div>
+
+        <div class="margin-bottom-40 check-container">
+            <input id="locationChanged" type="radio" name="no_answer" value="location_changed" /> 
+            <label for="locationChanged">My location has changed</label> 
+        </div>
+
+        <div class="center">
+            <button class="btn orange wave-effect waves-light" (click)="clickConfirmNoAnswer()" >Confirm</button>
+        </div>
+        
+    </div>
+</ng-template>
+
+<ng-template #ansTenancyMovedOut>
+    <div class="div-center grey lighten-4 tenancy-moved-out boxed ">
+        <h5 class="margin-bottom-40 title center">
+            Thank you for the information we will archive your tenancy details and notify your property manager.
+        </h5>
+
+    
+        <div class="margin-bottom-40 textarea">
+            <textarea placeholder="Additional message" id="messageTenancyMovedOut"></textarea>
+        </div>
+
+        <div class="center">
+            <button class="btn orange wave-effect waves-light" #btnConfirmMovedOut (click)="noAnswerConfirm(btnConfirmMovedOut)" >Confirm</button>
+
+        </div>
+        
+    </div>
+</ng-template>
+
+<ng-template #ansResign>
+    <div class="div-center grey lighten-4 no-resign boxed ">
+        <h5 class="margin-bottom-40 title center">
+            Would you like to nominate new warden?
+        </h5>
+    
+        <div class="check-container">
+            <input id="nominateYes" type="radio" name="nominate" value="yes" #checkYesNominate /> 
+            <label for="nominateYes">Yes, I want to nominate</label> 
+        </div>
+
+        <div class="input-white-bg">
+            <input type="text" id="inpEmailNominate"  placeholder="Please enter warden email" [disabled]="checkYesNominate.checked == false" />
+        </div>
+
+        <div class="margin-bottom-20 check-container">
+            <input id="nominateNo" type="radio" name="nominate" checked="checked" value="no" /> 
+            <label for="nominateNo">No, I don't want to nominate</label> 
+        </div>
+
+        <div class="center">
+            <button class="btn orange wave-effect waves-light" #btnConfirmResign (click)="noAnswerConfirm(btnConfirmResign)" >Confirm</button>
+        </div>
+        
+    </div>
+</ng-template>
+
+<ng-template #ansChangedLocation>
+    <div class="div-center grey lighten-4 no-change-location boxed " style="margin-top: 2%;">
+        <h5 class="margin-bottom-40 title center">
+            Please enter your new location
+        </h5>
+
+        <div class="row">
+            <div class="col l12 m12 s12">
+                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                    <label>Select From Your Location</label>
+                    <select id="selectSubLocNewLoc" (change)="changeEventSubLocationReviewProfile()">
+                        <option value="{{loc.user_em_roles_relation_id}}" [attr.locid]="loc.location_id" [attr.parentid]="loc.parent_id" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="margin-bottom-20"></div>
+
+            <div class="col l12 m12 s12" style="position: relative;">
+                <div class="form-group input-white-bg">
+                    <label for="subLocation">Search New Location</label>
+                    <input type="text" class="form-control" #inpChangeLocSearch placeholder="Type location here" />
+                </div>
+                <div class="search-result" *ngIf="searchedLocations.length > 0">
+                    <ul>
+                        <li *ngFor="let loc of searchedLocations" (click)="selectSearchLocation(loc, inpChangeLocSearch)">{{loc.name}}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="col l12 m12 s12">
+                <div class="input-white-bg margin-bottom-40" style="margin-right: 0px;">
+                    <select id="selSubLocationNewLoc" [disabled]="selectedSearchedLocations.sublocations.length == 0">
+                        <option *ngFor="let sub of selectedSearchedLocations.sublocations" value="{{sub.location_id}}" >{{sub.name}}</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="center">
+            <button class="btn orange wave-effect waves-light" #btnConfirmChangeLocation (click)="noAnswerConfirm(btnConfirmChangeLocation)" >Confirm</button>
+        </div>
+        
+    </div>
+</ng-template>
+
+<div class="modal" id="modalNewLocation">
+    <div class="modal-content">
+        <h5 class="center">
+            We sent a confirmation message to tenancy and admin for changing different location
+        </h5>
+    </div>    
+</div>
+
+
+<div class="modal" id="training">
+    <div class="modal-content" *ngIf="selectedCourse.formatted_launcher_url">
+        <iframe [src]="selectedCourse.formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
+    </div>
+</div>

@@ -84,8 +84,10 @@ export class LocationsService {
         return this.http.post<any>(this.baseUrl + '/location/search-db-location/', location);
     }
 
-    searchBuildings(key){
-        return this.http.get<any>(this.baseUrl + '/location/search-buildings?key='+key);
+    searchBuildings(key, params = {}){
+        let opt = this.options;
+        opt['params'] = params;
+        return this.http.get<any>(this.baseUrl + '/location/search-buildings?key='+key, opt);
     }
 
     searchLevels(key){
@@ -121,8 +123,10 @@ export class LocationsService {
         return this.http.post<any>(this.baseUrl + '/location/archive-multiple', oParam);
     }
 
-    getParentLocationsForListing(accountid, callBack){
-        this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)
+    getParentLocationsForListing(accountid, callBack, params={}){
+        let opt = this.options;
+        opt['params'] = params;
+        this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', opt)
         .subscribe(res => {
             callBack(res);
         }, err => {

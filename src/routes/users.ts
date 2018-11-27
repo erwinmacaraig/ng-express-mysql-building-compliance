@@ -24,7 +24,8 @@ import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { CourseUserRelation } from '../models/course-user-relation.model';
-
+import { NotificationUserSettingsModel } from '../models/notification.user.settings';
+import { NotificationToken } from '../models/notification_token.model';
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -197,15 +198,15 @@ export class UsersRoute extends BaseRoute {
 
       router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
           new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
-	    return res.status(200).send({
-	      'status': 'Success',
-	      'data': info
-	    });
+      	    return res.status(200).send({
+      	      'status': 'Success',
+      	      'data': info
+      	    });
           }).catch((e) => {
-	    return res.status(400).send({
-	      'status': 'Fail',
-	      'message': 'Unable to retrieve tenant invitation info'
-	    });
+      	    return res.status(400).send({
+      	      'status': 'Fail',
+      	      'message': 'Unable to retrieve tenant invitation info'
+      	    });
           });
 
       });
@@ -403,6 +404,15 @@ export class UsersRoute extends BaseRoute {
         });
 
       });
+
+      router.post('/users/update-notification-settings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new  UsersRoute().updateNotificationSettings(req, res);
+      });
+
+      router.get('/users/get-notification-token/:userid', async (req: AuthRequest, res: Response) => {
+        res.send( await new NotificationToken().getByUserId(req.params.userid) );
+      });
+
     }
 
     public async checkIfAdmin(req: Request , res: Response){
@@ -682,6 +692,60 @@ export class UsersRoute extends BaseRoute {
                         'id' : req.body.user_id,
                         'id_type' : 'user_id'
                     });
+                }
+            }
+
+            if(req.body.location_id && req.body.role_id){
+                if(req.body.role_id > 2){
+
+                    let 
+                    locAccModel = new LocationAccountRelation(),
+                    locAccData = await locAccModel.getByAccountIdAndLocationId(userData['account_id'], req.body.location_id);
+
+                    if(locAccData.length == 0){
+                        await locAccModel.create({
+                            'account_id' : userData['account_id'],
+                            'location_id' : req.body.location_id,
+                            'responsibility' : 'Tenant'
+                        });
+                    }
+
+                    let
+                    userEmModel = new UserEmRoleRelation(),
+                    emData = <any> await userEmModel.getEmRolesByUserId(req.body.user_id),
+                    hasRecord = false;
+
+                    if(emData.length > 0){
+                        for(let em of emData){
+                            if(em.location_id == req.body.location_id && em.em_roles_id == req.body.role_id){
+                                hasRecord = true;
+                            }
+                        }
+                    }
+
+                    if(!hasRecord){
+                        await userEmModel.create({
+                            'user_id' : req.body.user_id,
+                            'em_role_id' : req.body.role_id,
+                            'location_id' : req.body.location_id
+                        });
+                    }
+
+                }
+            }
+
+            if('training_reminder' in req.body){
+                let notiTokenModel = new NotificationToken(),
+                tokens = <any> await notiTokenModel.getByUserId(req.body.user_id);
+                if(tokens.length > 0){
+                    for(let tok of tokens){
+                        let updateTokenModel = new NotificationToken(tok['notification_token_id']);
+                        for(let i in tok){
+                            updateTokenModel.set(i, tok[i]);
+                        }
+                        updateTokenModel.set('training_reminder', req.body.training_reminder);
+                        await updateTokenModel.dbUpdate();
+                    }
                 }
             }
 
@@ -3114,6 +3178,9 @@ export class UsersRoute extends BaseRoute {
             user = new User(req.body.user_id);
             try {
                 await user.load();
+
+                console.log( user.getDBData() );
+
                 await user.create({
                     'mobility_impaired': 1
                 });
@@ -3484,5 +3551,41 @@ export class UsersRoute extends BaseRoute {
         res.send(response);
 
     }
+
+  public async updateNotificationSettings(req:AuthRequest, res:Response){
+    let 
+    notifiUserSettingsModel = new NotificationUserSettingsModel(),
+    response = {
+      status : true, data : <any> [], message : ''
+    },
+    body = req.body;
+
+    let records = <any> await notifiUserSettingsModel.getWhereUserId(body.user_id);
+    if(records.length == 0){
+      await notifiUserSettingsModel.create({
+        'user_id' : body.user_id,
+        'frequency' : body.frequency,
+        'one_month_training_reminder' : body.one_month_training_reminder
+      });
+    }else{
+      let latestId = 0;
+      for(let i in records){
+        if(parseInt(i) > 0){
+          let deleteModel = new NotificationUserSettingsModel( records[i]['notification_user_settings_id'] );
+          await deleteModel.delete();
+        }else if(parseInt(i) == 0){
+          let updateModel = new NotificationUserSettingsModel( records[i]['notification_user_settings_id'] );
+          updateModel.set('frequency', body.frequency);
+          updateModel.set('one_month_training_reminder', body.one_month_training_reminder);
+          updateModel.set('user_id', body.user_id);
+          updateModel.set('date_created', moment().format('YYYY-MM-DD'));
+          await updateModel.dbUpdate();
+        }
+      }
+    }
+
+    res.send(response);
+
+  }
 
 }

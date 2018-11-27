@@ -119,6 +119,7 @@ export class NotificationConfiguration extends BaseClass {
             throw new Error(err);
           }
           this.id = results.insertId;
+          console.log('Config ID is ' + results.insertId);
           this.dbData['notification_config_id'] = this.id;
           resolve(true);
         });
@@ -188,8 +189,10 @@ export class NotificationConfiguration extends BaseClass {
             console.log('Cannot load record NotificationConfiguration', sql_load);
             throw Error(error);
           }
-          this.dbData = results[0];
-          this.setID(results[0]['notification_config_id']);
+          if(results[0]){
+            this.dbData = results[0];
+            this.setID(results[0]['notification_config_id']);
+          }
           resolve(this.dbData);
         });
         connection.release();

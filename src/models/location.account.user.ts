@@ -330,6 +330,7 @@ export class LocationAccountUser extends BaseClass {
             const sql_load =
             `SELECT
                 user_role_relation.role_id,
+                user_role_relation.user_role_relation_id,
                 IF (user_role_relation.role_id = 1, 'Facility Responsible Person', 'Tenancy Responsible Person') as role_name,
                 lau.*,
                 u.first_name,
@@ -891,14 +892,14 @@ export class LocationAccountUser extends BaseClass {
                       ON
                         locations.location_id = location_account_user.location_id
                       LEFT JOIN
-                        locations as parent_location
+                        locations parent_location
                       ON
                         locations.parent_id = parent_location.location_id
                       WHERE
                         location_account_user.location_id IN (${locationStr})
                     AND
                       user_role_relation.role_id = 2`;
-
+                      
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);
@@ -916,6 +917,53 @@ export class LocationAccountUser extends BaseClass {
         
       });
     }
+
+    public getFRPinBuilding(buildingId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw Error(error);
+                }
+                const sql = `
+                SELECT
+                    users.user_id,
+                    users.first_name,
+                    users.last_name,
+                    users.email,
+                    accounts.account_name,
+                    location_account_user.location_id,
+                    'FRP' as role_name                   
+                FROM
+                    users
+                INNER JOIN
+                    location_account_user
+                ON
+                    users.user_id = location_account_user.user_id
+                INNER JOIN
+                    accounts
+                ON
+                  accounts.account_id = users.account_id
+                INNER JOIN
+                    user_role_relation
+                ON
+                    users.user_id = user_role_relation.user_id                
+                WHERE
+                    location_account_user.location_id = ?
+                AND
+                    user_role_relation.role_id = 1
+                `;
+                connection.query(sql, [buildingId],(err, results) => {
+                    if (err) {
+                        console.log('location_account_user.getFRPinBuilding', err, sql);
+                        throw Error(err);                        
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
 
 
 }
