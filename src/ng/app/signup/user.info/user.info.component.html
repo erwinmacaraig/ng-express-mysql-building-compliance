@@ -91,7 +91,7 @@
                             </div>
 
                             <div class="select-field col m12 s12" *ngIf="!invitationCodePresent">
-                                <select id="accountType" [(ngModel)]="selectAccountType" required disabled name="account_type">
+                                <select id="accountType" [(ngModel)]="selectAccountType" required disabled name="role_id" ngModel>
                                     <option value="-1" disabled selected>Please select account type</option>
                                     <option *ngFor="let utype of arrUserType" value="{{ utype.role_id }}"> {{ utype.description }} </option>
                                 </select>
@@ -241,5 +241,8 @@
             </p>
             <p style="font-size: 27px; line-height: 30px;">{{ modalLoader.message }}</p>
         </div>
+    </div>
+    <div class="modal-footer" *ngIf="modalLoader.showFooter"> 
+        <button class="btn-flat waves-effect" (click)="modalLoader.showFooterClose()"> Close </button> 
     </div>
 </div>

@@ -40,12 +40,14 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         showMessage : false,
         iconColor: 'green',
         icon: 'check',
-        message: 'Sign up successful! Please open your email and click the verification link.'
+        message: 'Sign up successful! Please open your email and click the verification link.',
+        showFooter : false,
+        showFooterClose : () => {}
     };
 
     elems = {};
 
-    roleId = 0;
+    roleId = <any> 0;
     selectAccountType = 0;
     securityQuestions = [];
     selectedSecurityQuestion = 0;
@@ -124,13 +126,22 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
     submitSignUpV2(form, btn){
         if(form.valid){
+             
+            let userData = form.value;
+
+            userData['role_id'] = parseInt(this.roleId);
+
+            this.modalLoader.showFooterClose = () => {
+                this.router.navigate(["/login"]);
+            };
+
             this.modalLoader.showLoader = true;
             this.modalLoader.showMessage = false;
 
             this.elems['modalSignup'].modal('close');
             this.elems['modalLoader'].modal('open');
 
-            this.signupService.submitSignUpV2(form.value).subscribe((res) => {
+            this.signupService.submitSignUpV2(userData).subscribe((res) => {
                 this.modalLoader.showLoader = false;
                 this.modalLoader.showMessage = true;
                 if(res.status){
@@ -143,6 +154,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
                     this.modalLoader.icon = 'close';
                     this.modalLoader.message = res.message;
                 }
+                this.modalLoader.showFooter = true;
             });
         }
     }
