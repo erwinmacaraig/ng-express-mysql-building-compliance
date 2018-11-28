@@ -209,7 +209,7 @@
 							<option value="view-{{location.location_id}}">View Location</option>
                             <option *ngIf="location.is_building == 1" value="compliance-{{location.location_id}}" >View Compliance</option>
 							<!-- <option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option> -->
-                            <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
+                            <!-- <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option> -->
 							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
 						</select>
