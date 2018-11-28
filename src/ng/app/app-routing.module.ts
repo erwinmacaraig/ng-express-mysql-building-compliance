@@ -120,6 +120,7 @@ const appRoutes: Routes = [
   { path: 'signup', component: SignupComponent,
       children : [
         { path : '', component : SignupSelectRoleComponent  },
+        { path : 'v2/user', component : SignupUserInfoComponent, data : { versionTwo : true  }  },
         { path : 'user', component : SignupUserInfoComponent  },
         { path: 'warden-signup', component: WardenSignupComponent },
         { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent },
