@@ -141,7 +141,7 @@
                             <option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId)" >Archive</option>
 							<option  [value]=" (list.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
                                 <span *ngIf="list.mobility_impaired == 0">Mark as peep</span>
-                                <span *ngIf="list.mobility_impaired == 1">Mark as healthy</span>
+                                <span *ngIf="list.mobility_impaired == 1">Remove from list</span>
                             </option>
                             <option value="invite" *ngIf="list.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
 						</select>
