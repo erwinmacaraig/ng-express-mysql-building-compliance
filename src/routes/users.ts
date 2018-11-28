@@ -1020,12 +1020,18 @@ export class UsersRoute extends BaseRoute {
 
         for(let user of response.data['users']){
             userIds.push(user.user_id);
+            
+            /*
             let lastLoginMoment = moment(user.last_login);
             if(lastLoginMoment.isValid()){
                 user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
             }else{
                 user.last_login = '';
             }
+            */
+           user.profilePic = '';
+           user.profile_pic = '';
+           user.last_login = '';
 
             user['mobility_impaired_details'] = [];
 
@@ -1609,7 +1615,8 @@ export class UsersRoute extends BaseRoute {
 
             if( Object.keys(user).length > 0 ) {
                 user['mobility_impaired_details'] = [];
-                user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
+                // user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
+                user['last_login'] = '';
                 user['password'] = null;
 
                 locations = await userModel.getAllMyEMLocations();
@@ -1674,10 +1681,10 @@ export class UsersRoute extends BaseRoute {
                         user['mobility_impaired_details'] = [];
                     }
                 }
-
+                /*
                 try {
                     await fileModel.getByUserIdAndType(userId, 'profile').then(
-                        (fileData) => {
+                        (fileData) => {                            
                             user['profilePic'] = fileData[0].url;
                         },
                         () => {
@@ -1687,6 +1694,16 @@ export class UsersRoute extends BaseRoute {
                 }catch(e) {
                     console.log(e);
                 }
+                */
+
+                try {
+                    const fileData = await fileModel.getByUserIdAndType(userId, 'profile');
+                    fileData[0].url = await new Utils().getAWSSignedURL(`${fileData[0].directory}/${fileData[0].file_name}`);
+                    user['profilePic'] = fileData[0].url;
+                } catch(e) {
+                    user['profilePic'] = '';
+                }
+
 
                 try {
 
