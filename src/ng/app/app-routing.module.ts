@@ -126,6 +126,7 @@ const appRoutes: Routes = [
   { path: 'signup', component: SignupComponent,
       children : [
         { path : '', component : SignupSelectRoleComponent  },
+        { path : 'v2/user', component : SignupUserInfoComponent, data : { versionTwo : true  }  },
         { path : 'user', component : SignupUserInfoComponent  },
         { path : 'v2/user', component : SignupUserInfoComponent, data : { versionTwo : true  }  },
         { path: 'warden-signup', component: WardenSignupComponent },

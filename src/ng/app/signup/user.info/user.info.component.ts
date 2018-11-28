@@ -40,12 +40,14 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
         showMessage : false,
         iconColor: 'green',
         icon: 'check',
-        message: 'Sign up successful! Please open your email and click the verification link.'
+        message: 'Sign up successful! Please open your email and click the verification link.',
+        showFooter : false,
+        showFooterClose : () => {}
     };
 
     elems = {};
 
-    roleId = 0;
+    roleId = <any> 0;
     selectAccountType = 0;
     securityQuestions = [];
     selectedSecurityQuestion = 0;
