@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewEncapsulation, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
@@ -12,11 +12,14 @@ import { SignupService } from '../../services/signup.service';
 import { AccountTypes } from '../../models/account.types';
 import { InvitationCode } from '../../models/invitation-code';
 import { AuthService } from '../../services/auth.service';
+import { LocationsService  } from '../../services/locations';
+import { AccountsDataProviderService } from '../../services/accounts';
 
 @Component({
     selector: 'app-signup-user-info',
     templateUrl: './user.info.component.html',
-    styleUrls: ['./user.info.component.css']
+    styleUrls: ['./user.info.component.css'],
+    providers : [AccountsDataProviderService]
 })
 export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy {
 
@@ -49,13 +52,19 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
     emailInvalidMessage = 'Invalid email';
 
+    versionTwo = false;
+     
+    @ViewChild('formSignInV2') formSignInV2 : NgForm;
+
     constructor(
         private router: Router,
         private activatedRoute: ActivatedRoute,
         private http: HttpClient,
         platformLocation: PlatformLocation,
         private signupService: SignupService,
-        private auth: AuthService
+        private auth: AuthService,
+        private locationsService: LocationsService,
+        private accountService: AccountsDataProviderService
     ) {
         this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
         this.options = { headers : this.headers };
@@ -63,6 +72,10 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
         this.roleId = this.activatedRoute.snapshot.queryParams['role_id'];
         this.selectAccountType = this.roleId;
+        if(this.activatedRoute.routeConfig.data.versionTwo){
+            this.versionTwo = true;
+            console.log('version two');
+        }
     }
 
     ngOnInit() {
@@ -103,6 +116,35 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
 
         this.elems['modalSignup'].modal('open');
         $('#accountType').val(this.selectAccountType).material_select();
+        if(this.versionTwo){
+            $('#roleId').val(this.selectAccountType).material_select();
+        }
+ 
+    }
+
+    submitSignUpV2(form, btn){
+        if(form.valid){
+            this.modalLoader.showLoader = true;
+            this.modalLoader.showMessage = false;
+
+            this.elems['modalSignup'].modal('close');
+            this.elems['modalLoader'].modal('open');
+
+            this.signupService.submitSignUpV2(form.value).subscribe((res) => {
+                this.modalLoader.showLoader = false;
+                this.modalLoader.showMessage = true;
+                if(res.status){
+                    this.modalLoader.iconColor = 'green'
+                    this.modalLoader.icon = 'check';
+                    this.modalLoader.message = 'We will review your request and we\'ll get back to you. Thank you!';
+                    this.elems['modalLoader'].modal('open');
+                }else{
+                    this.modalLoader.iconColor = 'red'
+                    this.modalLoader.icon = 'close';
+                    this.modalLoader.message = res.message;
+                }
+            });
+        }
     }
 
     resetFormElement(form){

@@ -114,4 +114,8 @@ export class SignupService {
         });
     }
 
+    submitSignUpV2(formData){
+        return this.http.post<any>(this.baseUrl + '/register/v2', formData);
+    }
+
 }
