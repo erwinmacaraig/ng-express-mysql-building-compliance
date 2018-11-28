@@ -703,18 +703,16 @@ export class UsersRoute extends BaseRoute {
 		};
 
 		const fu = new FileUploader(req, res, next);
-		const link = fu.uploadFile().then(
-			() => {
-				console.log(req.body.user_id);
-
+		fu.uploadFile(false, 'ProfilePic/').then(
+			(data: object) => {
+				
 				let filesModel = new Files(),
-					fileUserModel = new FileUser(),
-					awsPath = fu.getUploadedFileLocation();
+					fileUserModel = new FileUser();
 
 				filesModel.create({
-					file_name : req['file']['filename'],
-					url : awsPath,
-					directory : 'uploads',
+					file_name : data['filename'],
+					url : data['link'],
+					directory : 'ProfilePic',
 					uploaded_by : req.body.user_id,
 					datetime : moment().format('YYYY-MM-DD HH:mm:ss')
 				}).then(
@@ -726,7 +724,7 @@ export class UsersRoute extends BaseRoute {
 						}).then(
 							() => {
 								response.status = true;
-								response.data['url'] = awsPath;
+								response.data['url'] = data['link'];
 								res.send(response);
 							},
 							() => {
