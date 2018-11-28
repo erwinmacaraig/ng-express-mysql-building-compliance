@@ -189,6 +189,9 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 }
 
                 this.dashboardService.hide();
+                setTimeout(() => {
+                    $('.row.filter-container select').material_select();
+                }, 100);
             });
         });
 	}

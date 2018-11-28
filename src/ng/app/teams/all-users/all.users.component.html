@@ -65,9 +65,9 @@
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
 			<option value="archive" ><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span> selected</option>
-            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable">Send training invite to selected</option>
-            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable">Send training invite to all non-compliant</option>
-            <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
+            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to selected</option>
+            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to all non-compliant</option>
+            <option value="invite-all" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invtite to all</option>
 		</select>
 	</div>
 

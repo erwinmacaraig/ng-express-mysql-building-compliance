@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { LocationsService } from './../../services/locations';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { AuthService } from '../../services/auth.service';
@@ -108,6 +108,8 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         parent_id : 0
     };
 
+    showArchived = false;
+
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -117,7 +119,8 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         private dashboardService : DashboardPreloaderService,
         private locationService: LocationsService,
         private courseService : CourseService,
-        private accountService : AccountsDataProviderService
+        private accountService : AccountsDataProviderService,
+        private activatedRoute : ActivatedRoute
     ) {
 
         this.userData = this.authService.getUserData();
@@ -141,6 +144,35 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             setTimeout(() => {
                 $('.row.filter-container select.location').material_select();
             },500);
+        });
+
+        this.activatedRoute.queryParams.subscribe((params) => {
+            if(params['archived']){
+                this.showArchived = Boolean(params['archived']);
+                this.queries.archived = 1;
+            }else{
+                this.showArchived = false;
+                this.queries.archived = 0;
+            }
+
+
+            this.dashboardService.show();
+            this.getListData(() => { 
+                if(this.pagination.pages > 0){
+                    this.pagination.currentPage = 1;
+                    this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=this.pagination.pages; i++){
+                    this.pagination.selection.push({ 'number' : i });
+                }
+
+                this.dashboardService.hide();
+
+                setTimeout(() => {
+                    $('.row.filter-container select').material_select();
+                }, 100);
+            });
         });
     }
 
@@ -238,7 +270,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             }
             setTimeout(() => {
                 $('.row.filter-container select').material_select();
-            }, 100);
+            }, 1000);
         });
 
         $('#modalMobility select').material_select();
@@ -411,7 +443,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
 
     archiveClick(){
         this.showModalLoader = true;
-        this.userService.archiveUsers([this.selectedToArchive['user_id']], (response) => {
+        let cb = (response) => {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
@@ -419,7 +451,12 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.selectedToArchive = {
                 first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
             };
-        });
+        };
+        if(!this.showArchived){
+            this.userService.archiveUsers([this.selectedToArchive['user_id']], cb);
+        }else{
+            this.userService.unArchiveUsers([this.selectedToArchive['user_id']], cb);
+        }
     }
 
     singleCheckboxChangeEvent(list, event){
@@ -498,14 +535,20 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             arrIds.push(this.selectedFromList[i]['user_id']);
         }
 
-        this.userService.archiveUsers(arrIds, (response) => {
+        let cb = (response) => {
             $('#allLocations').prop('checked', false);
             this.showModalLoader = false;
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
             this.ngOnInit();
             this.selectedFromList = [];
-        });
+        };
+
+        if(!this.showArchived){
+            this.userService.archiveUsers(arrIds, cb);
+        }else{
+            this.userService.unArchiveUsers(arrIds, cb);
+        }
     }
 
     pageChange(type){
