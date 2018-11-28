@@ -32,36 +32,13 @@ export class FileUploader {
         },
         filename: (rq, file, callback) => {
           this.extname = this.getFileExtension(file.originalname);
-          this.filename = this.generateRandomChars(50) + '.' + this.extname;
-          this.filename = this.filename.replace(/\s+/g, '_') + '.' + this.extname;
+          this.filename = `${Date.now()}_` + file.originalname.replace(/\s+/g, '_');
           callback(null, this.filename);
         }
       });
 
     }
-
-    public getUploadDir() {
-      /*
-      let currentDir = String.raw``+__dirname,
-        separator = (currentDir.indexOf('/') > 0) ? '/' : "\\",
-        arr = currentDir.split(separator),
-        dir = '',
-        bSave = true;
-
-      arr.forEach((val) => {
-        if(val == 'dist'){
-          bSave = false;
-        }
-        if(bSave){
-          dir += val + separator;
-        }
-      });
-      dir += 'uploads'+separator;
-      console.log(dir);
-      return dir;
-      */
-    }
-
+    
     /**
     * To generate random characters
     * @return {String} characters
@@ -148,21 +125,26 @@ export class FileUploader {
                   console.log('error reading file from path ', this.req['file']['path']);
                   reject('Cannot upload file. Error reading file from path ' + this.req['file']['path']);
                 } else {
-                  resolve('File upload successful');
+                  // resolve('File upload successful');
                   fs.unlink(this.DIR + this.filename, () => {});
-                  /*
+                  
                   this.aws_s3.getSignedUrl('getObject', {
                     Bucket: this.aws_bucket_name,
-                    Key: this.filename
+                    Key: `${dir_structure}${this.filename}`
                   }, (ers, url) => {
                     if ( ers ) {
                       console.log('There was a problem getting the file from s3 ', ers);
                       throw ers;
                     }
                     console.log(url);
-                    return url;
+                    // return url;
+                    resolve({
+                      message: 'File upload successful',
+                      filename: this.filename,
+                      link: url
+                    });
                   });
-                  */
+                  
                 } // end else
               }); // end putObject
             } // end of reading bytes of the file

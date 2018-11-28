@@ -60,7 +60,7 @@
 	<div class="col l3 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Manage Action</option>
-			<option value="archive" *ngIf="!paramArchived">Archive selected</option>
+			<!--<option value="archive" *ngIf="!paramArchived">Archive selected</option> -->
             <option value="archive" *ngIf="paramArchived">Restore selected</option>
 		</select>
 	</div>
@@ -76,7 +76,7 @@
 					<th>
 						<p class="checkbox">
 							<input class="filled-in" id="allSelect" type="checkbox" (change)="selectAllChangeEvent($event)">
-							<label for="allSelect">Location Name</label>
+							<label for="allSelect">Building Name</label>
 						</p>
 					</th>
 					<th *ngIf="isFRP == true">Sub-location</th>
@@ -209,7 +209,7 @@
 							<option value="view-{{location.location_id}}">View Location</option>
                             <option *ngIf="location.is_building == 1" value="compliance-{{location.location_id}}" >View Compliance</option>
 							<!-- <option *ngIf="location.is_building == 0" value="compliance-{{location.parent_id}}" >View Compliance</option> -->
-                            <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option>
+                            <!-- <option *ngIf="!paramArchived" value="archive-{{location.location_id}}">Archive</option> -->
 							<option *ngIf="paramArchived" value="archive-{{location.location_id}}">Restore</option>
 							<!-- <option value="benchmark-{{location.location_id}}">Benchmark</option> -->
 						</select>

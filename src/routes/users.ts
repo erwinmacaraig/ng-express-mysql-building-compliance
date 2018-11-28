@@ -703,18 +703,16 @@ export class UsersRoute extends BaseRoute {
 		};
 
 		const fu = new FileUploader(req, res, next);
-		const link = fu.uploadFile().then(
-			() => {
-				console.log(req.body.user_id);
-
+		fu.uploadFile(false, 'ProfilePic/').then(
+			(data: object) => {
+				
 				let filesModel = new Files(),
-					fileUserModel = new FileUser(),
-					awsPath = fu.getUploadedFileLocation();
+					fileUserModel = new FileUser();
 
 				filesModel.create({
-					file_name : req['file']['filename'],
-					url : awsPath,
-					directory : 'uploads',
+					file_name : data['filename'],
+					url : data['link'],
+					directory : 'ProfilePic',
 					uploaded_by : req.body.user_id,
 					datetime : moment().format('YYYY-MM-DD HH:mm:ss')
 				}).then(
@@ -726,7 +724,7 @@ export class UsersRoute extends BaseRoute {
 						}).then(
 							() => {
 								response.status = true;
-								response.data['url'] = awsPath;
+								response.data['url'] = data['link'];
 								res.send(response);
 							},
 							() => {
@@ -1022,12 +1020,18 @@ export class UsersRoute extends BaseRoute {
 
         for(let user of response.data['users']){
             userIds.push(user.user_id);
+            
+            /*
             let lastLoginMoment = moment(user.last_login);
             if(lastLoginMoment.isValid()){
                 user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
             }else{
                 user.last_login = '';
             }
+            */
+           user.profilePic = '';
+           user.profile_pic = '';
+           user.last_login = '';
 
             user['mobility_impaired_details'] = [];
 
@@ -1611,7 +1615,8 @@ export class UsersRoute extends BaseRoute {
 
             if( Object.keys(user).length > 0 ) {
                 user['mobility_impaired_details'] = [];
-                user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
+                // user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
+                user['last_login'] = '';
                 user['password'] = null;
 
                 locations = await userModel.getAllMyEMLocations();
@@ -1676,10 +1681,10 @@ export class UsersRoute extends BaseRoute {
                         user['mobility_impaired_details'] = [];
                     }
                 }
-
+                /*
                 try {
                     await fileModel.getByUserIdAndType(userId, 'profile').then(
-                        (fileData) => {
+                        (fileData) => {                            
                             user['profilePic'] = fileData[0].url;
                         },
                         () => {
@@ -1689,6 +1694,16 @@ export class UsersRoute extends BaseRoute {
                 }catch(e) {
                     console.log(e);
                 }
+                */
+
+                try {
+                    const fileData = await fileModel.getByUserIdAndType(userId, 'profile');
+                    fileData[0].url = await new Utils().getAWSSignedURL(`${fileData[0].directory}/${fileData[0].file_name}`);
+                    user['profilePic'] = fileData[0].url;
+                } catch(e) {
+                    user['profilePic'] = '';
+                }
+
 
                 try {
 
