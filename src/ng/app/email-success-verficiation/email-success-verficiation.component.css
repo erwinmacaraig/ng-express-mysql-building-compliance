@@ -52,7 +52,7 @@ p {
 
 
 #modalMsg{
-    width: 90%;
+    width: 85%;
     top: calc(100% - 85%) !important;
 }
 
@@ -79,8 +79,10 @@ and (max-width: 1024px){
 
 .welcome-text{
     line-height: 31px;
-    font-size: 30px;
-    margin: 0px 0px 24px 0px;
+    font-size: 32px;
+    color: #39a1ff;
+    font-weight: 600;
+    margin: 0px 0px 24px 390px;
     text-transform: capitalize;
 }
 
@@ -88,7 +90,7 @@ and (max-width: 1024px){
     font-size: 20px;
     line-height: 25px;
     color: #757575;
-    margin: 5px 0px 25px 0px;
+    margin: 5px 0px 25px 110px;
     padding: 10px;
 }
 
@@ -118,7 +120,7 @@ and (max-width: 1024px){
  .middle-text{
 	font-size: 18px;
     line-height: 20px;
-    width: 250px;
+    width: 215px;
     padding: 10px 30px;
     text-align: center;
 }  
@@ -126,7 +128,7 @@ and (max-width: 1024px){
 .middle-text p{
 	font-size: 14px;
 }
-
+/*
 .middle-image .image{
     width: 69px;
     display: block;
@@ -135,6 +137,79 @@ and (max-width: 1024px){
     margin: 0 auto;
 }
 
-.image .mobility {
-    background: url(/assets/images/dash01.png) no-repeat;
+.middle-image .image .mobility {
+    width: 69px;
+    display: block;
+    height: 69px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+    background: url('/assets/images/dash01.png');
+}
+
+.middle-image {
+    width: 69px;
+    display: block;
+    height: 69px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+    background: url('/assets/images/dash01.png');
+}
+
+*/
+.middle-image-profile {
+    width: 130px;
+    display: block;
+    height: 130px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+    background: url('/assets/images/step_01.png') no-repeat;
+}
+
+.middle-image-status {
+    width: 130px;
+    display: block;
+    height: 130px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+    background: url('/assets/images/step_02.png') no-repeat;
+}
+
+.middle-image-warden {
+    width: 130px;
+    display: block;
+    height: 130px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+    background: url('/assets/images/step_03.png') no-repeat;
+}
+
+.middle-image-mobility {
+    width: 130px;
+    display: block;
+    height: 130px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+    background: url('/assets/images/step_04.png') no-repeat;
+}
+
+.middle-image-training {
+    width: 130px;
+    display: block;
+    height: 130px;
+    box-sizing: border-box;    
+    margin: 0 auto;
+    background: url('/assets/images/step_05.png') no-repeat;
+}
+
+
+
+
+
+
+.modal{
+    max-height: 100% !important;
+}
+.modal .modal-content {
+    padding-left: 175px;
+    padding-top: 90px;
 }
