@@ -964,6 +964,66 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    /**
+     * @method getAssignedLevelsFromBuildingOfTRP
+     * @param userid 
+     * user id of the TRP
+     * @param building
+     * location id of the building
+     * 
+     * @return 
+     * returns an array of sublocations where the user is assigned as a TRP
+     */
+    public getAssignedLevelsFromBuildingOfTRP(userid = 0, building=0, sublocations = []): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw Error(err);
+                }
+                let sqlWhereClause = `AND locations.parent_id = ${building}`
+                if (sublocations.length > 0) {
+                    const sublocationsStr = sublocations.join(',');
+                    sqlWhereClause = `AND locations.location_id IN (${sublocationsStr})`;
+                }
+                let sql = `
+                    SELECT
+                        location_account_user.location_account_user_id,
+                        locations.*
+                    FROM
+                        location_account_user
+                    INNER JOIN
+                        locations
+                    ON
+                        location_account_user.location_id = locations.location_id
+                    INNER JOIN
+                        users
+                    ON
+                        users.user_id = location_account_user.user_id
+                    INNER JOIN
+                        user_role_relation
+                    ON
+                        user_role_relation.user_id = location_account_user.user_id
+                    WHERE
+                        user_role_relation.role_id = 2
+                    AND
+                        location_account_user.user_id = ?
+                    ${sqlWhereClause}
+                    GROUP BY
+                location_account_user.location_id;`;
+                
+                connection.query(sql, [userid], (error, results) => {
+                    if (error) {
+                        console.log(`getAssignedLevelsFromBuildingOfTRP - ${sql}`);
+                        throw Error(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+
+        });
+    }
+
 
 
 }

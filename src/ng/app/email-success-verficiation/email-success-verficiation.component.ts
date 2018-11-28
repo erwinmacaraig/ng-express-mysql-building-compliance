@@ -31,7 +31,8 @@ export class EmailSuccessVerficiationComponent implements OnInit {
 
   showNotificationWardenList() {
     setTimeout(() => {
-      this.router.navigate(['/dashboard', 'notification-warden-list', this.notification_token]);
+      // this.router.navigate(['/dashboard', 'notification-warden-list', this.notification_token]);
+      this.router.navigate(['/dashboard', 'update-notified-trp-profile', this.notification_token]);      
     }, 1500);
 
   }

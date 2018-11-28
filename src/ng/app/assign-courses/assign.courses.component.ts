@@ -74,8 +74,8 @@ export class AssignCoursesComponent implements OnInit {
 			this.trainingRequirements = response.data;
 		});
 
-		this.courseService.getCourseUserRelation((response) => {
-			this.courseUserRelation = response.data;
+		this.courseService.getCourseUserRelation().subscribe((response) => {
+			this.courseUserRelation = response['data'];
 		});
 
 		if(this.isAuth === undefined){

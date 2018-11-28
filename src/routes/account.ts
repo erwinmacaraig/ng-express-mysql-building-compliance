@@ -1044,8 +1044,17 @@ const RateLimiter = require('limiter').RateLimiter;
 
   public async listNotificationConfig(req: AuthRequest, res: Response) {
     const configurator = new NotificationConfiguration();
-    const list = await configurator.generateConfigData(req.user.account_id);
+		// todo: check first if the user is an admin or not,
+		// if admin, no need to supply account id,
+		// if not, supply account id
 
+		let accountId = 0;
+		if (req.user.evac_role != 'admin') {
+			accountId = req.user.account_id;
+		}
+		const list = await configurator.generateConfigData(accountId);
+
+		
     return res.status(200).send({
       data: list
     });

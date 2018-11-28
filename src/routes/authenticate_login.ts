@@ -5,8 +5,8 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { Files } from '../models/files.model';
 import { Token } from '../models/token.model';
-import Validator from 'better-validator';
-import * as md5 from 'md5';
+import { Utils } from '../models/utils.model';
+
 import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
 
@@ -65,6 +65,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
 
         try{
             fileData = <any> await fileModel.getByUserIdAndType(userModel.get('user_id'), 'profile');
+            fileData[0].url = await new Utils().getAWSSignedURL(`${fileData[0].directory}/${fileData[0].file_name}`);
         }catch(e){
             fileData = false;
         }

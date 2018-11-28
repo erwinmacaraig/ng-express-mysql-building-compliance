@@ -39,7 +39,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getEmRolesByUserId(userId, archived?) {
+    public getEmRolesByUserId(userId, archived?): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
@@ -75,9 +75,8 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     if(!results.length){
                         reject('No role found');
-                    }else{
-                        this.dbData = results;
-                        resolve(this.dbData);
+                    }else{                        
+                        resolve(results);
                     }
                 });
 

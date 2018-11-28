@@ -413,8 +413,189 @@ export class UsersRoute extends BaseRoute {
         res.send( await new NotificationToken().getByUserId(req.params.userid) );
       });
 
+      router.post('/users/user-info/', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response) => {
+            new UsersRoute().getUserInfo(req, res);
+        }
+      );
+
+      router.post('/users/update-trp-assigned-location', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response ) => {
+            new UsersRoute().updateLocationAccountUser(req, res);
+        }
+      );
+
+      router.post('/users/training-info', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response) => {
+            new UsersRoute().userTrainingInfo(req, res);
+        }
+      )
+
     }
 
+    public userTrainingInfo(req: AuthRequest, res: Response) {
+        const emergencyRoles = JSON.parse(req.body.roles);
+        const user = req.body.user;
+        let requiredTrainings = [];
+        let requiredTrainingIds = [];
+        let validTrainings = [];
+        let invalidTrainings = [];
+        let invalidTrainingIds = [];
+
+        // get required trainings for the given role        
+        new TrainingRequirements().allEmRolesTrainings()
+            .then((trainingRequirements) => {
+                for (let tr of trainingRequirements) {
+                    if (emergencyRoles.indexOf(tr['em_role_id']) != -1) {
+                        requiredTrainingIds.push(tr['training_requirement_id']);
+                        requiredTrainings.push(tr);
+                    }                     
+                }
+                // search certifications
+                return new TrainingCertification().getCertificationsInUserIds(user);
+            })
+            .then((certificates) => {                
+                console.log(requiredTrainingIds);
+                for (let rtid of requiredTrainingIds) {                    
+                    const i = certificates.findIndex(cert => cert['training_requirement_id'] == rtid);                    
+                    const j = requiredTrainings.findIndex(rt => rt['training_requirement_id'] == rtid);                    
+                    
+                    if (i == -1) {
+                        invalidTrainings.push({
+                            'validity': 'non-compliant',                            
+                            ...requiredTrainings[j]
+                        });
+                        invalidTrainingIds.push(rtid);
+                    } else if (certificates[i]['validity'] == 'expired') {
+                        invalidTrainings.push({
+                            ...certificates[i],
+                            ...requiredTrainings[j]
+                        });
+                        invalidTrainingIds.push(rtid);
+                    } else {                        
+                        validTrainings.push({
+                            ...certificates[i],
+                            ...requiredTrainings[j]
+                        });
+                    }
+
+                }
+                if (invalidTrainings.length == 0) {
+                    return res.status(200).send({
+                        message: 'Success',
+                        required_trainings: requiredTrainings,
+                        valid_trainings: validTrainings,
+                        invalid_trainings: invalidTrainings
+                    });
+                }
+               /*
+               return new CourseUserRelation().getRelation({
+                    user: user,
+                    bulk_training_requirement: invalidTrainingIds
+               });
+               */
+              
+               
+              return new CourseUserRelation().getAllCourseForUser(user);
+                
+                
+            })            
+            .then((rels:Array<object>) => {
+                const invalidTrainingsWithCourse = [];
+                for (let trainings of invalidTrainings) {
+                    const i = rels.findIndex(r => r['training_requirement_id'] == trainings['training_requirement_id']);
+                    if (i == -1) {
+                        invalidTrainingsWithCourse.push({
+                            course_user_relation_id: 0,
+                            ...trainings
+                        });
+                    } else {
+                        invalidTrainingsWithCourse.push({
+                            ...rels[i],
+                            ...trainings
+                        });
+                    }
+                }
+                return res.status(200).send({
+                    message: 'Success',
+                    required_trainings: requiredTrainings,
+                    valid_trainings: validTrainings,
+                    invalid_trainings: invalidTrainingsWithCourse
+                });
+            })            
+            .catch((error_rel) => {
+                console.log(error_rel);
+                return res.status(400).send({
+                    message: 'cannot get relationships'
+                });
+            })
+            .catch((error_ct) => {
+                console.log(error_ct);
+                console.log('Error in getting certifications');
+                return res.status(400).send({
+                    message: 'cannot get certifications'
+                });
+            })
+            .catch((error_tr) => {
+                console.log('Error in getting training requirements');
+                return res.status(400).send({
+                    message: 'cannot get training requirements'
+                });
+            })
+
+    }
+
+
+    public updateLocationAccountUser(req: AuthRequest, res: Response) {
+        const locationAcctUserId = req.body.location_account_user;
+        const newLevelLocation = req.body.level_location;
+
+        const locAcctUserObj = new LocationAccountUser(locationAcctUserId);
+        locAcctUserObj.load().then((dbData) => {
+            dbData['location_id'] = newLevelLocation;
+            return locAcctUserObj.create(dbData);
+        })
+        .then(() => {
+            return res.status(200).send({
+                message: 'Update Successful'
+            });
+        })
+        .catch((e) => {
+            console.log('cannot update location account user data');
+            return res.status(400).send({
+                message: 'Unable to update location account user data'
+            });
+        })
+        .catch((e) => {
+            console.log('cannot load location account user data');
+            return res.status(400).send({
+                message: 'Unable to retrieve location account user data'
+            });
+        });
+
+    }
+
+
+    public getUserInfo(req: AuthRequest, res: Response) {
+        const userId = req.body.user;
+        const userObj = new User(userId);
+        userObj.load().then((data) => {
+            res.status(200).send({
+                user_id: data['user_id'],
+                first_name: data['first_name'],
+                last_name: data['last_name'],
+                email: data['email'],
+                phone_number: data['phone_number'],
+                mobile_number: data['mobile_number'],
+                mobility_impaired: data['mobility_impaired'], 
+                evac_role: data['evac_role']
+            });
+        }).catch((e) => {
+            res.status(400).send({
+                message: 'There was an error retrieving user info'
+            });
+        });
+    }
     public async checkIfAdmin(req: Request , res: Response){
 		let userModel = new User(req.params.user_id),
 			response = {
@@ -767,18 +948,17 @@ export class UsersRoute extends BaseRoute {
 		};
 
 		const fu = new FileUploader(req, res, next);
-		const link = fu.uploadFile().then(
-			() => {
+		const link = fu.uploadFile(false, 'ProfilePic/').then(
+			(data: object) => {
 				console.log(req.body.user_id);
 
 				let filesModel = new Files(),
-					fileUserModel = new FileUser(),
-					awsPath = fu.getUploadedFileLocation();
-
+                    fileUserModel = new FileUser();
+                    
 				filesModel.create({
-					file_name : req['file']['filename'],
-					url : awsPath,
-					directory : 'uploads',
+					file_name : data['filename'],
+					url : data['link'],
+					directory : 'ProfilePic',
 					uploaded_by : req.body.user_id,
 					datetime : moment().format('YYYY-MM-DD HH:mm:ss')
 				}).then(
@@ -790,7 +970,7 @@ export class UsersRoute extends BaseRoute {
 						}).then(
 							() => {
 								response.status = true;
-								response.data['url'] = awsPath;
+								response.data['url'] = data['link'];
 								res.send(response);
 							},
 							() => {

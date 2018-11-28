@@ -99,8 +99,10 @@ import { NotificationQueryComponent } from './notification/queries/notification-
 import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
 import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
 import { WardenNotificationComponent } from './notification/warden-notification/warden-notification';
-
+import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
+import { NotifiedTRPTrainingsComponent } from './notification/notified-trp-training/notified-trp-training.component';
 import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
+
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -151,7 +153,9 @@ const appRoutes: Routes = [
       { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
       { path: 'peep-form', component: PeepFormComponent },
       { path: 'warden-notification', component : WardenNotificationComponent },
-      { path: 'notification-summary-view/:token', component: SummaryViewComponent }
+      { path: 'notification-summary-view/:token', component: SummaryViewComponent },
+      { path: 'update-notified-trp-profile/:token', component: NotifiedTrpUpdateProfileComponent},
+      { path: 'trainings-for-notified-trp/:token', component: NotifiedTRPTrainingsComponent }
     ]
   },
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },

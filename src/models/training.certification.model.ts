@@ -248,10 +248,11 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
-  public getCertificationsInUserIds(userIds){
+  public getCertificationsInUserIds(userIds='0'): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
 
       let sql = `SELECT
+                  c.certifications_id,
                   c.training_requirement_id,
                   c.course_method,
                   c.certification_date,
@@ -264,7 +265,7 @@ export class TrainingCertification extends BaseClass {
                 FROM certifications c
                 INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
                 WHERE c.user_id IN (`+userIds+`) ORDER BY c.certification_date DESC`;
-
+      
       this.pool.getConnection((err, connection) => {
         if (err) {                    
             throw new Error(err);
@@ -273,9 +274,8 @@ export class TrainingCertification extends BaseClass {
         connection.query(sql, [], (error, results, fields) => {
           if (error) {
             throw new Error('Error on fetching certifications on getCertificationsInUserIds');
-          }
-
-          this.dbData = results;
+          }          
+          
           resolve(results);
         });
         connection.release();
@@ -622,8 +622,6 @@ export class TrainingCertification extends BaseClass {
 
       
     });
-  }
-
-
+  } 
 
 }

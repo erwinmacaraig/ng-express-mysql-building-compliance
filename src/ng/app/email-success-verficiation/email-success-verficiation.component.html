@@ -9,9 +9,10 @@
 </ng-template>
 
 <ng-template #stepsContent>
-    <div class="center-align">
+    <div>
+        <!--
         <p class="welcome-text">Welcome to EvacConnect's tenant confirmation process</p>
-        <!-- <p class="tag-text">You will be taken through below steps to validate the user data in EvacConnect</p> -->
+        <p class="tag-text">You will be taken through below steps to validate the user data in EvacConnect</p>
 
         <h4 class="blue-text font-28">Step 1 </h4>
         <h5 class="font-18"> Check and confirm the warden for your tenancy</h5>
@@ -20,11 +21,71 @@
         </h5>
         <h4 class="blue-text font-28">Step 2 </h4>
         <h5 class="font-18">Review your P.E.E.P list</h5>
+    -->
+    <div class="row">
+        <div class="col s12">
+            <p class="welcome-text">Welcome to EvacConnect</p>
+        </div>
+        <div class="col s12">
+            <p class="tag-text">Follow these simple steps to confirm you are the Tenant Responsible Person (TRP) for your location.</p>
+        </div>            
+    </div>
+    <div class="row">
+        <div class="col s2">
+            <div class="middle-image-profile">
+                <div class="image green-image"></div>
+            </div>
+            <div class="middle-text">
+                Step 1
+                <p class="blue-text">Review and update your profile</p>
+            </div>
+        </div>
+
+        <div class="col s2">
+                <div class="middle-image-status">
+                    <div class="image green-image"></div>
+                </div>
+                <div class="middle-text">
+                    Step 2
+                    <p class="blue-text">Take action on the status of your tenancy's warden</p>
+                </div>
+        </div>
+
+        <div class="col s2">
+                <div class="middle-image-warden">
+                    <div class="mobility"></div>
+                </div>
+                <div class="middle-text">
+                    Step 3
+                    <p class="blue-text">Check and confirm the warden for your tenancy</p>
+                </div>
+        </div>
+        <div class="col s2">
+                <div class="middle-image-mobility">
+                    <div class="image mobility"></div>
+                </div>
+                <div class="middle-text">
+                    Step 4
+                    <p class="blue-text">Review your current mobility impaired list</p>
+                </div>
+        </div>
+        <div class="col s2">
+                <div class="middle-image-training">
+                    <div class="image green-image"></div>
+                </div>
+                <div class="middle-text">
+                    Step 5
+                    <p class="blue-text">Check training compliance and download certificate</p>
+                </div>
+        </div>
+    </div>
+        
+        
     </div>
 </ng-template>
 
 <div id="modalMsg" class="modal">
-	<div class="modal-content center-align">
+	<div class="modal-content">
 		<div *ngIf="content == 'main'">
             <ng-container *ngTemplateOutlet="mainContent"></ng-container>
         </div>
