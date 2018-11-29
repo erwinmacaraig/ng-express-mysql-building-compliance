@@ -82,9 +82,9 @@
             <table class="striped">
                 <thead>
                     <tr class="grey darken-5 white-text">
+                        <th>Account</th>
                         <th>User</th>
                         <th>Email</th>
-                        <th>Account</th>
                         <th>Location</th>
                         <th>Role</th>
                         <th>Training Status & Date</th>
@@ -104,9 +104,9 @@
                         </td>
                     </tr>
                     <tr *ngFor="let re of results">
+                        <td>{{re.account_name}}</td>
                         <td>{{re.first_name}} {{re.last_name}}</td>
                         <td>{{re.email}}</td>
-                        <td>{{re.account_name}}</td>
                         <td>{{re.location_name}}</td>
                         <td>{{re.role_name}}</td>
                         <td>

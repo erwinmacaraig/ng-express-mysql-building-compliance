@@ -731,7 +731,7 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : 'Training Report',
             data : [], 
-            headers : ["User", "Email", "Account", "Location", "Role", "Training Status & Date"]
+            headers : ["Account", "User", "Email", "Location", "Role", "Training Status & Date"]
           };
 
           for(let re of response.data){
@@ -748,7 +748,7 @@ export class ReportsRoute extends BaseRoute {
                   }
                   compOrNot = 'Not Compliant '+desc;
               }
-              tblData.data.push([ re.first_name+' '+re.last_name, re.email, re.account_name, re.location_name, re.role_name, compOrNot + ' ' + re.certification_date_formatted ]);
+              tblData.data.push([ re.account_name, re.first_name+' '+re.last_name, re.email, re.location_name, re.role_name, compOrNot + ' ' + re.certification_date_formatted ]);
           }
            
           response['tables'].push(tblData);
@@ -1108,6 +1108,7 @@ export class ReportsRoute extends BaseRoute {
 
         for(let log of logs){
             log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY hh:mma');
+            log['date_of_activity_formatted'] = moment(log.date_of_activity).format('DD/MM/YYYY hh:mma');
             for(let loc of locations){
                 if(log.building_id == loc.location_id){
                     log['location_name'] = loc.name;
@@ -1144,10 +1145,10 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : 'Activity Report',
             data : [], 
-            headers : ['Locations', 'File name', 'Date']
+            headers : ['Locations', 'File name', 'Date Of Activity']
           };
           for(let d of response.data){
-            tblData.data.push([ d.location_name, d.file_name, d.timestamp_formatted ]);
+            tblData.data.push([ d.location_name, d.file_name, d.date_of_activity_formatted ]);
           }
           response['tables'].push(tblData);
 
@@ -1175,6 +1176,9 @@ export class ReportsRoute extends BaseRoute {
             csvData += '\n';
 
             for(let d of table.data){
+                d.forEach((item, index) => {
+                  d[index] =  (item != null) ? item.replace(/,/g, ' ') : '';
+                });
                 csvData += d.join(',');
                 csvData += '\n';
             }

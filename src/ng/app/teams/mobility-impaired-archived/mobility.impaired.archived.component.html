@@ -123,7 +123,7 @@
                             <option value="view" class="blue-text" *ngIf="peep.id_encrypted">View</option>
                             <option value="archive" class="blue-text" *ngIf="peep.user_id != userData.userId">Restore</option>
                             <option value="archive" class="blue-text" *ngIf="peep.user_invitations_id > 0">Restore</option>
-                            <option value="healthy" class="blue-text" >Mark as healthy</option>
+                            <option value="healthy" class="blue-text" >Remove from PEEP list</option>
                             <option value="invite" *ngIf="peep.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
                         </select>
                     </td>
@@ -262,13 +262,13 @@
 
             </div>
             <div class="col s12 m12 l12">
-                <h6>Assistant Type</h6>
+                <h6>Assistant Requirement</h6>
                 <div class="input-field">
                     <input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
                 </div>
             </div>
             <div class="col s12 m12 l12">
-                <h6>Evacuation Equipment Type / Requirement</h6>
+                <h6>Evacuation Equipment Requirement</h6>
                 <div class="input-field">
                     <input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
                 </div>
@@ -336,7 +336,7 @@
     <div class="modal-content">
         <h5>Confirm action</h5>
 
-        <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
+        <h6>Remove {{selectedPeep.first_name}} {{selectedPeep.last_name}} from PEEP list</h6>
 
     </div>
 
