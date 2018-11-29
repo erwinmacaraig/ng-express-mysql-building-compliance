@@ -433,6 +433,7 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN locations l ON l.location_id = em.location_id
                 WHERE u.archived = `+archived+` AND er.em_roles_id IN (9,10)
             `;
+
             if(accountid){
                 sql_load += ` AND u.account_id = `+accountid;
             }
@@ -440,7 +441,7 @@ export class UserEmRoleRelation extends BaseClass {
             if(locationIds){
                 sql_load += ` AND l.location_id IN (${locationIds}) `;
             }
-
+            
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     throw new Error(err);

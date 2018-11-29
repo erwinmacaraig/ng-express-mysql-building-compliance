@@ -1326,14 +1326,16 @@ const defs = require('../config/defs.json');
             parentId = (queries.parent_id) ? queries.parent_id : false;
 
         let
-            r = 0,
+            r = 100,
             EMRole = new UserEmRoleRelation(),
             temp,
             totalWardens = 0,
             userIds = [],
+            queryAccountId = req.user.account_id,
             response = <any> {
                 locations : []
             };
+           
 
         if(pagination){
             response['pagination'] = {
@@ -1347,19 +1349,27 @@ const defs = require('../config/defs.json');
 
         try {
           roles = await userRoleRel.getByUserId(req.user.user_id);
+          
           for(let role of roles){
               if(role['is_portfolio'] == 1){
                   isPortfolio = true;
               }
+              if (r > parseInt(role['role_id'],10)) {
+                  r = role['role_id'];                  
+              }
+          }
+          if (r == defs['Manager']) {
+            queryAccountId = 0;
           }
         } catch(e) { }
-
+        /*
         try {
           r = await userRoleRel.getByUserId(req.user.user_id, true);
         } catch(e) {
           console.log('location route get-parent-locations-by-account-d',e);
           r = 0;
         }
+        */
         filter['parentOnly'] = (parentId) ? false : parentOnly;
         filter['responsibility'] = r;
         filter['isPortfolio'] = isPortfolio;
@@ -1443,13 +1453,13 @@ const defs = require('../config/defs.json');
 
             loc['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds(locsIds.join(','));
 
-            wardens = <any> await emRolesModel.getWardensInLocationIds(sublocsids.join(','), 0, req.user.account_id);
+            wardens = <any> await emRolesModel.getWardensInLocationIds(sublocsids.join(','), 0, queryAccountId);
 
             loc['num_wardens'] = wardens.length;
             loc['wardens'] = wardens;
 
             let mobilityModel = new MobilityImpairedModel(),
-                impaired = <any> await mobilityModel.getImpairedUsersInLocationIds(locsIds.join(','), req.user.account_id);
+                impaired = <any> await mobilityModel.getImpairedUsersInLocationIds(locsIds.join(','), queryAccountId);
 
             loc['mobility_impaired'] = impaired.length;
 
