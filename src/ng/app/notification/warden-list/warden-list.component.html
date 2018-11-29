@@ -43,8 +43,8 @@
                                     <option value="profile">Update Profile</option>
                                     <option value="credential">Update Credential</option>
                                     <option value="location">Assign Location & Role</option>
-                                    <option value="markaspeep" *ngIf="warden.mobility_impaired == 0">Mark As Peep</option>
-                                    <option value="markashealthy" *ngIf="warden.mobility_impaired == 1">Mark As Healthy</option>
+                                    <option value="markaspeep" *ngIf="warden.mobility_impaired == 0">Mark as Peep</option>
+                                    <option value="markashealthy" *ngIf="warden.mobility_impaired == 1">Remove from PEEP list</option>
                                 </select>
                             </div>
                             <button class="btn red waves-effect waves-light archive-button" type="button" (click)="archiveClick(warden)">
@@ -386,7 +386,7 @@
     <div class="modal-content">
         <h5>Confirm action</h5>
 
-        <h6>Mark {{selectedUser.first_name}} {{selectedUser.last_name}} as Healthy</h6>
+        <h6>Remove {{selectedUser.first_name}} {{selectedUser.last_name}} from PEEP list</h6>
 
     </div>
 

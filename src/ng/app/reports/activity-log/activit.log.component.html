@@ -47,7 +47,7 @@
 					<tr class="grey darken-5 white-text">
 						<th>Locations</th>
 						<th>File Name</th>
-						<th style="width: 170px;">Date</th>
+						<th style="width: 170px;">Date Of Activity</th>
 					</tr>
 				</thead>
                 <tbody *ngIf="loadingTable">
@@ -71,7 +71,7 @@
                         <td>
                             <a href="{{log.url}}" target="blank"> {{log.file_name}} </a>
                         </td>
-                        <td>{{log.timestamp_formatted}}</td>
+                        <td>{{log.date_of_activity_formatted}}</td>
                     </tr>
                 </tbody>
 

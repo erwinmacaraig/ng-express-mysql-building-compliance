@@ -129,7 +129,7 @@
 							<option value="restore" class="blue-text" >Restore</option>
                             <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
                                 <span *ngIf="warden.mobility_impaired == 0">Mark as peep</span>
-                                <span *ngIf="warden.mobility_impaired == 1">Mark as healthy</span>
+                                <span *ngIf="warden.mobility_impaired == 1">Remove from PEEP list</span>
                             </option>
 						</select>
 					</td>
@@ -268,13 +268,13 @@
 
             </div>
             <div class="col s12 m12 l12">
-                <h6>Assistant Type</h6>
+                <h6>Assistant Requirement</h6>
                 <div class="input-field">
                     <input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
                 </div>
             </div>
             <div class="col s12 m12 l12">
-                <h6>Evacuation Equipment Type / Requirement</h6>
+                <h6>Evacuation Equipment Requirement</h6>
                 <div class="input-field">
                     <input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
                 </div>
@@ -317,7 +317,7 @@
     <div class="modal-content">
         <h5>Confirm action</h5>
 
-        <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
+        <h6>Remove {{selectedPeep.first_name}} {{selectedPeep.last_name}} from PEEP list</h6>
     </div>
 
     <div class="modal-footer" [hidden]="showModalLoader">
