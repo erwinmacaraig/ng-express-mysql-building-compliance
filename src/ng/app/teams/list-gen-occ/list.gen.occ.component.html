@@ -1,176 +1,166 @@
-<div class="row" *ngIf="!isAdministrationsShow">
-	<div class="col l12 m12 s12" style="position: relative;">
-		<h4>All Users</h4>
-		<a href="#" class="archived" [routerLink]="['/teams/all-archived-users']">
-			<span class="image"></span>
-			View Archive
-		</a>
-	</div>
-</div>
+<div class="row top">
+	<div class="col l12 m12 s12">
+		<h4> <span *ngIf="showArchived">Archived</span> General Occupant </h4>
+		<div class="right-actions">
+			<!-- <div class="switch-container">
+				<div class="text">Show only not compliant</div>
+				<div class="switch">
+					<input type="checkbox">
+					<div class="yes">Yes</div>
+					<div class="no">No</div>
+					<div class="highlight"></div>
+					<div class="background"></div>
+				</div>
+			</div> -->
+			<div class="archived-container">
+				<a  [routerLink]="['/teams/list-general-occupant']" [queryParams]="{ 'archived' : true }" *ngIf="!showArchived">
+					<div class="image"></div>
+					View Archive
+				</a>
 
-<div class="row" *ngIf="isAdministrationsShow">
-    <div class="col l12 m12 s12" style="position: relative;">
-        <h4 *ngIf="!showArchived">Administrators</h4>
-        <h4 *ngIf="showArchived">Archived Administrators</h4>
-        <a href="#" class="archived" *ngIf="!showArchived" [routerLink]="['/teams/list-administrators']" [queryParams]="{ 'archived' : true }">
-            <span class="image"></span>
-            View Archive
-        </a>
-        <a href="#" class="archived" *ngIf="showArchived" [routerLink]="['/teams/list-administrators']" >
-            <span class="image"></span>
-            View Active
-        </a>
-    </div>
+                <a  [routerLink]="['/teams/list-general-occupant']"  *ngIf="showArchived">
+                    <div class="image"></div>
+                    View Active
+                </a>
+			</div>
+		</div>
+	</div>
 </div>
 
 <div class="row filter-container">
-	<div class="col l2 m6 s12 margin-bottom-20" *ngIf="!isAdministrationsShow">
-		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-user']">
-			<span class="image"></span>
-			Add New User
+	<div class="col l2 m6 s12" *ngIf="!showArchived">
+		<button class="btn orange waves-effect waves-light btn-add-warden" [routerLink]="['/teams/add-general-occupant']">
+			<div class="image"></div>
+			Add General Occupant
 		</button>
 	</div>
 
-    <div class="col l2 m6 s12 margin-bottom-20" *ngIf="isAdministrationsShow && !showArchived">
-        <button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-administrators']">
-            <span class="image"></span>
-            Add New Administrators
-        </button>
-    </div>
-
-	<div class="col l3 m6 s12 margin-bottom-20" [ngClass]="{ 'l5' : showArchived }">
+	<div class="col l5 m6 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
 	</div>
 
-	<div class="col l2 m6 s6 margin-bottom-20">
+	<!-- <div class="col l2 m4 s6">
 		<select class="filter-by">
 			<option value="0" selected>Filter By (All)</option>
-            <!-- <option value="pending" >Pending</option> -->
-            <!-- <option value="no_roles" >No Roles</option> -->
+            <option value="pending" >Pending</option>
 			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
-	</div>
-
-	<div class="col l3 m6 s6 margin-bottom-20">
+	</div> -->
+    
+    <div class="col l3 m6 s12">
         <select class="location">
             <option value="0" selected>All Locations</option>
             <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
         </select>
     </div>
-
-	<div class="col l2 m6 s6 margin-bottom-20">
+	<!-- <div class="col l2 m6 s6">
+        <select class="sort-by">
+            <option value="0" selected>Sort By</option>
+            <option value="user-name-desc">User Name Descending</option>
+            <option value="user-name-asc">User Name Ascending</option>
+        </select>
+    </div> -->
+	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
-			<option value="0" selected disabled>Select Action</option>
-			<option value="archive" ><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span> selected</option>
+			<option value="0" selected>Manage Action</option>
+            <option value="archive"  *ngIf="!showArchived">Archive selected</option>
+			<option value="archive" *ngIf="showArchived">Restore selected</option>
             <option value="invite-selected" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to selected</option>
             <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to all non-compliant</option>
             <option value="invite-all" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invtite to all</option>
 		</select>
 	</div>
-
 </div>
 
 
 <div class="row">
 	<div class="col l12 m12 s12">
-
-		<table class="table striped table-peep">
+		<table class="table striped">
 			<thead>
 				<tr>
 					<th>
 						<p class="checkbox">
 							<input id="allLocations" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
-							<label for="allLocations">Building Name</label>
+							<label for="allLocations">Locations</label>
 						</p>
 					</th>
 					<th>Name</th>
-					<th>Email</th>
-					<th>Account</th>
-					<th style="width: 20%;">Role</th>
+					<th style="width: 20%;">ECO Role</th>
 					<th>Training</th>
+					<th>Last Login</th>
 					<th>Action</th>
 				</tr>
 			</thead>
 			<tbody [hidden]="loadingTable">
-				<tr *ngIf="listData.length == 0">
-					<td colspan="7" class="center-align">
-						<h6>No records found</h6>
+				<tr *ngIf="wardenArr.length == 0">
+					<td colspan="6" class="center">
+						<h6>No record found</h6>
 					</td>
 				</tr>
-				<tr *ngFor="let list of listData; let i = index;">
+				<tr *ngFor="let warden of wardenArr; let i = index">
 					<td>
+
 						<p class="checkbox" >
-							<input id="location-{{i}}"  class="filled-in" [disabled]="allAreSelected" type="checkbox" (change)="singleCheckboxChangeEvent(list, $event)" [checked]="list.isselected"  >
-							<label for="location-{{i}}" ></label>
-                            <a  (click)="clickMultipleLocation(list.locations)" *ngIf="list.locations.length > 1">Multiple locations</a>
-                            <span *ngIf="list.locations.length == 1">
-                                <a [routerLink]="['/location/view/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] > 0">
-                                    {{list.locations[0].name}}
+                            <input id="location-{{i}}" [disabled]="allAreSelected" [checked]="warden.isselected" class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+                            <label for="location-{{i}}" ></label>
+                            <a  (click)="clickMultipleLocation(warden.locations)" *ngIf="warden.locations.length > 1">Multiple locations</a>
+                            <span *ngIf="warden.locations.length == 1">
+                                <a [routerLink]="['/location/view/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] > 0">
+                                    {{warden.locations[0].name}}
                                 </a>
 
-                                <a [routerLink]="['/location/view-sublocation/', list.locations[0]['enc_location_id']]" *ngIf="list.locations[0]['sublocations_count'] == 0">
-                                    {{list.locations[0].name}}
+                                <a [routerLink]="['/location/view-sublocation/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] == 0">
+                                    {{warden.locations[0].name}}
                                 </a>
                             </span>
 						</p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="list.bg_class" *ngIf="list.profile_pic.trim().length > 0">
+						<div *ngIf="warden.profile_pic.length > 0" class="image-container lighten-3" [ngClass]="warden.bg_class">
 							<div class="image">
-								<img *ngIf="list.profile_pic.trim().length > 0" [src]="list.profile_pic.trim()"  >
+								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
 							</div>
 						</div>
 						<div class="text">
-							<a [routerLink]="['/teams/view-user/', list.id_encrypted]">
-								{{list.first_name}} {{list.last_name}}
+							<a [routerLink]="['/teams/view-user/', warden.id_encrypted]">
+								{{warden.first_name}} {{warden.last_name}}
 							</a>
 						</div>
 					</td>
-					<td>{{list.email}}</td>
-					<td>{{list.account_name}}</td>
 					<td class="with-image role-name">
-						<div *ngIf="list.mobility_impaired == 1" class="impaired"></div>
-						<span *ngFor="let role of list.roles; let ri = index;" class="name">
-							{{role.role_name}}<i *ngIf=" list.roles.length - 1 != ri ">,</i>
-						</span>
-						<!--
-						<div class="image frp" *ngIf="list.role_id == 1 && list.user_info.mobility_impaired == 0"></div>
-						<div class="image trp" *ngIf="list.role_id == 2 && list.user_info.mobility_impaired == 0"></div>
-						<div class="image user" *ngIf="list.role_id != 1 && list.role_id != 2 && list.user_info.mobility_impaired == 0"></div>
-						<div *ngIf="list.user_info.mobility_impaired == 1" class="impaired"></div>
-
-						<span *ngIf="list.role_id == 1" class="name">FRP</span>
-						<span *ngIf="list.role_id == 2" class="name">TRP</span>
-						<span *ngIf="list.role_id != 1 && list.role_id != 2 && list.role_name"  class="name" >
-							{{list.role_name}}
-						</span>
-						-->
+						<div class="eco-role">
+							<!-- <div class="image"></div> -->
+							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
+							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
+								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i>
+							</span>
+						</div>
 					</td>
-					<td *ngIf="list.em_roles.length > 0">
-                        <!-- <span [ngClass]="{'red-text': list.assigned_courses == 0 && list.trainings == 0, 'green-text': list.assigned_courses > 0 || list.trainings > 0}">{{list.assigned_courses}}/{{list.trainings}}</span> -->
-                        <span *ngIf="list.trainings == 0" class="red-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
-                        <span *ngIf="list.trainings > 0 && list.trainings < (list.trids.length + list.misc_trainings.length)" class="orange-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
-                        <span *ngIf="list.trainings == (list.trids.length + list.misc_trainings.length)" class="green-text">{{list.trainings}} / {{list.trids.length + list.misc_trainings.length}}</span>
+					<td>
+                        <span *ngIf="warden.trainings == 0" class="red-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
+                        <span *ngIf="warden.trainings > 0 && warden.trainings < (warden.trids.length + warden.misc_trainings.length)" class="orange-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
+                        <span *ngIf="warden.trainings == (warden.trids.length + warden.misc_trainings.length)" class="green-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
 					</td>
-                    <td *ngIf="list.em_roles.length == 0">
-                    </td>
-					<td *ngIf="list.profile_completion == 1">
-						<select (change)="onSelectFromTable($event, list)">
-							<option value="0" class="blue-text" selected disabled>Select action</option>
+					<td>
+						{{warden['last_login']}}
+					</td>
+					<td *ngIf="warden.profile_completion == 1">
+						<select (change)="onSelectFromTable($event, warden)">
+							<option value="0" class="blue-text" selected>Manage</option>
 							<option value="view" class="blue-text">View</option>
-                            <option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId)" *ngIf="!showArchived">Archive</option>
-                            <option value="restore" class="blue-text" [hidden]="(list.user_id == userData.userId)" *ngIf="showArchived">Restore</option>
-							<option  [value]=" (list.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" *ngIf="!showArchived">
-                                <span *ngIf="list.mobility_impaired == 0">Mark as peep</span>
-                                <span *ngIf="list.mobility_impaired == 1">Remove from PEEP list</span>
+                            <option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId" *ngIf="!showArchived">Archive</option>
+							<option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId" *ngIf="showArchived">Restore</option>
+                            <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" *ngIf="!showArchived">
+                                <span *ngIf="warden.mobility_impaired == 0">Mark as peep</span>
+                                <span *ngIf="warden.mobility_impaired == 1">Mark as healthy</span>
                             </option>
-                            <option value="invite" *ngIf="list.sendinvitation && isOnlineTrainingAvailable && !showArchived" class="blue-text">Send invitation</option>
+                            <option value="invite" *ngIf="warden.sendinvitation && isOnlineTrainingAvailable && !showArchived" class="blue-text">Send invitation</option>
 						</select>
 					</td>
-                    <td *ngIf="list.profile_completion == 0"> 
+                    <td *ngIf="warden.profile_completion == 0"> 
                         <span class="red-text">Pending Profile Completion</span>
                     </td>
 				</tr>
@@ -189,9 +179,9 @@
 </div>
 
 <div class="row">
-	<div class="col l12 m12 s12 center pagination" [hidden]="listData.length == 0 || pagination.total <= queries.limit || loadingTable">
+	<div class="col l12 m12 s12 center pagination" [hidden]="wardenArr.length == 0 || pagination.total <= queries.limit || loadingTable">
 		<div class="inline-block">
-			<button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1"> Prev </button>
+			<button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1" > Prev </button>
 		</div>
 
 		<div class="inline-block select">
@@ -205,6 +195,7 @@
 		</div>
 	</div>
 </div>
+
 
 <div id="modalArchive" class="modal">
 	<div class="modal-content center" [hidden]="!showModalLoader">
@@ -229,10 +220,11 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()"><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span></a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span>
+        </a>
 	</div>
 </div>
-
 
 <div id="modalArchiveBulk" class="modal">
 	<div class="modal-content center" [hidden]="!showModalLoader">
@@ -251,7 +243,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span> the following users?
+			Are you sure you want restore the following users?
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
@@ -262,10 +254,11 @@
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
 		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">
-            <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>      
+            <span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span>
         </a>
 	</div>
 </div>
+
 
 <div id="modalSelectMultipleLocations" class="modal">
 
@@ -310,7 +303,7 @@
 
     <form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
-    <div class="modal-content" [hidden]="showModalLoader">
+    <div class="modal-content">
         <h5>Mobility Impaired Information For {{selectedPeep.first_name}} {{selectedPeep.last_name}}</h5>
         <div class="row">
             <div class="col s12 l6 m6">
@@ -324,20 +317,20 @@
             </div>
             <div class="col s12 l6 m6">
                 <div class="input-field">
-                    <span style=" font-size: 16px;">Review Date</span>
+                    <span style=" font-size: 16px;">Mobility Impaired Upto</span>
                     <ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
                     <input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
                 </div>
 
             </div>
             <div class="col s12 m12 l12">
-                <h6>Assistant Requirement</h6>
+                <h6>Assistant Type</h6>
                 <div class="input-field">
                     <input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
                 </div>
             </div>
             <div class="col s12 m12 l12">
-                <h6>Evacuation Equipment Requirement</h6>
+                <h6>Evacuation Equipment Type / Requirement</h6>
                 <div class="input-field">
                     <input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
                 </div>
@@ -377,10 +370,10 @@
         </div>
     </div>
 
-    <div class="modal-content" [hidden]="showModalLoader">
+    <div class="modal-content">
         <h5>Confirm action</h5>
 
-        <h6>Remove {{selectedPeep.first_name}} {{selectedPeep.last_name}} from PEEP list</h6>
+        <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
     </div>
 
     <div class="modal-footer" [hidden]="showModalLoader">

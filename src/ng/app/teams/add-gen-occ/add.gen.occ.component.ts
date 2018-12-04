@@ -13,30 +13,32 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { ExportToCSV } from '../../services/export.to.csv';
 import { MessageService } from '../../services/messaging.service';
 
 declare var $: any;
 @Component({
-    selector: 'app-add-user',
-    templateUrl: './add.user.component.html',
-    styleUrls: ['./add.user.component.css'],
-    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService]
+    selector: 'app-teams-add-general-occupant',
+    templateUrl: './add.gen.occ.component.html',
+    styleUrls: ['./add.gen.occ.component.css'],
+    providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService, ExportToCSV, MessageService]
 })
-
-export class AddUserComponent implements OnInit, OnDestroy {
-	@ViewChild('f') addWardenForm: NgForm;
+export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
+    @ViewChild('f') addWardenForm: NgForm;
     @ViewChild('invitefrm') emailInviteForm: NgForm;
     @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
+    public addedUsers = [];
     public userProperty = {
         first_name : '',
         last_name : '',
         email : '',
+        role_id : 0,
         account_role_id : 0,
         account_location_id : 0,
         eco_role_id : 0,
-        eco_location_id : 0,
         location_name : 'Select Location',
         location_id : 0,
+        contact_number : '',
         mobile_number : '',
         selected_roles : [],
         new_account : {
@@ -48,6 +50,9 @@ export class AddUserComponent implements OnInit, OnDestroy {
         },
         errors : {}
     };
+
+    public csvValidRecords = [];
+    public csvInvalidRecords = [];
     private userRole;
     public accountRoles;
     public ecoRoles;
@@ -58,18 +63,18 @@ export class AddUserComponent implements OnInit, OnDestroy {
     public locationsCopy = [];
     public userData = {};
     public selectedUser = {};
-    public addedUsers = [];
-    showLoadingButton = false;
-
     public bulkEmailInvite;
     public CSVFileToUpload;
+    public csvHeaderNames;
+    public recordOverride;
+    droppedFile;
 
     public routeSub;
-    private paramRole = '';
-    private paramLocIdEnc = '';
-    private paramLocId = '';
+    public paramLocIdEnc = '';
+    public paramLocId = '';
 
     searchModalLocationSubs;
+    showLocationsRecursive = false;
     formLocValid = false;
 
     selectRolesDropdown = [];
@@ -81,10 +86,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
         unSelectAllText: 'UnSelect All',
         itemsShowLimit: 1,
         allowSearchFilter: false,
-        enableCheckAll: false
+        enableCheckAll: false,
+        noDataAvailablePlaceholderText: 'Fetching data from server'
     };
-
-    isAdministrationsShow = false;
+    selectRoleDropDownGenOct = {};
 
     constructor(
         private authService: AuthService,
@@ -96,6 +101,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         private actRoute : ActivatedRoute,
         private encdecrypt : EncryptDecryptService,
         private adminService : AdminService,
+        private exportToCSV : ExportToCSV,
         private messageService: MessageService
         ) {
 
@@ -105,77 +111,52 @@ export class AddUserComponent implements OnInit, OnDestroy {
             if('location_id' in params){
                 this.paramLocIdEnc = params.location_id;
                 this.paramLocId = this.encdecrypt.decrypt(params.location_id);
-                this.paramRole = params.role;
             }
         });
-
-        if(this.router.url.indexOf("/teams/add-administrators") > -1){
-            this.isAdministrationsShow = true;
-        }
     }
 
-    ngOnInit(){
-        this.accountRoles = [
-            {
-                role_id: 2,
-                role_name: 'Tenancy Responsible Personnel',
-                selected : (this.paramRole == 'tenant') ? true : false
-            }
+    ngOnInit() {
+        this.accountRoles = [{
+            role_id: 3,
+            role_name: 'User'
+        },
+        {
+            role_id: 2,
+            role_name: 'Tenant'
+        }
         ];
-        /*this.selectRolesDropdown.push({
-            role_id : 2, role_name : 'Add Tenant'
-        });*/
-
         this.userRole = this.authService.getHighestRankRole();
         if (this.userRole == 1) {
             this.accountRoles.push({
                 role_id: 1,
-                role_name: 'Building Manager',
-                selected : (this.paramRole == 'building manager') ? true : false
-            });
-
-            this.selectRolesDropdown.push({
-                role_id : 1, role_name : 'Building Manager'
-            });
-        }
-        if(this.userRole == 1 || this.userRole == 2){
-            this.selectRolesDropdown.push({
-                role_id : 2, role_name : 'Tenant'
+                role_name: 'Building Manager'
             });
         }
 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
-            this.ecoRoles = roles;
-            for(let i in roles){
-                if(roles[i]['em_roles_id'] != 12){
-                    this.accountRoles.push({
-                        role_id : roles[i]['em_roles_id'],
-                        role_name : roles[i]['role_name']
-                    });
-
-                    this.selectRolesDropdown.push({
-                        role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
-                    });
-                }
-            }
-
-            if(this.paramRole.length > 0){
-                let newAccRole = [];
-                for(let i in this.accountRoles){
-                    if(this.accountRoles[i]['selected']){
-                        newAccRole.push(this.accountRoles[i]);
+                this.ecoRoles = roles;
+                for(let i in roles){
+                    if(roles[i]['em_roles_id'] != 12){
+                        this.selectRolesDropdown.push({
+                            role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
+                        });
+                    }
+                    if(roles[i]['em_roles_id'] == 8){
+                        this.selectRoleDropDownGenOct = {
+                            role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
+                        }
                     }
                 }
-
-                this.accountRoles = newAccRole;
+                this.userProperty.selected_roles.push(this.selectRoleDropDownGenOct);
+                this.dashboardPreloaderService.show();
+            }, (err) => {
+                this.dashboardPreloaderService.show();
+                console.log('Server Error. Unable to get the list');
             }
-        }, (err) => {
-            console.log('Server Error. Unable to get the list');
-        }
         );
 
-        this.dashboardPreloaderService.show();
+        // this.dashboardPreloaderService.show();
 
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response:any) => {
             this.locations = JSON.parse( JSON.stringify( response.locations ) );
@@ -197,94 +178,103 @@ export class AddUserComponent implements OnInit, OnDestroy {
         });
 
         this.onKeyUpSearchModalLocationEvent();
-        this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Add Users by CSV Upload'  } });
-
-        $('#modalAddNewTenant').off('click.sametrp').on('click.sametrp', '#inputSameAs', (e) => {
-            let target = $(e.target),
-                checked = target.prop('checked'),
-                trpFirstName = $('#trpFirstName'),
-                trpLastName = $('#trpLastName'),
-                trpEmail = $('#trpEmail');
-
-            if(checked){
-                trpFirstName.val(this.selectedUser["first_name"]).prop("disabled", true);
-                trpLastName.val(this.selectedUser["last_name"]).prop("disabled", true);
-                trpEmail.val(this.selectedUser["email"]).prop("disabled", true);
-            }else{
-                trpFirstName.val("").prop("disabled", false);
-                trpLastName.val("").prop("disabled", false);
-                trpEmail.val("").prop("disabled", false);
-            }
-            window['Materialize'].updateTextFields();
-        });
+        this.messageService.sendMessage({ 'csv-upload' : {  'title' : 'Nominate Wardens by CSV Upload'  } });
 
         let breadCrumbs = [];
-        if(!this.isAdministrationsShow){
-            breadCrumbs.push({
-              'value' : 'All users', 'link' : '/teams/all-users'
-            });
-            breadCrumbs.push({
-              'value' : 'Add new users', 'link' : '/teams/add-user'
-            });
-        }else{
-            breadCrumbs.push({
-              'value' : 'Administrators', 'link' : '/teams/list-administrators'
-            });
-            breadCrumbs.push({
-              'value' : 'Add new administrators', 'link' : '/teams/add-administrators'
-            });
-        }
+        breadCrumbs.push({
+          'value' : 'General Occupant', 'link' : '/teams/list-general-occupant'
+        });
+        breadCrumbs.push({
+          'value' : 'Add General Occupant', 'link' : '/teams/add-general-occupant'
+        });
         this.messageService.sendMessage({ 'breadcrumbs' : breadCrumbs });
     }
 
     onSelectRole($event, iterator, elem){
 
-        /*this.selectedUser = this.addedUsers[iterator];
+        this.selectedUser = this.addedUsers[iterator];
 
-        if($event.role_id == 2){
-            let newSelected = [];
-            for(let i in this.addedUsers[iterator]['selected_roles']){
-                if(this.addedUsers[iterator]['selected_roles'][i]['role_id'] != 2){
-                    newSelected.push(this.addedUsers[iterator]['selected_roles'][i]);
+        console.log(this.selectedUser);
+    }
+
+    filterLocationForSelectedValue(){
+        let selected = {};
+        let loopAddKey = (data, mainParent?) => {
+            for(let i in data){
+                if(typeof mainParent === 'undefined'){
+                    mainParent = JSON.parse(JSON.stringify(data[i]));
+                }else if(mainParent.location_id != data[i]['location_id'] && data[i]['parent_id'] == -1){
+                    mainParent = JSON.parse(JSON.stringify(data[i]));
+                }
+
+                if(this.paramLocIdEnc.length > 0){
+                    if(this.paramLocId == data[i]['location_id']){
+                        if('location_id' in mainParent){
+                            selected = mainParent;
+                        }else{
+                            selected = data[i];
+                        }
+                    }
+                }
+
+                if(mainParent){
+                    data[i]['main_parent'] = (mainParent.location_id != data[i]['location_id']) ? mainParent : {};
+                }else{
+                    data[i]['main_parent'] = {};
+                }
+
+                if(data[i]['sublocations'].length > 0){
+                    loopAddKey(data[i]['sublocations'], mainParent);
                 }
             }
+        };
 
-            this.addedUsers[iterator]['selected_roles'] = newSelected;
+        loopAddKey(this.locations);
 
-            elem.closeDropdown();
-            $('#modalAddNewTenant').modal('open');
-            $('#inputSameAs').prop('checked', false).trigger('click');
-        }
+        return [selected];
+    }
 
-        console.log(this.selectedUser);*/
+    showModalInvite(){
+        $('#modalInvite').modal('open');
     }
 
     addMoreRow(){
 		//a copy
 		let prop = JSON.parse(JSON.stringify(this.userProperty));
+		this.addedUsers.push( prop );
 
-        if(this.paramRole.length > 0){
-            for(let i in this.accountRoles){
-                if(this.accountRoles[i]['selected']){
-                    prop.account_role_id = this.accountRoles[i]['role_id']
+        for ( let r of this.ecoRoles ) {
+            if (r.is_warden_role == 1) {
+                if(!this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ]){
+                    this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ] =  [];
                 }
+                (this.ecoDisplayRoles[  Object.keys(this.addedUsers).length - 1 ]).push(r);
             }
         }
 
-        this.addedUsers.push( prop );
-
         setTimeout(() => {
-            $("form table tbody tr:last-child").find('input.first-name').focus();
+            $('form table tbody tr:last-child').find('input.first-name').focus();
         },300);
+    }
 
-        setTimeout(() => {
-            $('.multiselect-item-checkbox').each(function(){
-                let divText = $(this).find('div').text();
-                if(divText.toLowerCase() == 'add tenant'){
-                    $(this).children('div').replaceWith('<p>+Add New Tenant</p>');
+    onSelectedAccountRole(srcId: number) {
+        let r = this.addWardenForm.controls['accountRole' + srcId].value * 1;
+        this.ecoDisplayRoles[srcId] = [];
+        switch(r) {
+            case 1:
+            case 2:
+            this.ecoDisplayRoles[srcId] = this.ecoRoles;
+            break;
+            case 3:
+            for ( let r of this.ecoRoles ) {
+                if (r.is_warden_role == 1) {
+                    (this.ecoDisplayRoles[srcId]).push(r);
                 }
-            });
-        }, 700);
+            }
+            break;
+
+        }
+        console.log(this.ecoDisplayRoles);
     }
 
     onChangeDropDown(event){
@@ -308,7 +298,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     filterLocationsToDisplayByUserRole(user, data){
         let resp = [],
             copy = JSON.parse(JSON.stringify(data));
-
+            
         return JSON.parse( JSON.stringify( this.locationsCopy ) );
     }
 
@@ -372,7 +362,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         }
     }
 
-    changeRoleEvent(user) {
+    changeRoleEvent(user){
         user.location_name = 'Select Location';
         user.location_id = 0;
         user.account_location_id = 0;
@@ -381,7 +371,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.buildLocationsListInModal();
     }
 
-    showLocationSelection(user) {
+    showLocationSelection(user){
         this.selectedUser = user;
         this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
         this.buildLocationsListInModal();
@@ -420,8 +410,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.modalSearchLocation.nativeElement.value = "";
     }
 
-    submitUsers(f) {
-      // console.log(f);
+    addBulkWarden(f) {
       let allInputValid = true;
       if (this.addedUsers.length > 0 && f.valid) {
         for (const u of this.addedUsers) {
@@ -431,24 +420,15 @@ export class AddUserComponent implements OnInit, OnDestroy {
           }
         }
       }
-
+      console.log(this.addedUsers);
       if (allInputValid) {
-          this.showLoadingButton = true;
-          this.userService.createBulkUsers(this.addedUsers, (response) => {
-              this.addedUsers = response.data;
-              if(this.addedUsers.length == 0){
-                  // let prop = JSON.parse(JSON.stringify(this.userProperty));
-                  // this.addedUsers.push( prop );
-
-                  this.router.navigate(['/teams', 'all-users']);
-              }
-              this.showLoadingButton = false;
-          });
+        this.userService.createBulkUsers(this.addedUsers, (response) => {
+          this.addedUsers = response.data;
+          if(this.addedUsers.length == 0){
+              this.router.navigate(["/teams/list-wardens"]);
+          }
+        });
       }
-    }
-
-    showModalInvite(){
-        $('#modalInvite').modal('open');
     }
 
     sendInviteOnClick() {
@@ -457,15 +437,16 @@ export class AddUserComponent implements OnInit, OnDestroy {
         const email_regex =
         /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/i;
         for (let x = 0; x < this.bulkEmailInvite.length; x++) {
-            if (email_regex.test(this.bulkEmailInvite[x].trim())) {
-                validEmails.push(this.bulkEmailInvite[x].trim());
-            }
+          if (email_regex.test(this.bulkEmailInvite[x].trim())) {
+            validEmails.push(this.bulkEmailInvite[x].trim());
+          }
         }
         this.dataProvider.sendWardenInvitation(validEmails).subscribe((data) => {
-            console.log(data);
-            $('#modalInvite').modal('close');
+          this.addedUsers = data;
+          console.log(data);
+          $('#modalInvite').modal('close');
         }, (e) => {
-            console.log(e);
+          console.log(e);
         }
         );
         this.emailInviteForm.controls.inviteTxtArea.reset();
@@ -521,9 +502,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(){
-        this.routeSub.unsubscribe();
         this.searchModalLocationSubs.unsubscribe();
     }
-
 
 }

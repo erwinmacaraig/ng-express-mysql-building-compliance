@@ -75,7 +75,13 @@ export class ViewGeneralOccupantComponent implements OnInit, OnDestroy {
 							$('select').material_select();
 						},300);
 
-					});
+					}, () => {
+                        this.preloaderService.hide();
+
+                        setTimeout(() => {
+                            $('select').material_select();
+                        },300);
+                    });
 				}
 			}else{
 				this.preloaderService.hide();

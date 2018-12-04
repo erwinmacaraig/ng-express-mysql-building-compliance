@@ -1205,10 +1205,10 @@ export class UsersRoute extends BaseRoute {
 
             if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
                 let roleIdsQ = ' WHERE role_id IN (1,2) ';
-                if(getFRP || !getTRP){
+                if(getFRP && !getTRP){
                     roleIdsQ = ' WHERE role_id IN (1) '
                 }
-                if(!getFRP || getTRP){
+                if(!getFRP && getTRP){
                     roleIdsQ = ' WHERE role_id IN (2) '
                 }
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_role_relation '+roleIdsQ+' ) ');
