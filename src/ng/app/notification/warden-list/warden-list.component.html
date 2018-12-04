@@ -55,8 +55,8 @@
                                     <option value="profile">Update Profile</option>
                                     <option value="credential">Update Credential</option>
                                     <option value="location">Assign Location & Role</option>
-                                    <option value="markaspeep" *ngIf="warden.mobility_impaired == 0">Mark as Peep</option>
-                                    <option value="markashealthy" *ngIf="warden.mobility_impaired == 1">Remove from PEEP list</option>
+                                    <option value="markaspeep" *ngIf="warden.mobility_impaired == 0">Add to mobility impaired list</option>
+                                    <option value="markashealthy" *ngIf="warden.mobility_impaired == 1">Remove from mobility impaired list</option>
                                 </select>
                             </div>
                             <button class="btn red waves-effect waves-light archive-button" type="button" (click)="archiveClick(warden)">

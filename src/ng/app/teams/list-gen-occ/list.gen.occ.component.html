@@ -154,8 +154,8 @@
                             <option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId" *ngIf="!showArchived">Archive</option>
 							<option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId" *ngIf="showArchived">Restore</option>
                             <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" *ngIf="!showArchived">
-                                <span *ngIf="warden.mobility_impaired == 0">Mark as peep</span>
-                                <span *ngIf="warden.mobility_impaired == 1">Mark as healthy</span>
+                                <span *ngIf="warden.mobility_impaired == 0">Add to mobility impaired list</span>
+                                <span *ngIf="warden.mobility_impaired == 1">Remove from mobility impaired list</span>
                             </option>
                             <option value="invite" *ngIf="warden.sendinvitation && isOnlineTrainingAvailable && !showArchived" class="blue-text">Send invitation</option>
 						</select>

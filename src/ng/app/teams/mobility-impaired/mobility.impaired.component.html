@@ -139,7 +139,7 @@
 							<option value="view" class="blue-text" *ngIf="peep.id_encrypted">View</option>
 							<option value="archive" class="blue-text" *ngIf="peep.user_id != userData.userId">Archive</option>
                             <option value="archive" class="blue-text" *ngIf="peep.user_invitations_id > 0">Archive</option>
-							<option value="healthy" class="blue-text" >Remove from list</option>
+							<option value="healthy" class="blue-text" >Remove from mobility impaired list</option>
                             <option value="invite" *ngIf="peep.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
 						</select>
 					</td>

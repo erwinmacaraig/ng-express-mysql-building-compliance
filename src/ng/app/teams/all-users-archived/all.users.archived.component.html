@@ -136,8 +136,8 @@
                             <option value="view" class="blue-text">View</option>
                             <option value="restore" class="blue-text">Restore</option>
                             <option  [value]=" (list.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
-                                <span *ngIf="list.mobility_impaired == 0">Mark as peep</span>
-                                <span *ngIf="list.mobility_impaired == 1">Remove from PEEP list</span>
+                                <span *ngIf="list.mobility_impaired == 0">Add to mobility impaired list</span>
+                                <span *ngIf="list.mobility_impaired == 1">Remove from mobility impaired list</span>
                             </option>
 						</select>
 					</td>
