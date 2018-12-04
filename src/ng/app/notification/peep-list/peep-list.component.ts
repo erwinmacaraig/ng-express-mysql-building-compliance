@@ -28,6 +28,8 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     private location_id = 0;
     private configId = 0;
     private notification_token_id = 0;
+    private role = 0;
+    private accountId = 0;
     private building_id = 0;
     public peep = [];
     public encryptedToken = '';
@@ -114,16 +116,20 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
           const parts: Array<string> = token.split('_');
           this.userId = +parts[0];
           this.location_id = +parts[1];
-          this.configId = +parts[2];
-          this.notification_token_id = +parts[3];
-          this.building_id = +parts[4];
+          this.building_id = +parts[2];
+          this.role = +parts[3];
+          this.accountId = +parts[4];
+
+          // this.configId = +parts[2];
+          // this.notification_token_id = +parts[3];
+          // this.building_id = +parts[4];
 
           const userId = +this.authService.userDataItem('userId');
           if (isNaN(this.building_id) ||
               isNaN(this.userId) ||
               isNaN(this.location_id) ||
-              isNaN(this.notification_token_id) ||
-              isNaN(this.configId) ||
+              isNaN(this.role) ||
+              isNaN(this.accountId) ||
               userId != this.userId
             ) {
 
@@ -134,7 +140,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
           this.generatePeepList();
 
           this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
-            this.sublocations.push(response['building']);
+            // this.sublocations.push(response['building']); Only FRP can add person to a building 
             this.sublocations =  this.sublocations.concat(response['data']);
           }, (error) => {
               console.log(error);

@@ -16,7 +16,7 @@
 		</button>
 	</div>
 
-	<div class="col l4 m5 s12">
+	<div class="col l3 m5 s12">
         <div class="search-field">
             <input type="text" placeholder="Search member name or email" id="searchMemberInput">
             <span class="material-icons">search</span>
@@ -30,14 +30,21 @@
             <option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
         </select>
     </div>
+    
+    <div class="col l3 m6 s6 margin-bottom-20">
+        <select class="location">
+            <option value="0" selected>All Locations</option>
+            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+        </select>
+    </div>
 
-	<div class="col l2 m6 s6">
-		<select class="sort-by">
-			<option value="0" selected>Sort By</option>
-			<option value="user-name-desc">User Name Descending</option>
-			<option value="user-name-asc">User Name Ascending</option>
-		</select>
-	</div>
+	<!-- <div class="col l2 m6 s6">
+        <select class="sort-by">
+            <option value="0" selected>Sort By</option>
+            <option value="user-name-desc">User Name Descending</option>
+            <option value="user-name-asc">User Name Ascending</option>
+        </select>
+    </div> -->
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>

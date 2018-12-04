@@ -24,7 +24,8 @@ import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { CourseUserRelation } from '../models/course-user-relation.model';
-
+import { NotificationUserSettingsModel } from '../models/notification.user.settings';
+import { NotificationToken } from '../models/notification_token.model';
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -197,15 +198,15 @@ export class UsersRoute extends BaseRoute {
 
       router.get('/tenant/invitation-filled-form/:token', (req: Request, res: Response, next: NextFunction) => {
           new UsersRoute().retrieveTenantInvitationInfo(req, res, next).then((info) => {
-	    return res.status(200).send({
-	      'status': 'Success',
-	      'data': info
-	    });
+      	    return res.status(200).send({
+      	      'status': 'Success',
+      	      'data': info
+      	    });
           }).catch((e) => {
-	    return res.status(400).send({
-	      'status': 'Fail',
-	      'message': 'Unable to retrieve tenant invitation info'
-	    });
+      	    return res.status(400).send({
+      	      'status': 'Fail',
+      	      'message': 'Unable to retrieve tenant invitation info'
+      	    });
           });
 
       });
@@ -403,8 +404,198 @@ export class UsersRoute extends BaseRoute {
         });
 
       });
+
+      router.post('/users/update-notification-settings', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new  UsersRoute().updateNotificationSettings(req, res);
+      });
+
+      router.get('/users/get-notification-token/:userid', async (req: AuthRequest, res: Response) => {
+        res.send( await new NotificationToken().getByUserId(req.params.userid) );
+      });
+
+      router.post('/users/user-info/', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response) => {
+            new UsersRoute().getUserInfo(req, res);
+        }
+      );
+
+      router.post('/users/update-trp-assigned-location', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response ) => {
+            new UsersRoute().updateLocationAccountUser(req, res);
+        }
+      );
+
+      router.post('/users/training-info', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res: Response) => {
+            new UsersRoute().userTrainingInfo(req, res);
+        }
+      )
+
     }
 
+    public userTrainingInfo(req: AuthRequest, res: Response) {
+        const emergencyRoles = JSON.parse(req.body.roles);
+        const user = req.body.user;
+        let requiredTrainings = [];
+        let requiredTrainingIds = [];
+        let validTrainings = [];
+        let invalidTrainings = [];
+        let invalidTrainingIds = [];
+
+        // get required trainings for the given role        
+        new TrainingRequirements().allEmRolesTrainings()
+            .then((trainingRequirements) => {
+                for (let tr of trainingRequirements) {
+                    if (emergencyRoles.indexOf(tr['em_role_id']) != -1) {
+                        requiredTrainingIds.push(tr['training_requirement_id']);
+                        requiredTrainings.push(tr);
+                    }                     
+                }
+                // search certifications
+                return new TrainingCertification().getCertificationsInUserIds(user);
+            })
+            .then((certificates) => {                
+                console.log(requiredTrainingIds);
+                for (let rtid of requiredTrainingIds) {                    
+                    const i = certificates.findIndex(cert => cert['training_requirement_id'] == rtid);                    
+                    const j = requiredTrainings.findIndex(rt => rt['training_requirement_id'] == rtid);                    
+                    
+                    if (i == -1) {
+                        invalidTrainings.push({
+                            'validity': 'non-compliant',                            
+                            ...requiredTrainings[j]
+                        });
+                        invalidTrainingIds.push(rtid);
+                    } else if (certificates[i]['validity'] == 'expired') {
+                        invalidTrainings.push({
+                            ...certificates[i],
+                            ...requiredTrainings[j]
+                        });
+                        invalidTrainingIds.push(rtid);
+                    } else {                        
+                        validTrainings.push({
+                            ...certificates[i],
+                            ...requiredTrainings[j]
+                        });
+                    }
+
+                }
+                if (invalidTrainings.length == 0) {
+                    return res.status(200).send({
+                        message: 'Success',
+                        required_trainings: requiredTrainings,
+                        valid_trainings: validTrainings,
+                        invalid_trainings: invalidTrainings
+                    });
+                }
+               /*
+               return new CourseUserRelation().getRelation({
+                    user: user,
+                    bulk_training_requirement: invalidTrainingIds
+               });
+               */
+              
+               
+              return new CourseUserRelation().getAllCourseForUser(user);
+                
+                
+            })            
+            .then((rels:Array<object>) => {
+                const invalidTrainingsWithCourse = [];
+                for (let trainings of invalidTrainings) {
+                    const i = rels.findIndex(r => r['training_requirement_id'] == trainings['training_requirement_id']);
+                    if (i == -1) {
+                        invalidTrainingsWithCourse.push({
+                            course_user_relation_id: 0,
+                            ...trainings
+                        });
+                    } else {
+                        invalidTrainingsWithCourse.push({
+                            ...rels[i],
+                            ...trainings
+                        });
+                    }
+                }
+                return res.status(200).send({
+                    message: 'Success',
+                    required_trainings: requiredTrainings,
+                    valid_trainings: validTrainings,
+                    invalid_trainings: invalidTrainingsWithCourse
+                });
+            })            
+            .catch((error_rel) => {
+                console.log(error_rel);
+                return res.status(400).send({
+                    message: 'cannot get relationships'
+                });
+            })
+            .catch((error_ct) => {
+                console.log(error_ct);
+                console.log('Error in getting certifications');
+                return res.status(400).send({
+                    message: 'cannot get certifications'
+                });
+            })
+            .catch((error_tr) => {
+                console.log('Error in getting training requirements');
+                return res.status(400).send({
+                    message: 'cannot get training requirements'
+                });
+            })
+
+    }
+
+
+    public updateLocationAccountUser(req: AuthRequest, res: Response) {
+        const locationAcctUserId = req.body.location_account_user;
+        const newLevelLocation = req.body.level_location;
+
+        const locAcctUserObj = new LocationAccountUser(locationAcctUserId);
+        locAcctUserObj.load().then((dbData) => {
+            dbData['location_id'] = newLevelLocation;
+            return locAcctUserObj.create(dbData);
+        })
+        .then(() => {
+            return res.status(200).send({
+                message: 'Update Successful'
+            });
+        })
+        .catch((e) => {
+            console.log('cannot update location account user data');
+            return res.status(400).send({
+                message: 'Unable to update location account user data'
+            });
+        })
+        .catch((e) => {
+            console.log('cannot load location account user data');
+            return res.status(400).send({
+                message: 'Unable to retrieve location account user data'
+            });
+        });
+
+    }
+
+
+    public getUserInfo(req: AuthRequest, res: Response) {
+        const userId = req.body.user;
+        const userObj = new User(userId);
+        userObj.load().then((data) => {
+            res.status(200).send({
+                user_id: data['user_id'],
+                first_name: data['first_name'],
+                last_name: data['last_name'],
+                email: data['email'],
+                phone_number: data['phone_number'],
+                mobile_number: data['mobile_number'],
+                mobility_impaired: data['mobility_impaired'], 
+                evac_role: data['evac_role']
+            });
+        }).catch((e) => {
+            res.status(400).send({
+                message: 'There was an error retrieving user info'
+            });
+        });
+    }
     public async checkIfAdmin(req: Request , res: Response){
 		let userModel = new User(req.params.user_id),
 			response = {
@@ -685,6 +876,60 @@ export class UsersRoute extends BaseRoute {
                 }
             }
 
+            if(req.body.location_id && req.body.role_id){
+                if(req.body.role_id > 2){
+
+                    let 
+                    locAccModel = new LocationAccountRelation(),
+                    locAccData = await locAccModel.getByAccountIdAndLocationId(userData['account_id'], req.body.location_id);
+
+                    if(locAccData.length == 0){
+                        await locAccModel.create({
+                            'account_id' : userData['account_id'],
+                            'location_id' : req.body.location_id,
+                            'responsibility' : 'Tenant'
+                        });
+                    }
+
+                    let
+                    userEmModel = new UserEmRoleRelation(),
+                    emData = <any> await userEmModel.getEmRolesByUserId(req.body.user_id),
+                    hasRecord = false;
+
+                    if(emData.length > 0){
+                        for(let em of emData){
+                            if(em.location_id == req.body.location_id && em.em_roles_id == req.body.role_id){
+                                hasRecord = true;
+                            }
+                        }
+                    }
+
+                    if(!hasRecord){
+                        await userEmModel.create({
+                            'user_id' : req.body.user_id,
+                            'em_role_id' : req.body.role_id,
+                            'location_id' : req.body.location_id
+                        });
+                    }
+
+                }
+            }
+
+            if('training_reminder' in req.body){
+                let notiTokenModel = new NotificationToken(),
+                tokens = <any> await notiTokenModel.getByUserId(req.body.user_id);
+                if(tokens.length > 0){
+                    for(let tok of tokens){
+                        let updateTokenModel = new NotificationToken(tok['notification_token_id']);
+                        for(let i in tok){
+                            updateTokenModel.set(i, tok[i]);
+                        }
+                        updateTokenModel.set('training_reminder', req.body.training_reminder);
+                        await updateTokenModel.dbUpdate();
+                    }
+                }
+            }
+
 			response.status = true;
 			response.data = userData;
 		}catch(e){
@@ -856,7 +1101,49 @@ export class UsersRoute extends BaseRoute {
         getUSERS = ( queryRoles.indexOf('users') > -1 || queryRoles.indexOf() > -1 ) ? true : false,
         getPendings = (queryRoles.indexOf('pending') > -1) ? true : false,
         getUsersByEmRoleId = false,
-        locationId = (query.location_id) ? query.location_id : false;
+        locationId = (query.location_id) ? (query.location_id > 0) ? query.location_id : false : false,
+        locationsModel = new Location(),
+        locModelHier = new Location(),
+        selectedLocIds = <any> [],
+        userRoleRel = new UserRoleRelation(),
+        userRole = <any> '',
+        locations = <any> [];
+
+        let role = await userRoleRel.getByUserId(userID);
+        for(let r of role){
+            if(userRole == ''){
+                if(userRole != 'frp' && r.role_id == 2){
+                    userRole = 'trp'
+                }
+            }
+
+            if(r.role_id == 1){
+                userRole = 'frp';
+            }
+        }
+
+        if(locationId){
+            selectedLocIds.push(locationId);
+            let locs = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(locationId);
+            for(let loc of locs){ 
+                selectedLocIds.push(loc.location_id);
+            }
+        }else{
+            let
+            locAccRel = new LocationAccountRelation(),
+            filter = { userId : userID },
+            locs = <any> await locAccRel.listAllLocationsOnAccount(accountId, filter);
+
+            for(let loc of locs){
+                selectedLocIds.push(loc.location_id);
+                let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc.location_id);
+                for(let h of hier){ 
+                    selectedLocIds.push(h.location_id);
+                }
+            }
+        }
+
+        locations = await locationsModel.getByInIds(selectedLocIds, false, true);
 
         for(let id of emRoleIds){
             if(queryRoles.indexOf(''+id) > -1){
@@ -873,7 +1160,9 @@ export class UsersRoute extends BaseRoute {
             archived = query.archived;
         }
         modelQueries.where.push('users.archived = '+archived);
-        modelQueries.where.push('users.account_id = '+accountId);
+        if(userRole != 'frp'){
+            modelQueries.where.push('users.account_id = '+accountId);
+        }
         if(getPendings){
             modelQueries.where.push('users.profile_completion = 0');
         }
@@ -909,6 +1198,11 @@ export class UsersRoute extends BaseRoute {
                 emRoleIdInQuery = ' AND em_role_id IN ('+emRoleIdSelected.join(',')+') ';
             }
 
+            let inLocIdQuery = '';
+            if(selectedLocIds.length > 0){
+                inLocIdQuery = 'AND location_id IN ('+selectedLocIds.join(',')+')';
+            }
+
             if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
                 let roleIdsQ = ' WHERE role_id IN (1,2) ';
                 if(getFRP || !getTRP){
@@ -929,13 +1223,15 @@ export class UsersRoute extends BaseRoute {
 
             if( (queryRoles.indexOf('users') > -1 || getUsersByEmRoleId) && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ) == true ){
                 if(noGeneralOcc){
-                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' ) ');
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
                 }else{
-                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+' ) ');
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
                 }
 
                 modelQueries.orWhere.push(' AND users.archived = '+archived);
-                modelQueries.orWhere.push(' AND users.account_id = '+accountId);
+                if(userRole != 'frp'){
+                    modelQueries.orWhere.push(' AND users.account_id = '+accountId);
+                }
                 if(query.impaired){
                     if(query.impaired > -1){
                         if(query.impaired == 1){
@@ -953,9 +1249,9 @@ export class UsersRoute extends BaseRoute {
                 }
             }else if( queryRoles.indexOf('users') > -1 || getUsersByEmRoleId && ( (queryRoles.indexOf('frp') == -1 || queryRoles.indexOf('1') == -1) && ( queryRoles.indexOf('trp') == -1 || queryRoles.indexOf('2') == -1 ) ) == true){
                 if(noGeneralOcc){
-                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+') ');
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
                 }else{
-                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+') ');
+                    modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
                 }
                 if(query.search){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
@@ -1016,6 +1312,12 @@ export class UsersRoute extends BaseRoute {
             modelQueries.limit = query.offset+','+modelQueries.limit;
         }
 
+        if(selectedLocIds.length > 0){
+            if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
+                modelQueries.where.push(`users.user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (`+selectedLocIds.join(',')+`) ) `);
+            }
+        }
+
         response.data['users'] = await userModel.query(modelQueries);
 
         for(let user of response.data['users']){
@@ -1067,106 +1369,95 @@ export class UsersRoute extends BaseRoute {
             let accountModel = new Account(),
                 locAccUserModel = new LocationAccountUser(),
                 emRolesModel = new UserEmRoleRelation(),
-                locationsDB = <any> [],
-                locations = <any> [],
-                locationIds = [],
-                locationsEmRoles = (locationId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), locationId, true) : (getUSERS && !noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(',')) : (getUSERS && noGeneralOcc && !getUsersByEmRoleId) ? <any> await emRolesModel.getLocationsByUserIds(userIds.join(','), '8') : [],
-                locationFRPTRP =  (locationId) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), locationId)  : (getFRP || getTRP) ? <any> await locAccUserModel.getLocationsByUserIds(userIds.join(','), false,  (frptrpIds.length > 0) ? frptrpIds.join(',') : false  ) : [];
-
-            if(!getUSERS && !noGeneralOcc && getUsersByEmRoleId){
-                locationsEmRoles = <any> await emRolesModel.getLocationsByUserIdsAndRoleIds(userIds.join(','), emRoleIdSelected.join(','));
-            }
-
-            for(let loc of locationsEmRoles){
-                if(!locationIds[ loc.location_id ]){
-                    locations.push(loc);
-                    locationIds.push(loc.location_id);
-                }
-            }
-
-            for(let loc of locationFRPTRP){
-                if(!locationIds[ loc.location_id ]){
-                    locations.push(loc);
-                    locationIds.push(loc.location_id);
-                }
-            }
-
-            response['locations'] = locations;
-
-            let locationsData = [],
-                parents = {};
-
-            for (let loc of locations) {
-                let locParentModel = new Location(loc.parent_id),
-                    parent = <any> {};
-
-                locationsData.push(loc);
-
-                if(loc.parent_id == -1){
-                    parents[ loc.location_id ] = loc;
-                }else{
-                    try{
-                        if( parents[ loc.parent_id ] ){
-                            locationsData.push( parents[ loc.parent_id ] );
-                        }else{
-                            parent = await locParentModel.load();
-                            parents[ parent.location_id ] = parent;
-                            locationsData.push(parent);
-                        }
-                    }catch(e){}
-                }
-            }
-
-            for(let loc of locationsData){
-                loc.name = ((loc.name != null) && loc.name.trim().length == 0) ? loc.formatted_address : loc.name;
-            }
+                frpTrp = <any> await locAccUserModel.getByUserIds(userIds.join(',')),
+                ems = <any> await emRolesModel.getManyByUserIds(userIds.join(',')),
+                frpTrpRel = <any> await new UserRoleRelation().getManyByUserIds(userIds.join(',')),
+                frpTrpEms = frpTrp.concat(ems);
 
             for(let user of response.data['users']){
                 if('locations' in user == false){ user['locations'] = []; }
                 if('locs' in user == false){ user['locs'] = []; }
-                for(let loc of locationsData){
+                if('frpTrpEms' in user == false){ user['frpTrpEms'] = []; }
 
-                    if( loc.user_id == user.user_id ){
+                 for(let ft of frpTrpEms){
+                    if(ft.user_id == user.user_id){
 
-                        let userLocData = {
-                            user_id : user.user_id,
-                            location_id : loc.location_id,
-                            name : loc.name,
-                            parent_id : -1,
-                            parent_name : '',
-                            sublocations_count : 0,
-                            role_id : (loc['role_id']) ? loc['role_id'] : 0
-                        };
+                        if( ((queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 )) && ft['location_account_user_id'] ){
+                            user['frpTrpEms'].push(ft);
+                        }
 
-                        userLocData.location_id = loc.location_id;
-                        userLocData.name = loc.name;
-                        userLocData.parent_id = loc.parent_id;
-
-                        if(loc.parent_id > -1){
-                            for(let par of locationsData){
-                                if(par.location_id == loc.parent_id){
-                                    userLocData.parent_name = par.name;
+                        if( (queryRoles.indexOf('users') > -1 || getUsersByEmRoleId) && ft['user_em_roles_relation_id'] ){
+                            if(queryRoles.indexOf('users') > -1){
+                                user['frpTrpEms'].push(ft);
+                            }else if(getUsersByEmRoleId){
+                                if( emRoleIdSelected.indexOf(ft['em_role_id']) > -1 ){
+                                    user['frpTrpEms'].push(ft);
                                 }
                             }
                         }
-
-                        let exst = false;
-                        for(let ul of user['locations']){
-                            if( ul.location_id == loc.location_id ){
-                                exst = true;
-                            }
-                        }
-
-                        let locSubModel = new Location();
-                        userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
-
-                        if(!exst){ user.locations.push(userLocData); }
-
-
-                        user['locs'].push(loc);
-
                     }
+                }
+                
+                for(let ft of user['frpTrpEms']){
+                    let locFound = false;
+                    for(let loc of locations){
+                        if(ft.location_id == loc.location_id){
+                            let 
+                            hasFrpTrp = false,
+                            frpTrpRoleId = 0;
+                            for(let ftrole of frpTrpRel){
+                                if(ftrole.user_id == ft.user_id){
+                                    hasFrpTrp = true;
+                                }
+                            }
 
+                            if(hasFrpTrp){
+                                for(let ftrole of frpTrpRel){
+                                    if(ftrole.user_id == ft.user_id && frpTrpRoleId != 2 && ftrole.role_id == 1){
+                                        frpTrpRoleId = 1;
+                                    }else if(ftrole.user_id == ft.user_id){
+                                        frpTrpRoleId = ftrole.role_id;
+                                    }
+                                }
+                            }
+
+                            let userLocData = {
+                                user_id : user.user_id,
+                                location_id : loc.location_id,
+                                name : loc.name,
+                                parent_id : -1,
+                                parent_name : '',
+                                sublocations_count : 0,
+                                role_id : (frpTrpRoleId) ? frpTrpRoleId : (ft['em_role_id']) ? ft['em_role_id'] : 0
+                            };
+
+                            if(ft.parent_id > -1){
+                                for(let par of locations){
+                                    if(par.location_id == ft.parent_id){
+                                        userLocData.parent_name = par.name;
+                                    }
+                                }
+                            }
+
+                            let exst = false;
+                            for(let ul of user['locations']){
+                                if( ul.location_id == loc.location_id ){
+                                    exst = true;
+                                }
+                            }
+
+                            let locSubModel = new Location();
+                            userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
+
+                            if(!exst){ 
+                                user['locations'].push(userLocData); 
+                            }
+
+                            user['locs'].push(loc);
+                            locFound = true;
+                        }
+                    }
+                    ft['locFound'] = locFound;
                 }
             }
 
@@ -1179,7 +1470,7 @@ export class UsersRoute extends BaseRoute {
                 usersEmRoles = <any> await userEmRoleModel.getManyByUserIds(userIds.join(','), false, emRoleIdSelected.join(','));
             }
 
-            response['usersEmRoles'] = usersEmRoles;
+            // response['usersEmRoles'] = usersEmRoles;
 
             for(let user of response.data['users']){
                 if('roles' in user == false){ user['roles'] = []; }
@@ -1192,7 +1483,8 @@ export class UsersRoute extends BaseRoute {
 
                 for(let rol of usersRolesRelation){
                     let role = { role_name : '', role_id : 0 };
-                    if(rol.user_id == user.user_id && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || (queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1) ) && usersRolesIds.indexOf(rol.role_id) == -1 ){
+                    if(rol.user_id == user.user_id && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || (queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1) ) 
+                        && usersRolesIds.indexOf(rol.role_id) == -1 ){
                         role.role_name = (rol.role_id == 1) ? 'FRP' : 'TRP';
                         role.role_id = (rol.role_id == 1) ? 1 : 2;
                         user['roles'].push(role);
@@ -3082,6 +3374,9 @@ export class UsersRoute extends BaseRoute {
             user = new User(req.body.user_id);
             try {
                 await user.load();
+
+                console.log( user.getDBData() );
+
                 await user.create({
                     'mobility_impaired': 1
                 });
@@ -3452,5 +3747,41 @@ export class UsersRoute extends BaseRoute {
         res.send(response);
 
     }
+
+  public async updateNotificationSettings(req:AuthRequest, res:Response){
+    let 
+    notifiUserSettingsModel = new NotificationUserSettingsModel(),
+    response = {
+      status : true, data : <any> [], message : ''
+    },
+    body = req.body;
+
+    let records = <any> await notifiUserSettingsModel.getWhereUserId(body.user_id);
+    if(records.length == 0){
+      await notifiUserSettingsModel.create({
+        'user_id' : body.user_id,
+        'frequency' : body.frequency,
+        'one_month_training_reminder' : body.one_month_training_reminder
+      });
+    }else{
+      let latestId = 0;
+      for(let i in records){
+        if(parseInt(i) > 0){
+          let deleteModel = new NotificationUserSettingsModel( records[i]['notification_user_settings_id'] );
+          await deleteModel.delete();
+        }else if(parseInt(i) == 0){
+          let updateModel = new NotificationUserSettingsModel( records[i]['notification_user_settings_id'] );
+          updateModel.set('frequency', body.frequency);
+          updateModel.set('one_month_training_reminder', body.one_month_training_reminder);
+          updateModel.set('user_id', body.user_id);
+          updateModel.set('date_created', moment().format('YYYY-MM-DD'));
+          await updateModel.dbUpdate();
+        }
+      }
+    }
+
+    res.send(response);
+
+  }
 
 }

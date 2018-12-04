@@ -142,7 +142,7 @@ export class User extends BaseClass {
                 }
                 const sql_user = `SELECT users.*, token.verified, token.expiration_date, token.action, token.token_id FROM users
                                   LEFT JOIN token ON users.user_id = token.id `
-                                  + whereClause + ` AND password = ?`;
+                                  + whereClause + ` AND password = ? AND archived = 0 `;
                 // const sql_user = `SELECT * FROM users `+ whereClause + ` AND password = ? `;
                 const newPasswd = md5('Ideation' + passwd + 'Max');
                 const credential = [username, newPasswd];
@@ -787,7 +787,7 @@ export class User extends BaseClass {
                 }
 
                 let select = `
-                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired, users.archived,
                     users.last_login, users.mobile_number, users.phone_number, 
                     DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
                 `;
@@ -831,7 +831,7 @@ export class User extends BaseClass {
                 }
 
                 let select = `
-                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired, users.archived,
                     users.last_login, users.mobile_number, users.phone_number, 
                     DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
                 `;
@@ -1077,9 +1077,9 @@ export class User extends BaseClass {
                     FROM user_em_roles_relation emr 
                     LEFT JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
                     WHERE emr.location_id IN (${locationIds})
-
+                `;
+                let innerSqlFrpTrp = `
                     UNION
-
                     SELECT 
                     lau.user_id,
                     urr.role_id,
@@ -1160,6 +1160,67 @@ export class User extends BaseClass {
                 WHERE uer.user_id = ${userId} `;
            
                 connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }                
+                    resolve(results);
+
+                });
+                connection.release();
+            });
+        });
+    }
+
+    public getUserInLocationByRole(roleId=0, accountId=0, userId?): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw new Error(err);
+                }                
+                let id = this.ID();
+                if (userId) {
+                    id = userId;
+                }
+                const sql = `SELECT
+                                users.first_name,
+                                users.last_name,
+                                users.email,
+                                location_account_user.location_id,
+                                locations.name,
+                                IF (parent.name IS NULL, '', parent.name) as Building,
+                                accounts.account_name,
+                                IF (locations.is_building = 1, locations.location_id, locations.parent_id) as building_id
+                            FROM
+                                users
+                            INNER JOIN
+                                location_account_user
+                            ON ( 
+                                users.user_id = location_account_user.user_id
+                                AND users.account_id = location_account_user.account_id
+                            )
+                            INNER JOIN
+                                user_role_relation ON users.user_id = user_role_relation.user_id
+                            INNER JOIN
+                                accounts
+                            ON
+                                accounts.account_id = users.account_id
+                            INNER JOIN
+                                locations
+                            ON
+                                location_account_user.location_id = locations.location_id
+                            LEFT JOIN
+                                locations as parent
+                            ON
+                                locations.parent_id = parent.location_id
+                            WHERE
+                                user_role_relation.role_id = ?
+                            AND
+                                users.user_id = ?
+                            AND
+                            location_account_user.account_id = ?
+                `;
+                connection.query(sql, [roleId, id, accountId], (error, results) => {
                     if (error) {
                         return console.log(error);
                     }                

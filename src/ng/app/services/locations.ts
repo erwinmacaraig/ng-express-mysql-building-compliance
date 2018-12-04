@@ -5,6 +5,7 @@ import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
+
 @Injectable()
 export class LocationsService {
 
@@ -84,8 +85,10 @@ export class LocationsService {
         return this.http.post<any>(this.baseUrl + '/location/search-db-location/', location);
     }
 
-    searchBuildings(key){
-        return this.http.get<any>(this.baseUrl + '/location/search-buildings?key='+key);
+    searchBuildings(key, params = {}){
+        let opt = this.options;
+        opt['params'] = params;
+        return this.http.get<any>(this.baseUrl + '/location/search-buildings?key='+key, opt);
     }
 
     searchLevels(key){
@@ -121,8 +124,10 @@ export class LocationsService {
         return this.http.post<any>(this.baseUrl + '/location/archive-multiple', oParam);
     }
 
-    getParentLocationsForListing(accountid, callBack){
-        this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', this.options)
+    getParentLocationsForListing(accountid, callBack, params={}){
+        let opt = this.options;
+        opt['params'] = params;
+        this.http.get(this.baseUrl + '/location/get-parent-locations-by-account-id/', opt)
         .subscribe(res => {
             callBack(res);
         }, err => {
@@ -209,5 +214,89 @@ export class LocationsService {
 
     requestAddLocationToUser(form){
         return this.http.post(this.baseUrl + '/location/request/add-location-to-user', form, this.options);
+    }
+
+    getLevelsOfBuilding(buildingId = 0) {
+        return this.http.post<Array<{
+            parent_id: number,
+            name: string,
+            unit: string,
+            street: string,
+            city: string,
+            state: string,
+            postal_code: string,
+            country: string,
+            formatted_address: string,
+            lat: string,
+            lng: string,
+            time_zone: string,
+            location_id: number,
+            order: number,
+            is_building: number,
+            location_directory_name: string,
+            archive: number,
+            google_place_id: string,
+            google_photo_url: string,
+            admin_verified: string,
+            admin_verified_date: string,
+            admin_id: number,
+            online_training: number
+        }>>(this.baseUrl + '/location/get-building-levels/', {building: buildingId});
+    }
+    
+    public getLocationInformation(locationId=0) {
+        return this.http.post<{
+            parent_id: number,
+            name: string,
+            unit: string,
+            street: string,
+            city: string,
+            state: string,
+            postal_code: string,
+            country: string,
+            formatted_address: string,
+            lat: string,
+            lng: string,
+            time_zone: string,
+            location_id: number,
+            order: number,
+            is_building: number,
+            location_directory_name: string,
+            archive: number,
+            google_place_id: string,
+            google_photo_url: string,
+            admin_verified: string,
+            admin_verified_date: string,
+            admin_id: number,
+            online_training: number
+        }>(this.baseUrl + '/location/get-info/', {location: locationId})
+    }
+
+    public taggedLocationsForTRPInBuilding(user=0, building=0) {
+        return this.http.post<Array<{
+            parent_id: number,
+            name: string,
+            unit: string,
+            street: string,
+            city: string,
+            state: string,
+            postal_code: string,
+            country: string,
+            formatted_address: string,
+            lat: string,
+            lng: string,
+            time_zone: string,
+            location_id: number,
+            order: number,
+            is_building: number,
+            location_directory_name: string,
+            archive: number,
+            google_place_id: string,
+            google_photo_url: string,
+            admin_verified: string,
+            admin_verified_date: string,
+            admin_id: number,
+            online_training: number
+        }>>(this.baseUrl + '/location/list-levels-for-trp', {user: user, building: building});
     }
 }

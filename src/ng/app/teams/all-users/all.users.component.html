@@ -9,36 +9,37 @@
 </div>
 
 <div class="row filter-container">
-	<div class="col l2 m3 s12 ">
+	<div class="col l2 m6 s12 margin-bottom-20">
 		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-user']">
 			<span class="image"></span>
 			Add New User
 		</button>
 	</div>
 
-	<div class="col l4 m5 s12">
+	<div class="col l3 m6 s12 margin-bottom-20">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
 	</div>
 
-	<div class="col l2 m4 s6">
+	<div class="col l2 m6 s6 margin-bottom-20">
 		<select class="filter-by">
 			<option value="0" selected>Filter By (All)</option>
             <option value="pending" >Pending</option>
+            <!-- <option value="no_roles" >No Roles</option> -->
 			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
 	</div>
 
-	<div class="col l2 m6 s6">
-		<select class="sort-by">
-			<option value="0" selected>Sort By</option>
-			<option value="user-name-desc">User Name Descending</option>
-			<option value="user-name-asc">User Name Ascending</option>
-		</select>
-	</div>
-	<div class="col l2 m6 s12">
+	<div class="col l3 m6 s6 margin-bottom-20">
+        <select class="location">
+            <option value="0" selected>All Locations</option>
+            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+        </select>
+    </div>
+
+	<div class="col l2 m6 s6 margin-bottom-20">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
 			<option value="archive" >Archive selected</option>
@@ -65,7 +66,7 @@
 					</th>
 					<th>Name</th>
 					<th>Email</th>
-					<th>Contact Number</th>
+					<th>Account</th>
 					<th style="width: 20%;">Role</th>
 					<th>Training</th>
 					<th>Action</th>
@@ -107,7 +108,7 @@
 						</div>
 					</td>
 					<td>{{list.email}}</td>
-					<td>{{list.mobile_number}}</td>
+					<td>{{list.account_name}}</td>
 					<td class="with-image role-name">
 						<div *ngIf="list.mobility_impaired == 1" class="impaired"></div>
 						<span *ngFor="let role of list.roles; let ri = index;" class="name">

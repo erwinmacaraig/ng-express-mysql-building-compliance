@@ -991,7 +991,7 @@ const request = require('request');
                     validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
                 }
 
-                if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
+                if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0 && kpis['compliance_kpis_id'] != fsaId) {
                     comp['validity_status'] = 'valid';
                     comp['days_remaining'] = validTillMoment.diff(today, 'days');
                     comp['valid'] = 1;

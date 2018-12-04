@@ -38,7 +38,6 @@ export class FileUploader {
       });
 
     }
-    
     /**
     * To generate random characters
     * @return {String} characters
@@ -125,7 +124,7 @@ export class FileUploader {
                   console.log('error reading file from path ', this.req['file']['path']);
                   reject('Cannot upload file. Error reading file from path ' + this.req['file']['path']);
                 } else {
-                  // resolve('File upload successful');
+                  // resolve('File upload successful');                  
                   fs.unlink(this.DIR + this.filename, () => {});
                   
                   this.aws_s3.getSignedUrl('getObject', {

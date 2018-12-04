@@ -129,19 +129,21 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 				this.companyAddress = this.companyAddress.trim();
 				
 
-				this.userService.getRoles(this.userData['userId'], (responseRoles) => {
-					if( Object.keys(responseRoles.data).length > 0 ){
-						for(let i in responseRoles.data){
-							this.userRoles.push( responseRoles.data[i]['role_name'] );
+				this.userService.getRoles(this.userData['userId']).subscribe(
+					(responseRoles) => {
+						if( Object.keys(responseRoles['data']).length > 0 ){
+							for(let i in responseRoles['data']) {
+								this.userRoles.push( responseRoles['data'][i]['role_name'] );
+							}
+	
+							this.companyRoles = this.userRoles.join(', ');
 						}
-
-						this.companyRoles = this.userRoles.join(', ');
+	
+						this.preloaderService.hide();
+						$('select').material_select();
+						this.startEvents();
 					}
-
-					this.preloaderService.hide();
-					$('select').material_select();
-					this.startEvents();
-				});
+				);
 				
 
 				/*

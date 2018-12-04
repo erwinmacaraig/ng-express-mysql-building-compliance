@@ -39,7 +39,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getEmRolesByUserId(userId, archived?) {
+    public getEmRolesByUserId(userId, archived?): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
@@ -75,9 +75,8 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     if(!results.length){
                         reject('No role found');
-                    }else{
-                        this.dbData = results;
-                        resolve(this.dbData);
+                    }else{                        
+                        resolve(results);
                     }
                 });
 
@@ -387,7 +386,7 @@ export class UserEmRoleRelation extends BaseClass {
           let
           limitQuery = ('limit' in config) ? ' LIMIT '+config['limit'] : '',
           selectQuery = ('count' in config) ? ' COUNT(u.user_id) as count ' : `
-                    u.*, em.em_role_id,
+                    u.*, em.em_role_id, em.user_em_roles_relation_id,
                     er.role_name,
                     accounts.account_name,
                     l.name,
@@ -400,7 +399,7 @@ export class UserEmRoleRelation extends BaseClass {
                 INNER JOIN users u ON em.user_id = u.user_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 INNER JOIN locations l ON l.location_id = em.location_id
-                INNER JOIN locations p ON p.location_id = l.parent_id
+                LEFT JOIN locations p ON p.location_id = l.parent_id
                 INNER JOIN accounts ON accounts.account_id = u.account_id
                 WHERE u.archived = ${archived} ${configFilter} ${limitQuery}`;
 
@@ -744,10 +743,14 @@ export class UserEmRoleRelation extends BaseClass {
                         users.last_name,
                         users.email,
                         user_em_roles_relation.location_id,
+                        user_em_roles_relation.em_role_id,
                         em_roles.role_name,
+                        em_roles.em_roles_id,
+                        accounts.account_id,
                         accounts.account_name,
                         parent_location.name as parent_location,
-                        locations.name
+                        locations.name,
+                        locations.parent_id
                       FROM
                         users
                       INNER JOIN
@@ -772,7 +775,9 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
-                      GROUP BY users.user_id`;
+
+                      GROUP BY user_em_roles_relation.user_id, em_roles.em_roles_id
+                       `;
 
         this.pool.getConnection((err, connection) => {
             if (err) {                    
@@ -790,4 +795,6 @@ export class UserEmRoleRelation extends BaseClass {
         
       });
     }
+
+
 }

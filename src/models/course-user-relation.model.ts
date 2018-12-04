@@ -157,9 +157,10 @@ export class CourseUserRelation extends BaseClass {
     });
   }
 
-  public getRelation(filter = {}): Promise<number> {
+  public getRelation(filter = {}): Promise<any> {
     return new Promise((resolve, reject) => {
       let whereClause = '';
+      let bulk = false;
       const values = [];
       if ('user' in filter) {
         whereClause += ` AND user_id = ?`;
@@ -173,11 +174,18 @@ export class CourseUserRelation extends BaseClass {
         whereClause += ` AND training_requirement_id = ?`;
         values.push(filter['training_requirement']);
       }
+      if ('bulk_training_requirement' in filter && Array.isArray(filter['bulk_training_requirement'])) {
+        const trainingIds = (filter['bulk_training_requirement'] as Array<number>).join(',');
+        whereClause += ` AND training_requirement_id IN (${trainingIds})`;
+        bulk = true;
+      }
       const sql_get = `SELECT
+                        training_requirement_id,
                         course_user_relation_id
                       FROM
                         course_user_relation
                       WHERE 1=1 ${whereClause}`;
+                      console.log(sql_get);
       this.pool.getConnection((err, connection) => {
           if(err){
               throw new Error(err);
@@ -188,12 +196,16 @@ export class CourseUserRelation extends BaseClass {
                   console.log('course-user-relation.model', error, sql_get);
                   throw new Error('There was an error getting relationship');
               }
-              if (results.length) {
+              if (results.length && !bulk) {
                   resolve(results[0]['course_user_relation_id']);
-              } else {
-                  reject({
-                      'message': 'There are no relation between user and course'
-                  });
+              } else if (results.length && bulk) {
+                resolve(results);
+              } else if (!results.length && bulk) {
+                resolve([])
+              } else {                
+                reject({
+                  'message': 'There are no relation between user and course'
+              });
               }
           });
           connection.release();
@@ -206,6 +218,7 @@ export class CourseUserRelation extends BaseClass {
     return new Promise((resolve, reject) => {
       let whereClause = '';
       const values = [];
+      let bulk = false;
       if ('user' in filter) {
         whereClause += ` AND course_user_relation.user_id = ?`;
         values.push(filter['user']);
@@ -217,6 +230,11 @@ export class CourseUserRelation extends BaseClass {
       if ('training_requirement' in filter) {
         whereClause += ` AND course_user_relation.training_requirement_id = ?`;
         values.push(filter['training_requirement']);
+      }
+      if ('bulk_training_requirement' in filter && Array.isArray(filter['bulk_training_requirement']) && (filter['bulk_training_requirement'] as Array<Number>).length > 0 ) {
+        const trIds = (filter['bulk_training_requirement'] as Array<Number>).join(',');
+        whereClause += ` AND course_user_relation.training_requirement_id IN (${trIds})`;
+        bulk = true;
       }
       const sql_get = `SELECT
                         course_user_relation.course_user_relation_id,
@@ -244,7 +262,12 @@ export class CourseUserRelation extends BaseClass {
                   throw new Error('There was an error getting relationship');
               }
               if (results.length) {
+                if (bulk) {
+                  resolve(results)
+                } else {
                   resolve(results[0]);
+                }  
+                
               } else {
                   reject({
                       'message': 'There are no relation between user and course'
@@ -258,7 +281,7 @@ export class CourseUserRelation extends BaseClass {
   }
 
 
-  public getAllCourseForUser(user: number = 0, disabled?): Promise<Array<object>> {
+  public getAllCourseForUser(user: number = 0, disabled?): Promise<any> {
     return new Promise((resolve, reject) => {
       if(disabled == undefined){
         disabled = 0;
@@ -267,6 +290,7 @@ export class CourseUserRelation extends BaseClass {
             course_user_relation.*,
             scorm_course.*,
             scorm.parameter_value as lesson_status,
+            tr.training_requirement_id,
             tr.training_requirement_name,
             tr.scorm_course_id,
             certifications.certifications_id

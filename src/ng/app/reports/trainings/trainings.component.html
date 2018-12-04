@@ -82,32 +82,36 @@
             <table class="striped">
                 <thead>
                     <tr class="grey darken-5 white-text">
+                        <th>Region</th>
+                        <th>Building</th>
+                        <th>Sublocation</th>
                         <th>Account</th>
                         <th>User</th>
                         <th>Email</th>
-                        <th>Location</th>
                         <th>Role</th>
                         <th>Training Status & Date</th>
                     </tr>
                 </thead>
                 <tbody [hidden]="!loadingTable">
                     <tr>
-                        <td colspan="7" class="center">
+                        <td colspan="8" class="center">
                             <h6>Loading records...</h6>
                         </td>
                     </tr>
                 </tbody>
                 <tbody [hidden]="loadingTable">
                     <tr *ngIf="results.length == 0">
-                        <td colspan="6" class="center">
+                        <td colspan="8" class="center">
                             <h6>No result found</h6>
                         </td>
                     </tr>
                     <tr *ngFor="let re of results">
+                        <td>{{re.region}}</td>
+                        <td>{{re.building}}</td>
+                        <td>{{re.sublocation}}</td>
                         <td>{{re.account_name}}</td>
                         <td>{{re.first_name}} {{re.last_name}}</td>
                         <td>{{re.email}}</td>
-                        <td>{{re.location_name}}</td>
                         <td>{{re.role_name}}</td>
                         <td>
                             <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
