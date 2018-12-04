@@ -16,7 +16,7 @@
 					<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm">
 						<div class="username-container">
 							<div class="image"></div>
-							<input type="text" name="username" placeholder="Username or Email" id="username" ngModel />
+							<input type="text" name="username" placeholder="Email or Username" id="username" ngModel />
 						</div>
 						<div class="password-container">
 							<div class="image"></div>
@@ -24,7 +24,7 @@
 						</div>
 
 
-						<p *ngIf="showInvalid" class="error-message">Invalid username/email or password</p>
+						<p *ngIf="showInvalid" class="error-message">Invalid email/username or password</p>
 						<p *ngIf="showErrorOccured" class="error-message">{{errorOccuredMessage}}</p>
 						<p *ngIf="showSuccess" class="success-message"> Success! </p>
 						<p class="keep-signed-in-container">
