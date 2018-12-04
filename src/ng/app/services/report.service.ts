@@ -47,4 +47,8 @@ export class ReportService {
         return this.http.post(this.baseUrl + '/reports/get-activity-report', formdata, this.options);
     }
 
+    public getWardenListReport(formData){
+        return this.http.post(this.baseUrl + '/reports/warden-list', formData, this.options);
+    }
+
 }

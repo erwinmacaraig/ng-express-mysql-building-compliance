@@ -84,6 +84,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
         enableCheckAll: false
     };
 
+    isAdministrationsShow = false;
+
     constructor(
         private authService: AuthService,
         private dataProvider: PersonDataProviderService,
@@ -106,6 +108,10 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 this.paramRole = params.role;
             }
         });
+
+        if(this.router.url.indexOf("/teams/add-administrators") > -1){
+            this.isAdministrationsShow = true;
+        }
     }
 
     ngOnInit(){
@@ -131,7 +137,8 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.selectRolesDropdown.push({
                 role_id : 1, role_name : 'Building Manager'
             });
-
+        }
+        if(this.userRole == 1 || this.userRole == 2){
             this.selectRolesDropdown.push({
                 role_id : 2, role_name : 'Tenant'
             });
@@ -212,18 +219,27 @@ export class AddUserComponent implements OnInit, OnDestroy {
         });
 
         let breadCrumbs = [];
-        breadCrumbs.push({
-          'value' : 'All users', 'link' : '/teams/all-users'
-        });
-        breadCrumbs.push({
-          'value' : 'Add new users', 'link' : '/teams/add-user'
-        });
+        if(!this.isAdministrationsShow){
+            breadCrumbs.push({
+              'value' : 'All users', 'link' : '/teams/all-users'
+            });
+            breadCrumbs.push({
+              'value' : 'Add new users', 'link' : '/teams/add-user'
+            });
+        }else{
+            breadCrumbs.push({
+              'value' : 'Administrators', 'link' : '/teams/list-administrators'
+            });
+            breadCrumbs.push({
+              'value' : 'Add new administrators', 'link' : '/teams/add-administrators'
+            });
+        }
         this.messageService.sendMessage({ 'breadcrumbs' : breadCrumbs });
     }
 
     onSelectRole($event, iterator, elem){
 
-        this.selectedUser = this.addedUsers[iterator];
+        /*this.selectedUser = this.addedUsers[iterator];
 
         if($event.role_id == 2){
             let newSelected = [];
@@ -240,7 +256,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
             $('#inputSameAs').prop('checked', false).trigger('click');
         }
 
-        console.log(this.selectedUser);
+        console.log(this.selectedUser);*/
     }
 
     addMoreRow(){

@@ -101,9 +101,10 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
 		this.userData = this.authService.getUserData();
 
-		this.courseService.myCourses(this.userData['userId'], (response) => {
-			this.courses = response.data;
-		});
+        this.courseService.myCourses(this.userData['userId'])
+        .subscribe((response) => {
+			this.courses = response['data'];
+		});;
 
         let complianceColors = this.complianceService.getColors();
         for(let i in complianceColors){

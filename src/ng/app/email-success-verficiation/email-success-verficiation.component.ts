@@ -31,7 +31,8 @@ export class EmailSuccessVerficiationComponent implements OnInit {
 
   showNotificationWardenList() {
     setTimeout(() => {
-      this.router.navigate(['/dashboard', 'notification-warden-list', this.notification_token]);
+      // this.router.navigate(['/dashboard', 'notification-warden-list', this.notification_token]);
+      this.router.navigate(['/dashboard', 'update-notified-trp-profile', this.notification_token]);      
     }, 1500);
 
   }
@@ -86,6 +87,17 @@ export class EmailSuccessVerficiationComponent implements OnInit {
              this.content = 'steps';
           }
         }
+
+      } else if (verification == 2) {
+        this.showCheckIcon = false;
+        this.message = `Invalid token used.
+
+        There is no such token exists in our system.
+        `;
+        this.showClose = true;
+        this.showLogin = true;
+      } else if (verification == 3) { // FRP answered  NO in the notification email
+        this.message = 'Thank you for letting us know.';
 
       } else {
         this.showCheckIcon = false;

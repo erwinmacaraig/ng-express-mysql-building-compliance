@@ -222,5 +222,13 @@ export class AdminService {
     });
   }
 
+  sendNotificationSummaryLink(user=0, role='', account=0) {
+    return this.http.post(`${this.baseUrl}/admin/manual-send-notification-summary-link/`, {
+      userId: user,
+      roleId: role,
+      accountId: account
+    });
+  }
+
   
 }

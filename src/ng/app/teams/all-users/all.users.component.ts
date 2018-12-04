@@ -2,13 +2,14 @@ import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
 import { AccountsDataProviderService  } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { CourseService } from '../../services/course';
+import { LocationsService } from '../../services/locations';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -20,7 +21,7 @@ declare var $: any;
   selector: 'app-all-users',
   templateUrl: './all.users.component.html',
   styleUrls: ['./all.users.component.css'],
-  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService, CourseService, AccountsDataProviderService]
+  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService, CourseService, AccountsDataProviderService, LocationsService]
 })
 export class AllUsersComponent implements OnInit, OnDestroy {
 
@@ -54,7 +55,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	};
 
 	queries = {
-		roles : 'frp,trp,users,no_roles',
+		roles : 'frp,trp,users',
 		impaired : null,
 		type : 'client',
 		offset :  0,
@@ -64,7 +65,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		user_training : true,
 		users_locations : true,
 		search : '',
-        online_trainings : true
+        online_trainings : true,
+        location_id : 0
 	};
 
     multipleLocations = [];
@@ -93,6 +95,24 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
     isOnlineTrainingAvailable = false;
 
+    isFRP = false;
+    locations = <any> [];
+    locationPagination = {
+        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+    };
+    locationQueries = {
+        offset :  0,
+        limit : 20,
+        search : '',
+        sort : '',
+        archived : 0,
+        showparentonly: false,
+        parent_id : 0
+    };
+
+    isAdministrationsShow = false;
+    showArchived = false;
+
 	constructor(
 		private userService : UserService,
 		private authService : AuthService,
@@ -100,15 +120,18 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		private encDecrService : EncryptDecryptService,
 		private router : Router,
         private courseService : CourseService,
-        private accountService : AccountsDataProviderService
+        private accountService : AccountsDataProviderService,
+        private locationService : LocationsService,
+        private activatedRoute : ActivatedRoute
 		){
 		this.userData = this.authService.getUserData();
 
         for(let role of this.userData.roles){
             if(role.role_id == 1){
+                this.isFRP = true;
                 this.filters.unshift({
                     value : 1, name : 'Building Manager'
-                })
+                });
             }
         }
 
@@ -117,6 +140,59 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
         this.courseService.getAllEmRolesTrainings((response) => {
             this.emTrainings = response.data;
+        });
+
+        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
+            this.locations = response.locations;
+            this.locationPagination.pages = response.pagination.pages;
+            this.locationPagination.total = response.pagination.total;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select();
+            },500);
+        });
+
+        if(this.router.url.indexOf("/teams/list-administrators") > -1){
+            this.isAdministrationsShow = true;
+            this.queries.roles = 'frp,trp';
+        }
+
+        let newFilters = [];
+        if(this.isAdministrationsShow){
+            for(let filter of this.filters){
+                if(filter['value'] == 1 || filter['value'] == 2){
+                    newFilters.push(filter);
+                }
+            }
+
+            this.filters = newFilters;
+        }
+
+        this.activatedRoute.queryParams.subscribe((params) => {
+            if(params['archived']){
+                this.showArchived = Boolean(params['archived']);
+                this.queries.archived = 1;
+            }else{
+                this.showArchived = false;
+                this.queries.archived = 0;
+            }
+
+
+            this.dashboardService.show();
+            this.getListData(() => { 
+                if(this.pagination.pages > 0){
+                    this.pagination.currentPage = 1;
+                    this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=this.pagination.pages; i++){
+                    this.pagination.selection.push({ 'number' : i });
+                }
+
+                this.dashboardService.hide();
+                setTimeout(() => {
+                    $('.row.filter-container select').material_select();
+                }, 100);
+            });
         });
 	}
 
@@ -188,19 +264,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-		this.dashboardService.show();
-		this.getListData(() => { 
-			if(this.pagination.pages > 0){
-				this.pagination.currentPage = 1;
-				this.pagination.prevPage = 1;
-			}
-
-			for(let i = 1; i<=this.pagination.pages; i++){
-				this.pagination.selection.push({ 'number' : i });
-			}
-
-			this.dashboardService.hide();
-		});
+		
 	}
 
 	ngAfterViewInit(){
@@ -213,33 +277,29 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 this.isOnlineTrainingAvailable = true;
             }
             setTimeout(() => {
-                $('.row.filter-container select').material_select();
+                $('.row.filter-container select:not(.location)').material_select();
             }, 100);
         });
 
         $('#modalMobility select').material_select();
 
-		this.filterByEvent();
+        this.filterByEvent();
+		this.locationChangeEvent();
 		this.sortByEvent();
 		this.bulkManageActionEvent();
 		this.searchMemberEvent();
 	}
 
-	filterByEvent(){
+    locationChangeEvent(){
         let __this = this;
-		$('select.filter-by').on('change', function(e){
+        $('select.location').on('change', function(e){
             e.preventDefault();
             e.stopPropagation();
-			let selected = $('select.filter-by').val();
+            let selected = $('select.location').val();
             __this.dashboardService.show();
-			if(parseInt(selected) != 0 && selected != 'pending'){
-				__this.queries.roles = selected;
-			}else{
-				__this.queries.roles = 'frp,trp,users,no_roles';
-                if(selected == 'pending'){
-                    __this.queries.roles += ',pending';
-                }
-			}
+            
+            __this.queries.location_id = selected;
+            __this.queries.offset = 0;
 
             __this.pagination = {
                 pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
@@ -257,7 +317,49 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
                 __this.dashboardService.hide();
             });
-		});	
+        });
+    }
+
+	filterByEvent(){
+        let __this = this;
+		$('select.filter-by').off('change').on('change', function(){
+			let selected = $('select.filter-by').val();
+            __this.dashboardService.show();
+			if(parseInt(selected) != 0 && selected != 'pending'){
+				__this.queries.roles = selected;
+			}else{
+
+                if(__this.isAdministrationsShow){
+				    __this.queries.roles = 'frp,trp';
+                }else{
+                    __this.queries.roles = 'frp,trp,users';
+                }
+                if(selected == 'pending'){
+                    __this.queries.roles += ',pending';
+                }else if(selected == 'no_roles'){
+                    __this.queries.roles += ',no_roles';
+                }
+			}
+
+            __this.pagination = {
+                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
+            };
+
+            __this.queries.offset = 0;
+
+            __this.getListData(() => { 
+                if(__this.pagination.pages > 0){
+                    __this.pagination.currentPage = 1;
+                    __this.pagination.prevPage = 1;
+                }
+
+                for(let i = 1; i<=__this.pagination.pages; i++){
+                    __this.pagination.selection.push({ 'number' : i });
+                }
+
+                __this.dashboardService.hide();
+            });
+		});
 	}
 
 	sortByEvent(){
@@ -313,7 +415,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		let selected = event.target.value;
 		if(selected == 'view'){
 			this.router.navigate(["/teams/view-user/", list.id_encrypted]);
-		}else if(selected == 'archive'){
+		}else if(selected == 'archive' || selected == 'restore'){
 			event.target.value = "0";
 			this.showModalLoader = false;
 			this.selectedToArchive = list;
@@ -337,15 +439,22 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	archiveClick(){
 		this.showModalLoader = true;
-		this.userService.archiveUsers([ this.selectedToArchive['user_id'] ], (response) => {
-			this.showModalLoader = false;
-			$('#modalArchive').modal('close');
-			this.dashboardService.show();
-			this.selectedToArchive = {
-				first_name : '', last_name : '', parent_data : {}, locations : []
-			};
-			this.getListData(() => { this.dashboardService.hide(); });
-		});
+
+        let cb = (response) => {
+            this.showModalLoader = false;
+            $('#modalArchive').modal('close');
+            this.dashboardService.show();
+            this.selectedToArchive = {
+                first_name : '', last_name : '', parent_data : {}, locations : []
+            };
+            this.getListData(() => { this.dashboardService.hide(); });
+        };
+
+        if(!this.showArchived){
+		    this.userService.archiveUsers([ this.selectedToArchive['user_id'] ], cb);
+        }else{
+            this.userService.unArchiveUsers([ this.selectedToArchive['user_id'] ], cb);
+        }
 	}
 
 	selectAllCheckboxEvent(event){
@@ -445,14 +554,21 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			arrIds.push(this.selectedFromList[i]['user_id']);
 		}
 
-		this.userService.archiveUsers(arrIds, (response) => {
-			$('#allLocations').prop('checked', false);
-			this.showModalLoader = false;
-			$('#modalArchiveBulk').modal('close');
-			this.dashboardService.show();
-			this.selectedFromList = [];
-			this.getListData(() => { this.dashboardService.hide(); });
-		});
+        let cb = (response) => {
+            $('#allLocations').prop('checked', false);
+            this.showModalLoader = false;
+            $('#modalArchiveBulk').modal('close');
+            this.dashboardService.show();
+            this.selectedFromList = [];
+            this.getListData(() => { this.dashboardService.hide(); });
+        };
+
+        if(!this.showArchived){
+		    this.userService.archiveUsers(arrIds, cb);
+        }else{
+            this.userService.unArchiveUsers(arrIds, cb);
+        }
+
 	}
 
 	pageChange(type){

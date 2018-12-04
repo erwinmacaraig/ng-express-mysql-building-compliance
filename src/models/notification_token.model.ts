@@ -40,8 +40,10 @@ export class NotificationToken extends BaseClass {
         dtResponded,
         completed,
         dtCompleted,
-        strResponse
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        strResponse,
+        training_reminder,
+        lastActionTaken
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
         strToken = ?,
         location_id = ?,
@@ -54,7 +56,9 @@ export class NotificationToken extends BaseClass {
         dtCompleted = ?,
         strResponse = ?,
         dtLastSent = ?,
-        manually_validated_by = ?
+        manually_validated_by = ?,
+        training_reminder = ?,
+        lastActionTaken = ?
       `;
       const param = [
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
@@ -69,6 +73,8 @@ export class NotificationToken extends BaseClass {
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',        
+        ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
+        ('lastActionTaken' in this.dbData) ? this.dbData['lastActionTaken']: null,
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
@@ -80,7 +86,9 @@ export class NotificationToken extends BaseClass {
         ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
-        ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0
+        ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
+        ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
+        ('lastActionTaken' in this.dbData) ? this.dbData['lastActionTaken'] : null
       ];
 
       this.pool.getConnection((err, connection) => {
@@ -123,7 +131,9 @@ export class NotificationToken extends BaseClass {
           dtCompleted = ?,
           strResponse = ?,
           dtLastSent = ?,
-          manually_validated_by = ?
+          manually_validated_by = ?,
+          training_reminder = ?,
+          lastActionTaken = ?
         WHERE notification_token_id = ?
       `;
       const param = [
@@ -141,6 +151,8 @@ export class NotificationToken extends BaseClass {
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
         ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
+        ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
+        ('lastActionTaken' in this.dbData) ? this.dbData['lastActionTaken'] : null,
         this.ID() ? this.ID() : 0
       ];
       this.pool.getConnection((err, connection) => {
@@ -211,6 +223,32 @@ export class NotificationToken extends BaseClass {
           } else {
             resolve({});
           }
+        });
+        connection.release();
+
+      });
+      
+
+    });
+  }
+
+  public getByUserId(userId = 0): Promise<object> {
+    return new Promise((resolve, reject) => {
+      const sql_load = `SELECT *, IF(dtExpiration < NOW(), 'expired', 'active') as expiration_status FROM notification_token
+        WHERE user_id = ?  `;
+
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
+        }
+
+        connection.query(sql_load, [userId], (error, results) => {
+          if (error) {
+            console.log('NotificationToken.loadByContraintKeys', error, sql_load);
+            throw Error(error);
+          }
+          this.dbData = results;
+          resolve(this.dbData);
         });
         connection.release();
 
@@ -296,6 +334,72 @@ export class NotificationToken extends BaseClass {
       });
       
     });
+  }
+
+  public generateSummaryList(filter={}): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      let userIds = [];
+      let whereClause = '';
+      if ('user_ids' in filter) {
+        userIds = filter['user_ids'];
+        userIds.push(0);
+        whereClause += `AND users.user_id IN (` + userIds.join(',') + `) `; 
+      }
+      if ('role_text' in filter) {
+        whereClause += `AND notification_token.role_text ${filter['role_text']} `;
+      }
+      const sql = `SELECT
+                  users.user_id,
+                  users.first_name,
+                  users.last_name,
+                  users.email,
+                  users.mobile_number,
+                  accounts.account_name,
+                  notification_token.notification_token_id,                  
+                  notification_token.role_text,
+                  notification_token.dtLastSent,
+                  notification_token.lastActionTaken,
+                  users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
+               FROM
+                 users
+               INNER JOIN
+				         accounts
+			         ON
+                 accounts.account_id = users.account_id
+               INNER JOIN
+                 notification_token
+               ON
+                 users.user_id = notification_token.user_id               
+               LEFT JOIN
+                 notification_config
+               ON
+                 notification_token.notification_config_id = notification_config.notification_config_id
+               LEFT JOIN
+                 locations ON locations.location_id = notification_token.location_id
+               LEFT JOIN
+                 locations as parent_loctions ON locations.parent_id = parent_loctions.location_id
+               WHERE notification_token.notification_config_id <> 0
+                 ${whereClause}
+               ORDER BY accounts.account_name, users.user_id`;
+      
+      this.pool.getConnection((err, connection) => {
+        if(err){
+          throw new Error(err);
+        }
+
+        connection.query(sql, [], (error, results) => {
+         if (error) {
+           console.log('NotificationToken.generateSummaryList', sql, error);
+           throw Error(error);
+         }
+         resolve(results);
+        });
+        connection.release();
+
+      });
+      
+    });
+
   }
 
 }

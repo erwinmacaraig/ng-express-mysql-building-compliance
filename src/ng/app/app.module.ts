@@ -82,6 +82,8 @@ import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 import { NgDatepickerModule } from 'ng2-datepicker';
+import { ListGeneralOccupantComponent } from './teams/list-gen-occ/list.gen.occ.component';
+import { TeamsAddGeneralOccupantComponent } from './teams/add-gen-occ/add.gen.occ.component';
 
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
@@ -114,6 +116,7 @@ import { ReportsLocationsComplianceComponent } from './reports/location-complian
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent } from './reports/trainings/trainings.component';
+import { WardenReportsComponent } from './reports/warden/warden.component';
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
@@ -125,6 +128,10 @@ import { NotifiedUsersListComponent } from './notification/notified-users-list/n
 import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
 import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
 import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
+import { WardenNotificationComponent } from './notification/warden-notification/warden-notification';
+import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
+import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
+import { NotifiedTRPTrainingsComponent } from './notification/notified-trp-training/notified-trp-training.component';
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -208,6 +215,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     ViewGeneralOccupantComponent,
     ViewChiefWardenComponent,
     AllUsersArchivedComponent,
+    ListGeneralOccupantComponent,
+    TeamsAddGeneralOccupantComponent,
 
     ComplianceComponent,
     ViewComplianceComponent,
@@ -237,6 +246,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     ReportsLocationsStatementComplianceComponent,
     ReportsTeamsComponent,
     ReportsTrainingsComponent,
+    WardenReportsComponent,
     ReportsActivityLogComponent,
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
@@ -247,6 +257,10 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     NotificationQueryComponent,
     NotificationWardenListComponent,
     NotificationPEEPListComponent,
+    WardenNotificationComponent,
+    NotifiedTrpUpdateProfileComponent,
+    SummaryViewComponent,
+    NotifiedTRPTrainingsComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,

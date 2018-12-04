@@ -38,7 +38,7 @@ import {NotificationToken } from '../models/notification_token.model';
 import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
-
+const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
 
 export class AdminRoute extends BaseRoute {
@@ -677,6 +677,27 @@ export class AdminRoute extends BaseRoute {
            console.log(e, u);
            invalidUsers.push(u['email']);
          }
+
+         // PERFORM UPDATES HERE
+         if (u['user_em_roles_relation_id'] != null) {
+           let userEmRoleRelObj = null;           
+           let dbUserEmRoleDbData = {};
+           userEmRoleRelObj = new UserEmRoleRelation(u['user_em_roles_relation_id']);
+           dbUserEmRoleDbData = await userEmRoleRelObj.load();
+           dbUserEmRoleDbData['em_role_id'] = u['role_id'];
+           dbUserEmRoleDbData['location_id'] = u['location_id'];
+           await userEmRoleRelObj.create(dbUserEmRoleDbData);
+         }
+         if (u['location_accout_user_id'] != null) {
+           let locAcctUserObj = null;
+           let locAcctUserDbData = {};
+           locAcctUserObj = new LocationAccountUser(u['location_accout_user_id']);
+           locAcctUserDbData = await locAcctUserObj.load();
+           // For now we update the location
+           locAcctUserDbData['location_id'] = u['location_id'];
+           await locAcctUserObj.create(locAcctUserDbData);
+
+         } 
        }
       }
       return res.status(200).send({
@@ -755,19 +776,27 @@ export class AdminRoute extends BaseRoute {
         tempArr.push(s['location_id']);
         s['id'] = s['location_id'];
       }
-
+      
       const userAccountRoles = await lauObj.getUsersInLocationId(tempArr);
       const userEMRoles = await emrrObj.getUsersInLocationIds(tempArr.join(','));
       const allUsers = userAccountRoles.concat(userEMRoles);
-      tempArr = [];
       
+      tempArr = [];
       const uniqUsers = [];
-      for (const u of allUsers) {
-        if (tempArr.indexOf(u['user_id']) == -1) {
-          tempArr.push(u['user_id']);
-          uniqUsers.push(u);
+      
+      for (let uem of userEMRoles) {
+        if (tempArr.indexOf(uem['user_id']) == -1) {
+          tempArr.push(uem['user_id']);
+          uniqUsers.push(uem);
         }
       }
+      for (let acctUser of userAccountRoles) {
+        if (tempArr.indexOf(acctUser['user_id']) == -1) {
+          tempArr.push(acctUser['user_id']);
+          uniqUsers.push(acctUser);
+        }
+      }
+
       res.status(200).send({
         sublocations: sublocations,
         users: uniqUsers
@@ -1043,8 +1072,12 @@ export class AdminRoute extends BaseRoute {
       const accountUsers = [];
       const allUserObject = {};
       const locations = {};
+      
       for (let i = 0; i < allUsers.length; i++) {
         if (allUsers[i]['user_id'] in allUserObject) {
+          if ( (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).indexOf(allUsers[i]['role_id']) == -1 && allUsers[i]['role_id'] != null &&  allUsers[i]['role_id'] < 3) {
+            (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).push(allUsers[i]['role_id']);
+          }
           if (allUsers[i]['location_id'] in allUserObject[allUsers[i]['user_id']]['locations']) {
             if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
 
@@ -1060,10 +1093,11 @@ export class AdminRoute extends BaseRoute {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
             }
-
-
           } else {
             if (allUsers[i]['location_id'] !== null) {
+              if ((allUserObject[allUsers[i]['user_id']]['location-ids']).indexOf(allUsers[i]['location_id']) == -1) {
+                allUserObject[allUsers[i]['user_id']]['location-ids'].push(allUsers[i]['location_id']);
+              }
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']] = {
                 'em-role': [],
                 'account-role': [],
@@ -1099,8 +1133,13 @@ export class AdminRoute extends BaseRoute {
             'account_id': allUsers[i]['account_id'],
             'mobile_number': allUsers[i]['mobile_number'],
             'locations': {},
-            'locations-arr': []
+            'locations-arr': [],
+            'allAccountRoles': []
           };
+
+          if (allUsers[i]['role_id'] != null && allUsers[i]['role_id'] < 3) {
+            allUserObject[allUsers[i]['user_id']]['allAccountRoles'].push(allUsers[i]['role_id']);
+          }
           // console.log(typeof allUsers[i]['location_id']);
           // console.log(allUsers[i]['location_id'] === null);
           if (allUsers[i]['location_id'] && allUsers[i]['location_id'] != null) {
@@ -1783,7 +1822,7 @@ export class AdminRoute extends BaseRoute {
         description = req.body.description;
         viewable_by_trp = 1; // to change
         validityDuration = kpisModels[kpis]['validity_in_months'];
-        override_document = req.body.override_document;
+        override_document = (req.body.override_document) ? req.body.override_document : null;
 
         arrWhereCompliance.push([`compliance_kpis_id = ${kpis}`]);
         arrWhereCompliance.push([`building_id = ${building_id}`]);
@@ -1820,36 +1859,39 @@ export class AdminRoute extends BaseRoute {
             }
             // console.log(i, params);
             const complianceDocObj = new ComplianceDocumentsModel();
-              await complianceDocObj.create({
-                account_id: account_id,
-                building_id: building_id,
-                compliance_kpis_id: kpis,
-                override_document: override_document,
-                document_type: document_type,
-                file_name: item['originalname'].replace(/\s+/g, '_'),
-                date_of_activity: dtActivity,
-                viewable_by_trp: viewable_by_trp,
-                description: description,
-                file_size: item['size'],
-                file_type: item['mimetype'],
-                timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
-              });
-              const today = moment();
-              const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
-              let status = 0;
-              if (dtActivityValidity.isAfter(today)) {
-                status = 1;
-              }
-              await complianceModel.create({
-                compliance_kpis_id: kpis,
-                compliance_status: status,
-                building_id: building_id,
-                account_id: account_id,
-                valid_till: dtActivityValidity.format('YYYY-MM-DD'),
-                required: kpisModels[kpis]['required'],
-                account_role: account_role,
-                override_by_evac: 0
-              });
+            await complianceDocObj.create({
+              account_id: account_id,
+              building_id: building_id,
+              compliance_kpis_id: kpis,
+              override_document: override_document,
+              document_type: document_type,
+              file_name: item['originalname'].replace(/\s+/g, '_'),
+              date_of_activity: dtActivity,
+              viewable_by_trp: viewable_by_trp,
+              description: description,
+              file_size: item['size'],
+              file_type: item['mimetype'],
+              timestamp: moment().format('YYYY-MM-DD HH:mm:ss')
+            });
+
+            const today = moment();
+            const dtActivityValidity = moment(dtActivity).add(validityDuration, 'months');
+            let status = 0;
+            if (dtActivityValidity.isAfter(today)) {
+              status = 1;
+            }
+
+            await complianceModel.create({
+              compliance_kpis_id: kpis,
+              compliance_status: status,
+              building_id: building_id,
+              account_id: account_id,
+              valid_till: dtActivityValidity.format('YYYY-MM-DD'),
+              required: kpisModels[kpis]['required'],
+              account_role: account_role,
+              override_by_evac: 0
+            });
+
             marker++;
             // console.log(d);
             // console.log(marker);
@@ -1992,7 +2034,71 @@ export class AdminRoute extends BaseRoute {
       new AdminRoute().tagAccountToExistingLocation(req, res);
     });
 
+    router.post('/admin/manual-send-notification-summary-link/', new MiddlewareAuth().authenticate, 
+    (req: AuthRequest, res: Response) => {
+      new AdminRoute().manualSendNotificationSummaryLink(req, res);
+    });
   // ===============
+  }
+
+  public async manualSendNotificationSummaryLink(req: AuthRequest, res: Response) {
+    const user = req.body.userId;
+    const role = req.body.roleId;
+    const account = req.body.accountId;
+
+    // get the location based on the role and account.
+    const userObj = new User();
+    const userInLocations = await userObj.getUserInLocationByRole(role, account, user);
+    
+    let strToken;
+    const limiter = new RateLimiter(2, 'second');
+    for (let u of userInLocations) {
+      strToken = cryptoJs.AES.encrypt(`${user}_${u['location_id']}_${u['building_id']}_${role}_${account}_${Date.now()}`, process.env.KEY).toString();      
+      u['token'] = strToken;
+      // send the email to user
+      const opts = {
+        from : '',
+        fromName : 'EvacConnect',
+        to : ['emacaraig@evacgroup.com.au'],
+        cc: [],
+        body : '',
+        attachments: [],
+        subject : ''
+      };
+      const email = new EmailSender(opts);
+      
+      limiter.removeTokens(1, (err, remainingRequests) => {
+        email.sendFormattedEmail('send-summary-notification-link', {
+          users_fullname: `${u['first_name']} ${u['last_name']}`,
+          link: 'http://' + req.get('host') + '/accounts/process-summary-link-token/?token=' + encodeURIComponent(u['token']),
+          role: defs['summary_role_label'][role],
+          location: `${u['name']} ${u['Building']}`,
+          account: u['account_name']
+        }, res, 
+          (data) => {
+            console.log(data);
+            const token = new Token();
+            token.create({
+              token: u['token'],
+              action: 'view',
+              verified: 0,
+              expiration_date: moment().add(2, 'day').format('YYYY-MM-DD HH:MM:ss'),
+              id: u['location_id'],
+              id_type: 'location_account_user.location_id'
+            }).then(() => {             
+              strToken = null;
+            });
+          },
+          (err) => console.log(err)
+        );
+      });
+    }
+    res.status(200).send({
+      message: 'Success'
+    });
+
+    
+
   }
 
   public async tagAccountToExistingLocation(req: AuthRequest, res: Response) {
@@ -2093,6 +2199,17 @@ export class AdminRoute extends BaseRoute {
             if(frptrp){
                 users = <any> await usersModel.getIsFrpTrp(accountId, false, offLimit, allLocationIds.join(','));
                 usersCount = <any> await usersModel.getIsFrpTrp(accountId, true, undefined, allLocationIds.join(','));
+            }else if(type == 'training'){
+                let usersFT = <any> await usersModel.getIsFrpTrp(accountId, false, offLimit, allLocationIds.join(','));
+                let usersCountFT = <any> await usersModel.getIsFrpTrp(accountId, true, undefined, allLocationIds.join(','));
+
+                let usersEM = <any> await usersModel.getIsEm(accountId, false, offLimit, allLocationIds.join(','));
+                let usersCountEM = <any> await usersModel.getIsEm(accountId, true, undefined, allLocationIds.join(','));
+
+                users = usersFT.concat(usersEM);
+                usersCountFT[0]['count'] += usersCountEM[0]['count']; 
+                usersCount = usersCountFT;
+
             }else{
                 users = <any> await usersModel.getIsEm(accountId, false, offLimit, allLocationIds.join(','));
                 usersCount = <any> await usersModel.getIsEm(accountId, true, undefined, allLocationIds.join(','));
@@ -2178,6 +2295,7 @@ export class AdminRoute extends BaseRoute {
         }
 
         locations = <any> await this.getLocationsOfUsersReport(req, allUserIds, isFrpTrp, locBothEmAndFrpTrp, useraAndCountResponse.allLocationIds);
+        response['locations'] = locations;
 
         for(let user of users){
             if(!user['locations']){

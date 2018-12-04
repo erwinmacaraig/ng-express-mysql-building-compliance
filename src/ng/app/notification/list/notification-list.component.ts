@@ -49,7 +49,7 @@ export class NotificationListComponent implements OnInit, AfterViewInit, OnDestr
     }
 
     ngAfterViewInit() {
-        $('select').material_select();
+        $('select:not(.no-materialize)').material_select();
     }
 
     ngOnDestroy() {}

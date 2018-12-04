@@ -34,10 +34,12 @@
 				</div>
 			</div>
 			<p class="completion" [hidden]="showLoadingCompliance">
+				<!--
 				<span class="start number">0 </span>
 				<span>of </span>
 				<span class="end number">0 </span>
 				<span class="end">completion</span>
+			    -->
 			</p>
 			<h5 *ngIf="locationData.admin_verified == 0 && !showLoadingCompliance" class="blue-text center">For Verification</h5>
 			<a *ngIf="locationData.admin_verified == 1 && !showLoadingCompliance" class="btn blue waves-effect waves-light" [routerLink]="['/location/compliance/view',  encryptedID]" >Manage Compliance</a>
@@ -109,8 +111,8 @@
 					<thead>
 						<tr class="grey darken-4 white-text">
 							<th>Sub Location</th>
-							<th>Warden Benchmarking</th>
-							<th>No. of Accounts</th>
+							<th>Warden Benchmark</th>
+							<th>No. of Tenants in Building</th>
 							<!-- <th>Compliance</th> -->
 							<th>Manage</th>
 						</tr>

@@ -428,7 +428,8 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
         if (this.currentPage < 0) {
             this.currentPage = this.total_pages - 1;
         }
-        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, $('#searchUsers').val().trim()).subscribe((response) => {
+        let search = ($('#searchUsers').length > 0) ? $('#searchUsers').val().trim() : '';
+        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, search).subscribe((response) => {
             this.userObjects = response['data']['list'];
             this.total_pages = response['data']['total_pages'];
             this.createRange = new Array(this.total_pages);
@@ -461,7 +462,8 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
         if (this.currentPage > this.total_pages - 1) {
             this.currentPage = 0;
         }
-        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, $('#searchUsers').val().trim()).subscribe((response) => {
+        let search = ($('#searchUsers').length > 0) ? $('#searchUsers').val().trim() : '';
+        this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage, search).subscribe((response) => {
             this.userObjects = response['data']['list'];
             this.total_pages = response['data']['total_pages'];
             this.createRange = new Array(this.total_pages);
@@ -544,7 +546,18 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             this.adminService.sendPasswordSetupInvite({user: user['user_id']}).subscribe((response) => {
                 alert('Send invite successful!');
             });
+        } else if (val == 'send-summary-link') {            
+            this.adminService.sendNotificationSummaryLink(user['user_id'], user['allAccountRoles'][0], this.accountId)
+                .subscribe((response) => {
+                    console.log('Email Sent');                   
+                });
 
+            if (user['allAccountRoles'].length > 1) {
+                this.adminService.sendNotificationSummaryLink(user['user_id'], user['allAccountRoles'][1], this.accountId)
+                .subscribe((response) => {
+                    console.log('Email Sent');                   
+                });
+            }
         }
 
         event.target.value = "0";

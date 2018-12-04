@@ -389,11 +389,11 @@
 
 			</div>
 			<div class="col s12 m12 l12">
-				<h6>Assistant Type</h6>
+				<h6>Assistant Requirement</h6>
 				<input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
 			</div>
 			<div class="col s12 m12 l12">
-				<h6>Evacuation Equipment Type / Requirement</h6>
+				<h6>Evacuation Equipment Requirement</h6>
 				<input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
 			</div>
 			<div class="col s12 m12 l12">
@@ -572,7 +572,7 @@
 						<td *ngIf="!loc.deleted">
 							<select name="role_id[{{i}}]" style="display: block;" (change)="onChangeSelectRole(loc, $event.currentTarget.value)" >
                                 <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
-								<option value="1" [selected]="loc.role_id == 1">Building Manager</option>
+								<option value="1" [selected]="loc.role_id == 1" [disabled]="!isImFRP">Building Manager</option>
 								<option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
 								<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.role_id == eco.em_roles_id ">
 									{{eco.role_name}}

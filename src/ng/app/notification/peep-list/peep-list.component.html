@@ -1,14 +1,26 @@
 <ng-template #mainContent>
     <div class="row">
         <div class="col l12 m12 s12">
-
             <div class="steps-text">
                 <div class="circle"></div>
                 <div class="text">Step 1</div>
+        
                 <div class="dash"></div>
                 <div class="circle"></div>
-                <div class="text blue-text">Step 2</div>
-            </div>
+                <div class="text">Step 2</div>
+        
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text">Step 3</div>
+        
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text blue-text">Step 4</div>
+        
+                <div class="dash"></div>
+                <div class="circle"></div>
+                <div class="text">Step 5</div>
+            </div>            
             <div class="row">
               <div class="col l12 m12 s12">
                <span style="font-size: 20px;">Review your current mobility impaired list</span>
@@ -46,7 +58,7 @@
                                     <option value="credential">Update Credential</option>
                                     <option value="location">Assign Location & Role</option>
                                     <option value="markaspeep" *ngIf="p.mobility_impaired == 1">Update Info</option>
-                                    <option value="markashealthy" *ngIf="p.mobility_impaired == 1">Mark As Healthy</option>
+                                    <option value="markashealthy" *ngIf="p.mobility_impaired == 1">Remove from list</option>
                                 </select>
                             </div>
                             <button class="btn red waves-effect waves-light archive-button" type="button" (click)="archiveClick(p)">
@@ -58,7 +70,8 @@
             </table>
 
             <div class="right-align">
-                <button (click)="nextAction()" class="btn btn-proceed orange waves-effect waves-light">Next</button>
+                <!-- <button (click)="nextAction()" class="btn btn-proceed orange waves-effect waves-light">Next</button> -->
+                <button [routerLink]="['/dashboard', 'trainings-for-notified-trp', encryptedToken]" class="btn btn-proceed orange waves-effect waves-light">Next</button>
             </div>
 
         </div>
@@ -407,7 +420,7 @@
     <div class="modal-content">
         <h5>Confirm action</h5>
 
-        <h6>Mark {{selectedUser.first_name}} {{selectedUser.last_name}} as Healthy</h6>
+        <h6>Remove {{selectedUser.first_name}} {{selectedUser.last_name}} from PEEP list</h6>
 
     </div>
 

@@ -169,13 +169,14 @@ export class TrainingRequirements extends BaseClass {
         });
     }
 
-    public allEmRolesTrainings(){
+    public allEmRolesTrainings():Promise<Array<object>>{
         return new Promise((resolve, reject) => {
             const sql = `
                 SELECT
                     emt.em_role_training_requirements_id,
                     em.role_name,
                     emt.em_role_id,
+                    tr.training_requirement_id,
                     tr.training_requirement_name,
                     tr.num_months_valid
                 FROM em_role_training_requirements emt
@@ -189,8 +190,7 @@ export class TrainingRequirements extends BaseClass {
                     if (error) {
                         throw new Error('Error allEmRolesTrainings');
                     } else {
-                        resolve(results);
-                        this.dbData = results;
+                        resolve(results);                        
                     }
                 });
                 connection.release();

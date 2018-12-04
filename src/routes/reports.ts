@@ -132,6 +132,11 @@ export class ReportsRoute extends BaseRoute {
            new ReportsRoute().getActivityReport(req, res);
        });
 
+        router.post('/reports/warden-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          req.body['warden_report'] = true;
+          new ReportsRoute().locationTrainings(req, res);
+        })
+
        router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
            req.body['limit'] = req.params.limit;
@@ -189,6 +194,33 @@ export class ReportsRoute extends BaseRoute {
            req.body['getall'] = true;
            new ReportsRoute().locationTrainings(req, res, false, true);
        });
+
+       router.get('/reports/pdf-warden-list/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['course_method'] = 'none';
+           req.body['eco_only'] = true;
+           req.body['warden_report'] = true;
+           req.body['getall'] = true;
+           new ReportsRoute().locationTrainings(req, res, true);
+       });
+
+       router.get('/reports/csv-warden-list/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['course_method'] = 'none';
+           req.body['eco_only'] = true;
+           req.body['warden_report'] = true;
+           req.body['getall'] = true;
+           new ReportsRoute().locationTrainings(req, res, false, true);
+       });
+
     }
 
      /**
@@ -328,13 +360,12 @@ export class ReportsRoute extends BaseRoute {
         if(!toPdf && !toCsv){
           res.status(200).send(response);
         }else if(toPdf || toCsv){
-          response['title'] = 'Team Report';
+          response['title'] = 'Stack Plan Report';
           response['tables'] = [];
           for(let data of response.data){
             let tblData = {
-              title : data.location.name + ' Current Team Information',
               data : [], 
-              headers : ['Company', 'Sub Location', 'Contact Person', 'Email', 'Warden', 'P.E.E.P']
+              headers : ['Building', 'Sublocation', 'Account', 'TRP', 'Email', '# Warden', '# P.E.E.P']
             };
 
             let totalWardens = 0;
@@ -370,7 +401,7 @@ export class ReportsRoute extends BaseRoute {
               }
 
               tblData.data.push([
-                accnts, d.name, trps, emails, d.total_wardens, d.peep_total
+                data.location.name, d.name, accnts, trps, emails, d.total_wardens, d.peep_total
               ]);
 
               totalWardens += parseInt(d.total_wardens);
@@ -637,6 +668,10 @@ export class ReportsRoute extends BaseRoute {
         usersModel = new User(),
         frpAndTrp = [];
 
+        if(req.body.eco_only){
+            config['eco_only'] = req.body.eco_only;
+        }
+
         users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
 
         for(let user of users){
@@ -649,7 +684,7 @@ export class ReportsRoute extends BaseRoute {
             }
         }
 
-        response['users'] = users;
+        // response['users'] = users;
         // response['allLocationIds'] = allLocationIds.join(',');
 
         let offsetLimit = (getAll || filterExceptLocation) ? false : offset+','+limit,
@@ -669,6 +704,19 @@ export class ReportsRoute extends BaseRoute {
                     cert['email'] = user.email;
                     cert['location_name'] = user.location_name;
                     cert['account_name'] = user.account_name;
+                    cert['region'] = '';
+                    cert['building'] = '';
+                    cert['sublocation'] = '';
+
+                    if(user.parent_is_building == 1){
+                        cert['building'] = user.parent_location_name;
+                        cert['sublocation'] = user.name;
+                        cert['region'] = user.parent2_location_name;
+                    }else if(user.is_building == 1){
+                        cert['building'] = user.name;
+                        cert['region'] = user.parent_location_name;
+                    }
+
                 }
             }
 
@@ -729,9 +777,9 @@ export class ReportsRoute extends BaseRoute {
         }else if(toPdf || toCsv){
           response['tables'] = [];
           let tblData = {
-            title : 'Training Report',
+            title : (req.body.warden_report) ? 'Warden List Report' : 'Training Report',
             data : [], 
-            headers : ["User", "Email", "Account", "Location", "Role", "Training Status & Date"]
+            headers : (req.body.warden_report) ? ["Region", "Building", "Emergency Role", "Sublocation", "Account", "Name", "Email", "Overall Status"] : ["Region", "Building", "Sublocation", "Account", "User", "Email", "Role", "Training Status & Date"]
           };
 
           for(let re of response.data){
@@ -748,7 +796,13 @@ export class ReportsRoute extends BaseRoute {
                   }
                   compOrNot = 'Not Compliant '+desc;
               }
-              tblData.data.push([ re.first_name+' '+re.last_name, re.email, re.account_name, re.location_name, re.role_name, compOrNot + ' ' + re.certification_date_formatted ]);
+
+              if(req.body.warden_report){
+                tblData.data.push([ re.region, re.building, re.role_name,  re.sublocation,  re.account_name, re.first_name+' '+re.last_name, re.email, compOrNot ]);
+              }else{
+                tblData.data.push([ re.region, re.building, re.sublocation,re.account_name,  re.first_name+' '+re.last_name, re.email, re.role_name, compOrNot + ' ' + re.certification_date_formatted ]);
+              }
+
           }
            
           response['tables'].push(tblData);
@@ -1108,6 +1162,7 @@ export class ReportsRoute extends BaseRoute {
 
         for(let log of logs){
             log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY hh:mma');
+            log['date_of_activity_formatted'] = moment(log.date_of_activity).format('DD/MM/YYYY hh:mma');
             for(let loc of locations){
                 if(log.building_id == loc.location_id){
                     log['location_name'] = loc.name;
@@ -1144,10 +1199,10 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : 'Activity Report',
             data : [], 
-            headers : ['Locations', 'File name', 'Date']
+            headers : ['Location', 'Type', 'File name', 'Date Uploaded']
           };
           for(let d of response.data){
-            tblData.data.push([ d.location_name, d.file_name, d.timestamp_formatted ]);
+            tblData.data.push([ d.location_name, d.document_type, d.file_name, d.timestamp_formatted ]);
           }
           response['tables'].push(tblData);
 
@@ -1175,6 +1230,9 @@ export class ReportsRoute extends BaseRoute {
             csvData += '\n';
 
             for(let d of table.data){
+                d.forEach((item, index) => {
+                  d[index] =  (item != null) ? item.replace(/,/g, ' ') : '';
+                });
                 csvData += d.join(',');
                 csvData += '\n';
             }

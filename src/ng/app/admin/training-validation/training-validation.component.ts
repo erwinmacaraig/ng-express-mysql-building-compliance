@@ -100,10 +100,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       role_id: 11,
       role_name: 'Chief Warden',
     },
+    /*
     {
       role_id: 12,
       role_name: 'Fire Safety Advisor',
     },
+    */
     {
       role_id: 13,
       role_name: 'EPC Member',
@@ -116,14 +118,17 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       role_id: 15,
       role_name: 'Deputy Chief Warden',
     },
+    /*
     {
       role_id: 16,
       role_name: 'Building Warden',
     },
+    
     {
       role_id: 18,
       role_name: 'Deputy Building Warden',
     },
+    */
   ];
   addedUserExceptions: object = {};
   ngDateObjects = [];
@@ -161,11 +166,22 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.setDatePickerDefaultDate();
       this.dtTrainingField = new FormControl(this.datepickerModelFormatted, Validators.required);
       this.courseTraining = new FormControl({value: '', disabled: true}, Validators.required),
+      /*
       this.adminService.getTrainingRequirementList().subscribe((response) => {
         this.training_requirements = response['data'];
         // console.log(this.training_requirements);
       });
-      
+      */
+      this.training_requirements = [
+        {training_requirement_id: 16, training_requirement_name: 'General Occupant and First Response'},
+        {training_requirement_id: 17, training_requirement_name: 'Emergency Control Organisation'},
+        {training_requirement_id: 18, training_requirement_name: 'Bomb Threat'},
+        {training_requirement_id: 21, training_requirement_name: 'Fire Extinguisher, Fire Hose & Fire Blanket'},
+        {training_requirement_id: 23, training_requirement_name: 'Chief Warden'},
+        {training_requirement_id: 24, training_requirement_name: 'Deputy Chief Warden'},
+        {training_requirement_id: 28, training_requirement_name: 'Active Shooter'}
+        
+      ];
     }
   
     ngAfterViewInit() {
@@ -264,6 +280,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       (<FormArray>this.userForm.get('levelUsers'))
       .controls[index].get('accountId')
       .setValue(item['account_id']);
+
+      if (item['user_em_roles_relation_id']) {
+        (<FormArray>this.userForm.get('levelUsers')).controls[index].get('user_em_roles_relation_id').setValue(item['user_em_roles_relation_id']);
+      }
+      if (item['location_account_user_id']) {
+        (<FormArray>this.userForm.get('levelUsers')).controls[index].get('location_account_user_id').setValue(item['location_account_user_id']);
+      }
   
       this.filteredEmailList[index] = [];
       this.accountSearchResults[index] = [];
@@ -421,6 +444,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         account_name: new FormControl(this.initialAccountName, Validators.required),
         sublocation_name: new FormControl(null, null),
         sublocation_id: new FormControl(null, Validators.required),
+        location_account_user_id: new FormControl(null, null),
+        user_em_roles_relation_id: new FormControl(null, null)
+
       });
   
     }
@@ -522,8 +548,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.dashboard.show();      
       const values = [];
       const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
-      console.log(formUserControls);
-      
+            
       for (const ctrl of formUserControls) {
         values.push({
           email: ctrl.get('email').value,
@@ -536,12 +561,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           account_name: ctrl.get('account_name').value,
           account_id: ctrl.get('accountId').value,
           course_method: 'offline_by_evac',
-          training_requirement_id: this.userForm.get('courseTraining').value
+          training_requirement_id: this.userForm.get('courseTraining').value,
+          location_account_user_id: ctrl.get('location_account_user_id').value,
+          user_em_roles_relation_id: ctrl.get('user_em_roles_relation_id').value
         });
       }
   
-      Object.keys(this.addedUserExceptions).forEach((key) => {
-        
+      Object.keys(this.addedUserExceptions).forEach((key) => {        
         values.push({
           email: this.addedUserExceptions[key]['email'],
           user_id: this.addedUserExceptions[key]['user_id'],
@@ -564,12 +590,12 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   
       this.cancelUserForm();
       this.exceptionCtrl = [];
-  
+      /*
       const paperAttandanceForm = new FormData();
   
       // console.log('paper attandance value' + this.userForm.get('paperAttandnce').value['value']);
       // console.log('filename ' +  this.userForm.get('paperAttandnce').value['filename']);
-  
+      
       paperAttandanceForm.append('file', this.fileInput.nativeElement.files[0], this.fileInput.nativeElement.files[0].name);
       paperAttandanceForm.append('dtTraining', this.dtTrainingField.value);
       paperAttandanceForm.append('training', this.courseTraining.value);
@@ -579,7 +605,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/paper-attendance/`, paperAttandanceForm, {
         reportProgress: true
       });
-  
+      */
       this.adminService.validateUserTrainings(JSON.stringify(values))
       .subscribe((response) => {
         this.validUsers = response['validUsers'];
@@ -594,7 +620,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       (error) => {
 
       });
-  
+      /*
       // upload document here    
       return this.httpEmitter = this.http.request(req).subscribe(
         event => {
@@ -610,7 +636,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             this.dashboard.hide();
         }
       );
-  
+      */
     }
   
     switchLocationDropDown(e: any) {

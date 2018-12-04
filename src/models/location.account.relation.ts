@@ -395,9 +395,7 @@ export class LocationAccountRelation extends BaseClass {
 
         let sqlGetIds = `
             SELECT
-
-            IF(p1.is_building = 1, p1.location_id, l.location_id) as location_id
-
+            DISTINCT(IF(p1.is_building = 1, p1.location_id, l.location_id) ) as location_id
             FROM locations l
             INNER JOIN location_account_user lau ON l.location_id = lau.location_id
             LEFT JOIN locations p1 ON l.parent_id = p1.location_id
@@ -416,9 +414,8 @@ export class LocationAccountRelation extends BaseClass {
                     throw new Error(error);
                 }
                 
-                if(idResults.length > 0){ 
-
-                    let
+                if(idResults.length > 0){
+                    let 
                     arrIds = [],
                     ids = '';
                     for(let i in idResults){
@@ -426,8 +423,6 @@ export class LocationAccountRelation extends BaseClass {
                     }
 
                     ids = arrIds.join(',');
-
-                    // console.log('idResults', '=======================================', idResults[0]['location_id'], '=======================================');
 
                     let sql_get_locations = `
                         SELECT l.*, p.is_building as parent_is_building, p.name as parent_name,

@@ -472,7 +472,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             if( this['scrollY'] >= 70 ){
                 $('.top-gray').css({
                     'position' : 'fixed',
-                    'top' : '94px',
+                    'top' : '64px',
                     'z-index' : '999'
                 });
             }else{

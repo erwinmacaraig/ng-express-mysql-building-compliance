@@ -72,8 +72,7 @@ export class NotificationConfiguration extends BaseClass {
         dtLastSent
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ON DUPLICATE KEY UPDATE
-        account_id = ?,
-        user_type = ?,
+        account_id = ?,        
         users = ?,
         user_responded = ?,
         message = ?,
@@ -96,8 +95,7 @@ export class NotificationConfiguration extends BaseClass {
         ('responders' in this.dbData) ? this.dbData['responders'] : 0,
         ('building_manager' in this.dbData) ? this.dbData['building_manager'] : 0,
         ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
-        ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
-        ('user_type' in this.dbData) ? this.dbData['user_type'] : '',
+        ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',        
         ('users' in this.dbData) ? this.dbData['users'] : '',
         ('user_responded' in this.dbData) ? this.dbData['user_responded'] : '',
         ('message' in this.dbData) ? this.dbData['message'] : '',
@@ -119,6 +117,7 @@ export class NotificationConfiguration extends BaseClass {
             throw new Error(err);
           }
           this.id = results.insertId;
+          console.log('Config ID is ' + results.insertId);
           this.dbData['notification_config_id'] = this.id;
           resolve(true);
         });
@@ -188,8 +187,10 @@ export class NotificationConfiguration extends BaseClass {
             console.log('Cannot load record NotificationConfiguration', sql_load);
             throw Error(error);
           }
-          this.dbData = results[0];
-          this.setID(results[0]['notification_config_id']);
+          if(results[0]){
+            this.dbData = results[0];
+            this.setID(results[0]['notification_config_id']);
+          }
           resolve(this.dbData);
         });
         connection.release();
