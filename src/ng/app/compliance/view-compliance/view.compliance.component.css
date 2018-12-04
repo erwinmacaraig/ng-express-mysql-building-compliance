@@ -530,6 +530,72 @@ table th:first-child{
     margin-right: 40px;
 }
 
+.documents-container .document .preview-container .pdf{
+    background-position: 50% -15%;
+    background-image: url(/assets/images/document_icons.png);
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 12%;
+    clip-path: polygon(0 0, 100% 0%, 100% 65%, 0% 65%);
+}
+
+.documents-container .document .preview-container .excel{
+    background-position: 49.5% 188%;
+    background-image: url(/assets/images/document_icons.png);
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 14%;
+    clip-path: polygon(0 0, 100% 0%, 100% 65%, 0% 65%);
+}
+
+.documents-container .document .preview-container .word{
+    background-position: -3% 189%;
+    background-image: url(/assets/images/document_icons.png);
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 14%;
+    clip-path: polygon(0 0, 100% 0%, 100% 65%, 0% 65%);
+}
+
+.documents-container .document .preview-container .image{
+    background-position: 100% -15%;
+    background-image: url(/assets/images/document_icons.png);
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 12%;
+    clip-path: polygon(0 0, 100% 0%, 100% 65%, 0% 65%);
+}
+
+.documents-container .document .preview-container .csv{
+    background-position: -2.5% -15%;
+    background-image: url(/assets/images/document_icons.png);
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 12%;
+    clip-path: polygon(0 0, 100% 0%, 100% 65%, 0% 65%);
+}
+
+.documents-container .document .preview-container .powerpoint{
+    background-position: 100% 188%;
+    background-image: url(/assets/images/document_icons.png);
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    top: 14%;
+    clip-path: polygon(0 0, 100% 0%, 100% 65%, 0% 65%);
+}
+
 .documents-container .document .text-container{
     display: inline-block; 
     vertical-align: top;
