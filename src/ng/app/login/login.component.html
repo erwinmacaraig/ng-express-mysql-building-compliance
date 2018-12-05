@@ -16,11 +16,11 @@
 					<form  novalidate (ngSubmit)="signInFormSubmit(formSignIn)" #formSignIn="ngForm">
 						<div class="username-container">
 							<div class="image"></div>
-							<input type="text" name="username" placeholder="Email or Username" id="username" ngModel />
+							<input type="text" name="username" placeholder="Username or Email" id="username" #emailCredential="ngModel" required ngModel/>
 						</div>
 						<div class="password-container">
 							<div class="image"></div>
-							<input type="password" name="password" placeholder="Password" id="password" ngModel />
+							<input type="password" name="password" placeholder="Password" id="password" #passwordCredentail="ngModel" required ngModel />
 						</div>
 
 

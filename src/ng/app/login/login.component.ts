@@ -80,6 +80,11 @@ export class LoginComponent implements OnInit, OnDestroy {
       data: any;
     }
 
+    if (f.invalid) {
+      this.showInvalid = true;
+      return false;
+    }
+
     const header = new HttpHeaders({
       'Content-Type': 'application/json'
     });

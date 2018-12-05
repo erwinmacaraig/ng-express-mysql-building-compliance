@@ -108,6 +108,22 @@ export class AuthenticateLoginRoute extends BaseRoute {
     }
 
     public async validate(req: Request, res: Response, next: NextFunction, returnData?) {
+        if (req.body['username'] && req.body['username'].length < 4) {
+            res.status(401).send({
+                status: 'Authentication Failed',
+                message: 'Invalid username/password',
+                
+            });
+        }
+
+        if (req.body['password'] && req.body['password'].length < 4) {
+            res.status(401).send({
+                status: 'Authentication Failed',
+                message: 'Invalid username/password',
+               
+            });
+        }
+        
         // set to 2 hours
         let signedInExpiry = 7200;
         if (req.body.keepSignedin) {
