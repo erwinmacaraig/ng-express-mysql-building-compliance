@@ -292,6 +292,27 @@ export class ReportsRoute extends BaseRoute {
 
         // console.log( response.pagination );
 
+        let getData = async (locationId, locName, accountId) => {
+          let
+            locAccUserModel = new LocationAccountUser(),
+            emModel = new UserEmRoleRelation(),
+            wardensSub = <any> await emModel.getWardensInLocationIds(locationId, 0, accountId),
+            mobilityModel = new MobilityImpairedModel(),
+            mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(locationId, accountId),
+            whereLocUser = [],
+            data = {
+                location_id : locationId,
+                name : locName,
+                peep_total : mobs.length,
+                total_wardens : wardensSub.length,
+                trp : []
+            };
+
+            data.trp = <any> await locAccUserModel.getTrpByLocationIds(locationId);
+
+            return data;
+        };
+
         for(let loc of locations){
             loc['parent'] = { name : '' };
             try{
@@ -304,11 +325,13 @@ export class ReportsRoute extends BaseRoute {
             let subids = [0],
                 subLocModel = new Location(),
                 sublocationsDbData = <any> await subLocModel.getChildren(loc.location_id),
-                emModel = new UserEmRoleRelation(),
-                mobilityModel = new MobilityImpairedModel(),
                 dataResult = {
                     data : [], location : loc, total_warden : 0
                 };
+
+            let dataLoc = <any> await getData(loc.location_id, 'Building level', accountId);
+            dataResult.data.push(dataLoc);
+            dataResult['total_warden'] += dataLoc.total_wardens;
 
             for(let sub of sublocationsDbData){
                 subids.push(sub.location_id);
@@ -317,23 +340,9 @@ export class ReportsRoute extends BaseRoute {
                     accountId = undefined;
                 }
 
-                let
-                locAccUserModel = new LocationAccountUser(),
-                wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accountId),
-                mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accountId),
-                whereLocUser = [],
-                data = {
-                    location_id : sub.location_id,
-                    name : sub.name,
-                    peep_total : mobs.length,
-                    total_wardens : wardensSub.length,
-                    trp : []
-                };
-
-                data.trp = <any> await locAccUserModel.getTrpByLocationIds(sub.location_id);
-
-                dataResult['total_warden'] += wardensSub.length;
-                dataResult.data.push(data);
+              let dataSubloc = <any> await getData(sub.location_id, sub.name, accountId);
+              dataResult['total_warden'] += dataSubloc.total_wardens;
+              dataResult.data.push(dataSubloc);
             }
 
             toReturn.push(dataResult);
