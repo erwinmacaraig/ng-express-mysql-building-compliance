@@ -525,6 +525,7 @@ export class Account extends BaseClass {
                     ON parentLocation.location_id = locations.parent_id
 
                     WHERE compliance_documents.account_id = ${accountId} ${locationSql}
+                    AND compliance_documents.document_type = 'Primary'
                     ORDER BY compliance_documents.timestamp DESC
                     LIMIT ${offsetLimit}
                 `;

@@ -1231,7 +1231,7 @@ export class ReportsRoute extends BaseRoute {
 
             for(let d of table.data){
                 d.forEach((item, index) => {
-                  d[index] =  (item != null) ? item.replace(/,/g, ' ') : '';
+                  d[index] =  (item != null && typeof item == 'string') ? item.replace(/,/g, ' ') : '';
                 });
                 csvData += d.join(',');
                 csvData += '\n';
