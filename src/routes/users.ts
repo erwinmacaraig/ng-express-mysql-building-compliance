@@ -3468,23 +3468,52 @@ export class UsersRoute extends BaseRoute {
     // This is for listing Tenants(Accounts) in a location
     // Current : We only list who have TRP in the account
     //////
-	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction){
+	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction) {
         const location_id = req.params.location_id;
         const locationAccountUserObj = new LocationAccountUser();
-        // listing of roles is implemented here because we are only listing roles on a sub location
         let canLoginTenants = {};
-        try {
-          canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id);
-        } catch(e) {
-          const accntObj = new Account(req.user.account_id);
-          const accntDetails = await accntObj.load();
-          canLoginTenants[req.user.account_id] = {
-            'account_name': accntDetails['account_name'],
-            'account_id': req.user.account_id,
-            'trp': [],
-            'wardens': []
-          };
-        }
+        // Determine role of user
+        const userRoleRel = new UserRoleRelation();
+        const role = await userRoleRel.getByUserId(req.user.user_id, true);
+
+        if (role == defs['Manager']) {
+            let accountIds = [];            
+            const location = new Location();
+            const accounts = await location.getAllAccountsInLocation(location_id);
+            for (let account of accounts) {
+                accountIds.push(account['account_id']);
+                let stringIndex = account['account_id'].toString();
+                canLoginTenants[stringIndex] = {
+                    'account_name': account['account_name'],
+                    'account_id': account['account_id'],
+                    'trp': [],
+                    'wardens': []
+                };
+            }
+            const tenants =  await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, accountIds);
+            for (let id of accountIds) {
+                if ((id in tenants)) {
+                    canLoginTenants[id]['trp'] = tenants[id]['trp'];
+                }
+            }
+
+        } else {
+            // listing of roles is implemented here because we are only listing roles on a sub location                    
+            try {
+                canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, [req.user.account_id]);
+            } catch(e) {
+                const accntObj = new Account(req.user.account_id);
+                const accntDetails = await accntObj.load();
+                canLoginTenants[req.user.account_id] = {
+                'account_name': accntDetails['account_name'],
+                'account_id': req.user.account_id,
+                'trp': [],
+                'wardens': []
+                };
+            }
+        } 
+
+        
 
         const canLoginTenantArr = [];
         let tempWardenUsers = [];

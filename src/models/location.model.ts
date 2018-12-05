@@ -949,6 +949,7 @@ export class Location extends BaseClass {
                     connection.end();
                 }
             } else if(role_id === parseInt(defs['Tenant'], 10) ) {
+                
               sql = `SELECT
                       user_em_roles_relation.*,
                       em_roles.role_name,
@@ -1367,6 +1368,96 @@ export class Location extends BaseClass {
                 resolve(results);
             });
             connection.end();
+        });
+    }
+
+    public getAllAccountsInLocation(location: number = 0): Promise<Array<{account_id: Number, account_name: String}>> {
+        return new Promise((resolve, reject) => {
+            const allAccounts = {};
+            const allAccountsArray = [];
+            let results = [];
+            this.getAccountsFromLocationAccountUser(location).then((data) => {
+                results = [...data];
+                this.getAccountsFromUserEmRolesRelation(location).then((arr) => {
+                    results = results.concat(arr);
+                    for (let r of results) {
+                        if (!(r['account_id'] in allAccounts)) {
+                            allAccounts[r['account_id']] = r;
+                            allAccountsArray.push(r);
+                        }
+                    }
+                    resolve(allAccountsArray);
+    
+                }).catch((e) => {
+                    console.log('There was a problem getting accounts from user em roles rel');
+                    resolve(results);
+                });
+            })            
+            .catch((e) => {
+                console.log(`There was an error getting all accounts in LAU`);
+                this.getAccountsFromUserEmRolesRelation(location).then((arr) => {
+                    resolve(arr);
+    
+                }).catch((e) => {
+                    resolve([]);
+                });
+            });
+        });
+
+    }
+
+    public getAccountsFromLocationAccountUser(location: number = 0): Promise<Array<{account_id: Number, account_name: String}>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                const sql = `SELECT
+                                accounts.account_id,
+                                accounts.account_name
+                        FROM
+                            location_account_user                        
+                        INNER JOIN users ON users.user_id = location_account_user.user_id
+                        INNER JOIN accounts ON accounts.account_id = users.account_id
+                        WHERE location_account_user.location_id = ? GROUP BY accounts.account_id`;
+
+                connection.query(sql, [location], (error, results) => {
+                    if (error) {
+                        console.log(`location.models.getAccountsFromLocationAccountUser()`, sql);
+                        throw Error(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
+            });
+        });
+    }
+
+    public getAccountsFromUserEmRolesRelation(location: number = 0): Promise<Array<{account_id: Number, account_name: String}>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                const sql = `SELECT
+                            accounts.account_id,
+                            accounts.account_name
+                    FROM
+                        user_em_roles_relation                        
+                    INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
+                    INNER JOIN accounts ON accounts.account_id = users.account_id
+                    WHERE user_em_roles_relation.location_id = ? GROUP BY accounts.account_id`;
+
+                connection.query(sql, [location], (error, results) => {
+                    if (error) {
+                        console.log(`location.models.getAccountsFromUserEmRolesRelation()`, sql);
+                        throw Error(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
         });
     }
 

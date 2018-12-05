@@ -169,7 +169,15 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     setLoadedProfile(response){
         this.viewData.user = response.data.user;
         this.viewData.role_text = response.data.role_text;
-        this.viewData.eco_roles = response.data.eco_roles;
+
+        if (!this.isImFRP) {
+            for (let r of response.data.eco_roles) {
+                if (r['em_roles_id'] != 12) {
+                    this.viewData.eco_roles.push(r);
+                }
+            }
+        }
+        // this.viewData.eco_roles = response.data.eco_roles;
         this.viewData.locations = response.data.locations;
 
         let trainings = [];
