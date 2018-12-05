@@ -8,6 +8,7 @@ import * as Promise from 'promise';
 import * as validator from 'validator';
 import * as md5 from 'md5';
 import * as jwt from 'jsonwebtoken';
+const defs = require('./../config/defs.json');
 
 export class User extends BaseClass {
 
@@ -181,6 +182,12 @@ export class User extends BaseClass {
     public dbInsert() {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
+                let defaultPassword = '';
+                if (('password' in this.dbData) && (this.dbData['password'] as String).length > 5) {
+                    defaultPassword = md5('Ideation' + this.dbData['password'] + 'Max')
+                } else {
+                    defaultPassword  = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max');                    
+                }
                 const sql_insert = `INSERT INTO users (
                     first_name,
                     last_name,
@@ -218,7 +225,7 @@ export class User extends BaseClass {
                     ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
                     ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
                     ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
-                    ('password' in this.dbData) ? this.dbData['password'] : '',
+                    defaultPassword,
                     ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                     ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
                     ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
