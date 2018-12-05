@@ -380,7 +380,40 @@ export class ReportsRoute extends BaseRoute {
                     trps += t.first_name+' '+t.last_name+'\n';
                     emails += t.email+'\n';
                   }
+
+
+                  tblData.data.push([
+                    data.location.name, d.name, accnts, trps, emails, d.total_wardens, d.peep_total
+                  ]);
               }else{
+                if(d.trp.length > 0){
+                  for(let i in d.trp){
+                    let 
+                    trpName = d.trp[i].first_name+' '+d.trp[i].last_name,
+                    dataPush = [];
+
+                    if(parseInt(i) == 0){
+                      dataPush.push(data.location.name, d.name, d.trp[i].account_name, trpName, d.trp[i].email);
+                    }else{
+                      dataPush.push('', '', d.trp[i].account_name, trpName, d.trp[i].email);
+                    }
+
+                    if(parseInt(i) + 1 == d.trp.length){
+                      dataPush.push(d.total_wardens, d.peep_total);
+                    }else{
+                      dataPush.push('', '');
+                    }
+
+                    tblData.data.push(dataPush);
+
+                  }
+                }else{
+                  tblData.data.push([
+                    data.location.name, d.name, '', '', '', d.total_wardens, d.peep_total
+                  ]);
+                }
+
+
                   accnts = '"';
                   trps = '"';
                   emails = '"';
@@ -400,9 +433,7 @@ export class ReportsRoute extends BaseRoute {
                   emails += '"';
               }
 
-              tblData.data.push([
-                data.location.name, d.name, accnts, trps, emails, d.total_wardens, d.peep_total
-              ]);
+              
 
               totalWardens += parseInt(d.total_wardens);
             }
@@ -1223,7 +1254,9 @@ export class ReportsRoute extends BaseRoute {
         DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
 
         for(let table of tables){
-            csvData += table.title;
+            if(table.title){
+              csvData += table.title;
+            }
             csvData += '\n';
 
             csvData += table.headers.join(',');
