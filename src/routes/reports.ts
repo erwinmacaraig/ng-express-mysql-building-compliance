@@ -1164,8 +1164,13 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
         }
 
-        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true),
-            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit);
+        let fileTypes = <any> '"Primary","Secondary"';
+        if(req.user.evac_role == 'admin'){
+          fileTypes = false;
+        }
+
+        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true, fileTypes),
+            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit, false, fileTypes);
 
         for(let log of logs){
             log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY hh:mma');
