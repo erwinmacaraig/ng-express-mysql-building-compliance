@@ -176,8 +176,10 @@ export class ViewUserComponent implements OnInit, OnDestroy {
                     this.viewData.eco_roles.push(r);
                 }
             }
+        } else {
+            this.viewData.eco_roles = response.data.eco_roles;
         }
-        // this.viewData.eco_roles = response.data.eco_roles;
+        
         this.viewData.locations = response.data.locations;
 
         let trainings = [];
