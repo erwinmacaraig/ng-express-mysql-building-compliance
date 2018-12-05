@@ -473,9 +473,13 @@ export class Account extends BaseClass {
         });
     }
 
-    public getActivityLog(locationIds?, offsetLimit?, count?){
+    public getActivityLog(locationIds?, offsetLimit?, count?, types?){
         if(!offsetLimit){
             offsetLimit = 0,10;
+        }
+
+        if(!types){
+            types = '"Primary","Secondary","Supporting","Admin"';
         }
 
         let accountId = this.ID(),
@@ -525,6 +529,7 @@ export class Account extends BaseClass {
                     ON parentLocation.location_id = locations.parent_id
 
                     WHERE compliance_documents.account_id = ${accountId} ${locationSql}
+                    AND compliance_documents.document_type IN (${types})
                     ORDER BY compliance_documents.timestamp DESC
                     LIMIT ${offsetLimit}
                 `;
@@ -543,13 +548,14 @@ export class Account extends BaseClass {
                         ON parentLocation.location_id = locations.parent_id
 
                         WHERE compliance_documents.account_id = ${accountId} ${locationSql}
+                        AND compliance_documents.document_type IN (${types})
                         ORDER BY compliance_documents.timestamp DESC
                     `;
                 }
 
                 connection.query(sql, (err, results, fields) => {
                     if (err) {
-                        console.log(err);
+                        console.log(sql);
                         throw new Error('Internal problem. There was a problem processing your query');
                     }
 
