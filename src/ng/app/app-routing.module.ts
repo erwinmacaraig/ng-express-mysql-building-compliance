@@ -59,6 +59,8 @@ import { ViewUserComponent } from './teams/view-user/view.user.component';
 import { ViewWardenComponent } from './teams/view-warden/view.warden.component';
 import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.warden.component';
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
+import { ListGeneralOccupantComponent } from './teams/list-gen-occ/list.gen.occ.component';
+import { TeamsAddGeneralOccupantComponent } from './teams/add-gen-occ/add.gen.occ.component';
 
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
@@ -87,6 +89,7 @@ import { ReportsLocationsComplianceComponent } from './reports/location-complian
 import { ReportsLocationsStatementComplianceComponent } from './reports/statement-compliance/statement.compliance.component';
 import { ReportsTeamsComponent } from './reports/teams/teams.component';
 import { ReportsTrainingsComponent  } from './reports/trainings/trainings.component';
+import { WardenReportsComponent  } from './reports/warden/warden.component';
 import { ReportsActivityLogComponent } from './reports/activity-log/activit.log.component';
 import { AssignCoursesComponent } from './assign-courses/assign.courses.component';
 
@@ -97,6 +100,11 @@ import { NotifiedUsersListComponent } from './notification/notified-users-list/n
 import { NotificationQueryComponent } from './notification/queries/notification-queries.component';
 import { NotificationWardenListComponent } from './notification/warden-list/warden-list.component';
 import { NotificationPEEPListComponent } from './notification/peep-list/peep-list.component';
+import { WardenNotificationComponent } from './notification/warden-notification/warden-notification';
+import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
+import { NotifiedTRPTrainingsComponent } from './notification/notified-trp-training/notified-trp-training.component';
+import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
+
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -122,6 +130,7 @@ const appRoutes: Routes = [
         { path : '', component : SignupSelectRoleComponent  },
         { path : 'v2/user', component : SignupUserInfoComponent, data : { versionTwo : true  }  },
         { path : 'user', component : SignupUserInfoComponent  },
+        { path : 'v2/user', component : SignupUserInfoComponent, data : { versionTwo : true  }  },
         { path: 'warden-signup', component: WardenSignupComponent },
         { path: 'warden-profile-completion/:token', component: WardenInvitationFormComponent },
         { path: 'profile-completion/:token', component: ProfileCompletionComponent },
@@ -139,19 +148,19 @@ const appRoutes: Routes = [
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
       { path: 'company-information', component: CompanyInformationComponent },
-      { path: 'send-invite', component : SendInviteComponent },      
-      // { path: 'notification-list', component: NotificationListComponent },
-      // { path: 'notification-config', component: NotificationConfigurationComponent },
-      // { path: 'notified-users-list/:config', component: NotifiedUsersListComponent},
+      { path: 'send-invite', component : SendInviteComponent },
       { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
       { path: 'send-invite', component : SendInviteComponent },
       { path: 'security-privacy', component : SecurityPrivacyComponent },
       { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
       { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
-      { path: 'peep-form', component: PeepFormComponent }
+      { path: 'peep-form', component: PeepFormComponent },
+      { path: 'warden-notification', component : WardenNotificationComponent },
+      { path: 'notification-summary-view/:token', component: SummaryViewComponent },
+      { path: 'update-notified-trp-profile/:token', component: NotifiedTrpUpdateProfileComponent},
+      { path: 'trainings-for-notified-trp/:token', component: NotifiedTRPTrainingsComponent }
     ]
   },
-  
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
   { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
   { path: 'signout', component: SignoutComponent },
@@ -191,7 +200,11 @@ const appRoutes: Routes = [
       { path : 'view-user/:encrypted', component : ViewUserComponent },
       { path : 'view-warden', component : ViewWardenComponent },
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
-      { path : 'view-chief-warden', component : ViewChiefWardenComponent }
+      { path : 'view-chief-warden', component : ViewChiefWardenComponent },
+      { path : 'list-general-occupant', component : ListGeneralOccupantComponent },
+      { path : 'add-general-occupant', component : TeamsAddGeneralOccupantComponent },
+      { path : 'list-administrators', component : AllUsersComponent },
+      { path : 'add-administrators', component : AddUserComponent },
     ]
   },
   {
@@ -227,7 +240,8 @@ const appRoutes: Routes = [
       { path : 'statement-compliance/:locationId', component : ReportsLocationsStatementComplianceComponent },
       { path : 'teams/:location', component : ReportsTeamsComponent },
       { path : 'trainings/:locationId', component : ReportsTrainingsComponent },
-      { path : 'activity-log/:location', component : ReportsActivityLogComponent }
+      { path : 'activity-log/:location', component : ReportsActivityLogComponent },
+      { path : 'warden/:locationId', component : WardenReportsComponent }
     ]
   },
   {

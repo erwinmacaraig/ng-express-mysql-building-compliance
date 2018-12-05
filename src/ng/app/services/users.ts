@@ -54,13 +54,8 @@ export class UserService {
 		});
 	}
 
-	getRoles(userId, callBack){
-		this.http.get(this.baseUrl+"/users/get-roles/"+userId)
-		.subscribe(res => {
-			callBack(res);
-		}, err => {
-			callBack( JSON.parse(err.error) );
-		});
+	getRoles(userId){
+		return this.http.get(this.baseUrl+"/users/get-roles/"+userId);
 	}
 
 	queryUsers(queries, callBack){
@@ -304,5 +299,48 @@ export class UserService {
     changePassword(formData){
         return this.http.post(this.baseUrl+"/users/change-password", formData);
     }
+
+    updateNotificationSettings(formData){
+        return this.http.post(this.baseUrl+"/users/update-notification-settings", formData);
+    }
+
+    getNotificationToken(userId = 0) {
+        return this.http.get(this.baseUrl + '/users/get-notification-token/'+userId, this.options);
+	}
+	
+	userInfo(userId=0) {
+		return this.http.post<{
+			user_id: number,
+			first_name: string,
+			last_name: string,
+			email: string,
+			phone_number: string,
+			mobile_number: string,
+			mobility_impaired: number, 
+			evac_role: string
+		}>(this.baseUrl + '/users/user-info/', {user: userId});
+	}
+
+	updateLocationAccountUser(location_account_user_id = 0, level_location = 0) {
+		return this.http.post<{message: string}>(this.baseUrl + '/users/update-trp-assigned-location', {
+			location_account_user: location_account_user_id,
+			level_location: level_location
+		});
+
+	}
+
+	getTrainingData(userId=0, emergencyRoles=[]) {
+		const roles = JSON.stringify(emergencyRoles);
+		return this.http.post<{
+			message: string,
+			required_trainings: Array<object>,
+			valid_trainings: Array<object>
+			invalid_trainings: Array<object>
+		}>(this.baseUrl + '/users/training-info', {
+			user: userId,
+			roles: roles
+		});
+
+	}
 
 }

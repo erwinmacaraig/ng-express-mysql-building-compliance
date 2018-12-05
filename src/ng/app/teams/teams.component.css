@@ -12,6 +12,7 @@
 	cursor: pointer;
 	height: 70px;
 	margin-right: -4px;
+    outline: none;
 }
 
 .teams-navigation ul li .default,
@@ -97,6 +98,28 @@
 	border-bottom: 1px solid #cda4e6;
 }
 
+
+.teams-navigation ul li.blue-theme:hover,
+.teams-navigation ul li.blue-theme:hover a{
+    background-color: #79a4eb;
+    color: #fff;
+}
+
+.teams-navigation ul li.blue-theme{
+    border-bottom: 1px solid #79a4eb;
+}
+
+.teams-navigation ul li.blue-theme:hover{
+    border-bottom: 2px solid #79a4eb;
+}
+
+.teams-navigation ul li.active.blue-theme,
+.teams-navigation ul li.active.blue-theme a{
+    background-color: #79a4eb;
+    color: #fff;
+}
+
+
 .teams-navigation a{
 	color: #545454;
 	font-size: 16px;
@@ -133,6 +156,22 @@
 
 .teams-navigation .all-users .hover{
 	background-position: 29% 53.3%;
+}
+
+.teams-navigation .general-occupant .default{
+    background-position: 30.4% 71%;
+}
+
+.teams-navigation .general-occupant .hover{
+    background-position: 29.5% 53.3%;
+}
+
+.teams-navigation .administrator .default{
+    background-position: 93.4% 71%;
+}
+
+.teams-navigation .administrator .hover{
+    background-position: 93.5% 53.3%;
 }
 
 table thead tr th{

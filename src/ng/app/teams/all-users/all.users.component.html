@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row" *ngIf="!isAdministrationsShow">
 	<div class="col l12 m12 s12" style="position: relative;">
 		<h4>All Users</h4>
 		<a href="#" class="archived" [routerLink]="['/teams/all-archived-users']">
@@ -8,43 +8,66 @@
 	</div>
 </div>
 
+<div class="row" *ngIf="isAdministrationsShow">
+    <div class="col l12 m12 s12" style="position: relative;">
+        <h4 *ngIf="!showArchived">Administrators</h4>
+        <h4 *ngIf="showArchived">Archived Administrators</h4>
+        <a href="#" class="archived" *ngIf="!showArchived" [routerLink]="['/teams/list-administrators']" [queryParams]="{ 'archived' : true }">
+            <span class="image"></span>
+            View Archive
+        </a>
+        <a href="#" class="archived" *ngIf="showArchived" [routerLink]="['/teams/list-administrators']" >
+            <span class="image"></span>
+            View Active
+        </a>
+    </div>
+</div>
+
 <div class="row filter-container">
-	<div class="col l2 m3 s12 ">
+	<div class="col l2 m6 s12 margin-bottom-20" *ngIf="!isAdministrationsShow">
 		<button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-user']">
 			<span class="image"></span>
 			Add New User
 		</button>
 	</div>
 
-	<div class="col l4 m5 s12">
+    <div class="col l2 m6 s12 margin-bottom-20" *ngIf="isAdministrationsShow && !showArchived">
+        <button class="btn orange waves-effect waves-light add-peep" [routerLink]="['/teams/add-administrators']">
+            <span class="image"></span>
+            Add New Administrators
+        </button>
+    </div>
+
+	<div class="col l3 m6 s12 margin-bottom-20" [ngClass]="{ 'l5' : showArchived }">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
 	</div>
 
-	<div class="col l2 m4 s6">
+	<div class="col l2 m6 s6 margin-bottom-20">
 		<select class="filter-by">
 			<option value="0" selected>Filter By (All)</option>
-            <option value="pending" >Pending</option>
+            <!-- <option value="pending" >Pending</option> -->
+            <!-- <option value="no_roles" >No Roles</option> -->
 			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
 	</div>
 
-	<div class="col l2 m6 s6">
-		<select class="sort-by">
-			<option value="0" selected>Sort By</option>
-			<option value="user-name-desc">User Name Descending</option>
-			<option value="user-name-asc">User Name Ascending</option>
-		</select>
-	</div>
-	<div class="col l2 m6 s12">
+	<div class="col l3 m6 s6 margin-bottom-20">
+        <select class="location">
+            <option value="0" selected>All Locations</option>
+            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+        </select>
+    </div>
+
+	<div class="col l2 m6 s6 margin-bottom-20">
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
-			<option value="archive" >Archive selected</option>
-            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable">Send training invite to selected</option>
-            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable">Send training invite to all non-compliant</option>
-            <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
+			<option value="archive" ><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span> selected</option>
+            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to selected</option>
+            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to all non-compliant</option>
+            <option value="invite-all" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invtite to all</option>
 		</select>
 	</div>
 
@@ -65,7 +88,7 @@
 					</th>
 					<th>Name</th>
 					<th>Email</th>
-					<th>Contact Number</th>
+					<th>Account</th>
 					<th style="width: 20%;">Role</th>
 					<th>Training</th>
 					<th>Action</th>
@@ -107,7 +130,7 @@
 						</div>
 					</td>
 					<td>{{list.email}}</td>
-					<td>{{list.mobile_number}}</td>
+					<td>{{list.account_name}}</td>
 					<td class="with-image role-name">
 						<div *ngIf="list.mobility_impaired == 1" class="impaired"></div>
 						<span *ngFor="let role of list.roles; let ri = index;" class="name">
@@ -138,12 +161,13 @@
 						<select (change)="onSelectFromTable($event, list)">
 							<option value="0" class="blue-text" selected disabled>Select action</option>
 							<option value="view" class="blue-text">View</option>
-                            <option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId)" >Archive</option>
-							<option  [value]=" (list.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
-                                <span *ngIf="list.mobility_impaired == 0">Mark as peep</span>
-                                <span *ngIf="list.mobility_impaired == 1">Remove from PEEP list</span>
+                            <option value="archive" class="blue-text" [hidden]="(list.user_id == userData.userId)" *ngIf="!showArchived">Archive</option>
+                            <option value="restore" class="blue-text" [hidden]="(list.user_id == userData.userId)" *ngIf="showArchived">Restore</option>
+							<option  [value]=" (list.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" *ngIf="!showArchived">
+                                <span *ngIf="list.mobility_impaired == 0">Add to mobility impaired list</span>
+                                <span *ngIf="list.mobility_impaired == 1">Remove from mobility impaired list</span>
                             </option>
-                            <option value="invite" *ngIf="list.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
+                            <option value="invite" *ngIf="list.sendinvitation && isOnlineTrainingAvailable && !showArchived" class="blue-text">Send invitation</option>
 						</select>
 					</td>
                     <td *ngIf="list.profile_completion == 0"> 
@@ -199,13 +223,13 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to archive
+			Are you sure you want to <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>
 			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()"><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span></a>
 	</div>
 </div>
 
@@ -227,7 +251,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive the following users?
+			Are you sure you want <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span> the following users?
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
@@ -237,7 +261,9 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">
+            <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>      
+        </a>
 	</div>
 </div>
 

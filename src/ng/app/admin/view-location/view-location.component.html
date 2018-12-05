@@ -1,22 +1,28 @@
 <div class="row">
-  <div class="col l12 m12 s12">
-    <div class="bread link" *ngIf="traversal['p5_name']" [routerLink]="['/admin', 'view-location', traversal['p5_location_id']]">
-      <h5 class="text">{{traversal['p5_name']}}</h5>
+  <div class="col l12 m12 s12 hover-back-button">
+    <div class="backbutton blue-grey inline-block margin-right-20" [routerLink]="['/admin/locations-in-account/'+accountIdParam]">
+        <i class="material-icons">arrow_back</i>
     </div>
-    <div class="bread link" *ngIf="traversal['p4_name']" [routerLink]="['/admin', 'view-location', traversal['p4_location_id']]">
-      <h5 class="text">{{traversal['p4_name']}}</h5>
-    </div>
-    <div class="bread link" *ngIf="traversal['p3_name']" [routerLink]="['/admin', 'view-location', traversal['p3_location_id']]">
-      <h5 class="text">{{traversal['p3_name']}}</h5>
-    </div>
-    <div class="bread link" *ngIf="traversal['p2_name']" [routerLink]="['/admin', 'view-location', traversal['p2_location_id']]">
-      <h5 class="text">{{traversal['p2_name']}}</h5>
-    </div>
-    <div class="bread link" *ngIf="traversal['p1_name']" [routerLink]="['/admin', 'view-location', traversal['p1_location_id']]">
-      <h5 class="text">{{traversal['p1_name']}}</h5>
-    </div>
-    <div class="bread">
-      <h5 class="text">{{location_details['name']}}</h5>
+
+    <div class="inline-block">
+        <div class="bread link" *ngIf="traversal['p5_name']" [routerLink]="['/admin', 'view-location', traversal['p5_location_id']]">
+          <h5 class="text">{{traversal['p5_name']}}</h5>
+        </div>
+        <div class="bread link" *ngIf="traversal['p4_name']" [routerLink]="['/admin', 'view-location', traversal['p4_location_id']]">
+          <h5 class="text">{{traversal['p4_name']}}</h5>
+        </div>
+        <div class="bread link" *ngIf="traversal['p3_name']" [routerLink]="['/admin', 'view-location', traversal['p3_location_id']]">
+          <h5 class="text">{{traversal['p3_name']}}</h5>
+        </div>
+        <div class="bread link" *ngIf="traversal['p2_name']" [routerLink]="['/admin', 'view-location', traversal['p2_location_id']]">
+          <h5 class="text">{{traversal['p2_name']}}</h5>
+        </div>
+        <div class="bread link" *ngIf="traversal['p1_name']" [routerLink]="['/admin', 'view-location', traversal['p1_location_id']]">
+          <h5 class="text">{{traversal['p1_name']}}</h5>
+        </div>
+        <div class="bread">
+          <h5 class="text">{{location_details['name']}}</h5>
+        </div>
     </div>
 
   </div>
@@ -43,9 +49,10 @@
     <div class="col l12 m12 s12">
         <div class="mid-nav">
             <ul id="nav-mobile">
-                <li *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations' }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people' }" [ngClass]="{active:activeLink=='people'}"> Team </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts' }" [ngClass]="{active:activeLink=='accounts'}"> Accounts </li>
+                <li *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations', accntId : accountIdParam }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people', accntId : accountIdParam }" [ngClass]="{active:activeLink=='people'}"> Team </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts', accntId : accountIdParam }" [ngClass]="{active:activeLink=='accounts'}"> Accounts </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'compliance', accntId : accountIdParam }" [ngClass]="{active:activeLink=='compliance'}"> Compliance </li>
                 <!-- <li [routerLink]="['/admin', 'view-location', locationId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li> -->
             </ul>
         </div>
@@ -137,6 +144,10 @@
         </tbody>
     </table>
   </div>
+</div>
+
+<div class="row" [hidden]=" (activeLink=='compliance') == false">
+    <app-admin-compliance-summary [selectedKPIinput]="2" [locationIdInput]="locationId" [accountIdInput]="accountIdParam" [hideAccountComponent]="true"></app-admin-compliance-summary>
 </div>
 
 <div preloader></div>
