@@ -292,6 +292,27 @@ export class ReportsRoute extends BaseRoute {
 
         // console.log( response.pagination );
 
+        let getData = async (locationId, locName, accountId) => {
+          let
+            locAccUserModel = new LocationAccountUser(),
+            emModel = new UserEmRoleRelation(),
+            wardensSub = <any> await emModel.getWardensInLocationIds(locationId, 0, accountId),
+            mobilityModel = new MobilityImpairedModel(),
+            mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(locationId, accountId),
+            whereLocUser = [],
+            data = {
+                location_id : locationId,
+                name : locName,
+                peep_total : mobs.length,
+                total_wardens : wardensSub.length,
+                trp : []
+            };
+
+            data.trp = <any> await locAccUserModel.getTrpByLocationIds(locationId);
+
+            return data;
+        };
+
         for(let loc of locations){
             loc['parent'] = { name : '' };
             try{
@@ -304,11 +325,13 @@ export class ReportsRoute extends BaseRoute {
             let subids = [0],
                 subLocModel = new Location(),
                 sublocationsDbData = <any> await subLocModel.getChildren(loc.location_id),
-                emModel = new UserEmRoleRelation(),
-                mobilityModel = new MobilityImpairedModel(),
                 dataResult = {
                     data : [], location : loc, total_warden : 0
                 };
+
+            let dataLoc = <any> await getData(loc.location_id, 'Building level', accountId);
+            dataResult.data.push(dataLoc);
+            dataResult['total_warden'] += dataLoc.total_wardens;
 
             for(let sub of sublocationsDbData){
                 subids.push(sub.location_id);
@@ -317,23 +340,9 @@ export class ReportsRoute extends BaseRoute {
                     accountId = undefined;
                 }
 
-                let
-                locAccUserModel = new LocationAccountUser(),
-                wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accountId),
-                mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accountId),
-                whereLocUser = [],
-                data = {
-                    location_id : sub.location_id,
-                    name : sub.name,
-                    peep_total : mobs.length,
-                    total_wardens : wardensSub.length,
-                    trp : []
-                };
-
-                data.trp = <any> await locAccUserModel.getTrpByLocationIds(sub.location_id);
-
-                dataResult['total_warden'] += wardensSub.length;
-                dataResult.data.push(data);
+              let dataSubloc = <any> await getData(sub.location_id, sub.name, accountId);
+              dataResult['total_warden'] += dataSubloc.total_wardens;
+              dataResult.data.push(dataSubloc);
             }
 
             toReturn.push(dataResult);
@@ -380,29 +389,36 @@ export class ReportsRoute extends BaseRoute {
                     trps += t.first_name+' '+t.last_name+'\n';
                     emails += t.email+'\n';
                   }
-              }else{
-                  accnts = '"';
-                  trps = '"';
-                  emails = '"';
-                  for(let i in d.trp){
-                    accnts += d.trp[i].account_name;
-                    trps += d.trp[i].first_name+' '+d.trp[i].last_name;
-                    emails += d.trp[i].email;
-                    if( parseInt(i) + 1 != d.trp.length ){
-                        accnts += ',';
-                        trps += ',';
-                        emails += ',';
-                    }
-                  }
 
-                  accnts += '"';
-                  trps += '"';
-                  emails += '"';
+
+                  tblData.data.push([
+                    data.location.name, d.name, accnts, trps, emails, d.total_wardens, d.peep_total
+                  ]);
+              }else{
+                if(d.trp.length > 0){
+                  for(let i in d.trp){
+                    let 
+                    trpName = d.trp[i].first_name+' '+d.trp[i].last_name,
+                    dataPush = [];
+
+                    if(parseInt(i) == 0){
+                      dataPush.push(data.location.name, d.name, d.trp[i].account_name, trpName, d.trp[i].email, d.total_wardens, d.peep_total);
+                    }else{
+                      dataPush.push('', '', d.trp[i].account_name, trpName, d.trp[i].email);
+                    }
+
+                    tblData.data.push(dataPush);
+
+                  }
+                }else{
+                  tblData.data.push([
+                    data.location.name, d.name, '', '', '', d.total_wardens, d.peep_total
+                  ]);
+                }
+
               }
 
-              tblData.data.push([
-                data.location.name, d.name, accnts, trps, emails, d.total_wardens, d.peep_total
-              ]);
+              
 
               totalWardens += parseInt(d.total_wardens);
             }
@@ -1157,8 +1173,13 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
         }
 
-        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true),
-            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit);
+        let fileTypes = <any> '"Primary","Secondary"';
+        if(req.user.evac_role == 'admin'){
+          fileTypes = false;
+        }
+
+        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true, fileTypes),
+            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit, false, fileTypes);
 
         for(let log of logs){
             log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY hh:mma');
@@ -1223,7 +1244,9 @@ export class ReportsRoute extends BaseRoute {
         DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
 
         for(let table of tables){
-            csvData += table.title;
+            if(table.title){
+              csvData += table.title;
+            }
             csvData += '\n';
 
             csvData += table.headers.join(',');
@@ -1231,7 +1254,12 @@ export class ReportsRoute extends BaseRoute {
 
             for(let d of table.data){
                 d.forEach((item, index) => {
-                  d[index] =  (item != null) ? item.replace(/,/g, ' ') : '';
+                  if(typeof item == 'boolean' || typeof item == 'number'){
+                    item = item.toString();
+                  }else if(item == null){
+                    item = '';
+                  }
+                  d[index] =  item.replace(/,/g, ' ');
                 });
                 csvData += d.join(',');
                 csvData += '\n';

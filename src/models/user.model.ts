@@ -1052,37 +1052,15 @@ export class User extends BaseClass {
                     configFilter += ` AND u.account_id = ${config['account_id']} `;
                 }
                 let archived = ('archived' in config) ? config['archived'] : '0';
-                let select = `
-                    u.*,
-                    userolelocation.role_id,
-                    userolelocation.role_name,
-                    userolelocation.location_id,
-                    a.account_name,
-                    l.name,
-                    IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
-                    DATE_FORMAT(u.last_login, '%d/%m/%Y') as last_login_formatted
-                `;
 
-                let groupBy = 'GROUP BY u.user_id';
-
-                if(!config['count']){
-                    if(config['limit']){
-                        configFilter += ' LIMIT '+config['limit'];
-                    }
-                }
-
-                let sql_load = '';
-                let sql = `
-                SELECT 
-                    ${select}
-                FROM (
+                let innerSqlEm = `
                     SELECT
                     emr.user_id,
                     emr.em_role_id as role_id,
                     em.role_name as role_name,
                     emr.location_id
                     FROM user_em_roles_relation emr 
-                    LEFT JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
+                    INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
                     WHERE emr.location_id IN (${locationIds})
                 `;
                 let innerSqlFrpTrp = `
@@ -1093,30 +1071,38 @@ export class User extends BaseClass {
                     IF(urr.role_id = 1, 'FRP', 'TRP') as role_name,
                     lau.location_id
                     FROM user_role_relation urr 
-                    LEFT JOIN location_account_user lau ON urr.user_id = lau.user_id
+                    INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
                     WHERE  lau.location_id IN (${locationIds})
-                ) userolelocation
+                `;
+                if(config['eco_only']){ innerSqlFrpTrp = ''; }
+
+                const sql_load = `
+                SELECT 
+                u.*,
+                userolelocation.role_id,
+                userolelocation.role_name,
+                userolelocation.location_id,
+                a.account_name,
+                l.name,
+                l.is_building,
+                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
+                l.parent_id,
+                p.is_building as parent_is_building,
+                IF(p.location_id IS NOT NULL, p.name, '') as parent_location_name,
+                p2.is_building as parent2_is_building,
+                IF(p2.location_id IS NOT NULL, p2.name, '') as parent2_location_name
+                FROM ( ${innerSqlEm}  ${innerSqlFrpTrp} ) userolelocation
                 INNER JOIN users u ON userolelocation.user_id = u.user_id
                 INNER JOIN locations l ON l.location_id = userolelocation.location_id
                 LEFT JOIN locations p ON p.location_id = l.parent_id
+                LEFT JOIN locations p2 ON p2.location_id = p.parent_id
                 INNER JOIN accounts a ON a.account_id = u.account_id
                 WHERE u.archived = ${archived}
-                ${groupBy}
                 ${configFilter}
                 `;
 
-                if(config['count']){
-                    sql_load = `
-                        SELECT  COUNT(*) as count FROM
-                        (${sql}) usersdata
-                    `;
-                }else{
-                    sql_load = sql;
-                }
-
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
-                        console.log(sql_load);
                         return console.log(error);
                     }
                     this.dbData = results;
