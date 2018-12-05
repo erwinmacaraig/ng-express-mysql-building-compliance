@@ -3490,12 +3490,18 @@ export class UsersRoute extends BaseRoute {
                     'wardens': []
                 };
             }
-            const tenants =  await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, accountIds);
-            for (let id of accountIds) {
-                if ((id in tenants)) {
-                    canLoginTenants[id]['trp'] = tenants[id]['trp'];
+            try {
+                const tenants =  await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, accountIds);
+                for (let id of accountIds) {
+                    if ((id in tenants)) {
+                        canLoginTenants[id]['trp'] = tenants[id]['trp'];
+                    }
                 }
+
+            } catch(e) {
+                console.log(e);
             }
+            
 
         } else {
             // listing of roles is implemented here because we are only listing roles on a sub location                    
@@ -3511,10 +3517,7 @@ export class UsersRoute extends BaseRoute {
                 'wardens': []
                 };
             }
-        } 
-
-        
-
+        }
         const canLoginTenantArr = [];
         let tempWardenUsers = [];
         const tempFloorWardenUsers = [];

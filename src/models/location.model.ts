@@ -1377,9 +1377,9 @@ export class Location extends BaseClass {
             const allAccountsArray = [];
             let results = [];
             this.getAccountsFromLocationAccountUser(location).then((data) => {
-                results = [...data];
+                results = [...data];                
                 this.getAccountsFromUserEmRolesRelation(location).then((arr) => {
-                    results = results.concat(arr);
+                    results = [...results, ...arr];                    
                     for (let r of results) {
                         if (!(r['account_id'] in allAccounts)) {
                             allAccounts[r['account_id']] = r;
