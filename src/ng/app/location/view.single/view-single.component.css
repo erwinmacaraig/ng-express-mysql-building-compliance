@@ -291,6 +291,7 @@ table.no-borders td{
 /* PIE */
 .donut-size {
     font-size: 13em;
+    margin: 20% 0%;
 }
 
 .pie-wrapper {
