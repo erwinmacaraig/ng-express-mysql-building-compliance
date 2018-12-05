@@ -393,15 +393,9 @@ export class ReportsRoute extends BaseRoute {
                     dataPush = [];
 
                     if(parseInt(i) == 0){
-                      dataPush.push(data.location.name, d.name, d.trp[i].account_name, trpName, d.trp[i].email);
+                      dataPush.push(data.location.name, d.name, d.trp[i].account_name, trpName, d.trp[i].email, d.total_wardens, d.peep_total);
                     }else{
                       dataPush.push('', '', d.trp[i].account_name, trpName, d.trp[i].email);
-                    }
-
-                    if(parseInt(i) + 1 == d.trp.length){
-                      dataPush.push(d.total_wardens, d.peep_total);
-                    }else{
-                      dataPush.push('', '');
                     }
 
                     tblData.data.push(dataPush);
@@ -413,24 +407,6 @@ export class ReportsRoute extends BaseRoute {
                   ]);
                 }
 
-
-                  accnts = '"';
-                  trps = '"';
-                  emails = '"';
-                  for(let i in d.trp){
-                    accnts += d.trp[i].account_name;
-                    trps += d.trp[i].first_name+' '+d.trp[i].last_name;
-                    emails += d.trp[i].email;
-                    if( parseInt(i) + 1 != d.trp.length ){
-                        accnts += ',';
-                        trps += ',';
-                        emails += ',';
-                    }
-                  }
-
-                  accnts += '"';
-                  trps += '"';
-                  emails += '"';
               }
 
               
@@ -1264,7 +1240,12 @@ export class ReportsRoute extends BaseRoute {
 
             for(let d of table.data){
                 d.forEach((item, index) => {
-                  d[index] =  (item != null && typeof item == 'string') ? item.replace(/,/g, ' ') : '';
+                  if(typeof item == 'boolean' || typeof item == 'number'){
+                    item = item.toString();
+                  }else if(item == null){
+                    item = '';
+                  }
+                  d[index] =  item.replace(/,/g, ' ');
                 });
                 csvData += d.join(',');
                 csvData += '\n';
