@@ -406,10 +406,11 @@ export class LocationAccountRelation extends BaseClass {
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
             AND l.archived = ${archived}
         `;
-        // console.log('sqlGetIds: ', sqlGetIds);
+         
         this.pool.getConnection((err, connection) => {
             connection.query(sqlGetIds,  (error, idResults) => {
-                if(error){
+                if(error) {
+                    console.log(sqlGetIds);
                     console.log(filter['userId']);
                     throw new Error(error);
                 }
@@ -457,7 +458,7 @@ export class LocationAccountRelation extends BaseClass {
                             `;
                         }
                     }
-
+                    
                     if('count' in filter){
                         sql_get_locations = `
                             SELECT COUNT(l.location_id) as count 

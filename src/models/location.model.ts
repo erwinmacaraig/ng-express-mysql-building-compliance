@@ -280,6 +280,11 @@ export class Location extends BaseClass {
                 archived = 0;
             }
 
+            if (ids.length == 0) {                
+                resolve([]);
+                return;
+            }
+
             let sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
             if(withParentName){
                 sql_load = `SELECT l.*, IF(p.location_id IS NOT NULL, CONCAT(p.name, ', ', l.name), l.name) as name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id 
@@ -293,7 +298,8 @@ export class Location extends BaseClass {
 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
-                        return console.log(error);
+                        console.log(`location.model.getByInIds() - ${sql_load}`, error);
+                        throw Error(error);                        
                     }
                     this.dbData = results;
                     resolve(results);

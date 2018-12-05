@@ -1133,7 +1133,7 @@ export class UsersRoute extends BaseRoute {
             locAccRel = new LocationAccountRelation(),
             filter = { userId : userID },
             locs = <any> await locAccRel.listAllLocationsOnAccount(accountId, filter);
-
+            // console.log(locs);
             for(let loc of locs){
                 selectedLocIds.push(loc.location_id);
                 let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc.location_id);
@@ -1549,12 +1549,17 @@ export class UsersRoute extends BaseRoute {
               user['trainings'] = 0;
             }
             try {
-              user_course_total = await userCourseRel.getNumberOfAssignedCourses([user.user_id]);
-              // console.log('1086', user_course_total);
-              user['assigned_courses'] = user_course_total[user.user_id]['count'];
-              user['assigned_courses_tr'] = user_course_total[user.user_id]['trids'];
-              user['misc_trainings'] = user['trids'].filter(x => !user['assigned_courses_tr'].includes(x))
-              .concat(user['assigned_courses_tr'].filter(x => !user['trids'].includes(x)));
+              user_course_total = await userCourseRel.getNumberOfAssignedCourses([user.user_id]);              
+              if (user_course_total[user.user_id]) {
+                user['assigned_courses'] = user_course_total[user.user_id]['count'];
+                user['assigned_courses_tr'] = user_course_total[user.user_id]['trids'];
+                user['misc_trainings'] = user['trids'].filter(x => !user['assigned_courses_tr'].includes(x))
+                .concat(user['assigned_courses_tr'].filter(x => !user['trids'].includes(x)));
+              } else {
+                user['assigned_courses'] = 0;
+                user['assigned_courses_tr'] = [];
+                user['misc_trainings'] = [];                
+              }             
             } catch (e) {
                 console.log(e);
                 user_course_total = {};
@@ -1563,22 +1568,7 @@ export class UsersRoute extends BaseRoute {
                 user['misc_trainings'] = [];
             }
           }
-          /*
-            for(let user of response.data['users']){
-                if (user.user_id in user_course_total) {
-                    user['assigned_courses'] = user_course_total[user.user_id]['count'];
-                } else {
-                    user['assigned_courses'] = 0;
-                }
-
-                if (user.user_id in user_training_total) {
-                    user['trainings'] = user_training_total[user.user_id]['count'];
-                } else {
-                    user['trainings'] = 0;
-                }
-
-            }
-            */
+          
         }
 
         if(query.impaired && queryRoles.indexOf('users') > -1){
