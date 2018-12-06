@@ -83,7 +83,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     isShowDatepicker = false;
     datepickerModelFormatted = '';
     selectedPeep = {
-        first_name : '', last_name : ''
+        first_name : '', last_name : '', mobility_impaired_details: []
     };
 
     selectedToInvite = [];
