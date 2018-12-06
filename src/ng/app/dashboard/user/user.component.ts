@@ -45,6 +45,7 @@ datepickerModel: Date;
 isShowDatepicker = false;
 datepickerModelFormatted = '';
 peep = {};
+showConfirmation = false;
 locationStr = '';
 
     userIdEnc = '';
@@ -71,8 +72,9 @@ locationStr = '';
       this.training_percentage = parseInt(response['percentage_training'], 10);
       this.assignedCourses = response['courses'];
       this.trainings = response['trainings'];
-      if (response['peepDetails']) {
+      if (response['peepDetails'] && (response['peepDetails'] as Array<object>).length > 0 ) {
         this.peep = response['peepDetails'][0];
+        this.showConfirmation = true;
       }
       this.locationStr = response['locations'].join(',');
       // console.log(this.peep);
@@ -156,6 +158,9 @@ locationStr = '';
         this.dashboardService.hide();
       });
     }
+  }
 
+  public showPeepDetailsConfirmation() {
+    $('#peep_modal_details_confirmation').modal('open');
   }
 }

@@ -295,12 +295,15 @@
                 </div>
 			</div>
 		</div>
-
 	</div>
 
     <div class="modal-footer" [hidden]="showModalLoader">
         <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-        <button type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Submit</button>
+		<button *ngIf="selectedPeep.mobility_impaired_details?.length > 0; else submitButtonRef" type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Update</button>
+		<ng-template #submitButtonRef>
+			<button type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Submit</button>
+		</ng-template>
+		
     </div>
 
 

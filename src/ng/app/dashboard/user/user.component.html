@@ -71,8 +71,21 @@
           <h5 class="orange-text margin-bottom-30">Activities</h5>
 
           <div class="row">
-
-            <div class="col l4 m12 s12 activity-container" style="cursor: pointer"  [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/dashboard' }">
+            <ng-template #divToPeepForm>
+              <div class="col l4 m12 s12 activity-container" style="cursor: pointer"  [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/dashboard' }">
+                <div class="display-table width100">
+                  <div class="cell grey lighten-5 image-container">
+                    <img src="/assets/images/dash01.png" alt="">
+                  </div>
+                  <div class="cell font-size-20 grey lighten-4" >
+                    Register as Mobility Impaired
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+            
+            <!--Mobility Impaired Details Present -->
+            <div *ngIf="showConfirmation; else divToPeepForm" class="col l4 m12 s12 activity-container" style="cursor: pointer" (click)="showPeepDetailsConfirmation()">
               <div class="display-table width100">
                 <div class="cell grey lighten-5 image-container">
                   <img src="/assets/images/dash01.png" alt="">
@@ -179,8 +192,7 @@
           <img src="http://ec2-13-55-82-238.ap-southeast-2.compute.amazonaws.com/assets/images/emails/limesurvey.jpg" style="max-width: 100%;" >
         </div>
         <div class="col l5 m12 s12">
-          <h5 style="font-size: 20px; margin: 0px;">Survey</h5>
-          <!-- <h6 class="grey-text">By Dalton | August 4th, 2017</h6> -->
+          <h5 style="font-size: 20px; margin: 0px;">Survey</h5>          
           <p style="font-size: 15px;">
               Take this survey to tell us about your user experience of EvacConnect. <a href="http://evachub.com/limesurvey/index.php/662295?newtest=Y&lang=en" class="blue-text  ">Take survey</a>
           </p>
@@ -238,3 +250,14 @@
     </div>
   </form>
 </div>
+<!-- Modal Structure For Peep Details Already Present -->
+<div id="peep_modal_details_confirmation" class="modal">
+  <div class="modal-content">
+    <h4>Confirmation</h4>
+    <h6>You are already registered as mobility impaired. Please review the form.</h6>
+  </div>
+  <div class="modal-footer">
+    <a [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/dashboard' }" class="modal-close waves-effect waves-green btn-flat">Review Form</a>
+  </div>
+</div>
+
