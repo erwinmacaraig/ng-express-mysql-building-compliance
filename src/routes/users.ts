@@ -1323,14 +1323,14 @@ export class UsersRoute extends BaseRoute {
         for(let user of response.data['users']){
             userIds.push(user.user_id);
             
-            /*
+            
             let lastLoginMoment = moment(user.last_login);
             if(lastLoginMoment.isValid()){
                 user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
             }else{
                 user.last_login = '';
             }
-            */
+            
            user.profilePic = '';
            user.profile_pic = '';
            user.last_login = '';
