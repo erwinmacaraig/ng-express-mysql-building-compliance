@@ -1051,8 +1051,19 @@ export class User extends BaseClass {
                 if('account_id' in config){
                     configFilter += ` AND u.account_id = ${config['account_id']} `;
                 }
+
+                // configFilter += ' GROUP BY userolelocation.role_id, userolelocation.location_id ';
+
+                if('order_account_name' in config){
+                    configFilter += ` ORDER BY TRIM(a.account_name) ASC `;
+                }
+
                 let archived = ('archived' in config) ? config['archived'] : '0';
 
+                let ecoRoleIdsSql = '';
+                if('eco_role_ids' in config){
+                    ecoRoleIdsSql = ' AND em.em_roles_id IN ('+config['eco_role_ids']+') ';
+                }
                 let innerSqlEm = `
                     SELECT
                     emr.user_id,
@@ -1062,6 +1073,8 @@ export class User extends BaseClass {
                     FROM user_em_roles_relation emr 
                     INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
                     WHERE emr.location_id IN (${locationIds})
+                    ${ecoRoleIdsSql}
+                    GROUP BY emr.user_id, emr.em_role_id
                 `;
                 let innerSqlFrpTrp = `
                     UNION
@@ -1074,23 +1087,38 @@ export class User extends BaseClass {
                     INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
                     WHERE  lau.location_id IN (${locationIds})
                 `;
+
                 if(config['eco_only']){ innerSqlFrpTrp = ''; }
+
+                let select = `
+                    u.*,
+                    userolelocation.role_id,
+                    userolelocation.role_name,
+                    userolelocation.location_id,
+                    a.account_name,
+                    l.name,
+                    l.is_building,
+                    IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
+                    l.parent_id,
+                    p.is_building as parent_is_building,
+                    IF(p.location_id IS NOT NULL, p.name, '') as parent_location_name,
+                    p2.is_building as parent2_is_building,
+                    IF(p2.location_id IS NOT NULL, p2.name, '') as parent2_location_name
+                `;
+                if('count' in config){
+                    select = 'COUNT(u.user_id) as count';
+                }
+
+                let limitSql = '';
+                if('limit' in config){
+                    if(config['limit'] && ('count' in config) == false){
+                        limitSql = ' LIMIT '+config['limit'];
+                    }
+                }
 
                 const sql_load = `
                 SELECT 
-                u.*,
-                userolelocation.role_id,
-                userolelocation.role_name,
-                userolelocation.location_id,
-                a.account_name,
-                l.name,
-                l.is_building,
-                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
-                l.parent_id,
-                p.is_building as parent_is_building,
-                IF(p.location_id IS NOT NULL, p.name, '') as parent_location_name,
-                p2.is_building as parent2_is_building,
-                IF(p2.location_id IS NOT NULL, p2.name, '') as parent2_location_name
+                ${select}
                 FROM ( ${innerSqlEm}  ${innerSqlFrpTrp} ) userolelocation
                 INNER JOIN users u ON userolelocation.user_id = u.user_id
                 INNER JOIN locations l ON l.location_id = userolelocation.location_id
@@ -1099,10 +1127,12 @@ export class User extends BaseClass {
                 INNER JOIN accounts a ON a.account_id = u.account_id
                 WHERE u.archived = ${archived}
                 ${configFilter}
+                ${limitSql}
                 `;
 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
+                        console.log(sql_load);
                         return console.log(error);
                     }
                     this.dbData = results;

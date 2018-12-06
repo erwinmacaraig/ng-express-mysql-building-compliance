@@ -23,21 +23,19 @@
 
                 <div class="select-container no-print">
                     <select class="select-filter" id="selectFilter">
-                        <option value="null" selected>Filter</option>
-                        <option value="offline">Face to Face</option>
-                        <option value="online">Online Training</option>
+                        <option value="eco" selected>ECO</option>
+                        <option value="chiefwarden"  >Chief Warden</option>
                     </select>
                 </div>
 
-                <div class="switch-container no-print">
+                <div class="checkbox-container no-print">
+                    <input type="checkbox" value="chiefwarden" id="chiefwardenCheckbox" class="filled-in" checked />
+                    <label for="chiefwardenCheckbox">Chief Warden</label>
+                </div>
 
-                    <div class="switch">
-                        <input type="checkbox" id="compliantToggle" checked>
-                        <div class="yes">Compliant</div>
-                        <div class="no">Non-Compliant</div>
-                        <div class="highlight"></div>
-                        <div class="background"></div>
-                    </div>
+                <div class="checkbox-container no-print">
+                    <input type="checkbox" value="epcmember" id="epcMembersCheckbox" class="filled-in"  />
+                    <label for="epcMembersCheckbox">EPC members</label>
                 </div>
 
             </div>
@@ -85,18 +83,17 @@
                     <tr class="grey darken-5 white-text">
                         <th>Region</th>
                         <th>Building</th>
-                        <th>Emergency Role</th>
                         <th>Sublocation</th>
-                        <th>Account</th>
                         <th>Name</th>
+                        <th>ECO Role</th>
                         <th>Email</th>
-                        <th>Overall Status</th>
+                        <th>Account</th>
                     </tr>
                 </thead>
                 
                 <tbody [hidden]="!loadingTable">
                     <tr>
-                        <td colspan="8" class="center">
+                        <td colspan="7" class="center">
                             <h6>Loading records...</h6>
                         </td>
                     </tr>
@@ -104,29 +101,18 @@
 
                 <tbody [hidden]="loadingTable">
                     <tr *ngIf="results.length == 0">
-                        <td colspan="8" class="center">
+                        <td colspan="7" class="center">
                             <h6>No result found</h6>
                         </td>
                     </tr>
                     <tr *ngFor="let res of results">
                         <td>{{res.region}}</td>
                         <td>{{res.building}}</td>
-                        <td>{{res.role_name}}</td>
                         <td>{{res.sublocation}}</td>
-                        <td>{{res.account_name}}</td>
                         <td>{{res.first_name}} {{res.last_name}}</td>
+                        <td>{{res.role_name}}</td>
                         <td>{{res.email}}</td>
-                        <td>
-                            <span *ngIf="res.status == 'valid' && res.pass == 1 " class="blue-text">Compliant</span>
-                            <span *ngIf="res.status != 'valid' || res.pass == 0 " class="grey-text">
-                                Not Compliant
-                                <small *ngIf="res.pass == 0">(Failed)</small>
-                                <small *ngIf="res.status == 'expired'">(Expired)</small>
-                                <small *ngIf="res.status == 'not taken'">(Not Taken)</small>
-                            </span>
-
-                            <!-- {{res.certification_date_formatted}} -->
-                        </td>
+                        <td>{{res.account_name}}</td>
                     </tr>
                 </tbody>
 

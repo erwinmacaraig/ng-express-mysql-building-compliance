@@ -79,6 +79,12 @@ export class UsersRoute extends BaseRoute {
 	    	new  UsersRoute().getUserRole(req, res, next);
 	    })
 
+        router.get('/users/emroles', async (req: Request, res: Response, next: NextFunction) => {
+            let emRolesModel = new UserEmRoleRelation();
+            let data = await emRolesModel.getEmRoles();
+            res.send(data);
+        });
+
 	    router.get('/users/get-users-by-account-id/:account_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getUsersByAccountId(req, res, next);
 	    });
