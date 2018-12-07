@@ -83,7 +83,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     isShowDatepicker = false;
     datepickerModelFormatted = '';
     selectedPeep = {
-        first_name : '', last_name : ''
+        first_name : '', last_name : '', mobility_impaired_details: []
     };
 
     selectedToInvite = [];
@@ -633,6 +633,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         }
 
         this.selectedPeep = peep;
+        // console.log(this.selectedPeep);
         $('#modalMobility').modal('open');
     }
 
@@ -660,8 +661,10 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     modalPeepFormSubmit(f, event){
         event.preventDefault();
+        
 
         if(f.valid){
+            this.loadingTable = true;
             let paramData = JSON.parse(JSON.stringify(f.value));
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
             paramData['user_id'] = this.selectedPeep['user_id'];
@@ -686,6 +689,11 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 f.reset();
                 $('#modalMobility').modal('close');
                 this.showModalLoader = false;
+                this.getListData(() => {                     
+                    this.loadingTable = false; 
+                });
+
+                
 
             });
         }

@@ -53,7 +53,8 @@ export class AdminRoute extends BaseRoute {
         fromName : 'EvacConnect',
         to : ['adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
         cc: [],
-        body : ` ${req.get('Host')} says: <pre>{{}}</pre>`,
+        body : ` ${req.get('Host')} says: <pre>${message}</pre><br>Logged in user_id: ${req.user.user_id}<br>
+        Logged in user name: ${req.user.email}`,
         attachments: [],
         subject : 'EvacConnect Developer Notification'
       };

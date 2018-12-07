@@ -94,12 +94,12 @@ const request = require('request');
                 const opts = {
                     from : '',
                     fromName : 'EvacConnect',
-                    to : ['adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+                    to : ['emacaraig@evacgroup.com.au'],
                     cc: [],
-                    body : ` ${req.get('Host')} says: This key
-                    ( ${key} ) 
+                    body : ` ${req.get('Host')} says: This key <br>
+                    ( ${key} ) <br>
                     is being downloaded but download process is having trouble with file.
-                    <br> Please check.`,
+                    <br> Please check. <br>Logged in user_id: ${req.user.user_id} <br> Logged in email: ${req.user.email}`,
                     attachments: [],
                     subject : 'EvacConnect Email Notification'
                 };
