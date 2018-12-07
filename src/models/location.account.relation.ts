@@ -389,7 +389,9 @@ export class LocationAccountRelation extends BaseClass {
             // lau.user_id = ${filter['userId']}
         }
 
-        userIdQuery += ` AND lau.account_id = ${accountId} `;
+        if(accountId > 0){
+            userIdQuery += ` AND lau.account_id = ${accountId} `;
+        }
 
         let parentIdQuery = (filter['parent_id']) ? ` AND l.parent_id = ${filter['parent_id']} ` : ``;
 

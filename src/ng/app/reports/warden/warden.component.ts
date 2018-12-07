@@ -156,47 +156,35 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     ngOnInit() {
     }
 
-    ngAfterViewInit(){
+    onFilterEvent(returnRole?){
         let 
-        __this = this,
-        selectFilter = $('#selectFilter');
+        selectFilter = $('#selectFilter'),
+        epcMembersCheckbox = $('#epcMembersCheckbox'),
+        chiefwardenCheckbox = $('#chiefwardenCheckbox'),
+        roleIds = [];
 
-        selectFilter.material_select();
-        selectFilter.off('change.filter').on('change.filter', () => {
+        switch (selectFilter.val()) {
+            case "eco":
+                roleIds.push(9,10);
+                break;
+            
+            case "chiefwarden":
+                roleIds.push(11,15,16,18);
+                break;
+        }
 
-            switch (selectFilter.val()) {
-                case "eco":
-                    let addRolesEco = [9,10];
-                    for(let id of addRolesEco){
-                        if(this.queries.eco_role_ids.indexOf(id) == -1){
-                            this.queries.eco_role_ids.push(id);
-                        }
-                    }
+        if(epcMembersCheckbox.prop('checked')){
+            roleIds.push(13);
+        }
 
-                    break;
-                
-                case "chiefwarden":
-                    let 
-                    indx1 = this.queries.eco_role_ids.indexOf(9),
-                    indx2 = this.queries.eco_role_ids.indexOf(10),
-                    addRoles = [11,15,16,18];
+        if(chiefwardenCheckbox.prop('checked')){
+            roleIds.push(11,15,16,18);
+        }
 
-                    if(indx1 > -1){
-                        this.queries.eco_role_ids.splice(indx1, 1);
-                    }
-
-                    if(indx2 > -1){
-                        this.queries.eco_role_ids.splice(indx2, 1);
-                    }
-
-                    for(let id of addRoles){
-                        if(this.queries.eco_role_ids.indexOf(id) == -1){
-                            this.queries.eco_role_ids.push(id);
-                        }
-                    }
-
-                    break;
-            }
+        if(returnRole){
+            return roleIds;
+        }else{
+            this.queries.eco_role_ids = roleIds;
 
             this.queries.offset = 0;
             this.loadingTable = true;
@@ -210,7 +198,18 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
                     this.pagination.currentPage = 0;
                 }
             });
+        }
 
+    }
+
+    ngAfterViewInit(){
+        let 
+        __this = this,
+        selectFilter = $('#selectFilter');
+
+        selectFilter.material_select();
+        selectFilter.off('change.filter').on('change.filter', () => {
+            this.onFilterEvent();
         });
 
         $('body').off('close.location').on('close.location', '.select-wrapper.select-location input.select-dropdown', (e) => {
@@ -244,62 +243,11 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         });
 
         $('body').off('change.epccheckbox').on('change.epccheckbox', '#epcMembersCheckbox', (e) => {
-            let ind = __this.queries.eco_role_ids.indexOf(13);
-            if($('#epcMembersCheckbox').prop('checked')){
-                if(ind == -1){
-                    __this.queries.eco_role_ids.push(13);
-                }
-            }else{
-                if(ind > -1){
-                    __this.queries.eco_role_ids.splice(ind);
-                }
-            }
-
-            this.queries.offset = 0;
-            this.loadingTable = true;
-
-            this.getWardenListReport((response:any) => {
-                this.loadingTable = false;
-                if(response.data.length > 0){
-                    this.pagination.currentPage = 1;
-                    this.totalCountResult = response.pagination.total;
-                }else{
-                    this.pagination.currentPage = 0;
-                }
-            });
+            this.onFilterEvent();
         });
 
         $('body').off('change.chiefwardencheck').on('change.chiefwardencheck', '#chiefwardenCheckbox', (e) => {
-            let newRoles = [];
-            let arrRoles = [11,15,16,18];
-            
-            if($('#chiefwardenCheckbox').prop('checked')){
-                for(let id of arrRoles){
-                    if(__this.queries.eco_role_ids.indexOf(id) == -1){
-                        __this.queries.eco_role_ids.push(id);
-                    }
-                }
-            }else{
-                for(let roleid of __this.queries.eco_role_ids){
-                    if(arrRoles.indexOf(roleid) == -1){
-                        newRoles.push(roleid);
-                    }
-                }
-                __this.queries.eco_role_ids = newRoles;
-            }
-
-            this.queries.offset = 0;
-            this.loadingTable = true;
-
-            this.getWardenListReport((response:any) => {
-                this.loadingTable = false;
-                if(response.data.length > 0){
-                    this.pagination.currentPage = 1;
-                    this.totalCountResult = response.pagination.total;
-                }else{
-                    this.pagination.currentPage = 0;
-                }
-            });
+            this.onFilterEvent();
         });
 
         /*$('#compliantToggle').off('change.compliant').on('change.compliant', () => {
@@ -401,14 +349,17 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     pdfExport(aPdf, printContainer){
         let 
         a = document.createElement("a"),
-        searchedName = (this.searchMember.nativeElement.value.trim().length > 0) ? this.searchMember.nativeElement.value.trim() : ' ',
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
+        searchedName = this.searchMember.nativeElement.value.trim(),
+        accntId = (this.accountId != 0) ? this.accountId : this.userData["accountId"],
+        roles = this.onFilterEvent(true);
 
-        if(this.isFRP || this.userData['evac_role'] == 'admin'){
-            accntId = 0;
+        if(this.userData['evac_role'] == 'admin'){
+            accntId = null;
         }
 
-        a.href = location.origin+"/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/";
+        searchedName = (searchedName.length == 0) ? ' ' : searchedName;
+
+        a.href = location.origin+"/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -419,14 +370,17 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     csvExport(){
         let 
         a = document.createElement("a"),
-        searchedName = (this.searchMember.nativeElement.value.trim().length > 0) ? this.searchMember.nativeElement.value.trim() : ' ',
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
+        searchedName = this.searchMember.nativeElement.value.trim(),
+        accntId = (this.accountId != 0) ? this.accountId : this.userData["accountId"],
+        roles = this.onFilterEvent(true);
 
-        if(this.isFRP || this.userData['evac_role'] == 'admin'){
-            accntId = 0;
+        if(this.userData['evac_role'] == 'admin'){
+            accntId = null;
         }
 
-        a.href = location.origin+"/reports/csv-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/";
+        searchedName = (searchedName.length == 0) ? ' ' : searchedName;
+
+        a.href = location.origin+"/reports/csv-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
         a.target = "_blank";
         document.body.appendChild(a);
 

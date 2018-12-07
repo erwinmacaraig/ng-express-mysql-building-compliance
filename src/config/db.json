@@ -1,6 +1,6 @@
 {
-  "host": "localhost",
-  "user": "root",
-  "password": "",
-  "database": "evacos_proddec2018"
+  "host": "evac-prod-aws.cz6acz8q5poj.ap-southeast-2.rds.amazonaws.com",
+  "user": "admin",
+  "password": "myAllah1",
+  "database": "evacos"
 }

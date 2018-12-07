@@ -136,42 +136,32 @@ export class ReportsRoute extends BaseRoute {
           new ReportsRoute().generateWardenReport(req, res);
         })
 
-       router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+       router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid/:isadmin', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
            req.body['limit'] = req.params.limit;
            req.body['location_id'] = req.params.locids;
            req.body['account_id'] = req.params.account;
            req.body['user_id'] = req.params.userid;
+           req.body['isadmin'] = req.params.isadmin;
            new ReportsRoute().getActivityReport(req, res, true);
        });
 
-       router.get('/reports/csv-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+       router.get('/reports/csv-activity-report/:locids/:limit/:account/:userid/:isadmin', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
            req.body['limit'] = req.params.limit;
            req.body['location_id'] = req.params.locids;
            req.body['account_id'] = req.params.account;
            req.body['user_id'] = req.params.userid;
+           req.body['isadmin'] = req.params.isadmin;
            new ReportsRoute().getActivityReport(req, res, false, true);
        });
 
        router.get('/reports/pdf-team/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
-           req.body['limit'] = req.params.limit;
            req.body['location_id'] = req.params.locids;
            req.body['account_id'] = req.params.account;
            req.body['user_id'] = req.params.userid;
            new ReportsRoute().generateTeamReport(req, res, true);
-       });
-
-       router.get('/reports/pdf-location-trainings/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
-           req.body['offset'] = 0;
-           req.body['limit'] = req.params.limit;
-           req.body['location_id'] = req.params.locids;
-           req.body['account_id'] = req.params.account;
-           req.body['user_id'] = req.params.userid;
-           req.body['course_method'] = 'none';
-           req.body['getall'] = true;
-           new ReportsRoute().locationTrainings(req, res, true);
        });
 
        router.get('/reports/csv-team/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
@@ -183,34 +173,62 @@ export class ReportsRoute extends BaseRoute {
            new ReportsRoute().generateTeamReport(req, res, false, true);
        });
 
-       router.get('/reports/csv-location-trainings/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+       router.get('/reports/pdf-location-trainings/:locids/:limit/:account/:userid/:searchkey/:trainingid/:coursemethod/:compliant', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
            req.body['limit'] = req.params.limit;
            req.body['location_id'] = req.params.locids;
            req.body['account_id'] = req.params.account;
            req.body['user_id'] = req.params.userid;
-           req.body['course_method'] = 'none';
-           req.body['getall'] = true;
+           req.body['course_method'] = req.params.coursemethod;
+           req.body['training_id'] = req.params.trainingid;
+           req.body['searchKey'] = req.params.searchkey;
+           req.body['compliant'] = req.params.compliant;
+           
+           new ReportsRoute().locationTrainings(req, res, true);
+       });
+
+       router.get('/reports/csv-location-trainings/:locids/:limit/:account/:userid/:searchkey/:trainingid/:coursemethod/:compliant', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['course_method'] = req.params.coursemethod;
+           req.body['training_id'] = req.params.trainingid;
+           req.body['searchKey'] = req.params.searchkey;
+           req.body['compliant'] = req.params.compliant;
+           
            new ReportsRoute().locationTrainings(req, res, false, true);
        });
 
-       router.get('/reports/pdf-warden-list/:locids/:limit/:account/:userid/:searched_name/ ', (req: AuthRequest, res:Response) => {
+
+       router.get('/reports/pdf-warden-list/:locids/:limit/:account/:userid/:searched_name/:roleids', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
-           req.body['limit'] = req.params.limit;
+           req.body['limit'] = parseInt(req.params.limit);
            req.body['location_id'] = req.params.locids;
-           req.body['account_id'] = req.params.account;
-           req.body['user_id'] = req.params.userid;
-           req.body['searchKey'] = (req.params.searched_name.trim().length > 0) ? req.params.searched_name.trim() : false;
+           req.body['account_id'] = (req.params.account == 'null') ? null : req.params.account;
+           req.body['user_id'] = parseInt(req.params.userid);
+           req.body['searchKey'] = req.params.searched_name.trim();
+           req.params.roleids = req.params.roleids.split(",");
+           req.params.roleids.forEach(function(item, index){
+             req.params.roleids[index] = parseInt(item);
+           });
+           req.body['eco_role_ids'] = req.params.roleids;
            new ReportsRoute().generateWardenReport(req, res, true);
        });
 
-       router.get('/reports/csv-warden-list/:locids/:limit/:account/:userid/:searched_name/ ', (req: AuthRequest, res:Response) => {
+       router.get('/reports/csv-warden-list/:locids/:limit/:account/:userid/:searched_name/:roleids', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
-           req.body['limit'] = req.params.limit;
+           req.body['limit'] = parseInt(req.params.limit);
            req.body['location_id'] = req.params.locids;
-           req.body['account_id'] = req.params.account;
-           req.body['user_id'] = req.params.userid;
-           req.body['searchKey'] = (req.params.searched_name.trim().length > 0) ? req.params.searched_name.trim() : false;
+           req.body['account_id'] = (req.params.account == 'null') ? null : req.params.account;
+           req.body['user_id'] = parseInt(req.params.userid);
+           req.body['searchKey'] = req.params.searched_name.trim();
+           req.params.roleids = req.params.roleids.split(",");
+           req.params.roleids.forEach(function(item, index){
+             req.params.roleids[index] = parseInt(item);
+           });
+           req.body['eco_role_ids'] = req.params.roleids;
            new ReportsRoute().generateWardenReport(req, res, false, true);
        });
 
@@ -239,11 +257,10 @@ export class ReportsRoute extends BaseRoute {
             sublocations : []
         },
         location_id = req.body.location_id,
-        accountId = (req.body.account_id) ? (req.body.account_id > -1) ? req.body.account_id : req.user.account_id : req.user.account_id,
+        accountId = (req.body.account_id) ? req.body.account_id : (req.user) ? req.user.account_id : 0,
         locationModel = new Location(location_id),
         sublocationModel = new Location(),
         locations = <any> [],
-        getAll = (req.body.getall) ? req.body.getall : false,
         filterExceptLocation = (req.body.nofilter_except_location) ? req.body.nofilter_except_location : false,
         userRoleModel = new UserRoleRelation(),
         userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
@@ -254,12 +271,13 @@ export class ReportsRoute extends BaseRoute {
             role = await userRoleModel.getByUserId(userId, true);
         }catch(e){}
 
-        if (location_id == 0 || getAll) {
+        if (location_id == 0) {
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
-
                 locations = responseLocations.data;
-            }catch(e){}
+            }catch(e){
+              console.log(e);
+            }
         } else{
             let ids = location_id.split('-'),
                 locsIds = [0],
@@ -285,7 +303,7 @@ export class ReportsRoute extends BaseRoute {
 
         const config = {};
         if(req.body.searchKey){
-          if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !getAll && !filterExceptLocation) {
+          if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !filterExceptLocation) {
             config['searchKey'] = req.body.searchKey;
           }
         }
@@ -371,7 +389,7 @@ export class ReportsRoute extends BaseRoute {
         config['eco_only'] = true;
         config['eco_role_ids'] = eco_role_ids.join(',');
         config['order_account_name'] = 'asc';
-        let offsetLimit = (getAll || filterExceptLocation) ? false :  (limit == 0) ? false : offset+','+limit;
+        let offsetLimit = (filterExceptLocation) ? false :  (limit == 0) ? false : offset+','+limit;
         if(!toPdf && !toCsv){
           config['limit'] = offsetLimit;
         }
@@ -666,7 +684,7 @@ export class ReportsRoute extends BaseRoute {
             temp,
             totalWardens = 0,
             userIds = [],
-            accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
+            accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : (req.user) ? req.user.account_id : 0 : (req.user) ? req.user.account_id : 0,
             filter = {
                 archived : 0
             },
@@ -1395,9 +1413,17 @@ export class ReportsRoute extends BaseRoute {
         }
 
         let fileTypes = <any> '"Primary","Secondary"';
-        if(req.user.evac_role == 'admin'){
+        if(req.user){
+          if(req.user.evac_role == 'admin'){
+            fileTypes = false;
+          }
+        }
+        if(req.body.isadmin == true){
           fileTypes = false;
         }
+
+        console.log('req.body.isadmin', req.body.isadmin);
+        console.log('fileTypes', fileTypes);
 
         let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true, fileTypes),
             logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit, false, fileTypes);

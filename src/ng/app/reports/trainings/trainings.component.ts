@@ -317,8 +317,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
     pdfExport(aPdf, printContainer){
         let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
+        compliant = this.queries.compliant,
+        trainingId = this.queries.training_id,
+        method = this.queries.course_method,
+        search = (this.searchMember.nativeElement.value.trim().length == 0) ? ' ' : this.searchMember.nativeElement.value;
+
+        a.href = location.origin+"/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -329,8 +334,13 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
     csvExport(){
         let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
+        compliant = this.queries.compliant,
+        trainingId = this.queries.training_id,
+        method = this.queries.course_method,
+        search = (this.searchMember.nativeElement.value.trim().length == 0) ? ' ' : this.searchMember.nativeElement.value;
+
+        a.href = location.origin+"/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
         a.target = "_blank";
         document.body.appendChild(a);
 
