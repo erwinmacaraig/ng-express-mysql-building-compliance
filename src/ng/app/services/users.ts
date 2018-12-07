@@ -326,7 +326,6 @@ export class UserService {
 			location_account_user: location_account_user_id,
 			level_location: level_location
 		});
-
 	}
 
 	getTrainingData(userId=0, emergencyRoles=[]) {
@@ -340,7 +339,10 @@ export class UserService {
 			user: userId,
 			roles: roles
 		});
-
 	}
+
+    getEmRoles() {
+        return this.http.get(this.baseUrl + '/users/emroles', this.options);
+    }
 
 }

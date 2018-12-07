@@ -7,6 +7,7 @@ import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { CourseService } from '../../services/course';
+import { UserService } from '../../services/users';
 import { ExportToCSV } from '../../services/export.to.csv';
 import { Observable } from 'rxjs/Rx';
 import html2canvas from 'html2canvas';
@@ -21,7 +22,7 @@ declare var $: any;
     selector : 'app-warden-report-component',
     templateUrl : './warden.component.html',
     styleUrls : [ './warden.component.css' ],
-    providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, CourseService, ExportToCSV ]
+    providers : [ AuthService, MessageService, ReportService, EncryptDecryptService, DashboardPreloaderService, CourseService, ExportToCSV, UserService ]
 })
 
 export class WardenReportsComponent implements OnInit, OnDestroy {
@@ -43,13 +44,9 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         offset : 0,
         location_id: null,
         account_id: null,
-        course_method : 'none',
-        training_id : 0,
         searchKey: '',
-        compliant: 1,
         getall : false,
-        nofilter_except_location : false,
-        eco_only : true
+        eco_role_ids : [9,10,11,15,16,18]
     };
     totalCountResult = 0;
 
@@ -65,6 +62,8 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     exportData = [];
     exportFetchMarker = {};
     print:any;
+    isFRP = false;
+    emRoles:any = [];
 
     constructor(
         private router : Router,
@@ -75,7 +74,8 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         private encryptDecrypt : EncryptDecryptService,
         private dashboardPreloader : DashboardPreloaderService,
         private courseService : CourseService,
-        private exportToCSV : ExportToCSV
+        private exportToCSV : ExportToCSV,
+        private userService : UserService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -91,6 +91,12 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
                 }
             });
         });
+
+        for(let role of this.userData['roles']){
+            if(role.role_id == 1){
+                this.isFRP = true;
+            }
+        }
 
         let qParams = undefined;
         if(this.userData['evac_role'] == 'admin'){
@@ -122,7 +128,20 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
             },100);
         });
 
-        this.courseService.getTrainingRequirements((response) => {
+        this.userService.getEmRoles().subscribe((response) => {
+            this.emRoles = response;
+            /*let selectFilter = $('#selectFilter');
+            let roleIds = [9,10,11,15,16,18];
+            for(let role of this.emRoles){
+                if(roleIds.indexOf(role.em_roles_id) > -1){
+                    selectFilter.append(' <option value="'+role.em_roles_id+'">'+role.role_name+'</option> ');
+                }
+            }
+
+            selectFilter.material_select();*/
+        });
+
+        /*this.courseService.getTrainingRequirements((response) => {
             this.trainingRequirements = response.data;
 
             let selectFilter = $('#selectFilter');
@@ -131,29 +150,41 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
             }
 
             selectFilter.material_select();
-        });
+        });*/
     }
 
     ngOnInit() {
     }
 
-    ngAfterViewInit(){
+    onFilterEvent(returnRole?){
+        let 
+        selectFilter = $('#selectFilter'),
+        epcMembersCheckbox = $('#epcMembersCheckbox'),
+        chiefwardenCheckbox = $('#chiefwardenCheckbox'),
+        roleIds = [];
 
-        $('#selectFilter').off('change.filter').on('change.filter', () => {
+        switch (selectFilter.val()) {
+            case "eco":
+                roleIds.push(9,10);
+                break;
+            
+            case "chiefwarden":
+                roleIds.push(11,15,16,18);
+                break;
+        }
 
-            let selVal = $('#selectFilter').val();
-            if(selVal == 'offline'){
-                this.queries.course_method = 'offline';
-            }else if(selVal == 'online'){
-                this.queries.course_method = 'online';
-            }else if(selVal.indexOf('training-') > -1){
-                let trainingId = selVal.replace('training-', '');
-                this.queries.training_id = trainingId;
-            }else{
-                this.queries.course_method = '';
-                this.queries.training_id = 0;
-            }
+        if(epcMembersCheckbox.prop('checked')){
+            roleIds.push(13);
+        }
 
+        if(chiefwardenCheckbox.prop('checked')){
+            roleIds.push(11,15,16,18);
+        }
+
+        if(returnRole){
+            return roleIds;
+        }else{
+            this.queries.eco_role_ids = roleIds;
 
             this.queries.offset = 0;
             this.loadingTable = true;
@@ -167,7 +198,18 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
                     this.pagination.currentPage = 0;
                 }
             });
+        }
 
+    }
+
+    ngAfterViewInit(){
+        let 
+        __this = this,
+        selectFilter = $('#selectFilter');
+
+        selectFilter.material_select();
+        selectFilter.off('change.filter').on('change.filter', () => {
+            this.onFilterEvent();
         });
 
         $('body').off('close.location').on('close.location', '.select-wrapper.select-location input.select-dropdown', (e) => {
@@ -200,7 +242,15 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
 
         });
 
-        $('#compliantToggle').off('change.compliant').on('change.compliant', () => {
+        $('body').off('change.epccheckbox').on('change.epccheckbox', '#epcMembersCheckbox', (e) => {
+            this.onFilterEvent();
+        });
+
+        $('body').off('change.chiefwardencheck').on('change.chiefwardencheck', '#chiefwardenCheckbox', (e) => {
+            this.onFilterEvent();
+        });
+
+        /*$('#compliantToggle').off('change.compliant').on('change.compliant', () => {
             let checked = $('#compliantToggle').prop('checked');
             if(checked){
                 this.queries.compliant = 1;
@@ -223,7 +273,7 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
               }
               this.loadingTable = false;
             });
-        });
+        });*/
 
         this.print = new PrintService({
             content : this.printContainer.nativeElement.outerHTML
@@ -297,26 +347,44 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     }
 
     pdfExport(aPdf, printContainer){
-        let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        let 
+        a = document.createElement("a"),
+        searchedName = this.searchMember.nativeElement.value.trim(),
+        accntId = (this.accountId != 0) ? this.accountId : this.userData["accountId"],
+        roles = this.onFilterEvent(true);
+
+        if(this.userData['evac_role'] == 'admin'){
+            accntId = null;
+        }
+
+        searchedName = (searchedName.length == 0) ? ' ' : searchedName;
+
+        a.href = location.origin+"/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
         a.target = "_blank";
         document.body.appendChild(a);
 
         a.click();
-
         a.remove();
     }
 
     csvExport(){
-        let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/csv-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        let 
+        a = document.createElement("a"),
+        searchedName = this.searchMember.nativeElement.value.trim(),
+        accntId = (this.accountId != 0) ? this.accountId : this.userData["accountId"],
+        roles = this.onFilterEvent(true);
+
+        if(this.userData['evac_role'] == 'admin'){
+            accntId = null;
+        }
+
+        searchedName = (searchedName.length == 0) ? ' ' : searchedName;
+
+        a.href = location.origin+"/reports/csv-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
         a.target = "_blank";
         document.body.appendChild(a);
 
         a.click();
-
         a.remove();
     }
 
