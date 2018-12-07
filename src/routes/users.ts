@@ -3476,7 +3476,7 @@ export class UsersRoute extends BaseRoute {
         const userRoleRel = new UserRoleRelation();
         const role = await userRoleRel.getByUserId(req.user.user_id, true);
 
-        if (role == defs['Manager']) {
+        if (role == defs['Manager'] || req.user.evac_role == 'admin') {
             let accountIds = [];            
             const location = new Location();
             const accounts = await location.getAllAccountsInLocation(location_id);
