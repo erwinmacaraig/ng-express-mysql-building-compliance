@@ -46,7 +46,7 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         account_id: null,
         searchKey: '',
         getall : false,
-        eco_role_ids : [11,15],
+        eco_role_ids : [11,15,16,18,9,10],
         eco_order : [11,15,13,16,18,9,10]
     };
     totalCountResult = 0;
@@ -161,14 +161,14 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         let 
         epcMembersCheckbox = $('#epcMembersCheckbox'),
         chiefwardenCheckbox = $('#chiefwardenCheckbox'),
-        roleIds = [];
+        roleIds = [9,10,16,18];
 
         if(chiefwardenCheckbox.prop('checked')){
             roleIds.push(11,15);
         }
 
         if(epcMembersCheckbox.prop('checked')){
-            roleIds.push(9,10,13,16,18);
+            roleIds.push(13);
         }
 
         if(returnRole){
