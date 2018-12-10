@@ -1116,6 +1116,20 @@ export class User extends BaseClass {
                     }
                 }
 
+                if('eco_order' in config){
+                    let txtORder = '';
+                    let ind = 0;
+                    for(let order of config['eco_order']){
+                        txtORder += order;
+                        ind++;
+                        if(config['eco_order'][ind]){
+                            txtORder += ',';
+                        }
+                    }
+                    txtORder += ' ) ASC ';
+                    configFilter += ` ORDER BY FIELD(userolelocation.role_id, ${txtORder} `;
+                }
+
                 const sql_load = `
                 SELECT 
                 ${select}
