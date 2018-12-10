@@ -26,11 +26,17 @@
       <div class="row">
         <div class="col l12 m12 s12">
           <h5 class="orange-text margin-bottom-30">Select User</h5>
-          <div class="checkbox">
-            <input formControlName="trp_user" id="trp" type="checkbox"> <label for="trp">TRP (Tenant Contact Person)</label>
+          <div class="form-group">
+            <input value="frp" formControlName="user_type" name="user_type" id="frp" type="radio" class="filled-in"/> 
+            <label for="frp">FRP (Facility Contact Person)</label>
           </div>
-          <div class="checkbox">
-            <input formControlName="eco_user" id="eco" type="checkbox"> <label for="eco">
+          <div class="form-group">
+            <input value="trp" formControlName="user_type" name="user_type" id="trp" type="radio" class="filled-in" checked /> 
+            <label for="trp">TRP (Tenant Contact Person)</label>
+          </div>
+          <div class="form-group">
+            <input value="eco" formControlName="user_type" name="user_type" id="eco" type="radio" class="filled-in"> 
+            <label for="eco">
               ECO
               (Deputy Chief Warden,
               Chief Warden,
@@ -39,8 +45,9 @@
               General Occupant)
             </label>
           </div>
-          <div class="checkbox">
-            <input formControlName="all_users" id="all" type="checkbox"> <label for="all">All Users</label>
+          <div class="form-group">
+            <input value="all_users" formControlName="user_type" name="user_type" id="all" type="radio" class="filled-in"> 
+            <label for="all">All Users</label>
           </div>
         </div>
       </div>
@@ -62,6 +69,7 @@
             <option value="15">15 Days</option>
             <option value="30">30 Days</option>
             <option value="60">60 Days</option>
+            <option value="90">90 Days</option>
           </select>
         </div>
       </div>

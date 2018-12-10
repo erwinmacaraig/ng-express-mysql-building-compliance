@@ -1,75 +1,45 @@
-<div class="container print-no-margin" id="printContainer" #printContainer>
+<div class="  print-no-margin" id="printContainer" #printContainer>
+    <div class="row row-margined-top"  >
 
-    <div *ngIf="reportData.length == 0">
-        <div class="row row-margined-top" >
-            <div class="col l12 m12 s12" *ngIf="reportData.location">
-                <h5 class="left">
-                    <span *ngIf="reportData.location.parent.name.length > 0">{{reportData.location.parent.name}}, </span> {{reportData.location.name}} 
-                    Current Team Information
-                </h5>
+        <div class="col l12 m12 s12">
+            <h5 class="left">
+                Stack Plan Report
+            </h5>
+
+            <div class="right right-buttons no-print" >
+                <!-- <div style="width: 35px;" *ngIf="pdfLoader">
+                    <div class="progress" style="margin: 2px auto;">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div> -->
+
+                <!-- <a #aPdf (click)="pdfExport(printContainer)" >
+                    <div class="text">Export to</div>
+                    <div class="image pdf"></div>
+                </a> -->
+
+                <!-- <div style="width: 35px;" *ngIf="csvLoader">
+                    <div class="progress" style="margin: 2px auto;">
+                        <div class="indeterminate"></div>
+                    </div>
+                </div> -->
+
+                <!-- <a (click)="csvExport()" >
+                    <div class="image excel"></div>
+                </a> -->
+                
+                <a  (click)="printResult(printContainer)">
+                    <div class="text">Print</div>
+                    <div class="image print"></div>
+                </a>
+
             </div>
+
+            <div class="clearfix"></div>
         </div>
     </div>
-    
+
     <div *ngFor="let report of reportData; let i = index;" >
-
-    	<div class="row row-margined-top"  >
-
-    		<div class="col l12 m12 s12">
-    			<h5 class="left">
-                    <span *ngIf="report.location.parent.name.length > 0">{{report.location.parent.name}}, </span> {{report.location.name}} 
-                    Current Team Information
-                </h5>
-
-    			<div class="left filter-container">
-    				<div class="select-container" *ngIf="locationIdDecrypted > 0">
-    					<select class="select-location" id="selectLocation">
-    						<option value="null" selected disabled>Select Location</option>
-    						<option value="{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb">{{loc.name}}</option>
-    					</select>
-    				</div>
-
-    				<!-- <div class="select-container">
-    					<select class="select-role">
-    						<option value="0" selected disabled>Select Role</option>
-    					</select>
-    				</div> -->
-    			</div>
-
-    			<div class="right right-buttons no-print" *ngIf="i == 0">
-                    <!-- <div style="width: 35px;" *ngIf="pdfLoader">
-                        <div class="progress" style="margin: 2px auto;">
-                            <div class="indeterminate"></div>
-                        </div>
-                    </div> -->
-
-    				<a #aPdf (click)="pdfExport(printContainer)" >
-    					<div class="text">Export to</div>
-    					<div class="image pdf"></div>
-    				</a>
-
-                    <!-- <div style="width: 35px;" *ngIf="csvLoader">
-                        <div class="progress" style="margin: 2px auto;">
-                            <div class="indeterminate"></div>
-                        </div>
-                    </div> -->
-
-    				<a (click)="csvExport()" >
-    					<div class="image excel"></div>
-    				</a>
-
-    				<a  (click)="printResult(printContainer)">
-    					<div class="text">Print</div>
-    					<div class="image print"></div>
-    				</a>
-
-    			</div>
-
-    			<div class="clearfix"></div>
-    		</div>
-
-
-    	</div>
 
     	<div >
 
@@ -79,28 +49,32 @@
     				<table class="striped">
     					<thead>
     						<tr class="grey darken-5 white-text">
-    							<th>Company</th>
-    							<th>Sub Location</th>
-    							<th>Contact Person</th>
+    							<th>Building</th>
+    							<th>Sublocation</th>
+                                <th>Account</th>
+    							<th>TRP</th>
     							<!-- <th>Tel no</th> -->
     							<th>Email</th>
-    							<th>Warden</th>
-    							<th>P.E.E.P</th>
+    							<th># Warden</th>
+    							<th># P.E.E.P</th>
     						</tr>
     					</thead>
     					<tbody>
     						<tr *ngIf="report.data.length == 0">
-    							<td colspan="7" class="center">No record found</td>
+    							<td colspan="8" class="center">No record found</td>
     						</tr>
     						<tr *ngFor="let field of report.data">
     							<td>
+                                   {{ report.location.name }}
+                                </td>
+                                <td>
+                                    {{field['name']}}
+                                </td>
+                                <td>
                                     <span *ngFor="let accnt of field['trp']" [ngStyle]="{'display': 'block'}">
                                         {{accnt['account_name']}}
                                     </span>
 
-                                </td>
-                                <td>
-                                    {{field['name']}}
                                 </td>
 
                                 <td>
@@ -116,10 +90,10 @@
                                   </span>
                               </td>
                               <td>
-                                <span class="blue-text">{{field['total_wardens']}}</span>
+                                <span>{{field['total_wardens']}}</span>
                             </td>
                             <td>
-                                <span class="blue-text">{{field['peep_total']}}</span>
+                                <span>{{field['peep_total']}}</span>
                             </td>
                         </tr>
                     </tbody>

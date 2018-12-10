@@ -136,6 +136,29 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
+    public getByUserIds(userIds = ''){
+        return new Promise((resolve, reject) => {
+             
+            const sql_load = `SELECT * FROM location_account_user WHERE user_id IN (${userIds}) `;
+
+            this.pool.getConnection((err, connection) => {
+              if (err) {                    
+                  throw new Error(err);
+              }
+
+              connection.query(sql_load, (error, results, fields) => {
+                  if (error) {
+                      return console.log(error);
+                  }
+                  this.dbData = results;
+                  resolve(this.dbData);
+              });
+                 
+              connection.release();
+            });
+        });
+    }
+
     public getMany(arrWhere){
         return new Promise((resolve, reject) => {
             let sql_load = '',
@@ -307,6 +330,7 @@ export class LocationAccountUser extends BaseClass {
             const sql_load =
             `SELECT
                 user_role_relation.role_id,
+                user_role_relation.user_role_relation_id,
                 IF (user_role_relation.role_id = 1, 'Facility Responsible Person', 'Tenancy Responsible Person') as role_name,
                 lau.*,
                 u.first_name,
@@ -669,7 +693,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public listRolesOnLocation(role: number = 0, location_id: number = 0) {
+    public listRolesOnLocation(role: number = 0, location_id: number = 0, accountIds = []) {
       return new Promise((resolve, reject) => {
         const resultSetObj = {};
         let role_filter = '';
@@ -677,16 +701,20 @@ export class LocationAccountUser extends BaseClass {
         if (role) {
            role_filter = ` AND user_role_relation.role_id = ${role}`;
         }
+        if (accountIds.length > 0) {
+            role_filter += ` AND location_account_user.account_id IN (${accountIds.join(',')})`;
+        }
         if (!location_id) {
           reject('Cannot get info without location id');
         }
+        
         const sql_get_list = `SELECT
         accounts.account_name,
                       users.first_name,
                       users.last_name,
                       location_account_user.*
-         from location_account_user
-        INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
+         FROM location_account_user
+         INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
         INNER JOIN users ON users.user_id = location_account_user.user_id
         INNER JOIN accounts ON accounts.account_id = users.account_id
           WHERE
@@ -868,14 +896,14 @@ export class LocationAccountUser extends BaseClass {
                       ON
                         locations.location_id = location_account_user.location_id
                       LEFT JOIN
-                        locations as parent_location
+                        locations parent_location
                       ON
                         locations.parent_id = parent_location.location_id
                       WHERE
                         location_account_user.location_id IN (${locationStr})
                     AND
                       user_role_relation.role_id = 2`;
-
+                      
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);
@@ -893,6 +921,113 @@ export class LocationAccountUser extends BaseClass {
         
       });
     }
+
+    public getFRPinBuilding(buildingId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw Error(error);
+                }
+                const sql = `
+                SELECT
+                    users.user_id,
+                    users.first_name,
+                    users.last_name,
+                    users.email,
+                    accounts.account_name,
+                    location_account_user.location_id,
+                    'FRP' as role_name                   
+                FROM
+                    users
+                INNER JOIN
+                    location_account_user
+                ON
+                    users.user_id = location_account_user.user_id
+                INNER JOIN
+                    accounts
+                ON
+                  accounts.account_id = users.account_id
+                INNER JOIN
+                    user_role_relation
+                ON
+                    users.user_id = user_role_relation.user_id                
+                WHERE
+                    location_account_user.location_id = ?
+                AND
+                    user_role_relation.role_id = 1
+                `;
+                connection.query(sql, [buildingId],(err, results) => {
+                    if (err) {
+                        console.log('location_account_user.getFRPinBuilding', err, sql);
+                        throw Error(err);                        
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
+    /**
+     * @method getAssignedLevelsFromBuildingOfTRP
+     * @param userid 
+     * user id of the TRP
+     * @param building
+     * location id of the building
+     * 
+     * @return 
+     * returns an array of sublocations where the user is assigned as a TRP
+     */
+    public getAssignedLevelsFromBuildingOfTRP(userid = 0, building=0, sublocations = []): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw Error(err);
+                }
+                let sqlWhereClause = `AND locations.parent_id = ${building}`
+                if (sublocations.length > 0) {
+                    const sublocationsStr = sublocations.join(',');
+                    sqlWhereClause = `AND locations.location_id IN (${sublocationsStr})`;
+                }
+                let sql = `
+                    SELECT
+                        location_account_user.location_account_user_id,
+                        locations.*
+                    FROM
+                        location_account_user
+                    INNER JOIN
+                        locations
+                    ON
+                        location_account_user.location_id = locations.location_id
+                    INNER JOIN
+                        users
+                    ON
+                        users.user_id = location_account_user.user_id
+                    INNER JOIN
+                        user_role_relation
+                    ON
+                        user_role_relation.user_id = location_account_user.user_id
+                    WHERE
+                        user_role_relation.role_id = 2
+                    AND
+                        location_account_user.user_id = ?
+                    ${sqlWhereClause}
+                    GROUP BY
+                location_account_user.location_id;`;
+                
+                connection.query(sql, [userid], (error, results) => {
+                    if (error) {
+                        console.log(`getAssignedLevelsFromBuildingOfTRP - ${sql}`);
+                        throw Error(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+
+        });
+    }
+
 
 
 }

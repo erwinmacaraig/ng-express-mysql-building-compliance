@@ -68,7 +68,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 			$('li.nav-list-team').addClass('active');
 
 			if('roles' in this.oUserData){
-				let roles = this.oUserData['roles'],
+				let roles = <any> this.oUserData['roles'],
 					frp = false,
 					trp = false,
 					warden = false,
@@ -93,7 +93,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 
 					if(teamRoute.length == 2){
 						if(frp || trp){
-							this.router.navigate(["/teams/all-users"]);
+							this.router.navigate(["/teams/list-general-occupant"]);
 						}else if(chiefWarden){
 							this.router.navigate(["/teams/view-chief-warden"]);
 						}else if(warden){
@@ -112,13 +112,19 @@ export class TeamsComponent implements OnInit, OnDestroy {
 			}
 
 			$('.teams-navigation .active').removeClass('active');
-			if(teamRoute[2] == 'add-wardens' || teamRoute[2] == 'list-wardens'){
-				$('.teams-navigation .wardens').addClass('active');
-			}else if(teamRoute[2] == 'mobility-impaired' || teamRoute[2] == 'add-mobility-impaired'){
-				$('.teams-navigation .mobility').addClass('active');
-			}else if(teamRoute[2] == 'all-users' || teamRoute[2] == 'add-user'){
-				$('.teams-navigation .all-users').addClass('active');
-			}
+
+            if(teamRoute[2]){
+    			if(teamRoute[2].indexOf("add-wardens") > -1 || teamRoute[2].indexOf("list-wardens") > -1 ){
+    				$('.teams-navigation .wardens').addClass('active');
+    			}else if(teamRoute[2].indexOf("mobility-impaired") > -1 || teamRoute[2].indexOf("add-mobility-impaired") > -1){
+    				$('.teams-navigation .mobility').addClass('active');
+    			}else if(teamRoute[2].indexOf("list-general-occupant") > -1 || teamRoute[2].indexOf("add-general-occupant") > -1){
+    				$('.teams-navigation .general-occupant').addClass('active');
+    			}else if(teamRoute[2].indexOf("list-administrators") > -1  || teamRoute[2].indexOf("add-administrators") > -1){
+                    $('.teams-navigation .administrator').addClass('active');
+                }
+            }
+
 		}
 
 	}

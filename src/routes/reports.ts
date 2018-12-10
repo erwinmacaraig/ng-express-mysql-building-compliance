@@ -132,42 +132,36 @@ export class ReportsRoute extends BaseRoute {
            new ReportsRoute().getActivityReport(req, res);
        });
 
-       router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+        router.post('/reports/warden-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new ReportsRoute().generateWardenReport(req, res);
+        })
+
+       router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid/:isadmin', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
            req.body['limit'] = req.params.limit;
            req.body['location_id'] = req.params.locids;
            req.body['account_id'] = req.params.account;
            req.body['user_id'] = req.params.userid;
+           req.body['isadmin'] = req.params.isadmin;
            new ReportsRoute().getActivityReport(req, res, true);
+       });
+
+       router.get('/reports/csv-activity-report/:locids/:limit/:account/:userid/:isadmin', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['isadmin'] = req.params.isadmin;
+           new ReportsRoute().getActivityReport(req, res, false, true);
        });
 
        router.get('/reports/pdf-team/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
-           req.body['limit'] = req.params.limit;
            req.body['location_id'] = req.params.locids;
            req.body['account_id'] = req.params.account;
            req.body['user_id'] = req.params.userid;
            new ReportsRoute().generateTeamReport(req, res, true);
-       });
-
-       router.get('/reports/pdf-location-trainings/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
-           req.body['offset'] = 0;
-           req.body['limit'] = req.params.limit;
-           req.body['location_id'] = req.params.locids;
-           req.body['account_id'] = req.params.account;
-           req.body['user_id'] = req.params.userid;
-           req.body['course_method'] = 'none';
-           req.body['getall'] = true;
-           new ReportsRoute().locationTrainings(req, res, true);
-       });
-
-       router.get('/reports/csv-activity-report/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
-           req.body['offset'] = 0;
-           req.body['limit'] = req.params.limit;
-           req.body['location_id'] = req.params.locids;
-           req.body['account_id'] = req.params.account;
-           req.body['user_id'] = req.params.userid;
-           new ReportsRoute().getActivityReport(req, res, false, true);
        });
 
        router.get('/reports/csv-team/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
@@ -179,22 +173,303 @@ export class ReportsRoute extends BaseRoute {
            new ReportsRoute().generateTeamReport(req, res, false, true);
        });
 
-       router.get('/reports/csv-location-trainings/:locids/:limit/:account/:userid', (req: AuthRequest, res:Response) => {
+       router.get('/reports/pdf-location-trainings/:locids/:limit/:account/:userid/:searchkey/:trainingid/:coursemethod/:compliant', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
            req.body['limit'] = req.params.limit;
            req.body['location_id'] = req.params.locids;
            req.body['account_id'] = req.params.account;
            req.body['user_id'] = req.params.userid;
-           req.body['course_method'] = 'none';
-           req.body['getall'] = true;
+           req.body['course_method'] = req.params.coursemethod;
+           req.body['training_id'] = req.params.trainingid;
+           req.body['searchKey'] = req.params.searchkey;
+           req.body['compliant'] = req.params.compliant;
+           
+           new ReportsRoute().locationTrainings(req, res, true);
+       });
+
+       router.get('/reports/csv-location-trainings/:locids/:limit/:account/:userid/:searchkey/:trainingid/:coursemethod/:compliant', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = req.params.limit;
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = req.params.account;
+           req.body['user_id'] = req.params.userid;
+           req.body['course_method'] = req.params.coursemethod;
+           req.body['training_id'] = req.params.trainingid;
+           req.body['searchKey'] = req.params.searchkey;
+           req.body['compliant'] = req.params.compliant;
+           
            new ReportsRoute().locationTrainings(req, res, false, true);
        });
+
+
+       router.get('/reports/pdf-warden-list/:locids/:limit/:account/:userid/:searched_name/:roleids', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = parseInt(req.params.limit);
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = (req.params.account == 'null') ? null : req.params.account;
+           req.body['user_id'] = parseInt(req.params.userid);
+           req.body['searchKey'] = req.params.searched_name.trim();
+           req.params.roleids = req.params.roleids.split(",");
+           req.params.roleids.forEach(function(item, index){
+             req.params.roleids[index] = parseInt(item);
+           });
+           req.body['eco_role_ids'] = req.params.roleids;
+           new ReportsRoute().generateWardenReport(req, res, true);
+       });
+
+       router.get('/reports/csv-warden-list/:locids/:limit/:account/:userid/:searched_name/:roleids', (req: AuthRequest, res:Response) => {
+           req.body['offset'] = 0;
+           req.body['limit'] = parseInt(req.params.limit);
+           req.body['location_id'] = req.params.locids;
+           req.body['account_id'] = (req.params.account == 'null') ? null : req.params.account;
+           req.body['user_id'] = parseInt(req.params.userid);
+           req.body['searchKey'] = req.params.searched_name.trim();
+           req.params.roleids = req.params.roleids.split(",");
+           req.params.roleids.forEach(function(item, index){
+             req.params.roleids[index] = parseInt(item);
+           });
+           req.body['eco_role_ids'] = req.params.roleids;
+           new ReportsRoute().generateWardenReport(req, res, false, true);
+       });
+
     }
 
-     /**
-      * @generateTeamReport
-      * process reporting info for a given root location
-      */
+   /**
+    * @generateTeamReport
+    * process reporting info for a given root location
+    */
+   
+
+    public async generateWardenReport(req: AuthRequest, res: Response, toPdf?, toCsv?){
+      let
+        response = {
+            status : false, data : [], message : '',
+            pagination : {
+                total : 0,
+                pages : 0
+            },
+            'location-origin': req.body.location_id
+        },
+        offset = req.body.offset,
+        limit = req.body.limit,
+        d = {
+            location : {},
+            sublocations : []
+        },
+        location_id = req.body.location_id,
+        accountId = (req.body.account_id) ? req.body.account_id : (req.user) ? req.user.account_id : 0,
+        locationModel = new Location(location_id),
+        sublocationModel = new Location(),
+        locations = <any> [],
+        filterExceptLocation = (req.body.nofilter_except_location) ? req.body.nofilter_except_location : false,
+        userRoleModel = new UserRoleRelation(),
+        userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
+        role = 0,
+        eco_role_ids = (req.body.eco_role_ids) ? req.body.eco_role_ids :  [9,10,11,15,16,18],
+        eco_order = (req.body.eco_order) ? req.body.eco_order : [11,15,13,16,18,9,10]
+
+        try{
+            role = await userRoleModel.getByUserId(userId, true);
+        }catch(e){}
+
+        if (location_id == 0) {
+            try{
+                let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
+                locations = responseLocations.data;
+            }catch(e){
+              console.log(e);
+            }
+        } else{
+            let ids = location_id.split('-'),
+                locsIds = [0],
+                whereLoc = [];
+
+            for(let i in ids){
+                locsIds.push(ids[i]);
+            }
+
+            whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
+
+            try{
+                locations = <any> await locationModel.getWhere( whereLoc );
+            }catch(e){  }
+        }
+
+        let 
+          allUserIds = [0],
+          allLocationIds = [],
+          allLocations = [],
+          users = [],
+          usersCount = [];
+
+        const config = {};
+        if(req.body.searchKey){
+          if ( (req.body.searchKey !== null && req.body.searchKey.length > 0) && !filterExceptLocation) {
+            config['searchKey'] = req.body.searchKey;
+          }
+        }
+
+        if(role != 1){
+            config['account_id'] = accountId;
+        }
+
+        let 
+        allLocModel = new Location(),
+        allDbLocations = await allLocModel.getAllLocations(),
+        mergeToParent = function(data){
+
+            for(let p in data){
+                let parent = data[p];
+
+                if(parent.sublocations === undefined){
+                    parent['sublocations'] = [];
+                }
+
+                for(let c in data){
+                    let child = data[c];
+                    if('is_here' in child){
+                      if(child.parent_id == parent.location_id && child.is_here === true){
+                        parent.sublocations.push(child);
+                      }
+                    }else{
+                          if(child.parent_id == parent.location_id){
+                              parent.sublocations.push(child);
+                          }
+                    }
+                }
+            }
+
+            let finalData = [];
+            for(let i in data){
+                if(data[i]['parent_id'] == -1){
+                    finalData.push(data[i]);
+                }
+            }
+
+            return finalData;
+        },
+        findLocationFromHierarhy = function(data, locationId){
+            for(let d of data){
+                if(d.location_id == locationId){
+                    return d;
+                }else if(d.sublocations.length > 0){
+                    let res = findLocationFromHierarhy(d.sublocations, locationId);
+                    if(res){
+                        return res;
+                    }
+                }
+            }
+        },
+        hierarchies = mergeToParent(allDbLocations);
+        
+        let collectLocIdsFromHierarchy = function(data){
+            let response = [];
+            for(let d of data){
+                response.push(d.location_id);
+                if(d.sublocations.length > 0){
+                    let subResponse = collectLocIdsFromHierarchy(d.sublocations);
+                    response = response.concat(subResponse);
+                }
+            }
+            return response;
+        };
+
+        for(let loc of locations){
+            allLocationIds.push(loc.location_id);
+            let hier = findLocationFromHierarhy(hierarchies, loc.location_id);
+            if(hier){
+                let ids = collectLocIdsFromHierarchy(hier.sublocations);
+                allLocationIds = allLocationIds.concat(ids);
+            }
+        }
+
+        let 
+        usersModel = new User(),
+        frpAndTrp = [];
+
+        config['eco_only'] = true;
+        config['eco_role_ids'] = eco_role_ids.join(',');
+        config['eco_order'] = eco_order;
+        let offsetLimit = (filterExceptLocation) ? false :  (limit == 0) ? false : offset+','+limit;
+        if(!toPdf && !toCsv){
+          config['limit'] = offsetLimit;
+        }
+
+        if(eco_role_ids.length > 0){
+          users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
+          config['count'] = true;
+          usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
+        }
+
+        for(let user of users){
+            if(allUserIds.indexOf(user.user_id) == -1){
+                allUserIds.push(user.user_id);
+            }
+
+            if(user.role_id == 1 || user.role_id == 2){
+                frpAndTrp.push(user);
+            }
+        }
+
+        response.pagination.total = (usersCount[0]) ? usersCount[0]['count'] : 0;
+        for(let u of users){
+          u['region'] = '';
+          u['building'] = '';
+          u['sublocation'] = '';
+          if(u.is_building == 1){
+            u['region'] = u.parent_location_name;
+            u['building'] = u.name;
+          }else if(u.parent_is_building == 1){
+            u['region'] = u.parent2_location_name;
+            u['building'] = u.parent_location_name;
+            u['sublocation'] = u.name;
+          }
+        }
+        response.data = users;
+
+        if(response.pagination.total > limit){
+            let div = response.pagination.total / limit,
+                rem = (response.pagination.total % limit) * 1,
+                totalpages = Math.floor(div);
+
+            if(rem > 0){
+                totalpages++;
+            }
+
+            response.pagination.pages = totalpages;
+        }
+
+        if(response.pagination.pages == 0 && response.pagination.total <= limit && response.pagination.total > 0){
+            response.pagination.pages = 1;
+        }
+
+
+        if(!toPdf && !toCsv){
+            res.status(200).send(response);
+        }else if(toPdf || toCsv){
+          response['tables'] = [];
+          let tblData = {
+            title : 'Warden List Report',
+            data : [], 
+            headers : ["Region", "Building", "Sublocation", "Name", "ECO Role", "Email", "Account"]
+          };
+
+          for(let re of response.data){
+
+              tblData.data.push([ re.region, re.building, re.sublocation, re.first_name+' '+re.last_name, re.role_name, re.email, re.account_name ]);
+
+          }
+           
+          response['tables'].push(tblData);
+
+          if(toPdf){
+              this.generatePDF(response, res);
+          }else{
+              this.generateCSV(response, res);
+          }
+
+        } 
+    }
 
     public async generateTeamReport(req: AuthRequest, res: Response, toPdf?, toCsv?) {
 
@@ -260,6 +535,27 @@ export class ReportsRoute extends BaseRoute {
 
         // console.log( response.pagination );
 
+        let getData = async (locationId, locName, accountId) => {
+          let
+            locAccUserModel = new LocationAccountUser(),
+            emModel = new UserEmRoleRelation(),
+            wardensSub = <any> await emModel.getWardensInLocationIds(locationId, 0, accountId),
+            mobilityModel = new MobilityImpairedModel(),
+            mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(locationId, accountId),
+            whereLocUser = [],
+            data = {
+                location_id : locationId,
+                name : locName,
+                peep_total : mobs.length,
+                total_wardens : wardensSub.length,
+                trp : []
+            };
+
+            data.trp = <any> await locAccUserModel.getTrpByLocationIds(locationId);
+
+            return data;
+        };
+
         for(let loc of locations){
             loc['parent'] = { name : '' };
             try{
@@ -272,11 +568,13 @@ export class ReportsRoute extends BaseRoute {
             let subids = [0],
                 subLocModel = new Location(),
                 sublocationsDbData = <any> await subLocModel.getChildren(loc.location_id),
-                emModel = new UserEmRoleRelation(),
-                mobilityModel = new MobilityImpairedModel(),
                 dataResult = {
                     data : [], location : loc, total_warden : 0
                 };
+
+            let dataLoc = <any> await getData(loc.location_id, 'Building level', accountId);
+            dataResult.data.push(dataLoc);
+            dataResult['total_warden'] += dataLoc.total_wardens;
 
             for(let sub of sublocationsDbData){
                 subids.push(sub.location_id);
@@ -285,23 +583,9 @@ export class ReportsRoute extends BaseRoute {
                     accountId = undefined;
                 }
 
-                let
-                locAccUserModel = new LocationAccountUser(),
-                wardensSub = <any> await emModel.getWardensInLocationIds(sub.location_id, 0, accountId),
-                mobs = <any> await mobilityModel.getImpairedUsersInLocationIds(sub.location_id, accountId),
-                whereLocUser = [],
-                data = {
-                    location_id : sub.location_id,
-                    name : sub.name,
-                    peep_total : mobs.length,
-                    total_wardens : wardensSub.length,
-                    trp : []
-                };
-
-                data.trp = <any> await locAccUserModel.getTrpByLocationIds(sub.location_id);
-
-                dataResult['total_warden'] += wardensSub.length;
-                dataResult.data.push(data);
+              let dataSubloc = <any> await getData(sub.location_id, sub.name, accountId);
+              dataResult['total_warden'] += dataSubloc.total_wardens;
+              dataResult.data.push(dataSubloc);
             }
 
             toReturn.push(dataResult);
@@ -328,13 +612,12 @@ export class ReportsRoute extends BaseRoute {
         if(!toPdf && !toCsv){
           res.status(200).send(response);
         }else if(toPdf || toCsv){
-          response['title'] = 'Team Report';
+          response['title'] = 'Stack Plan Report';
           response['tables'] = [];
           for(let data of response.data){
             let tblData = {
-              title : data.location.name + ' Current Team Information',
               data : [], 
-              headers : ['Company', 'Sub Location', 'Contact Person', 'Email', 'Warden', 'P.E.E.P']
+              headers : ['Building', 'Sublocation', 'Account', 'TRP', 'Email', '# Warden', '# P.E.E.P']
             };
 
             let totalWardens = 0;
@@ -349,29 +632,36 @@ export class ReportsRoute extends BaseRoute {
                     trps += t.first_name+' '+t.last_name+'\n';
                     emails += t.email+'\n';
                   }
-              }else{
-                  accnts = '"';
-                  trps = '"';
-                  emails = '"';
-                  for(let i in d.trp){
-                    accnts += d.trp[i].account_name;
-                    trps += d.trp[i].first_name+' '+d.trp[i].last_name;
-                    emails += d.trp[i].email;
-                    if( parseInt(i) + 1 != d.trp.length ){
-                        accnts += ',';
-                        trps += ',';
-                        emails += ',';
-                    }
-                  }
 
-                  accnts += '"';
-                  trps += '"';
-                  emails += '"';
+
+                  tblData.data.push([
+                    data.location.name, d.name, accnts, trps, emails, d.total_wardens, d.peep_total
+                  ]);
+              }else{
+                if(d.trp.length > 0){
+                  for(let i in d.trp){
+                    let 
+                    trpName = d.trp[i].first_name+' '+d.trp[i].last_name,
+                    dataPush = [];
+
+                    if(parseInt(i) == 0){
+                      dataPush.push(data.location.name, d.name, d.trp[i].account_name, trpName, d.trp[i].email, d.total_wardens, d.peep_total);
+                    }else{
+                      dataPush.push('', '', d.trp[i].account_name, trpName, d.trp[i].email);
+                    }
+
+                    tblData.data.push(dataPush);
+
+                  }
+                }else{
+                  tblData.data.push([
+                    data.location.name, d.name, '', '', '', d.total_wardens, d.peep_total
+                  ]);
+                }
+
               }
 
-              tblData.data.push([
-                accnts, d.name, trps, emails, d.total_wardens, d.peep_total
-              ]);
+              
 
               totalWardens += parseInt(d.total_wardens);
             }
@@ -386,7 +676,6 @@ export class ReportsRoute extends BaseRoute {
               this.generateCSV(response, res);
           }
         }
-        
     }
 
     public async listLocations(req: AuthRequest, res: Response, toReturn?, filters?){
@@ -398,7 +687,7 @@ export class ReportsRoute extends BaseRoute {
             temp,
             totalWardens = 0,
             userIds = [],
-            accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : req.user.account_id : req.user.account_id,
+            accountId = (req.body.account_id) ? (req.body.account_id > 0) ? req.body.account_id : (req.user) ? req.user.account_id : 0 : (req.user) ? req.user.account_id : 0,
             filter = {
                 archived : 0
             },
@@ -546,7 +835,6 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){  }
         }
 
-        
         let allUserIds = [0],
             allLocationIds = [],
             allLocations = [],
@@ -637,6 +925,10 @@ export class ReportsRoute extends BaseRoute {
         usersModel = new User(),
         frpAndTrp = [];
 
+        if(req.body.eco_only){
+            config['eco_only'] = req.body.eco_only;
+        }
+
         users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
 
         for(let user of users){
@@ -649,10 +941,10 @@ export class ReportsRoute extends BaseRoute {
             }
         }
 
-        response['users'] = users;
+        // response['users'] = users;
         // response['allLocationIds'] = allLocationIds.join(',');
 
-        let offsetLimit = (getAll || filterExceptLocation) ? false : offset+','+limit,
+        let offsetLimit = (getAll || filterExceptLocation) ? false :  (limit == 0) ? false : offset+','+limit,
             courseMethod = (course_method == 'online' && !getAll && !filterExceptLocation) ? 'online_by_evac' : (course_method == 'offline' && !getAll && !filterExceptLocation) ? 'offline_by_evac' : '',
             trainCertModel = new TrainingCertification(),
             trainCertCountModel = new TrainingCertification(),
@@ -669,6 +961,19 @@ export class ReportsRoute extends BaseRoute {
                     cert['email'] = user.email;
                     cert['location_name'] = user.location_name;
                     cert['account_name'] = user.account_name;
+                    cert['region'] = '';
+                    cert['building'] = '';
+                    cert['sublocation'] = '';
+
+                    if(user.parent_is_building == 1){
+                        cert['building'] = user.parent_location_name;
+                        cert['sublocation'] = user.name;
+                        cert['region'] = user.parent2_location_name;
+                    }else if(user.is_building == 1){
+                        cert['building'] = user.name;
+                        cert['region'] = user.parent_location_name;
+                    }
+
                 }
             }
 
@@ -724,14 +1029,15 @@ export class ReportsRoute extends BaseRoute {
             response.pagination.pages = 1;
         }
 
+
         if(!toPdf && !toCsv){
             res.status(200).send(response);
         }else if(toPdf || toCsv){
           response['tables'] = [];
           let tblData = {
-            title : 'Training Report',
+            title : (req.body.warden_report) ? 'Warden List Report' : 'Training Report',
             data : [], 
-            headers : ["User", "Email", "Account", "Location", "Role", "Training Status & Date"]
+            headers : (req.body.warden_report) ? ["Region", "Building", "Emergency Role", "Sublocation", "Account", "Name", "Email", "Overall Status"] : ["Region", "Building", "Sublocation", "Account", "User", "Email", "Role", "Status", "Date"]
           };
 
           for(let re of response.data){
@@ -748,7 +1054,13 @@ export class ReportsRoute extends BaseRoute {
                   }
                   compOrNot = 'Not Compliant '+desc;
               }
-              tblData.data.push([ re.first_name+' '+re.last_name, re.email, re.account_name, re.location_name, re.role_name, compOrNot + ' ' + re.certification_date_formatted ]);
+
+              if(req.body.warden_report){
+                tblData.data.push([ re.region, re.building, re.role_name,  re.sublocation,  re.account_name, re.first_name+' '+re.last_name, re.email, compOrNot ]);
+              }else{
+                tblData.data.push([ re.region, re.building, re.sublocation,re.account_name,  re.first_name+' '+re.last_name, re.email, re.role_name, compOrNot, re.certification_date_formatted ]);
+              }
+
           }
            
           response['tables'].push(tblData);
@@ -1103,11 +1415,25 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){}
         }
 
-        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true),
-            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit);
+        let fileTypes = <any> '"Primary","Secondary"';
+        if(req.user){
+          if(req.user.evac_role == 'admin'){
+            fileTypes = false;
+          }
+        }
+        if(req.body.isadmin == true){
+          fileTypes = false;
+        }
+
+        console.log('req.body.isadmin', req.body.isadmin);
+        console.log('fileTypes', fileTypes);
+
+        let logsCount = await accountsModel.getActivityLog(locIds, offsetLimit, true, fileTypes),
+            logs = <any> await accountsModel.getActivityLog(locIds, offsetLimit, false, fileTypes);
 
         for(let log of logs){
             log['timestamp_formatted'] = moment(log.timestamp).format('DD/MM/YYYY hh:mma');
+            log['date_of_activity_formatted'] = moment(log.date_of_activity).format('DD/MM/YYYY hh:mma');
             for(let loc of locations){
                 if(log.building_id == loc.location_id){
                     log['location_name'] = loc.name;
@@ -1144,10 +1470,10 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : 'Activity Report',
             data : [], 
-            headers : ['Locations', 'File name', 'Date']
+            headers : ['Location', 'Type', 'File name', 'Date Uploaded']
           };
           for(let d of response.data){
-            tblData.data.push([ d.location_name, d.file_name, d.timestamp_formatted ]);
+            tblData.data.push([ d.location_name, d.document_type, d.file_name, d.timestamp_formatted ]);
           }
           response['tables'].push(tblData);
 
@@ -1168,13 +1494,23 @@ export class ReportsRoute extends BaseRoute {
         DIR = __dirname + '/../public/temp/'; //'/../public/uploads/';
 
         for(let table of tables){
-            csvData += table.title;
+            if(table.title){
+              csvData += table.title;
+            }
             csvData += '\n';
 
             csvData += table.headers.join(',');
             csvData += '\n';
 
             for(let d of table.data){
+                d.forEach((item, index) => {
+                  if(typeof item == 'boolean' || typeof item == 'number'){
+                    item = item.toString();
+                  }else if(item == null){
+                    item = '';
+                  }
+                  d[index] =  item.replace(/,/g, ' ');
+                });
                 csvData += d.join(',');
                 csvData += '\n';
             }

@@ -34,10 +34,8 @@ export class CourseService {
         });
     }
 
-    getCourseUserRelation(callBack){
-        this.http.get('/courses/get-course-user-ralation').subscribe((res) => {
-            callBack(res);
-        });
+    getCourseUserRelation(){
+        return this.http.get('/courses/get-course-user-ralation');
     }
 
     saveAccountCourses(data, callBack){
@@ -52,10 +50,8 @@ export class CourseService {
         });
     }
 
-    myCourses(userId, callBack){
-        this.http.get('/courses/my-courses/'+userId).subscribe((res) => {
-            callBack(res);
-        });
+    myCourses(userId){
+        return this.http.get('/courses/my-courses/'+userId);
     }
 
     getCountsBuildingTrainings(callBack){

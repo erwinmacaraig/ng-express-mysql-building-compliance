@@ -48,7 +48,7 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
     }
 
     ngAfterViewInit() {
-        $('select').material_select();
+        $('select:not(.no-materialize)').material_select();
     }
 
     performNotificationAction(token) {

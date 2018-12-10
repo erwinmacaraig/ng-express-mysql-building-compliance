@@ -23,7 +23,7 @@ declare var $ : any;
 
 export class ReportsActivityLogComponent implements OnInit, OnDestroy {
     @ViewChild('printContainer') printContainer : ElementRef;
-	userData = {};
+	userData:any = {};
     locationId = 0;
     accountId = 0;
     activityLogs = [];
@@ -228,8 +228,10 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
     pdfExport(aPdf, printContainer){
 
         let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/pdf-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
+        isAdmin = (this.userData.evac_role.toLowerCase() == 'admin') ? true : false;
+
+        a.href = location.origin+"/reports/pdf-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+isAdmin;
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -240,8 +242,10 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 
     csvExport(){
         let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"];
-        a.href = location.origin+"/reports/csv-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"];
+        accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
+        isAdmin = (this.userData.evac_role.toLowerCase() == 'admin') ? true : false;
+
+        a.href = location.origin+"/reports/csv-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+isAdmin;
         a.target = "_blank";
         document.body.appendChild(a);
 

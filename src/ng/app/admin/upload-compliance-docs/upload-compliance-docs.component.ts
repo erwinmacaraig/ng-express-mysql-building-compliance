@@ -76,7 +76,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
 
     ngOnInit() {
         this.dashboard.show();
-        this.accessType = new FormControl();
+        this.accessType = new FormControl(null, Validators.required);
         this.documentType = new FormControl(null, Validators.required);
         this.dtActivityField.setValue(this.datepickerModelFormatted);
         this.accntSub = this.getAccountChanges();

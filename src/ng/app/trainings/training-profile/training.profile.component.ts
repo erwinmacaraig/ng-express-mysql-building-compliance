@@ -97,6 +97,9 @@ export class TrainingProfile implements OnInit, OnDestroy {
   formLocValid = false;
   searchModalLocationSubs;
 
+  isFrp = false;
+  isTrp = false;
+
 	constructor(
     private auth: AuthService,
     private preloaderService: DashboardPreloaderService,
@@ -116,6 +119,16 @@ export class TrainingProfile implements OnInit, OnDestroy {
     this.baseUrl = (platformLocation as any).location.origin;
 		this.datepickerModel = new Date();
     this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
+
+    this.userData = this.auth.getUserData();
+    for(let role of this.userData['roles']){
+      if(role.role_id == 1){
+        this.isFrp = true;
+      }
+      if(role.role_id == 2){
+        this.isTrp = true;
+      }
+    }
 
 	}
 
@@ -181,7 +194,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
       this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
       this.loadProfile();
     });
-    this.userData = this.auth.getUserData();
+
     this.viewData.role_text = this.userData['roles'].join(", ");
 
     this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {

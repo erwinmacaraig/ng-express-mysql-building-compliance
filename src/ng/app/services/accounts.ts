@@ -72,7 +72,9 @@ export class AccountsDataProviderService {
 	      });
 	}
 
-	searhByName(name, callBack){
+	searhByName(name, callBack, params = {}){
+        let opt = this.options;
+        opt['params'] = params;
 		this.http.get(this.baseUrl+"/accounts/search/"+name, this.options)
 	      .subscribe(res => {
 	        callBack(res);
@@ -116,12 +118,13 @@ export class AccountsDataProviderService {
      return this.http.get(`${this.baseUrl}/accounts/list-notified-users/`, this.options);
 	}
 
-	submitQueryResponses(responses='', notification_token_id = 0, completed=0, status='In Progress') {
+	submitQueryResponses(responses='', notification_token_id = 0, completed=0, status='In Progress', toUpdate = true) {
        return this.http.post(this.baseUrl + '/accounts/process-query-notified-user-responses/', {
 			      query_responses: responses,
 				    notification_token_id: notification_token_id,
 						completed: completed,
-						strStatus: status
+						strStatus: status,
+            update_token: toUpdate
 			 });
   }
 
@@ -144,5 +147,14 @@ export class AccountsDataProviderService {
 		});
 	}
 
+	generateSummaryListItem(building=0, role=0) {
+		return this.http.post(`${this.baseUrl}/accounts/generate-notification-summary-list/`, {
+			building: building,
+			role: role,
+		});
+	}
+	performNotificationSummaryAction(reqBody = {}) {
+		return this.http.post(`${this.baseUrl}/accounts/perform-notification-summ-action`, reqBody);
+	}
 
 }

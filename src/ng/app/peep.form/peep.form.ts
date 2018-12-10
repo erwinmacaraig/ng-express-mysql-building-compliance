@@ -41,6 +41,8 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     forModalDisplay = false;
     showModalLoader = false;
     paramDest = '';
+    paramQuery = '';
+    paramDecode = false;
     modalclose = 'false';
     dateSet = null;
 
@@ -68,6 +70,14 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
 
             if(params['dest']){
                 this.paramDest = params['dest'];
+            }
+
+            if(params['query']){
+                this.paramQuery = params['query'];
+            }
+
+            if(params['decode']){
+                this.paramDecode = true;
             }
 
             if(params['modalclose']){
@@ -178,9 +188,23 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    parseQuery(queryString) {
+        var query = {};
+        var pairs = (queryString[0] === '?' ? queryString.substr(1) : queryString).split('&');
+        for (var i = 0; i < pairs.length; i++) {
+            var pair = pairs[i].split('=');
+            query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+        }
+        return query;
+    }
+
     cancelForm(){
         if(this.paramDest.length > 0){
-            this.router.navigate([this.paramDest]);
+            if(this.paramQuery){
+                this.router.navigate([this.paramDest], { queryParams: this.parseQuery(this.paramQuery) });
+            }else{
+                this.router.navigate([this.paramDest]);
+            }
         }
         if(this.modalclose == 'true'){
             this.formMobility.reset();

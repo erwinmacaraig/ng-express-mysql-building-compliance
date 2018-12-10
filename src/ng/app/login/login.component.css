@@ -26,7 +26,7 @@ h1,h2{
 
 .top-message-try-evac{
   position: absolute;
-  top: 30%;
+  top: 27%;
 }
 
 .try-evac{
@@ -36,7 +36,7 @@ h1,h2{
 
 .signup-link-container{
   position: absolute;
-  bottom: 26%;
+  bottom: 30%;
 }
 
 .signup-link-container div{
@@ -110,7 +110,7 @@ h1,h2{
 .logo-beta{
     width: 400px;
     height: 94px;
-    background: url(/assets/images/beta/logo.png) no-repeat;
+    background: url(/assets/images/logo.png) no-repeat;
     background-size: contain;
     margin: 30px auto;
 }
@@ -286,7 +286,7 @@ h1,h2{
 .invitation_code {
   text-align: center;
   width: 390px;
-  margin: 90px auto;
+  margin: 35px auto;
 }
 
 .invitation_code h1{

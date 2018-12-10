@@ -42,6 +42,28 @@ export class ComplianceDocumentsModel extends BaseClass {
         });
     }
 
+    public getFileTypeFromMime(mime = ''){
+        let mimes = {
+            'pdf' : [ 'application/pdf' ],
+            'image' : [ 'image/bmp', 'image/jpeg', 'image/x-citrix-jpeg', 'image/png', 'image/x-citrix-png', 'image/x-png', 'image/svg+xml' ],
+            'word' : ['application/msword', 'application/vnd.openxmlformats-officedocument.word', 'application/vnd.ms-word.document.macroenabled.12', 'application/vnd.ms-word.template.macroenabled.12', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.openxmlformats-officedocument.wordprocessingml.template' ],
+            'excel' : [ 'application/vnd.openxmlformats-officedocument.spreadsheetml.template', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.oasis.opendocument.spreadsheet', 'application/vnd.oasis.opendocument.spreadsheet-template', 'application/vnd.ms-excel', 'application/vnd.ms-excel.addin.macroenabled.12', 'application/vnd.ms-excel.sheet.binary.macroenabled.12', 'application/vnd.ms-excel.template.macroenabled.12', 'application/vnd.ms-excel.sheet.macroenabled.12' ],
+            'csv' : [ 'text/csv' ],
+            'powerpoint' : ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/vnd.ms-powerpoint', 'application/vnd.ms-powerpoint.addin.macroenabled.12', 'application/vnd.ms-powerpoint.slide.macroenabled.12', 'application/vnd.ms-powerpoint.presentation.macroenabled.12', 'application/vnd.ms-powerpoint.slideshow.macroenabled.12', 'application/vnd.ms-powerpoint.template.macroenabled.12']
+        };
+
+        let r = '';
+
+        for(let i in mimes){
+            
+            if(mimes[i].indexOf(mime) > -1){
+                r = i;
+            }
+        }
+
+        return r;
+    }
+
     public getWhere(arrWhere){
         return new Promise((resolve) => {
 
@@ -100,6 +122,13 @@ export class ComplianceDocumentsModel extends BaseClass {
                         urlPath += `/${r['location_directory_name']}/${r['directory_name']}/${r['document_type']}/`+encodeURIComponent(r['file_name']);
                         r['urlPath'] = urlPath;
                     }
+
+                    results.forEach((val, ind, elem) => {
+                        
+                        elem[ind]['type'] = this.getFileTypeFromMime(val.file_type);
+
+                    });
+
                     this.dbData = results;
                     resolve(results);
                 });

@@ -25,7 +25,6 @@ export class NotificationConfigurationComponent implements OnInit, AfterViewInit
     public eco_user: FormControl;
     private sub: Subscription;
     public defaultMessage = `
-
 Thank you again for your active participation and commitment to promote proactive safety within your building.
 
 Sincerely,
@@ -69,10 +68,8 @@ help us ensure that tenant and warden lists remain up to date.
        */
 
         this.notConfigFormGrp = new FormGroup({
-            all_users: new FormControl(false, null),
-            eco_user: new FormControl(false, null),
+            user_type: new FormControl(null, Validators.required),
             frequency_field: new FormControl(null, Validators.required),
-            trp_user: new FormControl(false, null),
             messageField: new FormControl(this.defaultMessage, Validators.required)
         });
         this.searchBldgField = new FormControl();
@@ -115,9 +112,7 @@ help us ensure that tenant and warden lists remain up to date.
         let values = {};
         values = {
             frequency: this.notConfigFormGrp.get('frequency_field').value,
-            all_users: this.notConfigFormGrp.get('all_users').value,
-            eco_user: this.notConfigFormGrp.get('eco_user').value,
-            trp_user: this.notConfigFormGrp.get('trp_user').value,
+            user_type: this.notConfigFormGrp.get('user_type').value,
             message: this.notConfigFormGrp.get('messageField').value,
             building_id: this.buildingId
         };

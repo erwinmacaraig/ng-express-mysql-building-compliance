@@ -23,14 +23,22 @@
 
                 <div class="select-container no-print">
                     <select class="select-filter" id="selectFilter">
-                        <option value="null" selected>Filter</option>
+                        <option value="none" selected>Filter</option>
                         <option value="offline">Face to Face</option>
                         <option value="online">Online Training</option>
                     </select>
                 </div>
 
-                <div class="switch-container no-print">
+                <div class="select-container no-print">
+                    <select class="select-filter" id="selectCompliant">
+                        <option value="-1" selected>All</option>
+                        <option value="1">Compliant</option>
+                        <option value="0">Non-Compliant</option>
+                    </select>
+                </div>
 
+                <!-- <div class="switch-container no-print">
+                
                     <div class="switch">
                         <input type="checkbox" id="compliantToggle" checked>
                         <div class="yes">Compliant</div>
@@ -38,7 +46,7 @@
                         <div class="highlight"></div>
                         <div class="background"></div>
                     </div>
-                </div>
+                </div> -->
             </div>
 
             <div class="right right-buttons no-print">
@@ -82,32 +90,37 @@
             <table class="striped">
                 <thead>
                     <tr class="grey darken-5 white-text">
+                        <th>Region</th>
+                        <th>Building</th>
+                        <th>Sublocation</th>
+                        <th>Account</th>
                         <th>User</th>
                         <th>Email</th>
-                        <th>Account</th>
-                        <th>Location</th>
                         <th>Role</th>
-                        <th>Training Status & Date</th>
+                        <th>Status</th>
+                        <th>Date</th>
                     </tr>
                 </thead>
                 <tbody [hidden]="!loadingTable">
                     <tr>
-                        <td colspan="7" class="center">
+                        <td colspan="9" class="center">
                             <h6>Loading records...</h6>
                         </td>
                     </tr>
                 </tbody>
                 <tbody [hidden]="loadingTable">
                     <tr *ngIf="results.length == 0">
-                        <td colspan="6" class="center">
+                        <td colspan="9" class="center">
                             <h6>No result found</h6>
                         </td>
                     </tr>
                     <tr *ngFor="let re of results">
+                        <td>{{re.region}}</td>
+                        <td>{{re.building}}</td>
+                        <td>{{re.sublocation}}</td>
+                        <td>{{re.account_name}}</td>
                         <td>{{re.first_name}} {{re.last_name}}</td>
                         <td>{{re.email}}</td>
-                        <td>{{re.account_name}}</td>
-                        <td>{{re.location_name}}</td>
                         <td>{{re.role_name}}</td>
                         <td>
                             <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
@@ -117,9 +130,8 @@
                                 <small *ngIf="re.status == 'expired'">(Expired)</small>
                                 <small *ngIf="re.status == 'not taken'">(Not Taken)</small>
                             </span>
-
-                            {{re.certification_date_formatted}}
                         </td>
+                        <td>{{re.certification_date_formatted}}</td>
                     </tr>
                 </tbody>
             </table>

@@ -8,6 +8,8 @@ import { Token } from '../models/token.model';
 import { UserInvitation } from './../models/user.invitation.model';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
+import { Location } from '../models/location.model';
+import { Account } from '../models/account.model';
 import { SecurityQuestions } from '../models/security-questions.model';
 import { SecurityAnswers } from '../models/security-answers.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';

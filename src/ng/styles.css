@@ -165,6 +165,24 @@ input::-ms-clear {
     height: 50px !important;
 }
 
+.filter-container .checkbox-container{
+    display: inline-block;
+    margin: 0px 5px;
+}
+
+.filter-container .checkbox-container [type="checkbox"].filled-in:checked+label:after,
+.filter-container .checkbox-container [type="checkbox"].filled-in:not(:checked)+label:after{
+    position: absolute;
+    top: 3px !important;
+    left: 5px !important;
+}
+
+.filter-container .checkbox-container [type="checkbox"].filled-in:checked+label:before{
+    position: absolute;
+    top: 3px !important;
+    left: 6px !important;
+}
+
 .table-peep thead tr th .checkbox,
 .table-list-locations thead tr th .checkbox{
 	margin: 0px 10px;
@@ -455,4 +473,12 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
 .ngx-datepicker-container .ngx-datepicker-calendar-container .main-calendar-container .main-calendar-years
 {
     display: block !important;
+}
+
+.filter-container{
+    margin-bottom: 0px !important;
+}
+
+.filter-container > .col{
+    margin-bottom: 20px;
 }

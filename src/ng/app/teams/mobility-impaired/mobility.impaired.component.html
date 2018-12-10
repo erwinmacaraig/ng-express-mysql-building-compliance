@@ -16,7 +16,7 @@
 		</button>
 	</div>
 
-	<div class="col l4 m5 s12">
+	<div class="col l3 m5 s12">
         <div class="search-field">
             <input type="text" placeholder="Search member name or email" id="searchMemberInput">
             <span class="material-icons">search</span>
@@ -30,14 +30,21 @@
             <option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
         </select>
     </div>
+    
+    <div class="col l3 m6 s6 margin-bottom-20">
+        <select class="location">
+            <option value="0" selected>All Locations</option>
+            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+        </select>
+    </div>
 
-	<div class="col l2 m6 s6">
-		<select class="sort-by">
-			<option value="0" selected>Sort By</option>
-			<option value="user-name-desc">User Name Descending</option>
-			<option value="user-name-asc">User Name Ascending</option>
-		</select>
-	</div>
+	<!-- <div class="col l2 m6 s6">
+        <select class="sort-by">
+            <option value="0" selected>Sort By</option>
+            <option value="user-name-desc">User Name Descending</option>
+            <option value="user-name-asc">User Name Ascending</option>
+        </select>
+    </div> -->
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
@@ -60,11 +67,11 @@
 					<th>
 						<p class="checkbox">
 							<input id="allLocations" (change)="selectAllCheckboxEvent($event)" class="filled-in" type="checkbox">
-							<label for="allLocations">Locations</label>
+							<label for="allLocations">Building Name</label>
 						</p>
 					</th>
 					<th>Name</th>
-					<th>PEEP Completion</th>
+					<th>PEEP Review</th>
 					<th>PEEP Review Date</th>
 					<th>Last Login</th>
 					<th>Action</th>
@@ -132,7 +139,7 @@
 							<option value="view" class="blue-text" *ngIf="peep.id_encrypted">View</option>
 							<option value="archive" class="blue-text" *ngIf="peep.user_id != userData.userId">Archive</option>
                             <option value="archive" class="blue-text" *ngIf="peep.user_invitations_id > 0">Archive</option>
-							<option value="healthy" class="blue-text" >Mark as healthy</option>
+							<option value="healthy" class="blue-text" >Remove from mobility impaired list</option>
                             <option value="invite" *ngIf="peep.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
 						</select>
 					</td>
@@ -263,20 +270,20 @@
 			</div>
 			<div class="col s12 l6 m6">
 				<div class="input-field">
-					<span style=" font-size: 16px;">Mobility Impaired Upto</span>
+					<span style=" font-size: 16px;">Review Date</span>
 					<ng-datepicker [(ngModel)]="datepickerModel" (ngModelChange)="onChangeDatePicker($event)" [options]="options"  [ngModelOptions]="{standalone: true}" [headless]="true" [isOpened]="isShowDatepicker" ></ng-datepicker>
 					<input id="durationDate" #durationDate type="text" [(ngModel)]="datepickerModelFormatted" ngModel name="duration_date" (click)="showDatePicker()" required >
 				</div>
 
 			</div>
 			<div class="col s12 m12 l12">
-				<h6>Assistant Type</h6>
+				<h6>Assistant Requirement</h6>
                 <div class="input-field">
 				    <input ngModel name="assistant_type" type="text" class="grey-input" placeholder="Please describe requirements and process here." required>
                 </div>
 			</div>
 			<div class="col s12 m12 l12">
-				<h6>Evacuation Equipment Type / Requirement</h6>
+				<h6>Evacuation Equipment Requirement</h6>
                 <div class="input-field">
 				    <input ngModel name="equipment_type" type="text" class="grey-input" placeholder="Please inform what is the equiment and type." required>
                 </div>
@@ -288,12 +295,15 @@
                 </div>
 			</div>
 		</div>
-
 	</div>
 
     <div class="modal-footer" [hidden]="showModalLoader">
         <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-        <button type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Submit</button>
+		<button *ngIf="selectedPeep.mobility_impaired_details?.length > 0; else submitButtonRef" type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Update</button>
+		<ng-template #submitButtonRef>
+			<button type="submit" class="waves-effect waves-blue btn-flat" [disabled]="formMobility.invalid">Submit</button>
+		</ng-template>
+		
     </div>
 
 
@@ -344,7 +354,7 @@
     <div class="modal-content">
         <h5>Confirm action</h5>
 
-        <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
+        <h6>Remove {{selectedPeep.first_name}} {{selectedPeep.last_name}} from PEEP list</h6>
 
     </div>
 

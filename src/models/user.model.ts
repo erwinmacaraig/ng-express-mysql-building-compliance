@@ -8,6 +8,7 @@ import * as Promise from 'promise';
 import * as validator from 'validator';
 import * as md5 from 'md5';
 import * as jwt from 'jsonwebtoken';
+const defs = require('./../config/defs.json');
 
 export class User extends BaseClass {
 
@@ -142,7 +143,7 @@ export class User extends BaseClass {
                 }
                 const sql_user = `SELECT users.*, token.verified, token.expiration_date, token.action, token.token_id FROM users
                                   LEFT JOIN token ON users.user_id = token.id `
-                                  + whereClause + ` AND password = ?`;
+                                  + whereClause + ` AND password = ? AND archived = 0 `;
                 // const sql_user = `SELECT * FROM users `+ whereClause + ` AND password = ? `;
                 const newPasswd = md5('Ideation' + passwd + 'Max');
                 const credential = [username, newPasswd];
@@ -181,6 +182,12 @@ export class User extends BaseClass {
     public dbInsert() {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
+                let defaultPassword = '';
+                if (('password' in this.dbData) && (this.dbData['password'] as String).length > 5) {
+                    defaultPassword = md5('Ideation' + this.dbData['password'] + 'Max')
+                } else {
+                    defaultPassword  = md5('Ideation' + defs['DEFAULT_USER_PASSWORD'] + 'Max');                    
+                }
                 const sql_insert = `INSERT INTO users (
                     first_name,
                     last_name,
@@ -218,7 +225,7 @@ export class User extends BaseClass {
                     ('mobility_impaired' in this.dbData) ? this.dbData['mobility_impaired'] : '0',
                     ('time_zone' in this.dbData) ? this.dbData['time_zone'] : '',
                     ('can_login' in this.dbData) ? this.dbData['can_login'] : '0',
-                    ('password' in this.dbData) ? this.dbData['password'] : '',
+                    defaultPassword,
                     ('invited_by_user' in this.dbData) ? this.dbData['invited_by_user'] : 0,
                     ('account_id' in this.dbData) ? this.dbData['account_id'] : '0',
                     ('last_login' in this.dbData) ? this.dbData['last_login'] : null,
@@ -787,7 +794,7 @@ export class User extends BaseClass {
                 }
 
                 let select = `
-                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired, users.archived,
                     users.last_login, users.mobile_number, users.phone_number, 
                     DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
                 `;
@@ -831,7 +838,7 @@ export class User extends BaseClass {
                 }
 
                 let select = `
-                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired,
+                    users.user_id, users.first_name, users.last_name, users.email, users.account_id, users.mobility_impaired, users.archived,
                     users.last_login, users.mobile_number, users.phone_number, 
                     DATE_FORMAT(users.last_login, '%d/%m/%Y') as last_login_formatted, accounts.account_name
                 `;
@@ -1044,7 +1051,45 @@ export class User extends BaseClass {
                 if('account_id' in config){
                     configFilter += ` AND u.account_id = ${config['account_id']} `;
                 }
+
+                // configFilter += ' GROUP BY userolelocation.role_id, userolelocation.location_id ';
+
+                if('order_account_name' in config){
+                    configFilter += ` ORDER BY TRIM(a.account_name) ASC `;
+                }
+
                 let archived = ('archived' in config) ? config['archived'] : '0';
+
+                let ecoRoleIdsSql = '';
+                if('eco_role_ids' in config){
+                    ecoRoleIdsSql = ' AND em.em_roles_id IN ('+config['eco_role_ids']+') ';
+                }
+                let innerSqlEm = `
+                    SELECT
+                    emr.user_id,
+                    emr.em_role_id as role_id,
+                    em.role_name as role_name,
+                    emr.location_id
+                    FROM user_em_roles_relation emr 
+                    INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
+                    WHERE emr.location_id IN (${locationIds})
+                    ${ecoRoleIdsSql}
+                    GROUP BY emr.user_id, emr.em_role_id
+                `;
+                let innerSqlFrpTrp = `
+                    UNION
+                    SELECT 
+                    lau.user_id,
+                    urr.role_id,
+                    IF(urr.role_id = 1, 'FRP', 'TRP') as role_name,
+                    lau.location_id
+                    FROM user_role_relation urr 
+                    INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
+                    WHERE  lau.location_id IN (${locationIds})
+                `;
+
+                if(config['eco_only']){ innerSqlFrpTrp = ''; }
+
                 let select = `
                     u.*,
                     userolelocation.role_id,
@@ -1052,60 +1097,52 @@ export class User extends BaseClass {
                     userolelocation.location_id,
                     a.account_name,
                     l.name,
+                    l.is_building,
                     IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
-                    DATE_FORMAT(u.last_login, '%d/%m/%Y') as last_login_formatted
+                    l.parent_id,
+                    p.is_building as parent_is_building,
+                    IF(p.location_id IS NOT NULL, p.name, '') as parent_location_name,
+                    p2.is_building as parent2_is_building,
+                    IF(p2.location_id IS NOT NULL, p2.name, '') as parent2_location_name
                 `;
+                if('count' in config){
+                    select = 'COUNT(u.user_id) as count';
+                }
 
-                let groupBy = 'GROUP BY u.user_id';
-
-                if(!config['count']){
-                    if(config['limit']){
-                        configFilter += ' LIMIT '+config['limit'];
+                let limitSql = '';
+                if('limit' in config){
+                    if(config['limit'] && ('count' in config) == false){
+                        limitSql = ' LIMIT '+config['limit'];
                     }
                 }
 
-                let sql_load = '';
-                let sql = `
+                if('eco_order' in config){
+                    let txtORder = '';
+                    let ind = 0;
+                    for(let order of config['eco_order']){
+                        txtORder += order;
+                        ind++;
+                        if(config['eco_order'][ind]){
+                            txtORder += ',';
+                        }
+                    }
+                    txtORder += ' ) ASC ';
+                    configFilter += ` ORDER BY FIELD(userolelocation.role_id, ${txtORder} `;
+                }
+
+                const sql_load = `
                 SELECT 
-                    ${select}
-                FROM (
-                    SELECT
-                    emr.user_id,
-                    emr.em_role_id as role_id,
-                    em.role_name as role_name,
-                    emr.location_id
-                    FROM user_em_roles_relation emr 
-                    LEFT JOIN em_roles em ON emr.em_role_id = em.em_roles_id 
-                    WHERE emr.location_id IN (${locationIds})
-
-                    UNION
-
-                    SELECT 
-                    lau.user_id,
-                    urr.role_id,
-                    IF(urr.role_id = 1, 'FRP', 'TRP') as role_name,
-                    lau.location_id
-                    FROM user_role_relation urr 
-                    LEFT JOIN location_account_user lau ON urr.user_id = lau.user_id
-                    WHERE  lau.location_id IN (${locationIds})
-                ) userolelocation
+                ${select}
+                FROM ( ${innerSqlEm}  ${innerSqlFrpTrp} ) userolelocation
                 INNER JOIN users u ON userolelocation.user_id = u.user_id
                 INNER JOIN locations l ON l.location_id = userolelocation.location_id
                 LEFT JOIN locations p ON p.location_id = l.parent_id
+                LEFT JOIN locations p2 ON p2.location_id = p.parent_id
                 INNER JOIN accounts a ON a.account_id = u.account_id
                 WHERE u.archived = ${archived}
-                ${groupBy}
                 ${configFilter}
+                ${limitSql}
                 `;
-
-                if(config['count']){
-                    sql_load = `
-                        SELECT  COUNT(*) as count FROM
-                        (${sql}) usersdata
-                    `;
-                }else{
-                    sql_load = sql;
-                }
 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
@@ -1160,6 +1197,67 @@ export class User extends BaseClass {
                 WHERE uer.user_id = ${userId} `;
            
                 connection.query(sql_load, (error, results, fields) => {
+                    if (error) {
+                        return console.log(error);
+                    }                
+                    resolve(results);
+
+                });
+                connection.release();
+            });
+        });
+    }
+
+    public getUserInLocationByRole(roleId=0, accountId=0, userId?): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw new Error(err);
+                }                
+                let id = this.ID();
+                if (userId) {
+                    id = userId;
+                }
+                const sql = `SELECT
+                                users.first_name,
+                                users.last_name,
+                                users.email,
+                                location_account_user.location_id,
+                                locations.name,
+                                IF (parent.name IS NULL, '', parent.name) as Building,
+                                accounts.account_name,
+                                IF (locations.is_building = 1, locations.location_id, locations.parent_id) as building_id
+                            FROM
+                                users
+                            INNER JOIN
+                                location_account_user
+                            ON ( 
+                                users.user_id = location_account_user.user_id
+                                AND users.account_id = location_account_user.account_id
+                            )
+                            INNER JOIN
+                                user_role_relation ON users.user_id = user_role_relation.user_id
+                            INNER JOIN
+                                accounts
+                            ON
+                                accounts.account_id = users.account_id
+                            INNER JOIN
+                                locations
+                            ON
+                                location_account_user.location_id = locations.location_id
+                            LEFT JOIN
+                                locations as parent
+                            ON
+                                locations.parent_id = parent.location_id
+                            WHERE
+                                user_role_relation.role_id = ?
+                            AND
+                                users.user_id = ?
+                            AND
+                            location_account_user.account_id = ?
+                `;
+                connection.query(sql, [roleId, id, accountId], (error, results) => {
                     if (error) {
                         return console.log(error);
                     }                

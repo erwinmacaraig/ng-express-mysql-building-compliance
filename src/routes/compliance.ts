@@ -94,12 +94,12 @@ const request = require('request');
                 const opts = {
                     from : '',
                     fromName : 'EvacConnect',
-                    to : ['adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+                    to : ['emacaraig@evacgroup.com.au'],
                     cc: [],
-                    body : ` ${req.get('Host')} says: This key
-                    ( ${key} ) 
+                    body : ` ${req.get('Host')} says: This key <br>
+                    ( ${key} ) <br>
                     is being downloaded but download process is having trouble with file.
-                    <br> Please check.`,
+                    <br> Please check. <br>Logged in user_id: ${req.user.user_id} <br> Logged in email: ${req.user.email}`,
                     attachments: [],
                     subject : 'EvacConnect Email Notification'
                 };
@@ -568,6 +568,13 @@ const request = require('request');
         this.response['user'] = req.user;
         if(!role && req.user.evac_role != 'admin'){
             try {
+                role = await userRoleRelObj.getByUserId(userId, true);
+            } catch(e) {
+                role = 0;
+            }
+            
+            /*
+            try {
                 role = await userRoleRelObj.getByUserId(userId, true, locationID);
             } catch (e) {
                 try {
@@ -577,6 +584,7 @@ const request = require('request');
                     role = 0;
                 }
             }
+            */
         }
 
         if(req.user.evac_role == 'admin'){
@@ -607,8 +615,7 @@ const request = require('request');
         let
         sublocsids = [],
         subLocsModel = new Location(),
-        sublocs = (role == 1) ? <any> await subLocsModel.getChildren(locationID) : <any> await subLocsModel.getChildrenTenantRelated(locationID, accountID);
-
+        sublocs = (role == 1) ? <any> await subLocsModel.getChildren(locationID) : <any> await subLocsModel.getChildrenTenantRelated(locationID, accountID);        
         for(let sub of sublocs){
             sublocsids.push(sub.location_id);
         }
@@ -620,11 +627,16 @@ const request = require('request');
                 emRolesLocationId = sublocsids.join(',');
 
             emRolesLocationId += ','+locationID;
+            let accountIdQuery = req.user.account_id;
+
+            if (role == defs['Manager']) {
+                accountIdQuery = 0;
+            }
 
             if(sublocsids.length > 0){
-                emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, emRolesLocationId, role, isAllLocId);
+                emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, emRolesLocationId, role, isAllLocId, accountIdQuery);
             }else{
-                emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role, isAllLocId);
+                emrolesOnThisLocation = await locationModel.getEMRolesForThisLocation(0, locationID, role, isAllLocId, accountIdQuery);
             }
 
             this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
@@ -991,7 +1003,7 @@ const request = require('request');
                     validTillMoment = moment(comp['docs'][0]['valid_till'], ['DD/MM/YYYY']);
                 }
 
-                if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0) {
+                if (comp['docs'][0] && validTillMoment.diff(today, 'days') > 0 && kpis['compliance_kpis_id'] != fsaId) {
                     comp['validity_status'] = 'valid';
                     comp['days_remaining'] = validTillMoment.diff(today, 'days');
                     comp['valid'] = 1;

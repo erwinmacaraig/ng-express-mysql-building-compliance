@@ -39,9 +39,9 @@
 	<div class="documents-container"  >
 		<div class="document"  >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -79,14 +79,14 @@
 						<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 							(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 							target="_blank"
-							class="btn btn-block orange waves-effect waves-light">Download</a>
-						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>
+							class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>
 				</div>
 			</div>
 
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-				<p class="give-access-text">Give access to TRP</p>
+				<p class="give-access-text">Provide Access to TRP</p>
 				<div class="switch" >
                 <input type="checkbox"
                  (change)="assignAccessToTRP($event, selectedCompliance)"
@@ -106,7 +106,11 @@
 <ng-template #epcTemplate> <!-- Emergency Procedure Committee -->
 	<div class="documents-container">
 		<div class="document">
-			<div class="preview-container"> &nbsp; </div>
+            
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
+
 			<div class="text-container">
 				<h5 class="file-name">
 					<span *ngIf="selectedCompliance.compliance.docs[0]">{{ selectedCompliance.compliance.docs[0].file_name }}</span>
@@ -138,12 +142,12 @@
 					<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 						(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 						target="_blank"
-						class="btn btn-block orange waves-effect waves-light">Download</a>
-					<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>					
+						class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+					<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>					
 				</div>
 			</div>
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-                <p class="give-access-text">Give access to TRP</p>
+                <p class="give-access-text">Provide Access to TRP</p>
                 <div class="switch" >
                     <input type="checkbox" (change)="assignAccessToTRP($event, selectedCompliance)" [checked]="selectedCompliance.compliance.docs[0].viewable_by_trp">
 					<div class="yes">Yes</div>
@@ -160,9 +164,9 @@
 	<div class="documents-container">
 		<div class="document" >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -199,13 +203,13 @@
 					<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 						(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 						target="_blank"
-						class="btn btn-block orange waves-effect waves-light">Download</a>
-					<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>
+						class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+					<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>
 				</div>
 			</div>
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-				<p class="give-access-text">Give access to TRP</p>
+				<p class="give-access-text">Provide Access to TRP</p>
 				<div class="switch" >
                     <input type="checkbox"
                     (change)="assignAccessToTRP($event, selectedCompliance)"
@@ -226,9 +230,9 @@
 	<div class="documents-container">
 		<div class="document" >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -248,13 +252,13 @@
 						<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 							(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 							target="_blank"
-							class="btn btn-block orange waves-effect waves-light">Download</a>
-						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>									
+							class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>									
 				</div>
 			</div>
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-				<p class="give-access-text">Give access to TRP</p>
+				<p class="give-access-text">Provide Access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
                  (change)="assignAccessToTRP($event, selectedCompliance)"
@@ -275,9 +279,9 @@
 	<div class="documents-container">
 		<div class="document" >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -306,13 +310,13 @@
 						<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 							(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 							target="_blank"
-							class="btn btn-block orange waves-effect waves-light">Download</a>
-						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>
+							class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>
 				</div>
 			</div>
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-				<p class="give-access-text">Give access to TRP</p>
+				<p class="give-access-text">Provide Access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
                  (change)="assignAccessToTRP($event, selectedCompliance)"
@@ -372,9 +376,9 @@
 	<div class="documents-container">
 		<div class="document" >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -402,13 +406,13 @@
 					<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 						(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 						target="_blank"
-						class="btn btn-block orange waves-effect waves-light">Download</a>
-					<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>										
+						class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+					<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>										
 				</div>
 			</div>
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-				<p class="give-access-text">Give access to TRP</p>
+				<p class="give-access-text">Provide Access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
                  (change)="assignAccessToTRP($event, selectedCompliance)"
@@ -469,9 +473,9 @@
 	<div class="documents-container">
 		<div class="document" >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -503,13 +507,13 @@
 						<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 							(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 							target="_blank"
-							class="btn btn-block orange waves-effect waves-light">Download</a>
-						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>
+							class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>
 				</div>
 			</div>
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-				<p class="give-access-text">Give access to TRP</p>
+				<p class="give-access-text">Provide Access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
                  (change)="assignAccessToTRP($event, selectedCompliance)"
@@ -530,9 +534,9 @@
 	<div class="documents-container">
 		<div class="document" >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -558,13 +562,13 @@
 						<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 							(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 							target="_blank"
-							class="btn btn-block orange waves-effect waves-light">Download</a>
-						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>
+							class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>
 				</div>
 			</div>
 
 			<div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0 && isTRP == false && isFRP == true">
-				<p class="give-access-text">Give access to TRP</p>
+				<p class="give-access-text">Provide Access to TRP</p>
 				<div class="switch" >
 					<input type="checkbox"
                  (change)="assignAccessToTRP($event, selectedCompliance)"
@@ -638,9 +642,9 @@
 	<div class="documents-container">
 		<div class="document" >
 
-			<div class="preview-container">
-
-			</div>
+			<div *ngIf="selectedCompliance.compliance.docs[0]" class="preview-container">
+                <div class="{{selectedCompliance.compliance.docs[0]['type']}}"></div>         
+            </div>
 
 			<div class="text-container">
 				<h5 class="file-name">
@@ -669,13 +673,13 @@
 						<a *ngIf="selectedCompliance.compliance.docs[0] && !complianceDocuments[selectedCompliance.compliance_kpis_id][0]['downloadCtrl']"
 							(click)="downloadKPIFile(selectedCompliance.compliance.docs[0]['urlPath'], selectedCompliance.compliance.docs[0]['file_name'], selectedCompliance.compliance_kpis_id, 0)"
 							target="_blank"
-							class="btn btn-block orange waves-effect waves-light">Download</a>
-						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download</a>
+							class="btn btn-block orange waves-effect waves-light">Download Latest</a>
+						<a *ngIf="selectedCompliance.compliance.docs[0] == null" target="_blank" class="btn btn-block waves-effect waves-light disabled">Download Latest</a>
 				</div>
 			</div>
 
 			<!-- <div class="switch-container" *ngIf="selectedCompliance.compliance.docs.length > 0">
-                <p class="give-access-text">Give access to TRP</p>
+                <p class="give-access-text">Provide Access to TRP</p>
                 <div class="switch" >
                     <input type="checkbox"  >
                     <div class="yes">Yes</div>
@@ -1050,7 +1054,7 @@
 	</div>
 	<div class="col l8 m12 s12">
 		<div class="diagram-top-of-table">
-			<h5 class="blue-text title">Warden Benchmarking</h5>
+			<h5 class="blue-text title">Warden Benchmark</h5>
 		</div>
 		<div class="filter-container row">
 			<div class="col l6 m12 s12">
@@ -1575,7 +1579,7 @@
 
             <div class="col l12">
                 <div class="switch-container"  >
-                    <p class="give-access-text">Give access to TRP</p>
+                    <p class="give-access-text">Provide Access to TRP</p>
                     <div class="switch" >
                     <input type="checkbox" ngModel name="viewable_by_trp"  >
                         <div class="yes">Yes</div>
@@ -1605,7 +1609,7 @@
 			<h6>File not found</h6>
 		</div>	  
 		<p>The file you are trying to download is no longer available from the server.		   
-		   <br />Admin will be notified to perform the necessary cleanup procedures.</p>
+		   <br />Admin have been notified and will provide the document via email to you.</p>
 	</div>
 	<div class="modal-footer">
 	  <a class="modal-close waves-effect waves-red btn-flat">OK</a>
