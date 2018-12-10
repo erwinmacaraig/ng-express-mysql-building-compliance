@@ -265,7 +265,8 @@ export class ReportsRoute extends BaseRoute {
         userRoleModel = new UserRoleRelation(),
         userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         role = 0,
-        eco_role_ids = (req.body.eco_role_ids) ? req.body.eco_role_ids :  [9,10,11,15,16,18];
+        eco_role_ids = (req.body.eco_role_ids) ? req.body.eco_role_ids :  [9,10,11,15,16,18],
+        eco_order = (req.body.eco_order) ? req.body.eco_order : [11,15,13,16,18,9,10]
 
         try{
             role = await userRoleModel.getByUserId(userId, true);
@@ -388,15 +389,17 @@ export class ReportsRoute extends BaseRoute {
 
         config['eco_only'] = true;
         config['eco_role_ids'] = eco_role_ids.join(',');
-        config['order_account_name'] = 'asc';
+        config['eco_order'] = eco_order;
         let offsetLimit = (filterExceptLocation) ? false :  (limit == 0) ? false : offset+','+limit;
         if(!toPdf && !toCsv){
           config['limit'] = offsetLimit;
         }
 
-        users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
-        config['count'] = true;
-        usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
+        if(eco_role_ids.length > 0){
+          users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
+          config['count'] = true;
+          usersCount = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
+        }
 
         for(let user of users){
             if(allUserIds.indexOf(user.user_id) == -1){
@@ -1034,7 +1037,7 @@ export class ReportsRoute extends BaseRoute {
           let tblData = {
             title : (req.body.warden_report) ? 'Warden List Report' : 'Training Report',
             data : [], 
-            headers : (req.body.warden_report) ? ["Region", "Building", "Emergency Role", "Sublocation", "Account", "Name", "Email", "Overall Status"] : ["Region", "Building", "Sublocation", "Account", "User", "Email", "Role", "Training Status & Date"]
+            headers : (req.body.warden_report) ? ["Region", "Building", "Emergency Role", "Sublocation", "Account", "Name", "Email", "Overall Status"] : ["Region", "Building", "Sublocation", "Account", "User", "Email", "Role", "Status", "Date"]
           };
 
           for(let re of response.data){
@@ -1055,7 +1058,7 @@ export class ReportsRoute extends BaseRoute {
               if(req.body.warden_report){
                 tblData.data.push([ re.region, re.building, re.role_name,  re.sublocation,  re.account_name, re.first_name+' '+re.last_name, re.email, compOrNot ]);
               }else{
-                tblData.data.push([ re.region, re.building, re.sublocation,re.account_name,  re.first_name+' '+re.last_name, re.email, re.role_name, compOrNot + ' ' + re.certification_date_formatted ]);
+                tblData.data.push([ re.region, re.building, re.sublocation,re.account_name,  re.first_name+' '+re.last_name, re.email, re.role_name, compOrNot, re.certification_date_formatted ]);
               }
 
           }
