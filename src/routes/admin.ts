@@ -51,7 +51,7 @@ export class AdminRoute extends BaseRoute {
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['adelfin@evacgroup.com.au', 'emacaraig@evacgroup.com.au'],
+        to : ['jmanoharan@evacgroup.com.au'],
         cc: [],
         body : ` ${req.get('Host')} says: <pre>${message}</pre><br>Logged in user_id: ${req.user.user_id}<br>
         Logged in user name: ${req.user.email}`,
@@ -305,7 +305,7 @@ export class AdminRoute extends BaseRoute {
             from : '',
             fromName : 'EvacConnect',
             to : [accountRole['email']],
-            cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+            cc: ['jmanoharan@evacgroup.com.au'],
             body : '',
             attachments: [],
             subject : 'EvacConnect Email Notification'
@@ -2060,7 +2060,7 @@ export class AdminRoute extends BaseRoute {
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['emacaraig@evacgroup.com.au'],
+        to : [u['email']],
         cc: [],
         body : '',
         attachments: [],
@@ -2586,7 +2586,7 @@ export class AdminRoute extends BaseRoute {
         from : '',
         fromName : 'EvacConnect',
         to : [userData['email']],
-        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+        cc: ['jmanoharan@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
