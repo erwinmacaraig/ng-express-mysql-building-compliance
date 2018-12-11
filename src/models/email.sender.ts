@@ -90,10 +90,10 @@ export class EmailSender {
         params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {              
-              // ToAddresses: this.options['to'],
-              ToAddresses : ['jmanoharan@evacgroup.com.au'],
-              // CcAddresses: this.options['cc']
-              BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'adelfin@evacgroup.com.au']
+               ToAddresses: this.options['to'],
+              //ToAddresses : ['jmanoharan@evacgroup.com.au'],
+              CcAddresses: this.options['cc'],
+              BccAddresses: ['emacaraig@evacgroup.com.au']
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {

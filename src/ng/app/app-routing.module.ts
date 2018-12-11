@@ -122,6 +122,7 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 import { PeepFormComponent } from './peep.form/peep.form';
 import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
+import { RewardProgramConfigComponent } from './admin/rewards/config/reward-program-config.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -269,7 +270,8 @@ const appRoutes: Routes = [
       { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent },
-      { path: 'add-account-location/:accountId', component: AddAccountLocationComponent }
+      { path: 'add-account-location/:accountId', component: AddAccountLocationComponent },
+      { path: 'reward-program-configuration', component: RewardProgramConfigComponent }
     ]
   },
 

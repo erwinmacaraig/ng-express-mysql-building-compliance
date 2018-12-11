@@ -94,7 +94,7 @@ const request = require('request');
                 const opts = {
                     from : '',
                     fromName : 'EvacConnect',
-                    to : ['emacaraig@evacgroup.com.au'],
+                    to : ['jmanoharan@evacgroup.com.au'],
                     cc: [],
                     body : ` ${req.get('Host')} says: This key <br>
                     ( ${key} ) <br>
