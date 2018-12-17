@@ -315,7 +315,7 @@ const RateLimiter = require('limiter').RateLimiter;
         from : '',
         fromName : 'EvacConnect',
 				to: [userDbData['email']],
-        cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+        cc: [],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
@@ -476,7 +476,7 @@ const RateLimiter = require('limiter').RateLimiter;
           from : '',
           fromName : 'EvacConnect',
           to : [nominatedUserEmail],
-          cc: ['emacaraig@evacgroup.com.au', 'jmanoharan@evacgroup.com.au'],
+          cc: [],
           body : '',
           attachments: [],
           subject : 'EvacConnect Email Notification'
@@ -750,7 +750,7 @@ const RateLimiter = require('limiter').RateLimiter;
         from : '',
         fromName : 'EvacConnect',
         to : [tr.email],
-        cc: ['emacaraig@evacgroup.com.au'],
+        cc: [],
         body : '',
         attachments: [],
         subject : 'EvacConnect Change Location'
@@ -1008,7 +1008,7 @@ const RateLimiter = require('limiter').RateLimiter;
 					from : '',
 					fromName : 'EvacConnect',
 					to : ['jmanoharan@evacgroup.com.au'],				
-					cc: ['emacaraig@evacgroup.com.au'],
+					cc: [],
 					body : new EmailSender().getEmailHTMLHeader() + `<br> ${userDbData['first_name']} ${userDbData['last_name']} of ${accountDbData['account_name']} <br>
 					says that he/she is <strong>STILL</strong> the FRP at ${locationDbData['name']}.` + 
 					new EmailSender().getEmailHTMLFooter(),
