@@ -2755,7 +2755,7 @@ export class UsersRoute extends BaseRoute {
 
                         email.assignOptions({
                             to: [inviSaveData['email']],
-                            cc: ['jmanoharan@evacgroup.com.au']
+                            cc: []
                         });
                         email.sendFormattedEmail(emailType, emailData, res, 
                             (data) => console.log(data),

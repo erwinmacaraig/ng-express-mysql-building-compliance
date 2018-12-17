@@ -368,11 +368,11 @@ export class TrainingCertification extends BaseClass {
           passSql += '  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() ';
       }else if(pass == 0){
           passSql += `
-            AND certifications.user_id NOT IN (SELECT user_id FROM certifications WHERE user_id IN (${userIds})  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() )
+            AND certifications.user_id NOT IN (SELECT user_id FROM certifications LEFT JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id WHERE user_id IN (${userIds})  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() )
            `;
       }
 
-      let orderSql = (orderBy) ? orderBy : 'ORDER BY TRIM(a.account_name) ASC';
+      let orderSql = (orderBy) ? orderBy : 'ORDER BY TRIM(a.account_name) ASC, certifications.certification_date DESC';
 
       if(count){
           sql = `
@@ -419,7 +419,7 @@ export class TrainingCertification extends BaseClass {
             ${orderSql} ${limitSql}
           `;
       }
-      
+      console.log(sql);
       this.pool.getConnection((err, connection) => {
         if (err) {                    
             throw new Error(err);
