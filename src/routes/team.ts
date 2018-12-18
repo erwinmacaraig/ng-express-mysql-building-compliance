@@ -690,7 +690,7 @@ export class TeamRoute extends BaseRoute {
                         email.assignOptions({
                             body : emailBody,
                             to: [p['email']],
-                            cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+                            cc: []
                         });
                         email.send((data) => console.log(data),
                             (err) => console.log(err)
@@ -821,7 +821,7 @@ export class TeamRoute extends BaseRoute {
                             email.assignOptions({
                                 body : emailBody,
                                 to: [warden['email']],
-                                cc: ['erwin.macaraig@gmail.com', 'jmanoharan@evacgroup.com.au']
+                                cc: []
                             });
                             email.send((data) => console.log(data),
                                 (err) => console.log(err)
@@ -1328,7 +1328,7 @@ export class TeamRoute extends BaseRoute {
                 from : '',
                 fromName : 'EvacConnect',
                 to : [],
-                cc: ['jmanoharan@evacgroup.com.au', 'adelfin@evacgroup.com.au',  'emacaraig@evacgroup.com.au'],
+                cc: [],
                 body : '',
                 attachments: [],
                 subject : 'EvacConnect Training Invite'
@@ -1381,7 +1381,7 @@ export class TeamRoute extends BaseRoute {
 
             email.assignOptions({
                 to: [userDbData['email']],
-                cc: ['jmanoharan@evacgroup.com.au']
+                cc: []
             });
             email.sendFormattedEmail('training-invite', emailData, res, 
                 (result) => {

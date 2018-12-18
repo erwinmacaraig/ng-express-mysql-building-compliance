@@ -305,7 +305,7 @@ export class AdminRoute extends BaseRoute {
             from : '',
             fromName : 'EvacConnect',
             to : [accountRole['email']],
-            cc: ['jmanoharan@evacgroup.com.au'],
+            cc: [],
             body : '',
             attachments: [],
             subject : 'EvacConnect Email Notification'
@@ -2589,7 +2589,7 @@ export class AdminRoute extends BaseRoute {
         from : '',
         fromName : 'EvacConnect',
         to : [userData['email']],
-        cc: ['jmanoharan@evacgroup.com.au'],
+        cc: [],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
