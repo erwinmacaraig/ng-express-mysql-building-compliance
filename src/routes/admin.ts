@@ -730,6 +730,9 @@ export class AdminRoute extends BaseRoute {
       location = new Location(),
       locAccModel = new LocationAccountRelation();
 
+      if (req.query.is_building) {
+        searchKey['is_building'] = req.query.is_building
+      }
       let
       limit = undefined,
       accountId = undefined;

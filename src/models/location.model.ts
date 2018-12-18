@@ -1262,8 +1262,10 @@ export class Location extends BaseClass {
             if ('parent_id' in searchCriteria) {
                 sql_search += ` AND l.parent_id = ${searchCriteria['parent_id']}`;
             }
-
-            console.log(searchBuildings);
+            if ('is_building' in searchCriteria) {
+                sql_search += `AND l.is_building = ${searchCriteria['is_building']}`;
+            }
+            
             if(searchBuildings !== undefined){
                 let building = (searchBuildings) ? searchBuildings : 0;
                 sql_search += ` AND l.is_building = `+building;
