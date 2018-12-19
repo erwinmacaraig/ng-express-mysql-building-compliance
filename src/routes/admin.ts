@@ -38,6 +38,8 @@ import {NotificationToken } from '../models/notification_token.model';
 import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
+import { RewardConfig } from '../models/reward.program.config.model';
+
 const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
 
@@ -69,6 +71,25 @@ export class AdminRoute extends BaseRoute {
         message: 'Email sent to devs'
       });
     });
+
+    router.post('/admin/get-candidate-buildings-for-rewards/', new MiddlewareAuth().authenticate,
+      async (req: AuthRequest, res: Response, next: NextFunction) => {
+        const rewardConfigurator = new RewardConfig();
+        const accountId = req.body.account_id;
+        const locations = await rewardConfigurator.candidateBuildingLocations(accountId);
+
+        return res.status(200).send({
+          locations: locations
+        });
+
+      }
+    );
+
+    router.post('/admin/create-reward-program-config/', new MiddlewareAuth().authenticate,
+      (req: AuthRequest, res: Response, next: NextFunction) => {
+        new AdminRoute().createRewardProgramConfig(req, res);
+      }
+    );
 
     router.post('/admin/create-new-location/',new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -2611,5 +2632,52 @@ export class AdminRoute extends BaseRoute {
       message: 'Success'
     });
   }
+
+  public async createRewardProgramConfig(req: AuthRequest, res: Response) {
+    const rewardProgramConfigurator = new RewardConfig();
+    console.log(req.body);
+    const activities = [];
+    const rewards = [];
+    const locations = [];
+    for (let x = 0; x < req.body.activities.length; x++) {
+      activities.push({
+        activity: req.body.activities[x],
+        points: req.body.activity_points[x]
+      });
+    }
+
+    for (let x = 0; x < req.body.reward_items.length; x++) {
+      rewards.push({
+        incentive: req.body.reward_items[x],
+        points: req.body.reward_item_points[x]
+      });
+    }
+    const configData = {
+      sponsor_to_id: req.body.selection_id,
+      sponsor_to_id_type: req.body.selection_type,
+      sponsor: req.body.sponsor,
+      sponsor_contact_email: req.body.sponsor_emails,
+      modified_by: req.user.user_id,
+      raw_config: JSON.stringify(req.body),
+      activities: activities,
+      incentives:rewards
+    };
+    
+    await rewardProgramConfigurator.create(configData);
+
+
+    if (req.body.selection_type == 'account') {
+      for (let building of req.body.config_locations) {
+        rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
+      }
+    }
+
+
+    return res.status(200).send({
+      message: 'test'
+    });
+  }
+
+
 
 }

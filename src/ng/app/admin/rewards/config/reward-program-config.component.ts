@@ -53,14 +53,7 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
         });
     }
     ngOnInit() {      
-        this.locations.push({
-            location_id: 1,
-            location_name: 'Test location'
-        });
-        this.locations.push({
-            location_id: 2,
-            location_name: 'Test location 2'
-        });
+        
         this.configForm = new FormGroup({
             search: new FormControl(null, Validators.required),
             sponsor: new FormControl(null, Validators.required),
@@ -81,7 +74,9 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
             reward_item_points: new  FormArray([
                 new FormControl('50', Validators.required)
             ]),
-            config_locations: new FormControl()
+            config_locations: new FormControl([]),
+            selection_type: new FormControl(null, Validators.required),
+            selection_id: new FormControl(null, Validators.required)            
         });        
 
     }
@@ -145,17 +140,37 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
         this.selectionType = type;
         this.selectionTypeId = id;
         this.filteredList = [];
+        this.configForm.controls['selection_id'].patchValue(id, {onlySelf: true});
+        this.configForm.controls['selection_type'].patchValue(type, {onlySelf: true});
 
         //
         if (this.selectionType == 'account') {
-            
-        }
-        this.searchSubscription = this.smartSearch();
+            // get all related locations on this account
+            this.adminService.getRelatedBuildings(id).subscribe((response) => {
+                this.locations = [...response['locations']];
+                this.searchSubscription = this.smartSearch();
+
+            }, (error) => {
+                console.log(error);
+                this.searchSubscription = this.smartSearch();
+            });
+        } else {
+            this.searchSubscription = this.smartSearch();
+
+        } 
+
+        
 
     }
 
     public finalizeConfig() {
         console.log(this.configForm.value);
+        
+        this.adminService.createRewardProgramConfig(this.configForm.value).subscribe((data) => {
+            alert('Config created');
+        });
+        
+
     }
 
     public onLocationSelect(item:any) {

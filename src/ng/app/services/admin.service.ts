@@ -230,5 +230,13 @@ export class AdminService {
     });
   }
 
+  createRewardProgramConfig(config) {
+    return this.http.post(`${this.baseUrl}/admin/create-reward-program-config/`, config);
+  }
+
+  getRelatedBuildings(accountId) {
+    return this.http.post(`${this.baseUrl}/admin/get-candidate-buildings-for-rewards/`, {account_id: accountId});
+  }
+
   
 }
