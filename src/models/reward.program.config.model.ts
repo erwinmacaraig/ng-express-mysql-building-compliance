@@ -348,4 +348,65 @@ export class RewardConfig extends BaseClass {
         });
     }
 
+    public setCandidateUserForReward(reward_program_config_id=0, userId=0, acitivity=0, totalPoints=0) {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (reward_program_config_id) {
+                program_config_id = reward_program_config_id;
+            }
+            this.clearRecordOfCandidateWithZeroActivity(program_config_id,userId).then(() => {
+                this.pool.getConnection((err, connection) => {
+                    if (err) {
+                        throw new Error(err);
+                    }
+                    const sql_insert = `INSERT INTO user_reward_points (
+                        reward_program_config_id,
+                        user_id,
+                        activity,
+                        totalPoints    
+                    ) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE                        
+                        totalPoints = totalPoints + ${totalPoints}
+                    `;
+                    connection.query(sql_insert, [program_config_id, userId, acitivity, totalPoints], (error, results) => {
+                        if (error) {
+                            console.log('Cannot insert user reward points record', sql_insert, error);
+                            throw new Error(error);
+                        }
+                        resolve(true);
+                    });
+                    connection.release();
+                });
+            }).catch((e) => {
+                console.log(e);
+            });
+            
+
+
+        });
+
+    }
+
+    private clearRecordOfCandidateWithZeroActivity(configId=0, userId=0) {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql_delete = `DELETE FROM user_reward_points WHERE user_id = ? AND reward_program_config_id = ? AND activity = 0`;
+                connection.query(sql_delete, [userId, configId], (error, results) => {
+                    if (error) {
+                         console.log('Cannot delete user reward points entry', sql_delete, error);
+                         throw new Error(error); 
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
 }

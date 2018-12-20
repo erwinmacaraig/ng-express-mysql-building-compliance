@@ -2722,9 +2722,16 @@ export class AdminRoute extends BaseRoute {
       for (let building of req.body.config_locations) {
         rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
       }
-
       // get all emergency users in this account
-      const account = new Account();
+      const account = new Account(req.body.selection_id);
+      const wardenUsersArr = await account.getAllEMRolesOnThisAccount(req.body.selection_id,{
+        em_roles: [defs['em_roles']['WARDEN'], defs['em_roles']['FLOOR_WARDEN']]
+      });
+
+      for (let warden of wardenUsersArr) {
+       await rewardProgramConfigurator.setCandidateUserForReward(rewardProgramConfigurator.ID(), warden['user_id']);
+      }
+
       
 
     } else if (req.body.selection_type == 'location') {
