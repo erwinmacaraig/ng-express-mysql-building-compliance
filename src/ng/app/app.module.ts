@@ -152,6 +152,8 @@ import { AdminAddAccountComponent } from './admin/add-account/add-account.compon
 import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attendance.component';
 import {  PeepFormComponent } from './peep.form/peep.form';
 import { RewardProgramConfigComponent } from './admin/rewards/config/reward-program-config.component';
+import { ListRewardConfigComponent } from './admin/rewards/list/list-reward-config.component';
+
 
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
@@ -282,7 +284,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     PeepFormComponent,
     AlertComponent,
     AddAccountLocationComponent,
-    RewardProgramConfigComponent
+    RewardProgramConfigComponent,
+    ListRewardConfigComponent
   ],
   imports: [
     BrowserModule,

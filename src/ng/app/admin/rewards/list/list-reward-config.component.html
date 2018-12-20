@@ -1,0 +1,50 @@
+<div class="row">
+    <div class="col s9"><h4 class="title">Reward Program</h4></div>
+    <div class="col s3">
+        <button type="button" [routerLink]="['/admin', 'reward-program-configuration']" class="waves-effect waves-light blue btn pull right" style="margin-top: 20px;">Create New Reward Program</button>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col s12">
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>Sponsor</th>
+                    <th>Account/Location</th>
+                    <th>Reward</th>
+                    <th>Qualified</th>
+                    <th>Redeemed</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let config of configurations">
+                    <td>{{config['sponsor']}}</td>
+                    <td>
+                        <span *ngIf="config['account_name'] != null">
+                        {{config['account_name']}}
+                        </span>
+                        <span *ngIf="config['location_name']">
+                            {{config['location_name']}}
+                        </span>
+                    </td>
+                    <td>
+                        <span *ngFor="let r of config['reward']" style="display: block;">{{r}}</span>
+                    </td>
+                    <td>
+                        {{config['user_reward_id'].length}}
+                    </td>
+                    <td>
+                        {{config['redeemer_id'].length}}
+                    </td>
+                    <td>
+                        <a href="#">Edit</a>
+                    </td>
+
+                </tr>
+                
+            </tbody>
+        </table>
+    </div>
+</div>

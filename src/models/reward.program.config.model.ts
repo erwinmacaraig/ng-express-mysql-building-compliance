@@ -307,4 +307,45 @@ export class RewardConfig extends BaseClass {
 
     }
 
+    public getAllConfig(): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+           this.pool.getConnection((err, connection) => {
+               if (err) {
+                   throw new Error(err);
+               }
+               const sqlAll = `
+               SELECT
+                    reward_program_config.reward_program_config_id,    
+                    reward_program_config.sponsor,
+                    accounts.account_name,
+                    locations.name as location_name,
+                    reward_program_incentives.incentive,
+                    reward_program_config.sponsor_to_id_type,
+                    reward_program_config.sponsor_to_id,
+                    user_reward_points.user_id as user_reward_id,
+                    user_redeemed_item.user_id as redeemer_id
+                FROM
+                    reward_program_config
+                INNER JOIN
+                    reward_program_incentives
+                ON
+                    reward_program_config.reward_program_config_id = reward_program_incentives.reward_program_config_id
+                LEFT JOIN accounts ON (accounts.account_id = reward_program_config.sponsor_to_id AND reward_program_config.sponsor_to_id_type = 'account')                
+                LEFT JOIN locations ON (locations.location_id = reward_program_config.sponsor_to_id AND reward_program_config.sponsor_to_id_type = 'location')
+                LEFT JOIN user_reward_points ON user_reward_points.reward_program_config_id = reward_program_config.reward_program_config_id
+                LEFT JOIN user_redeemed_item ON user_redeemed_item.reward_program_config_id = reward_program_config.reward_program_config_id
+                WHERE reward_program_config.enabled = 1
+                ORDER BY reward_program_config.reward_program_config_id ASC;`;
+               connection.query(sqlAll, [], (error, results) => {
+                   if (error) {
+                        console.log('Cannot get all reward program config', sqlAll, error);
+                        throw new Error(error); 
+                   }
+                   resolve(results);
+               });
+               connection.release();
+           }); 
+        });
+    }
+
 }

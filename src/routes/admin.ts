@@ -72,6 +72,58 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.get('/admin/get-all-reward-program-config/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const rewardConfigurator = new RewardConfig();
+
+      const partialConfigArr = await rewardConfigurator.getAllConfig();
+      const configObj = {};
+      const configArray = [];
+      for (let config of partialConfigArr) {
+        if (config['reward_program_config_id'] in configObj) {
+          if (config['incentive']) {
+            (configObj[config['reward_program_config_id']]['reward']).push(config['incentive']);
+          }
+          if (config['user_reward_id']) {
+            (configObj[config['reward_program_config_id']]['user_reward_id']).push(config['user_reward_id']);
+          }
+          if (config['redeemer_id']) {
+            (configObj[config['reward_program_config_id']]['redeemer_id']).push(config['redeemer_id']);
+          }
+        } else {
+          configObj[config['reward_program_config_id']] = {
+            reward_program_config_id: config['reward_program_config_id'],
+            sponsor: config['sponsor'],
+            account_name: config['account_name'],
+            location_name: config['location_name'],
+            reward: [], 
+            user_reward_id: [],
+            redeemer_id: []
+          }
+          if (config['incentive']) {
+            (configObj[config['reward_program_config_id']]['reward']).push(config['incentive']);
+          }
+          if (config['user_reward_id']) {
+            (configObj[config['reward_program_config_id']]['user_reward_id']).push(config['user_reward_id']);
+          }
+          if (config['redeemer_id']) {
+            (configObj[config['reward_program_config_id']]['redeemer_id']).push(config['redeemer_id']);
+          }
+
+
+        }
+      }
+
+      Object.keys(configObj).forEach((key) => {
+        configArray.push(configObj[key]);
+      });
+
+      return res.status(200).send({
+        data: configArray
+      });
+
+    });
+
     router.post('/admin/get-candidate-buildings-for-rewards/', new MiddlewareAuth().authenticate,
       async (req: AuthRequest, res: Response, next: NextFunction) => {
         const rewardConfigurator = new RewardConfig();
@@ -2670,6 +2722,15 @@ export class AdminRoute extends BaseRoute {
       for (let building of req.body.config_locations) {
         rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
       }
+
+      // get all emergency users in this account
+      const account = new Account();
+      
+
+    } else if (req.body.selection_type == 'location') {
+      // still need to insert this info to the table so the system can determine that there is an existing 
+      // config when location is again chosen in the client side
+      rewardProgramConfigurator.insertRelatedBuildingConfig(req.body.selection_id, rewardProgramConfigurator.ID());
     }
 
 

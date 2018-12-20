@@ -5,6 +5,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { AdminService } from '../../../services/admin.service';
 import { Observable } from 'rxjs/Observable';
 import { forkJoin } from 'rxjs/observable/forkJoin';
+import { Router } from '@angular/router';
+import { routerNgProbeToken } from '@angular/router/src/router_module';
 
 declare var $:any;
 
@@ -43,7 +45,7 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
     
     
 
-    constructor(private adminService: AdminService) {
+    constructor(private adminService: AdminService, private router: Router) {
 
     }
 
@@ -164,10 +166,10 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
     }
 
     public finalizeConfig() {
-        console.log(this.configForm.value);
+        // console.log(this.configForm.value);
         
         this.adminService.createRewardProgramConfig(this.configForm.value).subscribe((data) => {
-            alert('Config created');
+            this.router.navigate(['/admin', 'list-reward-configuration']);
         });
         
 

@@ -238,5 +238,9 @@ export class AdminService {
     return this.http.post(`${this.baseUrl}/admin/get-candidate-buildings-for-rewards/`, {account_id: accountId});
   }
 
+  listRewardConfig() {
+    return this.http.get(`${this.baseUrl}/admin/get-all-reward-program-config/`,this.options);
+  }
+
   
 }
