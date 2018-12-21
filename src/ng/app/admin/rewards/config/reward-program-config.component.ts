@@ -26,8 +26,8 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
 
     private searchSubscription:Subscription;
 
-    private selectionType;
-    private selectionTypeId;
+    public selectionType;
+    public selectionTypeId;
 
 
 

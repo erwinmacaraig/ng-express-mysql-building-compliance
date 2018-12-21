@@ -51,3 +51,11 @@ ul li .text{
 .logo .reward {
     background-position: 89% 39% !important;
 }
+
+.logo.smart-form{
+    background: url(/assets/images/smart_form_icon.png) !important;
+    background-position: 89% 39% !important;
+    background-repeat: no-repeat !important;
+    background-size: 60% !important;
+    background-position: 50% 50% !important;
+}

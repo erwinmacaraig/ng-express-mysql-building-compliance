@@ -124,6 +124,10 @@ import { PeepFormComponent } from './peep.form/peep.form';
 import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
 import { RewardProgramConfigComponent } from './admin/rewards/config/reward-program-config.component';
 import { ListRewardConfigComponent } from './admin/rewards/list/list-reward-config.component';
+import { SmartFormComponent } from './admin/smart-form/smart-form-component';
+import { FormBuilderComponent } from './admin/smart-form/form-builder/form.builder';
+import { FormListComponent } from './admin/smart-form/form-list/form.list';
+import { FormRenderComponent } from './admin/smart-form/form-render/form.render';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -273,7 +277,11 @@ const appRoutes: Routes = [
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent },
       { path: 'add-account-location/:accountId', component: AddAccountLocationComponent },
       { path: 'reward-program-configuration', component: RewardProgramConfigComponent },
-      { path: 'list-reward-configuration', component: ListRewardConfigComponent }
+      { path: 'list-reward-configuration', component: ListRewardConfigComponent },
+      { path: 'smart-form', component : SmartFormComponent },
+      { path: 'smart-form-builder', component : FormBuilderComponent },
+      { path: 'smart-form-list', component : FormListComponent },
+      { path: 'smart-form-render', component : FormRenderComponent }
     ]
   },
 
