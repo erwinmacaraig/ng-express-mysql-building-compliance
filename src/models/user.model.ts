@@ -693,9 +693,9 @@ export class User extends BaseClass {
                     if (error) {
                         console.log(sql_load);
                         return console.log(error);
-                    }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    }                    
+                    // this.dbData = results;
+                    resolve(results);
                 });
                 connection.release();
             });

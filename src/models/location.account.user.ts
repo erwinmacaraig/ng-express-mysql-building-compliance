@@ -564,7 +564,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getByUserId(UserId: Number, getLocationDetails?) {
+    public getByUserId(UserId: Number, getLocationDetails?): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             let sql_load = 'SELECT * FROM location_account_user WHERE user_id = ?';
             if(getLocationDetails){
@@ -587,8 +587,8 @@ export class LocationAccountUser extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    this.dbData = results[0];
+                    resolve(results);
                 });
 
                 connection.release();

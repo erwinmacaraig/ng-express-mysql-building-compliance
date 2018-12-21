@@ -1128,18 +1128,24 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
+        const locAccntUserData = await new LocationAccountUser().getByUserId(userID);
+        let sameAccountsOnly = '';
+        if (!locAccntUserData.length) {
+            sameAccountsOnly = ' AND users.account_id = '+accountId;
+        }
+
         if(locationId){
             selectedLocIds.push(locationId);
             let locs = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(locationId);
             for(let loc of locs){ 
                 selectedLocIds.push(loc.location_id);
             }
-        }else{
+        }else {
             let
             locAccRel = new LocationAccountRelation(),
             filter = { userId : userID },
             locs = <any> await locAccRel.listAllLocationsOnAccount(accountId, filter);
-            // console.log(locs);
+            console.log(locs);
             for(let loc of locs){
                 selectedLocIds.push(loc.location_id);
                 let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc.location_id);
@@ -1150,7 +1156,7 @@ export class UsersRoute extends BaseRoute {
         }
 
         locations = await locationsModel.getByInIds(selectedLocIds, false, true);
-
+        console.log('***************', locations, '***************');
         for(let id of emRoleIds){
             if(queryRoles.indexOf(''+id) > -1){
                 getUsersByEmRoleId = true;
@@ -1165,6 +1171,8 @@ export class UsersRoute extends BaseRoute {
         if(query.archived){
             archived = query.archived;
         }
+        
+
         modelQueries.where.push('users.archived = '+archived);
         if(userRole != 'frp'){
             modelQueries.where.push('users.account_id = '+accountId);
@@ -1197,7 +1205,7 @@ export class UsersRoute extends BaseRoute {
 
         modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id INNER JOIN accounts ON users.account_id = accounts.account_id ');
 
-        if(query.roles){
+        if(query.roles) {
 
             let emRoleIdInQuery = '';
             if(getUsersByEmRoleId){
@@ -1229,9 +1237,9 @@ export class UsersRoute extends BaseRoute {
 
             if( (queryRoles.indexOf('users') > -1 || getUsersByEmRoleId) && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ) == true ){
                 if(noGeneralOcc){
-                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' '+inLocIdQuery+ sameAccountsOnly +' ) ');
                 }else{
-                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
+                    modelQueries.orWhere.push(' OR users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 '+emRoleIdInQuery+' '+inLocIdQuery+ sameAccountsOnly + ' ) ');
                 }
 
                 modelQueries.orWhere.push(' AND users.archived = '+archived);
@@ -1253,7 +1261,7 @@ export class UsersRoute extends BaseRoute {
                 if(getPendings){
                     modelQueries.orWhere.push(' AND users.profile_completion = 0');
                 }
-            }else if( queryRoles.indexOf('users') > -1 || getUsersByEmRoleId && ( (queryRoles.indexOf('frp') == -1 || queryRoles.indexOf('1') == -1) && ( queryRoles.indexOf('trp') == -1 || queryRoles.indexOf('2') == -1 ) ) == true){
+            } else if( queryRoles.indexOf('users') > -1 || getUsersByEmRoleId && ( (queryRoles.indexOf('frp') == -1 || queryRoles.indexOf('1') == -1) && ( queryRoles.indexOf('trp') == -1 || queryRoles.indexOf('2') == -1 ) ) == true){
                 if(noGeneralOcc){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
                 }else{
@@ -1302,7 +1310,7 @@ export class UsersRoute extends BaseRoute {
                 modelQueries.orWhere.push(noRole);
             }
 
-        }else{
+        } else{
             if(query.search){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
             }
@@ -1322,6 +1330,11 @@ export class UsersRoute extends BaseRoute {
             if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
                 modelQueries.where.push(`users.user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (`+selectedLocIds.join(',')+`) ) `);
             }
+        }
+        
+        // check location_account_user if the user is tagged to location        
+        if (!locAccntUserData.length) {
+            modelQueries.where.push('users.account_id = '+accountId);
         }
 
         response.data['users'] = await userModel.query(modelQueries);
