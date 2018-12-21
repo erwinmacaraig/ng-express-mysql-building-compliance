@@ -1145,7 +1145,7 @@ export class UsersRoute extends BaseRoute {
             locAccRel = new LocationAccountRelation(),
             filter = { userId : userID },
             locs = <any> await locAccRel.listAllLocationsOnAccount(accountId, filter);
-            console.log(locs);
+            
             for(let loc of locs){
                 selectedLocIds.push(loc.location_id);
                 let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc.location_id);
@@ -1156,7 +1156,7 @@ export class UsersRoute extends BaseRoute {
         }
 
         locations = await locationsModel.getByInIds(selectedLocIds, false, true);
-        console.log('***************', locations, '***************');
+       
         for(let id of emRoleIds){
             if(queryRoles.indexOf(''+id) > -1){
                 getUsersByEmRoleId = true;
