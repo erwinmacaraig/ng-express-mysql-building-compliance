@@ -178,7 +178,7 @@ export class RewardConfig extends BaseClass {
                 ) VALUES ( ?, ?, ?)`;
                 connection.query(sql_insert_activities, [this.id, activity, points], (error, results) => {
                     if (error) {
-                        console.log('Cannot delete reward program activities', sql_insert_activities, error);
+                        console.log('Cannot insert reward program activities', sql_insert_activities, error, `config_id = ${this.id}`, activity, points);
                         throw new Error(error);
                     }
                     resolve(true);                    
@@ -249,6 +249,34 @@ export class RewardConfig extends BaseClass {
                 });
                 connection.release();
            }); 
+        });
+    }
+
+    public getBuildingSubLevels(buildings = []): Promise<Array<number>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                } 
+                if (buildings.length == 0) {
+                    resolve([]);
+                    return;
+                }
+                const sql = `SELECT location_id FROM locations WHERE parent_id IN ( ${buildings.join(',')}) AND archived = 0`;
+                const set = [];
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log('Cannot get sublevels for reward programs', sql, error);
+                        throw new Error(error);
+                    }
+                    for(let r of results) {
+                        set.push(r['location_id']);
+                    }
+                    resolve(set);
+                                      
+                });
+                connection.release();
+            });
         });
     }
 

@@ -81,13 +81,13 @@ export class AdminRoute extends BaseRoute {
       const configArray = [];
       for (let config of partialConfigArr) {
         if (config['reward_program_config_id'] in configObj) {
-          if (config['incentive']) {
+          if (config['incentive'] && (configObj[config['reward_program_config_id']]['reward']).indexOf(config['incentive']) == -1) {
             (configObj[config['reward_program_config_id']]['reward']).push(config['incentive']);
           }
-          if (config['user_reward_id']) {
+          if (config['user_reward_id'] && (configObj[config['reward_program_config_id']]['user_reward_id']).indexOf(config['user_reward_id']) == -1) {
             (configObj[config['reward_program_config_id']]['user_reward_id']).push(config['user_reward_id']);
           }
-          if (config['redeemer_id']) {
+          if (config['redeemer_id'] && (configObj[config['reward_program_config_id']]['redeemer_id']).indexOf(config['redeemer_id']) == -1) {
             (configObj[config['reward_program_config_id']]['redeemer_id']).push(config['redeemer_id']);
           }
         } else {
@@ -2690,7 +2690,8 @@ export class AdminRoute extends BaseRoute {
     console.log(req.body);
     const activities = [];
     const rewards = [];
-    const locations = [];
+    let locations = [];
+    const buildings = [];
     for (let x = 0; x < req.body.activities.length; x++) {
       activities.push({
         activity: req.body.activities[x],
@@ -2716,33 +2717,47 @@ export class AdminRoute extends BaseRoute {
     };
     
     await rewardProgramConfigurator.create(configData);
-
+    let wardenUsersArr;
 
     if (req.body.selection_type == 'account') {
       for (let building of req.body.config_locations) {
         rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
+        buildings.push(building['location_id']);
       }
+      const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings);
+     
+      locations = [...buildings, ...sublevels];
       // get all emergency users in this account
       const account = new Account(req.body.selection_id);
-      const wardenUsersArr = await account.getAllEMRolesOnThisAccount(req.body.selection_id,{
-        em_roles: [defs['em_roles']['WARDEN'], defs['em_roles']['FLOOR_WARDEN']]
+      wardenUsersArr = await account.getAllEMRolesOnThisAccount(req.body.selection_id,{
+        em_roles: [defs['em_roles']['WARDEN'], defs['em_roles']['FLOOR_WARDEN']],
+        location: locations
       });
-
-      for (let warden of wardenUsersArr) {
-       await rewardProgramConfigurator.setCandidateUserForReward(rewardProgramConfigurator.ID(), warden['user_id']);
-      }
-
-      
 
     } else if (req.body.selection_type == 'location') {
       // still need to insert this info to the table so the system can determine that there is an existing 
       // config when location is again chosen in the client side
       rewardProgramConfigurator.insertRelatedBuildingConfig(req.body.selection_id, rewardProgramConfigurator.ID());
+      buildings.push(req.body.selection_id);
+      const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings);
+      locations = [...buildings, ...sublevels];
+      const emRoleUsers = new UserEmRoleRelation();
+      const locationIdsStr = locations.join(',');
+      wardenUsersArr =  await emRoleUsers.getWardensInLocationIds(locationIdsStr);      
+
     }
+
+    for (let warden of wardenUsersArr) {
+      await rewardProgramConfigurator.setCandidateUserForReward(rewardProgramConfigurator.ID(), warden['user_id']);
+     }
 
 
     return res.status(200).send({
-      message: 'test'
+      message: 'test',
+      locations: locations,
+      buldings: buildings,
+      users: wardenUsersArr
+
     });
   }
 
