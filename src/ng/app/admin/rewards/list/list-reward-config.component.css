@@ -11,3 +11,6 @@ thead th {
     font-size: 14px;
     color: #fff;
 }
+
+.modal { width: 30% !important ; height: 75% !important ; } 
+/* increase the height and width as you desire */

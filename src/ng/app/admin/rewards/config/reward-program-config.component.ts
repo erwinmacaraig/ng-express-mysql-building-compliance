@@ -6,7 +6,7 @@ import { AdminService } from '../../../services/admin.service';
 import { Observable } from 'rxjs/Observable';
 import { forkJoin } from 'rxjs/observable/forkJoin';
 import { Router } from '@angular/router';
-import { routerNgProbeToken } from '@angular/router/src/router_module';
+
 
 declare var $:any;
 

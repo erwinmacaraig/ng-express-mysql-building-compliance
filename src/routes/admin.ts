@@ -72,6 +72,22 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+
+    router.get('/admin/get-all-rewardee/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const configId = req.query.config;
+      const rewardConfigurator = new RewardConfig(configId);
+      rewardConfigurator.load();
+      const users = await rewardConfigurator.getRewardee();
+
+      return res.status(200).send({
+        message: 'test',
+        data: users
+      });
+
+    }
+    );
+
     router.get('/admin/get-all-reward-program-config/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const rewardConfigurator = new RewardConfig();

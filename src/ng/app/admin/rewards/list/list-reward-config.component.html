@@ -33,7 +33,7 @@
                         <span *ngFor="let r of config['reward']" style="display: block;">{{r}}</span>
                     </td>
                     <td>
-                        {{config['user_reward_id'].length}}
+                        <a (click)="listRewardCandidate(config['reward_program_config_id'])">{{config['user_reward_id'].length}}</a> 
                     </td>
                     <td>
                         {{config['redeemer_id'].length}}
@@ -48,3 +48,16 @@
         </table>
     </div>
 </div>
+
+<div id="users" class="modal modal-fixed-footer">
+    <div class="modal-content">
+        <h4>Users</h4>
+        <ul>
+            <li *ngFor="let user of users">{{user['first_name']}} {{user['last_name']}}</li>
+        </ul>
+    </div>
+    <div class="modal-footer">
+        <a class="modal-close waves-effect waves-green btn-flat">Close</a>
+    </div>
+</div>
+          

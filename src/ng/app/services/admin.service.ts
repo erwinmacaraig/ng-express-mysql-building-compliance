@@ -242,5 +242,14 @@ export class AdminService {
     return this.http.get(`${this.baseUrl}/admin/get-all-reward-program-config/`,this.options);
   }
 
+  listProgramRewardees(config=0) {
+    let httpParams = new HttpParams().set('config', config.toString());
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + `/admin/get-all-rewardee/`, this.options);
+
+  }
+
+
+
   
 }
