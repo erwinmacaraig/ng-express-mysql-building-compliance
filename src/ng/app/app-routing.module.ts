@@ -273,6 +273,7 @@ const appRoutes: Routes = [
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent },
       { path: 'add-account-location/:accountId', component: AddAccountLocationComponent },
       { path: 'reward-program-configuration', component: RewardProgramConfigComponent },
+      { path: 'edit-reward-program-configuration/:programConfig', component: RewardProgramConfigComponent },
       { path: 'list-reward-configuration', component: ListRewardConfigComponent }
     ]
   },

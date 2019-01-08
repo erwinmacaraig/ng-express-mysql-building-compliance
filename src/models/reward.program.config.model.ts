@@ -23,7 +23,7 @@ export class RewardConfig extends BaseClass {
                     }
                     this.dbData = results[0];
                     this.setID(results[0]['reward_program_config_id']);
-                    resolve(true);
+                    resolve(this.dbData);
                 });
                 connection.release();
             });
@@ -68,6 +68,22 @@ export class RewardConfig extends BaseClass {
                         console.log('Cannot update config record for reward program', err, sql_update);                        
                         throw new Error(err);
                     }
+                    if ('incentives' in this.dbData) { 
+                        this.deleteRewardIncentives().then(() => {
+                            for (let incentive of (this.dbData['incentives'] as Array<object>)) {
+                                this.insertProgramIncentives(incentive['incentive'], incentive['points']);
+                            }
+                        });
+                    }
+
+                    if ('activities' in this.dbData) { 
+                        this.deleteActivities().then(() => {
+                            for (let activity of (this.dbData['activities'] as Array<object>)) {
+                                this.insertActivities(activity['activity'], activity['points']);
+                            }
+                        });
+                    }
+                   
                     resolve(true);
                 
                 });
@@ -165,6 +181,44 @@ export class RewardConfig extends BaseClass {
             });            
         });
     }
+
+    public deleteProgramBuildings() {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql_delete = `DELETE FROM reward_program_buildings WHERE reward_program_config_id = ?`;
+                connection.query(sql_delete, [this.id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot delete reward program buildings', sql_delete, error);
+                        throw new Error(error);
+                    }
+                    resolve(true);                    
+                });
+                connection.release();
+            });
+        });
+    }
+
+    public deleteUsers() {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql_delete = `DELETE FROM user_reward_points WHERE reward_program_config_id = ?`;
+                connection.query(sql_delete, [this.id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot delete reward program users', sql_delete, error);
+                        throw new Error(error);
+                    }
+                    resolve(true);                    
+                });
+                connection.release();
+            });
+        });
+    }
     private insertActivities(activity, points) {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
@@ -207,6 +261,7 @@ export class RewardConfig extends BaseClass {
         }); 
     }
 
+
     private insertProgramIncentives(incentive, points) {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
@@ -237,10 +292,9 @@ export class RewardConfig extends BaseClass {
                    throw new Error(err);
                }
                const sql_insert = `
-                INSERT INTO reward_program_buildings (location_id, reward_program_config_id)
-                VALUES (?, ?) ON DUPLICATE KEY UPDATE dtAdded = NOW()
-               `;
-               connection.query(sql_insert, [location, configId], (error, results) => {
+               INSERT INTO reward_program_buildings (location_id, reward_program_config_id)
+               VALUES (?, ?) ON DUPLICATE KEY UPDATE dtAdded = NOW()`;
+                connection.query(sql_insert, [location, configId], (error, results) => {
                     if (error) {
                         console.log('Cannot insert reward program location', sql_insert, error);
                         throw new Error(error);
@@ -248,6 +302,7 @@ export class RewardConfig extends BaseClass {
                     resolve(true);                    
                 });
                 connection.release();
+                    
            }); 
         });
     }
@@ -449,6 +504,107 @@ export class RewardConfig extends BaseClass {
              
         });
     }
+
+    public getProgramActivities(configId=0) {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql = `SELECT
+                    activity,
+                    activity_points
+                FROM
+                    reward_program_activities
+                WHERE
+                    reward_program_config_id = ?`;
+
+                connection.query(sql, [program_config_id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot retrieve reward program activities', sql, error);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
+            });
+
+        });
+
+    }
+
+    public getProgramIncentives(configId=0) {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql = `SELECT
+                    *
+                FROM
+                    reward_program_incentives
+                WHERE
+                    reward_program_config_id = ?`;
+
+                connection.query(sql, [program_config_id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot retrieve reward program incentives', sql, error);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
+            });
+
+        }); 
+    }
+
+    public getProgramConfigBuildings(configId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql = `SELECT                   
+                    locations.location_id,
+                    locations.name AS location_name
+                FROM 
+                    reward_program_buildings
+                INNER JOIN
+                    locations
+                ON
+                    reward_program_buildings.location_id = locations.location_id
+                WHERE
+                    reward_program_buildings.reward_program_config_id = ? AND locations.is_building = 1`;
+
+                connection.query(sql, [program_config_id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot retrieve reward program buildings', sql, error);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+
+                connection.release();
+            });
+
+        }); 
+    }
+
 
     private clearRecordOfCandidateWithZeroActivity(configId=0, userId=0) {
         return new Promise((resolve, reject) => {

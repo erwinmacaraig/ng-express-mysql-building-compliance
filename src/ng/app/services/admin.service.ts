@@ -249,6 +249,22 @@ export class AdminService {
 
   }
 
+  getRewardProgramConfigDetails(config='') {
+    let httpParams = new HttpParams().set('config', config);
+    this.options['params'] = httpParams;
+    return this.http.get<{
+      sponsor: string,
+      sponsor_emails: string,
+      activities: Array<object>,
+      incentives: Array<object>,
+      buildings: Array<object>,
+      selectionType: string,
+      selectionId: number,
+      searchKey: string,
+      accountLocations: Array<object>
+    }>(this.baseUrl + `/admin/get-program-config-details/`, this.options);
+  }
+
 
 
   

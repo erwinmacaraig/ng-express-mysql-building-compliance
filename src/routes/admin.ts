@@ -72,6 +72,54 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.get('/admin/get-program-config-details/', new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const configId = req.query.config;
+      const rewardConfigurator = new RewardConfig(configId);
+      const config = await rewardConfigurator.load();
+      // get related buildings
+      const buildings = await rewardConfigurator.getProgramConfigBuildings();            
+      const activities = await rewardConfigurator.getProgramActivities();
+     
+      let searchKey = '';      
+      let accountLocations = [];
+
+      if (config['sponsor_to_id_type'] == 'account') {
+        // load account details
+        const account = await new Account(config['sponsor_to_id']).load();
+        searchKey = account['account_name'];
+
+        // get all locations on this account
+        const allTaggedLocationsAccounts = <any> await new List().listAllTaggedBuildingsOfAccount(config['sponsor_to_id'], 0);
+        for (let l of allTaggedLocationsAccounts) {         
+          accountLocations.push({
+            location_id: l['location_id'],
+            location_name: l['name']
+          } );
+        }
+
+
+      } else {
+        searchKey = buildings[0]['location_name'];
+      }
+      const incentives = await rewardConfigurator.getProgramIncentives();
+
+
+      return res.status(200).send({
+        sponsor: config['sponsor'],
+        sponsor_emails: config['sponsor_contact_email'],
+        selectionType: config['sponsor_to_id_type'],
+        selectionId: config['sponsor_to_id'],
+        activities: activities,
+        incentives: incentives,
+        searchKey: searchKey,
+        buildings: buildings,
+        accountLocations: accountLocations
+      });
+
+
+    }
+    );
 
     router.get('/admin/get-all-rewardee/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -2701,9 +2749,14 @@ export class AdminRoute extends BaseRoute {
     });
   }
 
-  public async createRewardProgramConfig(req: AuthRequest, res: Response) {
-    const rewardProgramConfigurator = new RewardConfig();
+  public async createRewardProgramConfig(req: AuthRequest, res: Response) {    
     console.log(req.body);
+    let rewardProgramConfigurator = new RewardConfig();
+    if ('reward_proram_config_id' in req.body) {
+      rewardProgramConfigurator = new RewardConfig(req.body.reward_proram_config_id);
+      await rewardProgramConfigurator.deleteProgramBuildings();
+      await rewardProgramConfigurator.deleteUsers();
+    }
     const activities = [];
     const rewards = [];
     let locations = [];
@@ -2734,10 +2787,10 @@ export class AdminRoute extends BaseRoute {
     
     await rewardProgramConfigurator.create(configData);
     let wardenUsersArr;
-
-    if (req.body.selection_type == 'account') {
+    
+    if (req.body.selection_type == 'account') {      
       for (let building of req.body.config_locations) {
-        rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
+        await rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
         buildings.push(building['location_id']);
       }
       const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings);
