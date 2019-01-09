@@ -1,0 +1,37 @@
+<div>
+    <div class="row">
+        <div class="col s9"><h4 class="title">Reward Program / {{configName}} </h4></div>
+            
+    <div class="row">
+        <div class="col s12">
+            <table class="striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Account</th>
+                        <th>Email</th>
+                        <th>Reward</th>
+                        <th>Date Redeemed</th>
+                        <th>Remaining Points</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let user of users">
+                        <td>{{user['first_name']}} {{user['last_name']}}</td>
+                        <td>{{user['account_name']}}</td>
+                        <td>{{user['email']}}</td>
+                        <td><span *ngFor="let r of user['redemeedIncentives']" style="display: block;">{{r['incentive']}}</span></td>
+                        <td><span *ngFor="let r of user['redemeedIncentives']" style="display: block;">{{r['dtRedeemed']}}</span></td>
+                        <td>{{user['remainingPoints']}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col s9"></div>
+        <div class="col s3">
+            <button type="button" [routerLink]="['/admin', 'list-reward-configuration']" class="waves-effect waves-light blue btn pull right" style="margin-top: 20px;">Back To List</button>
+        </div>
+    </div>
+</div>

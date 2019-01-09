@@ -20,14 +20,11 @@
             </thead>
             <tbody>
                 <tr *ngFor="let config of configurations">
-                    <td>{{config['sponsor']}}</td>
-                    <td>
-                        <span *ngIf="config['account_name'] != null">
-                        {{config['account_name']}}
-                        </span>
-                        <span *ngIf="config['location_name']">
-                            {{config['location_name']}}
-                        </span>
+                    <td><a [routerLink]="['/admin', 'reward-program-redeemers', config['reward_program_config_id']]">{{config['sponsor']}}</a></td>
+                    <td> <a [routerLink]="['/admin', 'reward-program-redeemers', config['reward_program_config_id']]">
+                            <span *ngIf="config['account_name'] != null">{{config['account_name']}}</span>
+                            <span *ngIf="config['location_name']">{{config['location_name']}}</span>
+                         </a>                        
                     </td>
                     <td>
                         <span *ngFor="let r of config['reward']" style="display: block;">{{r}}</span>

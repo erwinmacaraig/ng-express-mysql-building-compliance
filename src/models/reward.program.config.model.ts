@@ -448,14 +448,21 @@ export class RewardConfig extends BaseClass {
                         activity,
                         totalPoints    
                     ) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE                        
-                        totalPoints = totalPoints + ${totalPoints}
+                        dtPointsEarned = NOW();
                     `;
                     connection.query(sql_insert, [program_config_id, userId, acitivity, totalPoints], (error, results) => {
                         if (error) {
                             console.log('Cannot insert user reward points record', sql_insert, error);
                             throw new Error(error);
                         }
-                        resolve(true);
+                        /*
+                        this.computeForTotalActivityPoints(userId, program_config_id).then(() => {
+                            resolve(true);
+                        }).catch((e) => {
+                            console.log(e);
+                        });
+                        */
+                       resolve(true);
                     });
                     connection.release();
                 });
@@ -467,6 +474,88 @@ export class RewardConfig extends BaseClass {
 
         });
 
+    }
+
+    public computeForTotalActivityPoints(userIds=[], configId=0): Promise<any> {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            if (!userIds.length) {                
+                resolve(0);
+                return;
+            }
+            let selectClause = 'SUM(reward_program_activities.activity_points) AS total_points';
+            let userIdsStr = userIds.join(',');
+            let groupByClause = '';
+            if (userIds.length > 1) {
+                selectClause = `
+                user_reward_points.user_id,
+                user_reward_points.totalPoints`;
+
+                groupByClause = `GROUP BY user_reward_points.user_id`;
+            } 
+
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql_total = `SELECT 
+                    ${selectClause}
+                FROM
+                    user_reward_points
+                INNER JOIN
+                    reward_program_activities
+                ON
+                    user_reward_points.activity = reward_program_activities.reward_program_activities_id  
+                WHERE
+                    user_reward_points.user_id IN (${userIdsStr}) AND user_reward_points.reward_program_config_id = ?
+                ${groupByClause};`;
+
+                connection.query(sql_total, [program_config_id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot compute total points', sql_total, error);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();                    
+            });
+        });
+    }
+
+    public updateUserTotalActivityPoints(userId = 0, configId=0, totalPoints) {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                const sql_update = `UPDATE
+                    user_reward_points
+                SET
+                    totalPoints = ? 
+                WHERE
+                    user_reward_points.user_id = ? 
+                AND
+                    user_reward_points.reward_program_config_id = ?;
+                ;`;
+
+                connection.query(sql_update, [totalPoints, userId, program_config_id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot compute total points', sql_update, error);
+                        throw new Error(error);
+                    }
+                    resolve(true);
+                });
+                connection.release();                    
+            });
+        });
     }
 
     public getRewardee(configId=0): Promise<Array<object>> {
@@ -482,15 +571,22 @@ export class RewardConfig extends BaseClass {
                 const sql = `SELECT
                     users.user_id,
                     users.first_name,
-                    users.last_name
+                    users.last_name,
+                    users.email,
+                    accounts.account_name
                 FROM
                     users
                 INNER JOIN
                     user_reward_points
                 ON
                     users.user_id = user_reward_points.user_id
+                INNER JOIN
+                    accounts
+                ON
+                    users.account_id = accounts.account_id
                 WHERE
-                    user_reward_points.reward_program_config_id = ?;`;
+                    user_reward_points.reward_program_config_id = ?
+                GROUP BY users.user_id;`;
 
                 connection.query(sql, [program_config_id], (error, results) => {
                     if (error) {
@@ -567,6 +663,48 @@ export class RewardConfig extends BaseClass {
             });
 
         }); 
+    } 
+
+    public userRedeemedItem(userIds=[], configId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) { 
+                    throw new Error(err);
+                }
+                if (!userIds.length) {
+                    resolve([]);
+                    return;
+                }
+                const userIdsStr = userIds.join(','); 
+                const sql_get = `
+                    SELECT
+                        *
+                    FROM
+                        user_redeemed_item
+                    INNER JOIN
+                        reward_program_incentives
+                    ON
+                        user_redeemed_item.reward_program_incentives_id = reward_program_incentives.reward_program_incentives_id
+                    WHERE
+                        user_redeemed_item.user_id IN (${userIdsStr})
+                    AND
+                    user_redeemed_item.reward_program_config_id = ?
+                `;
+
+                connection.query(sql_get, [program_config_id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot retrieve user redeemed items', sql_get, error);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            }); 
+        });
     }
 
     public getProgramConfigBuildings(configId=0): Promise<Array<object>> {

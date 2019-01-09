@@ -125,11 +125,56 @@ export class AdminRoute extends BaseRoute {
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const configId = req.query.config;
       const rewardConfigurator = new RewardConfig(configId);
-      rewardConfigurator.load();
+      const config = await rewardConfigurator.load();
+      let configName = '';
+      if (config['sponsor_to_id_type'] == 'location') {
+        const temp = await new Location(config['sponsor_to_id']).load();
+        configName = temp['name'];
+      } else {
+        const temp = await new Account(config['sponsor_to_id']).load();
+        configName = temp['location_name'];
+      }
+      
       const users = await rewardConfigurator.getRewardee();
+      const usersArr = [];
+      for (let user of users) {
+        usersArr.push(user['user_id']);
+        user['redemeedIncentives'] = [];
+        user['remainingPoints'] = 0;
+      }
 
+      const userRedeemedListing = await rewardConfigurator.userRedeemedItem(usersArr);
+      let userRedeemedListingObj = {};
+      for (let userRedeemer of userRedeemedListing) {
+        if (userRedeemer['user_id'] in userRedeemedListingObj) {
+          (userRedeemedListingObj[userRedeemer['user_id']] as Array<Object>).push({
+            incentive: userRedeemer['incentive'],
+            dtRedeemed: moment(userRedeemer['dtRedeemed'], 'YYYY-MM-DD HH:mm:ss').format('DD-MM-YYYY')
+          });
+        } else {         
+          userRedeemedListingObj[userRedeemer['user_id']] = [{
+            incentive: userRedeemer['incentive'],
+            dtRedeemed: moment(userRedeemer['dtRedeemed'], 'YYYY-MM-DD HH:mm:ss').format('DD-MM-YYYY')
+          }];
+        }
+      }
+
+      const userTotalPoints = await rewardConfigurator.computeForTotalActivityPoints(usersArr);
+      let userTotalPointsObj = {};
+      for(let u of userTotalPoints) {
+        userTotalPointsObj[u['user_id']] = u['totalPoints'];
+      }
+
+      for (let user of users) {
+        if (user['user_id'] in userRedeemedListingObj) {
+          user['redemeedIncentives'] = userRedeemedListingObj[user['user_id']];
+        }
+        if (user['user_id'] in userTotalPointsObj) {
+          user['remainingPoints'] = userTotalPointsObj[user['user_id']];
+        }        
+      }
       return res.status(200).send({
-        message: 'test',
+        configName: configName,
         data: users
       });
 

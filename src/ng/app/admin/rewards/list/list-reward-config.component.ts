@@ -35,8 +35,7 @@ export class ListRewardConfigComponent implements OnInit, AfterViewInit, OnDestr
 
     public listRewardCandidate(id = 0) {
        this.adminService.listProgramRewardees(id).subscribe((response) => {
-           this.users = response['data'];
-           console.log(this.users);
+           this.users = response['data'];           
            $('.modal').modal('open');
        }); 
     }

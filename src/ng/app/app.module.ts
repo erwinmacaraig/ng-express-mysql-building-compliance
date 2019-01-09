@@ -153,7 +153,7 @@ import { PaperAttendanceComponent } from './admin/paper-attendance/paper-attenda
 import {  PeepFormComponent } from './peep.form/peep.form';
 import { RewardProgramConfigComponent } from './admin/rewards/config/reward-program-config.component';
 import { ListRewardConfigComponent } from './admin/rewards/list/list-reward-config.component';
-
+import { RedeemersComponent } from './admin/rewards/redeemers/redeemers.component';
 
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
@@ -285,7 +285,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AlertComponent,
     AddAccountLocationComponent,
     RewardProgramConfigComponent,
-    ListRewardConfigComponent
+    ListRewardConfigComponent,
+    RedeemersComponent
   ],
   imports: [
     BrowserModule,

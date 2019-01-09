@@ -124,6 +124,7 @@ import { PeepFormComponent } from './peep.form/peep.form';
 import { AddAccountLocationComponent } from './admin/add-location/add-location.component';
 import { RewardProgramConfigComponent } from './admin/rewards/config/reward-program-config.component';
 import { ListRewardConfigComponent } from './admin/rewards/list/list-reward-config.component';
+import { RedeemersComponent } from './admin/rewards/redeemers/redeemers.component';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -274,7 +275,8 @@ const appRoutes: Routes = [
       { path: 'add-account-location/:accountId', component: AddAccountLocationComponent },
       { path: 'reward-program-configuration', component: RewardProgramConfigComponent },
       { path: 'edit-reward-program-configuration/:programConfig', component: RewardProgramConfigComponent },
-      { path: 'list-reward-configuration', component: ListRewardConfigComponent }
+      { path: 'list-reward-configuration', component: ListRewardConfigComponent },
+      { path: 'reward-program-redeemers/:programConfig', component: RedeemersComponent }
     ]
   },
 
