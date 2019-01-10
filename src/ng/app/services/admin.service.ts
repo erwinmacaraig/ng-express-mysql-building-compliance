@@ -265,6 +265,10 @@ export class AdminService {
     }>(this.baseUrl + `/admin/get-program-config-details/`, this.options);
   }
 
+  deleteRewardProgramConfig(config=0) {
+    return this.http.post(`${this.baseUrl}/admin/delete-reward-program-config/`, {configId: config});
+  }
+
 
 
   

@@ -72,6 +72,15 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.post('/admin/delete-reward-program-config', new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const rewardConfigurator = new RewardConfig(req.body.configId);
+      await rewardConfigurator.deleteConfig();
+      return res.status(200).send({
+        message: 'Config successfully deleted.'
+      });
+    });
+
     router.get('/admin/get-program-config-details/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
       const configId = req.query.config;

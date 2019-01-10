@@ -163,6 +163,29 @@ export class RewardConfig extends BaseClass {
         });
     }
 
+    public deleteConfig(configId=0) {
+        return new Promise((resolve, reject) => {
+            let program_config_id = this.ID();
+            if (configId) {
+                program_config_id = configId;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                const sql_delete = `DELETE FROM reward_program_config WHERE reward_program_config_id = ?`;
+                connection.query(sql_delete, [program_config_id], (error, results) => {
+                    if (error) {
+                        console.log('Cannot delete reward program config', sql_delete, error);
+                        throw new Error(error);
+                    }
+                    resolve(true);                    
+                });
+                connection.release();
+            });            
+        });        
+    }
+
     private deleteActivities() {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {

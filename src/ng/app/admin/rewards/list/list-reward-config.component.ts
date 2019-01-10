@@ -13,6 +13,7 @@ export class ListRewardConfigComponent implements OnInit, AfterViewInit, OnDestr
 
     public configurations = [];
     public users = [];
+    private toDeleteConfig = 0;
     constructor(private adminService: AdminService) {
 
     }
@@ -36,14 +37,35 @@ export class ListRewardConfigComponent implements OnInit, AfterViewInit, OnDestr
     public listRewardCandidate(id = 0) {
        this.adminService.listProgramRewardees(id).subscribe((response) => {
            this.users = response['data'];           
-           $('.modal').modal('open');
+           $('#users').modal('open');
        }); 
     }
 
     private jquery_code() {
         $(document).ready(function(){           
-            $('.modal').modal({ dismissible: true });
-            
+            $('#users').modal({ dismissible: true });
+            $('#delete-confirm').modal({dismissible: false});            
         });
     }
+
+    public showConfirmation(toDeleteConfigId=0) {
+        this.toDeleteConfig = toDeleteConfigId;
+        console.log(this.toDeleteConfig);
+        $('#delete-confirm').modal('open');
+    }
+
+    public cancelDelete() {
+        this.toDeleteConfig = 0;
+    }
+
+    public confirmDelete() {
+        this.adminService.deleteRewardProgramConfig(this.toDeleteConfig).subscribe((response) => {
+            this.toDeleteConfig = 0;
+            alert('Configuration Deleted.');
+
+            this.ngOnInit();
+        });
+    }
+
+
 }
