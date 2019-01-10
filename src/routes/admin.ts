@@ -237,7 +237,9 @@ export class AdminRoute extends BaseRoute {
       async (req: AuthRequest, res: Response, next: NextFunction) => {
         const rewardConfigurator = new RewardConfig();
         const accountId = req.body.account_id;
-        const locations = await rewardConfigurator.candidateBuildingLocations(accountId);
+        let locations = await rewardConfigurator.candidateBuildingLocations(accountId);
+        const parentLocationsForTenantAccnt = await rewardConfigurator.candidateParentBuildingsForTenantAccount(accountId);
+        locations = locations.concat(parentLocationsForTenantAccnt);
 
         return res.status(200).send({
           locations: locations
@@ -2838,7 +2840,7 @@ export class AdminRoute extends BaseRoute {
         await rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
         buildings.push(building['location_id']);
       }
-      const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings);
+      const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings, req.body.selection_id);
      
       locations = [...buildings, ...sublevels];
       // get all emergency users in this account

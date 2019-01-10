@@ -307,7 +307,7 @@ export class RewardConfig extends BaseClass {
         });
     }
 
-    public getBuildingSubLevels(buildings = []): Promise<Array<number>> {
+    public getBuildingSubLevels(buildings = [], accountId=0): Promise<Array<number>> {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {
@@ -317,7 +317,25 @@ export class RewardConfig extends BaseClass {
                     resolve([]);
                     return;
                 }
-                const sql = `SELECT location_id FROM locations WHERE parent_id IN ( ${buildings.join(',')}) AND archived = 0`;
+                let sql = `SELECT location_id FROM locations WHERE parent_id IN (${buildings.join(',')}) AND archived = 0`;
+                if (accountId) {
+                    sql = `
+                        SELECT
+                            locations.location_id
+                        FROM
+                            location_account_relation
+                        INNER JOIN
+                            locations
+                        ON
+                            location_account_relation.location_id = locations.location_id
+                        WHERE
+                            location_account_relation.account_id = ${accountId}
+                        AND
+                            locations.parent_id IN (${buildings.join(',')})
+                        AND 
+                            archived = 0`;
+                }
+
                 const set = [];
                 connection.query(sql, [], (error, results) => {
                     if (error) {
@@ -388,6 +406,61 @@ export class RewardConfig extends BaseClass {
             });
         });
 
+    }
+
+    public candidateParentBuildingsForTenantAccount(accountId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if(err) {
+                    throw new Error(err);
+                }
+                const sql_get = `
+                    SELECT
+                        IF (parent_locations.location_id IS NULL AND locations.is_building = 1, locations.location_id, parent_locations.location_id) AS location_id,
+                        IF (parent_locations.name IS NULL AND locations.is_building = 1, locations.name, parent_locations.name) AS location_name                                
+                    FROM
+                        location_account_relation
+                    INNER JOIN
+                        locations 
+                    ON
+                        location_account_relation.location_id = locations.location_id
+                    LEFT JOIN
+                        locations as parent_locations
+                    ON
+                        locations.parent_id = parent_locations.location_id
+                    WHERE
+                        location_account_relation.account_id = ?
+                    AND
+                        location_account_relation.responsibility = 'Tenant'
+                    AND
+                        parent_locations.location_id NOT IN (
+                            SELECT
+                                locations.location_id                                    
+                            FROM
+                                location_account_relation
+                            INNER JOIN
+                                locations
+                            ON
+                                location_account_relation.location_id = locations.location_id
+                            WHERE
+                                location_account_relation.account_id = ?
+                            AND
+                                locations.is_building = 1
+                        )
+                    GROUP BY
+                        locations.parent_id;
+                `;
+                connection.query(sql_get, [accountId, accountId], (error, results) => {
+                    if (error) {
+                        console.log('Cannot insert reward program location', sql_get, error);
+                        throw new Error(error);
+                    }
+                    resolve(results);                    
+                });
+                connection.release();
+            });
+
+        });
     }
 
     public getAllConfig(): Promise<Array<object>> {
