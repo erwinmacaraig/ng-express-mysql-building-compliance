@@ -105,6 +105,7 @@ import { MyTrainingsComponent } from './trainings/my-training/mytraining.compone
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 import { TrainingProfile } from './trainings/training-profile/training.profile.component';
+import { NewTrainingComponent } from './trainings/new-training/new-training.component';
 
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
@@ -239,6 +240,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     TeamTrainingComponent,
     TrainingInviteComponent,
     TrainingProfile,
+    NewTrainingComponent,
     WardenBenchMarkingComponent,
 
     ReportsComponent,

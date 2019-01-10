@@ -80,6 +80,7 @@ import { MyTrainingsComponent } from './trainings/my-training/mytraining.compone
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 import { TrainingProfile } from './trainings/training-profile/training.profile.component';
+import { NewTrainingComponent } from './trainings/new-training/new-training.component';
 
 import { ReportsComponent } from './reports/reports.component';
 import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
@@ -231,7 +232,8 @@ const appRoutes: Routes = [
       { path : 'my-training', component : MyTrainingsComponent },
       { path : 'team-training', component : TeamTrainingComponent },
       { path : 'training-invite', component : TrainingInviteComponent },
-      { path : 'my-training-profile/:encrypted', component: TrainingProfile }
+      { path : 'my-training-profile/:encrypted', component: TrainingProfile },
+      { path : 'new-training', component : NewTrainingComponent }
     ]
   },
   {
