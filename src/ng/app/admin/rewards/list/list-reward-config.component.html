@@ -24,7 +24,10 @@
                     <td> <a [routerLink]="['/admin', 'reward-program-redeemers', config['reward_program_config_id']]">
                             <span *ngIf="config['account_name'] != null">{{config['account_name']}}</span>
                             <span *ngIf="config['location_name']">{{config['location_name']}}</span>
-                         </a>                        
+                         </a>
+                         <ul class="location-listing">
+                             <li *ngFor="let building of config['buildings']">{{building}}</li>
+                         </ul>                        
                     </td>
                     <td>
                         <span *ngFor="let r of config['reward']" style="display: block;">{{r}}</span>

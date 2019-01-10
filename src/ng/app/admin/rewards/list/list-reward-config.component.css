@@ -12,5 +12,10 @@ thead th {
     color: #fff;
 }
 
+ul.location-listing {
+    list-style-type: circle;
+    padding-left: 0.5rem
+}
+
 .modal { width: 30% !important ; height: 75% !important ; } 
 /* increase the height and width as you desire */

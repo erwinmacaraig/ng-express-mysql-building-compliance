@@ -504,6 +504,42 @@ export class RewardConfig extends BaseClass {
         });
     }
 
+
+    public listAllRewardProgramBuildings(configIds = []): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+
+                let whereClause = '';
+                if (configIds.length) {
+                    whereClause = `WHERE reward_program_buildings.reward_program_config_id IN (${configIds.join(',')})`;
+                }
+                const sqlAll = `
+                    SELECT
+                        locations.name,
+                        reward_program_buildings.*
+                    FROM
+                        reward_program_buildings
+                    INNER JOIN
+                        locations
+                    ON
+                        reward_program_buildings.location_id = locations.location_id
+                    ${whereClause}
+                    ORDER BY
+                        reward_program_buildings.reward_program_config_id ASC;`;
+                connection.query(sqlAll, [], (error, results) => {
+                    if (error) {
+                         console.log('Cannot get all reward program buildings', sqlAll, error);
+                         throw new Error(error); 
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            }); 
+        });
+    }
     public setCandidateUserForReward(reward_program_config_id=0, userId=0, acitivity=0, totalPoints=0) {
         return new Promise((resolve, reject) => {
             let program_config_id = this.ID();
@@ -648,9 +684,9 @@ export class RewardConfig extends BaseClass {
                     users.email,
                     accounts.account_name
                 FROM
-                    users
-                INNER JOIN
                     user_reward_points
+                INNER JOIN
+                    users
                 ON
                     users.user_id = user_reward_points.user_id
                 INNER JOIN
@@ -663,7 +699,7 @@ export class RewardConfig extends BaseClass {
 
                 connection.query(sql, [program_config_id], (error, results) => {
                     if (error) {
-                        console.log('Cannot insert user reward points record', sql, error);
+                        console.log('Cannot retrieve user reward points record', sql, error);
                         throw new Error(error);
                     }
                     resolve(results);

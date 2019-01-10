@@ -132,7 +132,7 @@ export class AdminRoute extends BaseRoute {
         configName = temp['name'];
       } else {
         const temp = await new Account(config['sponsor_to_id']).load();
-        configName = temp['location_name'];
+        configName = temp['account_name'];
       }
       
       const users = await rewardConfigurator.getRewardee();
@@ -186,8 +186,10 @@ export class AdminRoute extends BaseRoute {
       const rewardConfigurator = new RewardConfig();
 
       const partialConfigArr = await rewardConfigurator.getAllConfig();
+      
       const configObj = {};
       const configArray = [];
+      const tempAccountTypeArr = [];
       for (let config of partialConfigArr) {
         if (config['reward_program_config_id'] in configObj) {
           if (config['incentive'] && (configObj[config['reward_program_config_id']]['reward']).indexOf(config['incentive']) == -1) {
@@ -200,6 +202,10 @@ export class AdminRoute extends BaseRoute {
             (configObj[config['reward_program_config_id']]['redeemer_id']).push(config['redeemer_id']);
           }
         } else {
+
+          if (config['sponsor_to_id_type'] == 'account') {
+            tempAccountTypeArr.push(config['reward_program_config_id']);
+          }
           configObj[config['reward_program_config_id']] = {
             reward_program_config_id: config['reward_program_config_id'],
             sponsor: config['sponsor'],
@@ -207,7 +213,8 @@ export class AdminRoute extends BaseRoute {
             location_name: config['location_name'],
             reward: [], 
             user_reward_id: [],
-            redeemer_id: []
+            redeemer_id: [],
+            buildings: []
           }
           if (config['incentive']) {
             (configObj[config['reward_program_config_id']]['reward']).push(config['incentive']);
@@ -218,10 +225,16 @@ export class AdminRoute extends BaseRoute {
           if (config['redeemer_id']) {
             (configObj[config['reward_program_config_id']]['redeemer_id']).push(config['redeemer_id']);
           }
-
-
         }
       }
+
+      const rewardProgBldg = await rewardConfigurator.listAllRewardProgramBuildings(tempAccountTypeArr);      
+      for (let b of rewardProgBldg) {
+        if (b['reward_program_config_id'] in configObj) {
+          (configObj[b['reward_program_config_id']]['buildings']).push(b['name']);
+        }
+      }
+
 
       Object.keys(configObj).forEach((key) => {
         configArray.push(configObj[key]);
