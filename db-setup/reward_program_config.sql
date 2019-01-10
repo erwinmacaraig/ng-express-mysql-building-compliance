@@ -11,5 +11,5 @@ CREATE TABLE `reward_program_config` (
   `dtModified` datetime DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
   `dtAdded` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`reward_program_config_id`),
-  UNIQUE KEY `sponsor_to_id` (`sponsor_to_id`,`sponsor_to_id_type`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8
+  UNIQUE KEY `uniq_config` (`reward_program_config_id`, `sponsor_to_id`,`sponsor_to_id_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

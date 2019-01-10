@@ -1,0 +1,13 @@
+.title {
+    font-size: 28px;
+    color: #39a1ff;
+}
+
+thead th {
+    border-radius: 0px;
+    font-weight: normal;
+    background-color: #3d3d3d !important;
+    padding: 10px;
+    font-size: 14px;
+    color: #fff;
+}

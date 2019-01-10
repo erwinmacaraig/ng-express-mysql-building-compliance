@@ -72,13 +72,133 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
+    router.post('/admin/delete-reward-program-config', new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const rewardConfigurator = new RewardConfig(req.body.configId);
+      await rewardConfigurator.deleteConfig();
+      return res.status(200).send({
+        message: 'Config successfully deleted.'
+      });
+    });
+
+    router.get('/admin/get-program-config-details/', new MiddlewareAuth().authenticate,
+    async(req: AuthRequest, res: Response, next: NextFunction) => {
+      const configId = req.query.config;
+      const rewardConfigurator = new RewardConfig(configId);
+      const config = await rewardConfigurator.load();
+      // get related buildings
+      const buildings = await rewardConfigurator.getProgramConfigBuildings();            
+      const activities = await rewardConfigurator.getProgramActivities();
+     
+      let searchKey = '';      
+      let accountLocations = [];
+
+      if (config['sponsor_to_id_type'] == 'account') {
+        // load account details
+        const account = await new Account(config['sponsor_to_id']).load();
+        searchKey = account['account_name'];
+
+        // get all locations on this account
+        const allTaggedLocationsAccounts = <any> await new List().listAllTaggedBuildingsOfAccount(config['sponsor_to_id'], 0);
+        for (let l of allTaggedLocationsAccounts) {         
+          accountLocations.push({
+            location_id: l['location_id'],
+            location_name: l['name']
+          } );
+        }
+
+
+      } else {
+        searchKey = buildings[0]['location_name'];
+      }
+      const incentives = await rewardConfigurator.getProgramIncentives();
+
+
+      return res.status(200).send({
+        sponsor: config['sponsor'],
+        sponsor_emails: config['sponsor_contact_email'],
+        selectionType: config['sponsor_to_id_type'],
+        selectionId: config['sponsor_to_id'],
+        activities: activities,
+        incentives: incentives,
+        searchKey: searchKey,
+        buildings: buildings,
+        accountLocations: accountLocations
+      });
+
+
+    }
+    );
+
+    router.get('/admin/get-all-rewardee/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
+      const configId = req.query.config;
+      const rewardConfigurator = new RewardConfig(configId);
+      const config = await rewardConfigurator.load();
+      let configName = '';
+      if (config['sponsor_to_id_type'] == 'location') {
+        const temp = await new Location(config['sponsor_to_id']).load();
+        configName = temp['name'];
+      } else {
+        const temp = await new Account(config['sponsor_to_id']).load();
+        configName = temp['account_name'];
+      }
+      
+      const users = await rewardConfigurator.getRewardee();
+      const usersArr = [];
+      for (let user of users) {
+        usersArr.push(user['user_id']);
+        user['redemeedIncentives'] = [];
+        user['remainingPoints'] = 0;
+      }
+
+      const userRedeemedListing = await rewardConfigurator.userRedeemedItem(usersArr);
+      let userRedeemedListingObj = {};
+      for (let userRedeemer of userRedeemedListing) {
+        if (userRedeemer['user_id'] in userRedeemedListingObj) {
+          (userRedeemedListingObj[userRedeemer['user_id']] as Array<Object>).push({
+            incentive: userRedeemer['incentive'],
+            dtRedeemed: moment(userRedeemer['dtRedeemed'], 'YYYY-MM-DD HH:mm:ss').format('DD-MM-YYYY')
+          });
+        } else {         
+          userRedeemedListingObj[userRedeemer['user_id']] = [{
+            incentive: userRedeemer['incentive'],
+            dtRedeemed: moment(userRedeemer['dtRedeemed'], 'YYYY-MM-DD HH:mm:ss').format('DD-MM-YYYY')
+          }];
+        }
+      }
+
+      const userTotalPoints = await rewardConfigurator.computeForTotalActivityPoints(usersArr);
+      let userTotalPointsObj = {};
+      for(let u of userTotalPoints) {
+        userTotalPointsObj[u['user_id']] = u['totalPoints'];
+      }
+
+      for (let user of users) {
+        if (user['user_id'] in userRedeemedListingObj) {
+          user['redemeedIncentives'] = userRedeemedListingObj[user['user_id']];
+        }
+        if (user['user_id'] in userTotalPointsObj) {
+          user['remainingPoints'] = userTotalPointsObj[user['user_id']];
+        }        
+      }
+      return res.status(200).send({
+        configName: configName,
+        data: users
+      });
+
+    }
+    );
+
     router.get('/admin/get-all-reward-program-config/', new MiddlewareAuth().authenticate,
     async (req: AuthRequest, res: Response, next: NextFunction) => {
       const rewardConfigurator = new RewardConfig();
 
       const partialConfigArr = await rewardConfigurator.getAllConfig();
+      
       const configObj = {};
       const configArray = [];
+      const tempAccountTypeArr = [];
       for (let config of partialConfigArr) {
         if (config['reward_program_config_id'] in configObj) {
           if (config['incentive'] && (configObj[config['reward_program_config_id']]['reward']).indexOf(config['incentive']) == -1) {
@@ -91,6 +211,10 @@ export class AdminRoute extends BaseRoute {
             (configObj[config['reward_program_config_id']]['redeemer_id']).push(config['redeemer_id']);
           }
         } else {
+
+          if (config['sponsor_to_id_type'] == 'account') {
+            tempAccountTypeArr.push(config['reward_program_config_id']);
+          }
           configObj[config['reward_program_config_id']] = {
             reward_program_config_id: config['reward_program_config_id'],
             sponsor: config['sponsor'],
@@ -98,7 +222,8 @@ export class AdminRoute extends BaseRoute {
             location_name: config['location_name'],
             reward: [], 
             user_reward_id: [],
-            redeemer_id: []
+            redeemer_id: [],
+            buildings: []
           }
           if (config['incentive']) {
             (configObj[config['reward_program_config_id']]['reward']).push(config['incentive']);
@@ -109,10 +234,16 @@ export class AdminRoute extends BaseRoute {
           if (config['redeemer_id']) {
             (configObj[config['reward_program_config_id']]['redeemer_id']).push(config['redeemer_id']);
           }
-
-
         }
       }
+
+      const rewardProgBldg = await rewardConfigurator.listAllRewardProgramBuildings(tempAccountTypeArr);      
+      for (let b of rewardProgBldg) {
+        if (b['reward_program_config_id'] in configObj) {
+          (configObj[b['reward_program_config_id']]['buildings']).push(b['name']);
+        }
+      }
+
 
       Object.keys(configObj).forEach((key) => {
         configArray.push(configObj[key]);
@@ -128,7 +259,9 @@ export class AdminRoute extends BaseRoute {
       async (req: AuthRequest, res: Response, next: NextFunction) => {
         const rewardConfigurator = new RewardConfig();
         const accountId = req.body.account_id;
-        const locations = await rewardConfigurator.candidateBuildingLocations(accountId);
+        let locations = await rewardConfigurator.candidateBuildingLocations(accountId);
+        const parentLocationsForTenantAccnt = await rewardConfigurator.candidateParentBuildingsForTenantAccount(accountId);
+        locations = locations.concat(parentLocationsForTenantAccnt);
 
         return res.status(200).send({
           locations: locations
@@ -2685,9 +2818,14 @@ export class AdminRoute extends BaseRoute {
     });
   }
 
-  public async createRewardProgramConfig(req: AuthRequest, res: Response) {
-    const rewardProgramConfigurator = new RewardConfig();
+  public async createRewardProgramConfig(req: AuthRequest, res: Response) {    
     console.log(req.body);
+    let rewardProgramConfigurator = new RewardConfig();
+    if ('reward_proram_config_id' in req.body) {
+      rewardProgramConfigurator = new RewardConfig(req.body.reward_proram_config_id);
+      await rewardProgramConfigurator.deleteProgramBuildings();
+      await rewardProgramConfigurator.deleteUsers();
+    }
     const activities = [];
     const rewards = [];
     let locations = [];
@@ -2718,13 +2856,13 @@ export class AdminRoute extends BaseRoute {
     
     await rewardProgramConfigurator.create(configData);
     let wardenUsersArr;
-
-    if (req.body.selection_type == 'account') {
+    
+    if (req.body.selection_type == 'account') {      
       for (let building of req.body.config_locations) {
-        rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
+        await rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
         buildings.push(building['location_id']);
       }
-      const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings);
+      const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings, req.body.selection_id);
      
       locations = [...buildings, ...sublevels];
       // get all emergency users in this account

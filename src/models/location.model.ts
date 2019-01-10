@@ -189,7 +189,7 @@ export class Location extends BaseClass {
             });
         });
     }
-
+    /*
     public getParentLocationByAccountId(accountId: Number){
         return new Promise((resolve, reject) => {
             const sql_load = `
@@ -227,7 +227,7 @@ export class Location extends BaseClass {
             });
         });
     }
-
+    */
     public getManyByAccountId(accountId: Number, getChild: Boolean = false) {
         return new Promise((resolve, reject) => {
             const sql_load = `

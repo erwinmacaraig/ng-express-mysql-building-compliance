@@ -1,4 +1,16 @@
-<div>
+<div class="preloader-wrapper active" style="top: 50%; left: 50%; margin-top: 20%" *ngIf="showLoading">
+    <div class="spinner-layer spinner-red-only">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+</div>
+
+<div *ngIf="!showLoading">
     <form [formGroup]="configForm">
     <div class="row">
         <div class="col s12">
@@ -182,7 +194,7 @@
 
         <div class="row">
             <div class="col l6 m6 s6">
-                <button type="button" class="btn grey lighten-1 waves-light waves-effect">Cancel</button>
+                <button [routerLink]="['/admin', 'list-reward-configuration']" type="button" class="btn grey lighten-1 waves-light waves-effect">Cancel</button>
                 <button type="button" (click)="finalizeConfig()" class="btn orange waves-light waves-effect" [disabled]="!configForm.valid">Submit</button>
             </div>
         </div>

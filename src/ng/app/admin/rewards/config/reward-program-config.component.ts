@@ -5,8 +5,8 @@ import { Subscription } from 'rxjs/Subscription';
 import { AdminService } from '../../../services/admin.service';
 import { Observable } from 'rxjs/Observable';
 import { forkJoin } from 'rxjs/observable/forkJoin';
-import { Router } from '@angular/router';
-import { routerNgProbeToken } from '@angular/router/src/router_module';
+import { Router, ActivatedRoute, ParamMap } from '@angular/router';
+
 
 declare var $:any;
 
@@ -23,13 +23,13 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
     public filteredList = [];
     public locations = [];
     public selectedLocations = [];
+    public rewardProgramId;
+    public showLoading = true;
 
     private searchSubscription:Subscription;
 
     private selectionType;
     private selectionTypeId;
-
-
 
     dropdownSettings = {
         singleSelection: false,
@@ -45,7 +45,7 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
     
     
 
-    constructor(private adminService: AdminService, private router: Router) {
+    constructor(private adminService: AdminService, private route: ActivatedRoute, private router: Router) {
 
     }
 
@@ -54,37 +54,80 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
             $('select').material_select();
         });
     }
-    ngOnInit() {      
-        
+    ngOnInit() {
+
         this.configForm = new FormGroup({
             search: new FormControl(null, Validators.required),
             sponsor: new FormControl(null, Validators.required),
             sponsor_emails: new FormControl(null, Validators.required),
-            activities: new FormArray([
-                new FormControl('Sign up', Validators.required),
-                new FormControl('Anniversary', Validators.required),
-                new FormControl('Training', Validators.required)
-            ]),
-            activity_points: new FormArray([
-                new FormControl('10', Validators.required),
-                new FormControl('10', Validators.required),
-                new FormControl('10', Validators.required)
-            ]),
-            reward_items: new FormArray([
-               new FormControl('Coffee Voucher', Validators.required) 
-            ]),
-            reward_item_points: new  FormArray([
-                new FormControl('50', Validators.required)
-            ]),
+            activities: new FormArray([]),
+            activity_points: new FormArray([]),
+            reward_items: new FormArray([]),
+            reward_item_points: new  FormArray([]),
             config_locations: new FormControl([]),
             selection_type: new FormControl(null, Validators.required),
             selection_id: new FormControl(null, Validators.required)            
-        });        
+        });  
+        
+        this.route.paramMap.subscribe((paramMap: ParamMap) => {
+            if (paramMap.has('programConfig')) {
+                this.rewardProgramId = paramMap.get('programConfig');
+                
+                this.adminService.getRewardProgramConfigDetails(this.rewardProgramId).subscribe((res) => {
+                   if (res.selectionType == 'account') {
+                       this.selectedLocations = res.buildings;
+                       this.locations = res.accountLocations
 
+                   }
+
+                   this.selectionType = res.selectionType;
+                   this.selectionTypeId = res.selectionId;
+
+                    this.configForm.get('sponsor').patchValue(res.sponsor);
+                    this.configForm.get('search').patchValue(res.searchKey);
+                    this.configForm.get('sponsor_emails').patchValue(res.sponsor_emails);
+                    this.configForm.get('selection_type').patchValue(res.selectionType);
+                    this.configForm.get('selection_id').patchValue(res.selectionId);
+                    this.configForm.addControl('reward_proram_config_id', new FormControl(this.rewardProgramId, Validators.required));
+
+
+                    for (let activity of res.activities) {
+                       (this.configForm.get('activities') as FormArray).push(
+                           new FormControl(activity['activity'], Validators.required)
+                       );
+                       (this.configForm.get('activity_points') as FormArray).push(
+                           new FormControl(activity['activity_points'], Validators.required)
+                       );
+                    }
+
+                    for (let reward of res.incentives) {
+                        (this.configForm.get('reward_items') as FormArray).push(new FormControl(reward['incentive'], Validators.required));
+                        (this.configForm.get('reward_item_points') as FormArray).push(new FormControl(reward['points_to_earn'], Validators.required));
+                    }                    
+                    this.searchSubscription = this.smartSearch();
+                    
+                });
+            } else {                             
+                (this.configForm.get('activities') as FormArray).push(new FormControl('Sign up', Validators.required));
+                (this.configForm.get('activities') as FormArray).push(new FormControl('Anniversary', Validators.required));
+                (this.configForm.get('activities') as FormArray).push(new FormControl('Training', Validators.required));
+
+
+                (this.configForm.get('activity_points') as FormArray).push(new FormControl('10', Validators.required));
+                (this.configForm.get('activity_points') as FormArray).push(new FormControl('10', Validators.required));
+                (this.configForm.get('activity_points') as FormArray).push(new FormControl('10', Validators.required));
+
+                (this.configForm.get('reward_items') as FormArray).push(new FormControl('Coffee Voucher', Validators.required));
+                (this.configForm.get('reward_item_points') as FormArray).push(new FormControl('50', Validators.required));
+                this.searchSubscription = this.smartSearch();
+               
+            }
+        }); 
+        
+        setTimeout(() => {  this.showLoading = false; }, 500);
     }
 
-    ngAfterViewInit() {
-        this.searchSubscription = this.smartSearch();
+    ngAfterViewInit() {        
         this.jquery_code();
     }
 

@@ -11,3 +11,14 @@ thead th {
     font-size: 14px;
     color: #fff;
 }
+
+ul.location-listing {
+    list-style-type: circle;
+    padding-left: 0.5rem
+}
+
+.users { width: 30% !important ; height: 75% !important ; } 
+/* increase the height and width as you desire */
+
+.delete-confirm { width: 80% !important ; height: 35% !important ; } 
+/* increase the height and width as you desire */
