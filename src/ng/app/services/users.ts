@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -343,6 +343,15 @@ export class UserService {
 
     getEmRoles() {
         return this.http.get(this.baseUrl + '/users/emroles', this.options);
-    }
+	}
+	
+	userTrainingInfo(userId=0) {
+		let httpParams: HttpParams = new HttpParams().set('userId', userId.toString());
+		this.options['params'] = httpParams;
+		return this.http.get<{
+			message: string,
+			userInfoTraining: Array<object>
+		}>(this.baseUrl + '/users/all-training-info', this.options);
+	}
 
 }

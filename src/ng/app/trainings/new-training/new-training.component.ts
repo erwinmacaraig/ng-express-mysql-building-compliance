@@ -27,6 +27,9 @@ declare var moment: any;
   providers: [DashboardPreloaderService, EncryptDecryptService, UserService, CourseService, ComplianceService, AdminService]
 })
 export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
+    
+    public userData = {};
+    public userTrainingInfo;
 
     public constructor(
         private dashboardService : DashboardPreloaderService,
@@ -34,13 +37,18 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
         private userService : UserService,
         private courseService : CourseService,
         private complianceService : ComplianceService,
-        private adminService : AdminService
+        private adminService : AdminService,
+        private authService : AuthService
     ){
 
     }
 
-    public ngOnInit(){
-
+    public ngOnInit() {
+        this.userData = this.authService.getUserData();
+        this.userService.userTrainingInfo(this.userData['userId']).subscribe((response) => {
+            console.log(response);
+            this.userTrainingInfo = response['userInfoTraining'];
+        });
     }
 
     public ngAfterViewInit(){

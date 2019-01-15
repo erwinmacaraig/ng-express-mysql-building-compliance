@@ -572,7 +572,7 @@ export class TrainingCertification extends BaseClass {
    * @returns
    * Return an array of required training ids
    */
-  public getTrainings(user_id: number = 0, training_requirements = []): Promise<Array<object>> {
+  public getTrainings(user_id: number = 0, training_requirements = []): Promise<Array<number>> {
     return new Promise((resolve, reject) => {
       if (training_requirements.length === 0) {
         resolve([]);

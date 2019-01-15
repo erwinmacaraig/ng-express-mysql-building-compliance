@@ -5,8 +5,11 @@
         <div class="avatar-container">
             <div class="doll"></div>
             <div class="name-location-container">
-                <div class="name blue-text">John Blue</div>
+                <div class="name blue-text">{{userData['name']}}</div>
                 <div class="location-image"></div>
+                <div class="location-text">Location, Sub Location</div>
+                <div class="location-text">Location, Sub Location</div>
+                <div class="location-text">Location, Sub Location</div>
                 <div class="location-text">Location, Sub Location</div>
             </div>
         </div>
@@ -24,7 +27,7 @@
         <p class="small-text">10 skill points to next level</p>
         
         <div class="spacer"></div>
-
+        <!--
         <div class="myskill-container">
             <h5>My Skills</h5>
             <div class="badges">
@@ -32,9 +35,28 @@
                 <div class="badge badge-2"></div>
             </div>
         </div>
-
+        -->    
         <div class="training-status-container">
-            <h5>Training Status</h5>
+            <h5>My Roles</h5>
+            <div *ngFor="let trainingInfo of userTrainingInfo" class="role-list-container">
+                    <div [ngClass]="{ 'role-icon': trainingInfo['em_role_id'], 'general-occupant': trainingInfo['em_role_id'] == 8, 'warden': trainingInfo['em_role_id'] != 8 }"></div>
+                    <div class="role-text-compliant">
+                        <div class="role-name">{{trainingInfo['role_name']}}</div>
+                        <div class="compliant-container non-compliant">
+                            <div class="image"></div>
+                            <div class="text"></div>
+                        </div>
+                    </div>
+                    <div class="training-requirements">
+                        <div class="icon"></div>
+                        <div class="text blue-text">
+                            Training Requirements <br/>
+                            
+                        </div>
+                    </div>
+            </div>
+                        
+  <!--
             <div class="role-list-container">
                 <div class="role-icon general-occupant"></div>
                 <div class="role-text-compliant">
@@ -72,12 +94,12 @@
                     </div>
                 </div>
             </div>
-        </div>
-
+        -->
+        </div>    
     </div>
 
     <div class="right-container">
-        
+        <!--
         <div class="top">
             <h4 class="title left">Training</h4>
             <div class="right">
@@ -99,7 +121,7 @@
                 </ul>
             </div>
         </div>
-
+-->
         <div class="box-container">
             
             <div class="box center check">
@@ -210,5 +232,6 @@
         </div>
 
     </div>
+
 
 </div>

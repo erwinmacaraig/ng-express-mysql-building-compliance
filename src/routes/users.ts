@@ -173,6 +173,10 @@ export class UsersRoute extends BaseRoute {
             new  UsersRoute().locationRoleAssignments(req, res, next);
         });
 
+        router.get('/users/all-training-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new UsersRoute().allTrainingInfo(req, res, next);
+        });
+
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 	    	new  UsersRoute().getLocationsTenants(req, res, next).then((data) => {
           res.status(200).send({
@@ -436,6 +440,131 @@ export class UsersRoute extends BaseRoute {
             new UsersRoute().userTrainingInfo(req, res);
         }
       )
+
+    }
+
+    public async allTrainingInfo(req: AuthRequest, res: Response, next: NextFunction) {
+        const userId = req.query.userId;
+        let userRoleModel;
+        let userTrainingInfoArr = [];
+        /*
+        let trainingRequirementModules = {
+            training_requirement_id: 0,
+            training_requirement_name: '',
+            module: []
+        };
+        */
+       let trainingRequirementModules = {};
+       /*
+       let userTrainingInfoObj = {
+            em_role_id: 0,
+            role_name: '',            
+            traning_requirement: []
+        };
+        */
+       let userTrainingInfoObj = {};
+        let temp;
+        let emroles = new UserEmRoleRelation(); 
+        let isFRP = false, isTRP = false;
+        if (req.user.user_id != userId || req.user.evac_role != 'admin') {
+            userRoleModel = new UserRoleRelation();
+            try{
+                let frptrpRoles = <any> await userRoleModel.getByUserId(userId);
+                for(let ftrole of frptrpRoles){
+                    if(ftrole.role_id == 1){
+                        isFRP = true;
+                    }
+                    if(ftrole.role_id == 2){
+                        isTRP = true;
+                    }
+                }
+
+                if (!isFRP && !isTRP && req.user.evac_role != 'admin') {
+                    res.status(200).send({
+                        message: 'You are prohibited to view training info of this user',
+                        userInfoTraining: []
+                    });
+                }
+            } catch(e){
+                console.log(e, 'allTrainingInfo');
+            }
+        }
+
+        const emRolesInfoArr = await emroles.getEmRolesFilterBy({
+            user_id: userId,
+            distinct: 'em_role_id' 
+        });
+
+        const trainingReqmtArr = await new TrainingRequirements().allEmRolesTrainings();
+        const trainingReqmtObj = {};
+        temp = [];
+        for (let tr of trainingReqmtArr) {
+            if (tr['en_role_id'] in trainingReqmtObj) {
+                (trainingReqmtObj[tr['em_role_id']]['training_requirement_id']).push(tr['training_requirement_id']);
+                (trainingReqmtObj[tr['em_role_id']]['training_requirement_name']).push(tr['training_requirement_name']);
+                (trainingReqmtObj[tr['em_role_id']]['trainingRqmtArrObj']).push({
+                    training_requirement_id: tr['training_requirement_id'],
+                    training_requirement_name: tr['training_requirement_name']
+                });
+            } else {
+                trainingReqmtObj[tr['em_role_id']] = {
+                    em_role_id: tr['em_role_id'],
+                    role_name: tr['role_name'],
+                    trainingRqmtArrObj: [{
+                        training_requirement_id: tr['training_requirement_id'],
+                        training_requirement_name: tr['training_requirement_name']
+                    }],
+                    training_requirement_id: [tr['training_requirement_id']],
+                    training_requirement_name: [tr['training_requirement_name']]                    
+                }
+            }
+
+            if (temp.indexOf(tr['training_requirement_id']) == -1)  {
+                temp.push(tr['training_requirement_id']);
+                trainingRequirementModules[tr['training_requirement_id']] = {                    
+                    modules: []
+                };
+                const trModules = await new TrainingRequirements().getTrainingModulesForRequirement(tr['training_requirement_id']);
+
+                trainingRequirementModules[tr['training_requirement_id']]['modules'] = trModules;
+            }
+
+        }
+
+        temp = null;
+
+        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>);
+        for (let em_role_id of myEmRoleIds) {
+            userTrainingInfoObj = {
+                em_role_id: em_role_id,
+                role_name:  trainingReqmtObj[em_role_id.toString()]['role_name'],
+                traning_requirement: [],
+                active_training: [],
+            }
+            let missingRequiredTrainingsIdArr = [];
+            missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
+            for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
+                let status = 'compliant';
+                if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
+                    status = 'non-compliant';
+                }
+                userTrainingInfoObj['traning_requirement'].push({
+                    ...tr,
+                    modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
+                    status: status
+                }); 
+            }
+            userTrainingInfoArr.push(userTrainingInfoObj);
+        }
+
+        // get completed modules
+
+        res.status(200).send({
+            message: 'Success',
+            userInfoTraining: userTrainingInfoArr 
+        });
+                
+
 
     }
 

@@ -152,17 +152,19 @@ export class UserEmRoleRelation extends BaseClass {
         const em_roles = [];
         const user_ids = [];
         const location_ids = [];
+        const role_text = [];
         let whereClause = 'WHERE 1=1';
         if ('user_id' in filter) {
-          whereClause += ` AND user_id = ${filter['user_id']}`;
+          whereClause += ` AND user_em_roles_relation.user_id = ${filter['user_id']}`;
         }
         if ('location_id' in  filter) {
-          whereClause += ` AND location_id = ${filter['location_id']}`;
+          whereClause += ` AND user_em_roles_relation.location_id = ${filter['location_id']}`;
         }
         if ('distinct' in filter) {
-          whereClause += ` GROUP BY ${filter['distinct']}`;
+          whereClause += ` GROUP BY user_em_roles_relation.${filter['distinct']}`;
         }
-        const sql_get_roles = `SELECT em_role_id, location_id, user_id FROM user_em_roles_relation ${whereClause}`;
+        const sql_get_roles = `SELECT user_em_roles_relation.em_role_id, em_roles.role_name, user_em_roles_relation.location_id, user_em_roles_relation.user_id FROM user_em_roles_relation
+        INNER JOIN em_roles ON user_em_roles_relation.em_role_id = em_roles.em_roles_id ${whereClause}`;
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);
@@ -177,8 +179,9 @@ export class UserEmRoleRelation extends BaseClass {
                   em_roles.push(results[i]['em_role_id']);
                   user_ids.push(results[i]['user_id']);
                   location_ids.push(results[i]['location_id']);
+                  role_text.push(results[i]['role_name']);
                 }
-                resolve([em_roles, location_ids, user_ids]);
+                resolve([em_roles, location_ids, user_ids, role_text]);
               } else {
                 reject('Cannot get emergency roles');
               }
