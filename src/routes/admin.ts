@@ -1276,7 +1276,37 @@ export class AdminRoute extends BaseRoute {
       }
 
       let allUsers = [];
+      // since this is account users, it should be taken note that we need to determine
+      // the relationship of the account to the location
+
+      // For Account as Building Manager / Tenant
+      const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(req.params.accountId);
+      let roleOfAccountInLocationObj = {};
+      for (let role of roleOfAccountInLocationArr) {
+        let account_role = '';
+        let role_id = 0;
+        if (role['responsibility'] == 'Manager') {
+          role_id = 1;
+          account_role = 'FRP';
+        } else if (role['responsibility'] == 'Tenant') {
+          role_id = 2;
+          account_role = 'TRP';
+        }
+        roleOfAccountInLocationObj[role['location_id']] = {
+          role_id: role_id,
+          account_role: account_role
+        };
+      }
       allUsers = await account.generateAdminAccountUsers(req.params.accountId, selectedUsers);
+      for (let i = 0; i < allUsers.length; i++) {
+        if (allUsers[i]['location_id'] in roleOfAccountInLocationObj) {
+          allUsers[i]['role_id'] = roleOfAccountInLocationObj[allUsers[i]['location_id']]['role_id'];
+          allUsers[i]['account_role'] = roleOfAccountInLocationObj[allUsers[i]['location_id']]['account_role'];
+        } else {
+          allUsers[i]['role_id'] = 1;
+          allUsers[i]['account_role'] = 'FRP';
+        }
+      }
       allUsers = allUsers.concat(await account.generateAdminEMUsers(req.params.accountId, selectedUsers));
       // console.log(allUsers);
       const accountUsers = [];
@@ -1289,7 +1319,8 @@ export class AdminRoute extends BaseRoute {
             (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).push(allUsers[i]['role_id']);
           }
           if (allUsers[i]['location_id'] in allUserObject[allUsers[i]['user_id']]['locations']) {
-            if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
+            if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)
+            && (allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role']).indexOf(allUsers[i]['account_role']) == -1 ) {
 
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                 allUsers[i]['account_role']
@@ -1347,7 +1378,7 @@ export class AdminRoute extends BaseRoute {
             'allAccountRoles': []
           };
 
-          if (allUsers[i]['role_id'] != null && allUsers[i]['role_id'] < 3) {
+          if (allUsers[i]['role_id'] != null && allUsers[i]['role_id'] < 3 && (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).indexOf(allUsers[i]['role_id']) == -1) {
             allUserObject[allUsers[i]['user_id']]['allAccountRoles'].push(allUsers[i]['role_id']);
           }
           // console.log(typeof allUsers[i]['location_id']);
@@ -1362,14 +1393,18 @@ export class AdminRoute extends BaseRoute {
               'em-role-id': []
 
             };
-            if (allUsers[i]['account_role'] && (allUsers[i]['account_role'] !== null || allUsers[i]['account_role'].length > 0)) {
-              allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
+            
+            if (allUsers[i]['account_role']
+            && allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].indexOf(allUsers[i]['account_role']) == -1
+            && (allUsers[i]['account_role'] !== null) ) {
+               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role'].push(
                 allUsers[i]['account_role']
               );
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['account-role-id'].push(
                 allUsers[i]['role_id']
               );
             }
+            
             if (allUsers[i]['role_name'] && (allUsers[i]['role_name'] !== null || allUsers[i]['role_name'].length > 0)) {
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role'].push(allUsers[i]['role_name']);
               allUserObject[allUsers[i]['user_id']]['locations'][allUsers[i]['location_id']]['em-role-id'].push(allUsers[i]['role_id']);
@@ -2706,23 +2741,86 @@ export class AdminRoute extends BaseRoute {
         userRoleModel = new User(),
         userLocationAndRoles = new User(),
         accountModel = new Account();
-
         try{
             user = await userModel.load();
             user['last_login'] = moment(user['last_login']).format('MMM. DD, YYYY hh:mm A');
-
-            response.data['user'] = user;
-            response.data['roles'] = await userRoleModel.getAllRoles(user['user_id']);
-            response.data['location_roles'] = await userLocationAndRoles.getAllRolesAndLocations(user['user_id']);
-
             accountModel.setID(user['account_id'])
             account = await accountModel.load();
+            // since this is account users, it should be taken note that we need to determine
+            // the relationship of the account to the location
+            // For Account as Building Manager / Tenant
+            const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(user['account_id']);
+            let roleOfAccountInLocationObj = {};
+            for (let role of roleOfAccountInLocationArr) {
+              let account_role = '';
+              let role_id = 0;
+              if (role['responsibility'] == 'Manager') {
+                role_id = 1;
+                account_role = 'FRP';
+              } else if (role['responsibility'] == 'Tenant') {
+                role_id = 2;
+                account_role = 'TRP';
+              }
+              roleOfAccountInLocationObj[role['location_id']] = {
+                role_id: role_id,
+                account_role: account_role
+              };
+            }
+
+            const userAccountInfo = await accountModel.generateAdminAccountUsers(user['account_id'], [user['user_id']]);
+            for (let i = 0; i < userAccountInfo.length; i++) {
+              if (userAccountInfo[i]['location_id'] in roleOfAccountInLocationObj) {
+                userAccountInfo[i]['role_id'] = roleOfAccountInLocationObj[userAccountInfo[i]['location_id']]['role_id'];
+                userAccountInfo[i]['account_role'] = roleOfAccountInLocationObj[userAccountInfo[i]['location_id']]['account_role'];
+              } else {
+                userAccountInfo[i]['role_id'] = 1;
+                userAccountInfo[i]['account_role'] = 'FRP';
+              }
+            }
+            const userEmergencyInfo = await accountModel.generateAdminEMUsers(user['account_id'], [user['user_id']]);           
+            const locationRoles = [];
+            const locationRolesObj = {};
+
+            for(let loc of userAccountInfo) {
+                let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;
+                console.log(loc);
+                locationRolesObj[loc['location_id']] = {
+                  location_id: loc['location_id'],
+                  location_role: [loc['account_role']],
+                  location_name: name 
+                };
+            }
+            for(let loc of userEmergencyInfo) {
+              let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;
+              if (loc['location_id'] in locationRolesObj) {
+                (locationRolesObj[loc['location_id']]['location_role']).push(loc['role_name']);
+              } else {
+                locationRolesObj[loc['location_id']] = {
+                  location_id: loc['location_id'],
+                  location_role: [loc['role_name']],
+                  location_name: name 
+                };
+              }
+            }
+            
+            Object.keys(locationRolesObj).forEach((key) => {
+              locationRoles.push(locationRolesObj[key]);
+            });
+
+            response.data['em_location_roles'] = userEmergencyInfo;
+            response.data['account_location_roles'] = userAccountInfo;
+            response.data['location_roles'] = locationRoles;
+            response.data['user'] = user;
+            response.data['roles'] = await userRoleModel.getAllRoles(user['user_id']);
+            // response.data['location_roles'] = await userLocationAndRoles.getAllRolesAndLocations(user['user_id']);
+
+            
             response.data['account'] = account;
 
             
             let trainingModel = new TrainingCertification();
-            response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
-
+            // response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
+            response.data['trainings'] = [];
         }catch(e){
             response.message = 'No user found';
         }

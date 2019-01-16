@@ -62,7 +62,7 @@
         <table class="table striped">
             <thead>
                 <tr>
-                    <!-- <th>Location ID</th> -->
+                    
                     <th>Location Name</th>
                     <th>Role</th>
                 </tr>
@@ -71,13 +71,13 @@
                 <tr *ngIf="locationRoles.length == 0">
                     <td colspan="2" class="center">No record found</td>
                 </tr>
-                <tr *ngFor="let lr of locationRoles">
-                    <!-- <td>{{lr.location_id}}</td> -->
+                <tr *ngFor="let lr of locationRoles">                    
                     <td>
-                        <a href="" [routerLink]="['/admin/view-location/', lr.location_id]" >{{lr.name}}</a>
+                        <a href="" [routerLink]="['/admin/view-location/', lr.location_id]" >{{lr.location_name}}</a>
                     </td>
-                    <td>{{lr.role}}</td>
+                    <td>{{lr.location_role.join(', ')}}</td>
                 </tr>
+                
             </tbody>
         </table>
     </div>

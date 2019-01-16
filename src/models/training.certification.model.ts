@@ -418,8 +418,7 @@ export class TrainingCertification extends BaseClass {
             GROUP BY certifications.certifications_id
             ${orderSql} ${limitSql}
           `;
-      }
-      console.log(sql);
+      }      
       this.pool.getConnection((err, connection) => {
         if (err) {                    
             throw new Error(err);

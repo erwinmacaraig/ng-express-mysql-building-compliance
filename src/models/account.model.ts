@@ -756,33 +756,31 @@ export class Account extends BaseClass {
                     users.first_name,
                     users.last_name,
                     users.email,
-                    users.mobile_number,
-                    user_role_relation.role_id,
+                    users.mobile_number,                     
                     accounts.account_id,
-                    accounts.account_name,
-                    IF (user_role_relation.role_id = 1, 'FRP', IF (user_role_relation.role_id = 2, 'TRP', '')) as account_role,
+                    accounts.account_name,                     
                     locations.location_id,
                     locations.name,
                     parent_locations.name as parent_name
                     FROM users
-                    INNER JOIN accounts ON users.account_id = accounts.account_id
-                    LEFT JOIN
-                    user_role_relation
-                    ON users.user_id = user_role_relation.user_id
-                    LEFT JOIN
-                    location_account_user
+                    INNER JOIN accounts ON users.account_id = accounts.account_id                                                         
+                    INNER JOIN location_account_user
                     ON
-                    location_account_user.user_id = users.user_id
+                    location_account_user.user_id = users.user_id                    
                     LEFT JOIN
                     locations
                     ON
                     locations.location_id = location_account_user.location_id
+                    LEFT JOIN location_account_relation
+                    ON location_account_relation.account_id = users.account_id
                     LEFT JOIN
                     locations as parent_locations
                     ON
                     locations.parent_id = parent_locations.location_id
                     WHERE
                     users.account_id = ? ${userStr}
+                    GROUP BY locations.location_id
+                    ORDER BY users.user_id DESC
                 `;
 
                 connection.query(sql, [account], (error, results) => {
@@ -835,12 +833,12 @@ export class Account extends BaseClass {
                     parent_locations.name as parent_name
                     FROM users
                     INNER JOIN accounts ON users.account_id = accounts.account_id
-                    LEFT JOIN
+                    INNER JOIN
                     user_em_roles_relation
                     ON
                     users.user_id = user_em_roles_relation.user_id
-                    LEFT JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
-                    LEFT JOIN
+                    INNER JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id
+                    INNER JOIN
                     locations
                     ON
                     locations.location_id = user_em_roles_relation.location_id
