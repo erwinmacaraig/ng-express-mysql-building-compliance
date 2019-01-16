@@ -2568,20 +2568,50 @@ export class AdminRoute extends BaseRoute {
                 userAccountInfo[i]['account_role'] = 'FRP';
               }
             }
-            const userEmergencyInfo = await accountModel.generateAdminEMUsers(user['account_id'], [user['user_id']])
+            const userEmergencyInfo = await accountModel.generateAdminEMUsers(user['account_id'], [user['user_id']]);           
+            const locationRoles = [];
+            const locationRolesObj = {};
+
+            for(let loc of userAccountInfo) {
+                let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;
+                console.log(loc);
+                locationRolesObj[loc['location_id']] = {
+                  location_id: loc['location_id'],
+                  location_role: [loc['account_role']],
+                  location_name: name 
+                };
+            }
+            for(let loc of userEmergencyInfo) {
+              let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;
+              if (loc['location_id'] in locationRolesObj) {
+                (locationRolesObj[loc['location_id']]['location_role']).push(loc['role_name']);
+              } else {
+                locationRolesObj[loc['location_id']] = {
+                  location_id: loc['location_id'],
+                  location_role: [loc['role_name']],
+                  location_name: name 
+                };
+              }
+            }
+            
+            Object.keys(locationRolesObj).forEach((key) => {
+              locationRoles.push(locationRolesObj[key]);
+            });
+
             response.data['em_location_roles'] = userEmergencyInfo;
             response.data['account_location_roles'] = userAccountInfo;
+            response.data['location_roles'] = locationRoles;
             response.data['user'] = user;
             response.data['roles'] = await userRoleModel.getAllRoles(user['user_id']);
-            response.data['location_roles'] = await userLocationAndRoles.getAllRolesAndLocations(user['user_id']);
+            // response.data['location_roles'] = await userLocationAndRoles.getAllRolesAndLocations(user['user_id']);
 
             
             response.data['account'] = account;
 
             
             let trainingModel = new TrainingCertification();
-            response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
-
+            // response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
+            response.data['trainings'] = [];
         }catch(e){
             response.message = 'No user found';
         }
