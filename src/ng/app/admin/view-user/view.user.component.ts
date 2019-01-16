@@ -28,10 +28,10 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
         }
         
     };
-
-    locationRoles = <any> [];
     trainings = <any> [];
-
+    accountLocationRoles = [];
+    emLocationRoles = [];
+    locationRoles = [];
     constructor(
         private route: ActivatedRoute,
         public adminService: AdminService,
@@ -51,9 +51,12 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
             this.adminService.getUserInformation(this.userId).subscribe((response:any) => {
                 if(Object.keys(response.data.user).length > 0){
                     this.userData = response.data.user;
-                    this.userData['account'] = response.data.account;
-                    this.locationRoles = response.data.location_roles;
+                    this.userData['account'] = response.data.account;                    
                     this.trainings = response.data.trainings;
+                    this.accountLocationRoles = response.data.account_location_roles;
+                    this.emLocationRoles = response.data.em_location_roles;
+                    this.locationRoles = response.data.location_roles;
+
                 }
                 this.dashboard.hide();
             });

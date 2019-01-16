@@ -1,8 +1,6 @@
 
-import * as db from 'mysql2';
+
 import { BaseClass } from './base.model';
-import { Location } from './location.model';
-const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
 
 import * as Promise from 'promise';
@@ -149,7 +147,7 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByAccountId(accountId: Number) {
+    public getByAccountId(accountId: Number): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const sql_load = 'SELECT * FROM location_account_relation WHERE account_id = ?';
             const param = [accountId];
@@ -161,12 +159,11 @@ export class LocationAccountRelation extends BaseClass {
                   if (error) {
                     return console.log(error);
                   }
-                  this.dbData = results;
-                  resolve(this.dbData);
+                  
+                  resolve(results);
                 });
                 connection.release();
-            });
-            
+            });            
         });
     }
 

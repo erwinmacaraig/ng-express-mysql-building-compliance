@@ -97,14 +97,16 @@
 
           <td>
             <div *ngFor="let loc of user['locations-arr']">
-                <span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}<br></span>
-                <br>
+               <!--<span *ngFor="let ar of loc['account-role']" [ngStyle]="{'display': 'block'}">{{ar}}<br></span>--> 
+               <span [ngStyle]="{'display': 'block'}">{{loc['account-role'].join(', ')}}<br></span>
+               <br>
             </div>
           </td>
 
           <td>
             <div *ngFor="let loc of user['locations-arr']">
-              <span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}} <br></span>
+              <!--<span *ngFor="let em of loc['em-role']" [ngStyle]="{'display': 'block'}"> {{em}} <br></span> --> 
+              <span [ngStyle]="{'display': 'block'}">{{loc['em-role'].join(', ')}}<br></span>
               <br>
             </div>
           </td>

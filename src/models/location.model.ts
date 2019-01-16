@@ -898,7 +898,8 @@ export class Location extends BaseClass {
                               throw new Error('There was an error getting the EM Roles for this location');
                             }
                             if (!results.length) {
-                              reject('There are no EM Roles for this location id - ' + location);
+                                // console.log('There are no EM Roles for this location id - ' + location);
+                                reject(false);
                             } else {
                               resultModification(results);
                               resolve(location_em_roles);
@@ -940,7 +941,8 @@ export class Location extends BaseClass {
                       throw new Error('There was an error getting the EM Roles for this location');
                     }
                     if (!results.length) {
-                      reject('There are no EM Roles for this location id - ' + location);
+                        // console.log('There are no EM Roles for this location id - ' + location);
+                        reject(false);
                     } else {
                       resultModification(results);
                       resolve(location_em_roles);
@@ -977,7 +979,8 @@ export class Location extends BaseClass {
                   return console.log('location.model.getEMRolesForThisLocation', error, sql);
                 }
                 if (!results.length) {
-                  reject('There are no EM Roles for this location id - ' + location);
+                  // console.log('There are no EM Roles for this location id - ' + location);
+                  reject(false);
                 } else {
 
                   resultModification(results);
