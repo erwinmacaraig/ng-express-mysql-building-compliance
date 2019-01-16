@@ -415,7 +415,7 @@ select option:disabled{
     background-color: #fbfbfb;
     top: 0px;
     padding: 0px 25px;
-    overflow: hidden;
+    /*overflow: hidden;*/
 }
 
 .location-role-container .center-message{
