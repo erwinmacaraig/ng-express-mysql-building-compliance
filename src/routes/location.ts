@@ -1093,7 +1093,8 @@ const defs = require('../config/defs.json');
         sublocations,
         othersub = [],
         locAccRel = new LocationAccountRelation(),
-        userIsWarden = false;
+        userIsWarden = false,
+        roleOfAccountInLocationObj = {};
 
       	// we need to check the role(s)
       	const userRoleRel = new UserRoleRelation();
@@ -1125,7 +1126,9 @@ const defs = require('../config/defs.json');
       		if(r > parseInt(roles[i]['role_id'], 10)) {
       			r = roles[i]['role_id'];
       		}
-      	}
+          }
+          
+
 
         response.roles = roles;
 
@@ -1168,10 +1171,30 @@ const defs = require('../config/defs.json');
         const wardenCalc = new WardenBenchmarkingCalculator();
 
         let sublocationIdsArray = [0];
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);            
+            if (locationId in roleOfAccountInLocationObj) {            
+                 r = roleOfAccountInLocationObj[locationId]['role_id'];   
+            } else {
+                r = 2;
+            }
+        } catch (e) {
+            console.log('Getting the account role for a location error');
+        }
+
+
         console.log('responsibility is ' + r);
+
+
+
+
         if(getRelatedOnly == true){
             let responsibility = (r == 1) ? 'Manager' : 'Tenant';
             sublocations = await location.getChildrenTenantRelated(locData.location_id, accountId, responsibility);
+
+
+
         }else{
             if(locData.parent_id == -1){
                 sublocations = await location.getChildren(locData.location_id);
@@ -1238,29 +1261,7 @@ const defs = require('../config/defs.json');
             sub['nominated_wardens'] = allWardens.length;
           }
         }
-        /*
-        try {
-          for(let i = 0; i < sublocations.length; i++) {
-            if (sublocations[i]['location_id'] in nominatedWardensObj) {
-              sublocations[i]['nominated_wardens'] = (nominatedWardensObj[sublocations[i]['location_id']]['users']).length;
-              const trainingDetailsForLocation = await training.getEMRUserCertifications(nominatedWardensObj[sublocations[i]['location_id']]['users']);
-              sublocations[i]['trained_wardens'] = trainingDetailsForLocation['total_passed'];
-            } else { // there are no nominated wardens
-              sublocations[i]['nominated_wardens'] = 0;
-              sublocations[i]['trained_wardens'] = 0;
-            }
-            if (sublocations[i]['location_id'] in calcResults) {
-              sublocations[i]['total_estimated_wardens'] = calcResults[sublocations[i]['location_id']]['total_estimated_wardens'];
-            } else {
-              sublocations[i]['total_estimated_wardens'] = 0;
-            }
-            sublocations[i]['total_wardens'] = (sublocations[i]['nominated_wardens'] >= sublocations[i]['total_estimated_wardens']) ?
-            sublocations[i]['nominated_wardens'] : sublocations[i]['total_estimated_wardens'];
-          }
-          // console.log(sublocations);
-        } catch(e) {
-          console.log('There are no wardens for this building');
-        } */
+        
 
         for(let sub of sublocations) {
             let accountModelTenantCount = new Account(),
@@ -1276,22 +1277,7 @@ const defs = require('../config/defs.json');
                 sub['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds( sublocsIds.join(',') );
             }
 
-            /*let locAccModel = new LocationAccountRelation();
-            // locAcc = <any> await locAccModel.getByWhereInLocationIds( sub.location_id );
-            const locationAccountUserObj = new LocationAccountUser();
-            // listing of roles is implemented here because we are only listing roles on a sub location
-            try {
-              const canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], sub.location_id);
-              sub['num_tenants'] = Object.keys(canLoginTenants).length;
-
-              if (sub['num_tenants'] == 0) {
-                const locationAccountRel = new LocationAccountRelation();
-                const temp = await locationAccountRel.getByAccountIdAndLocationId(req.user.account_id, sub.location_id);
-                sub['num_tenants'] = temp.length;
-              }
-            } catch (e) {
-              sub['num_tenants']  = 0;
-            }*/
+           
         }
 
         sublocations = sublocations.sort((a, b) => {
@@ -1396,6 +1382,8 @@ const defs = require('../config/defs.json');
             parentOnly = (queries.showparentonly) ? queries.showparentonly : false,
             mobilityImpaired = new MobilityImpairedModel(),
             parentId = (queries.parent_id) ? queries.parent_id : false;
+            
+            // console.log(queries);
 
         let
             r = 100,
@@ -1406,7 +1394,7 @@ const defs = require('../config/defs.json');
             queryAccountId = req.user.account_id,
             response = <any> {
                 locations : []
-            };
+            }, roleOfAccountInLocationObj = {};
            
 
         if(pagination){
@@ -1434,14 +1422,7 @@ const defs = require('../config/defs.json');
             queryAccountId = 0;
           }
         } catch(e) { }
-        /*
-        try {
-          r = await userRoleRel.getByUserId(req.user.user_id, true);
-        } catch(e) {
-          console.log('location route get-parent-locations-by-account-d',e);
-          r = 0;
-        }
-        */
+       
         filter['parentOnly'] = (parentId) ? false : parentOnly;
         filter['responsibility'] = r;
         filter['isPortfolio'] = isPortfolio;
@@ -1469,20 +1450,35 @@ const defs = require('../config/defs.json');
         }
 
         try{
-            response.locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);
+            response.locations = await locAccntRelObj.listAllLocationsOnAccount(req.user.account_id, filter);            
         }catch(e){
             response.locations = [];
-        }        
+            console.log('There was an error getting the list of parent locations', e);
+        }
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);            
+        } catch (e) {
+            console.log('Getting the account role for a location error');
+        }
+        console.log(roleOfAccountInLocationObj);
+        
 
         const subLocsArr = [];
         let subLocsStr = '';
         const subLocationsObj = {};
-        for(let loc of response.locations){
-          subLocsArr.push(loc['location_id']);
-        }
-        subLocsStr = subLocsArr.join(',');
-        let child = await new Location().getParentsChildren(subLocsStr, 1);
+        const tenantAccountLocations = [];
+        for(let loc of response.locations) {            
+          if (loc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[loc['location_id']]['role_id'] == 1) {            
+            subLocsArr.push(loc['location_id']);
+          } else {
+            tenantAccountLocations.push(loc['location_id']);  
+          }
 
+        }
+        subLocsStr = subLocsArr.join(',');       
+        let child = await new Location().getParentsChildren(subLocsStr, 1);
+       
         for (let i of subLocsArr) {
           subLocationsObj[i] = {
             'count': 0,
@@ -1495,52 +1491,120 @@ const defs = require('../config/defs.json');
             }
           }
         }
+        
+        let childForTenant = [];
+        // since they are only tenant on this building locations, go get the sub locations related to the account
+        console.log(tenantAccountLocations);
+        for (let building of tenantAccountLocations) {
+            let tempArr = [];
+            
+            try {                
+                tempArr = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(building, req.user.account_id);                
+                childForTenant = childForTenant.concat(tempArr);    
+                
+            } catch(e) {
+                // this is at the case of malls where in a tenant is assign to the building               
+                try {
+                    tempArr = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(building, req.user.account_id);
+                    childForTenant = childForTenant.concat(tempArr); 
+                } catch(sub_e) {
 
-        for(let loc of response.locations){
-            loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];            
-
-            let
-                subLocsModel = new Location(),
-                sublocsids = [],
-                sublocs = <any> await subLocsModel.getChildren(loc['location_id']),
-                accountModelTenantCount = new Account();
-
-            if(queries.sublocations){
-                loc['sublocations'] = sublocs;
+                }
             }
-            for(let sub of sublocs){
-                sublocsids.push(sub.location_id);
+            if ( !(building in subLocationsObj) ) {
+                subLocationsObj[building] = {
+                    'count': 0,
+                    'ids': []
+                  };
             }
-
-            let
-                // locsIds = JSON.parse(JSON.stringify(sublocationIds)),
-                locsIds = JSON.parse(JSON.stringify(subLocationsObj[loc['location_id']]['ids'])),
-                emRolesModel = new UserEmRoleRelation(),
-                wardens = [];
-
-            if(loc.parent_id > -1){
-                locsIds.push(loc.location_id);
-            }
-
-            sublocsids.push(loc['location_id']);
-
-            // loc['sublocsids'] = sublocsids.join(',');
-
-            loc['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds(locsIds.join(','));
-
-            wardens = <any> await emRolesModel.getWardensInLocationIds(sublocsids.join(','), 0, queryAccountId);
-
-            loc['num_wardens'] = wardens.length;
-            loc['wardens'] = wardens;
-
-            let mobilityModel = new MobilityImpairedModel(),
-                impaired = <any> await mobilityModel.getImpairedUsersInLocationIds(locsIds.join(','), queryAccountId);
-
-            loc['mobility_impaired'] = impaired.length;
-
+            for (let c of childForTenant) {
+                console.log(c);
+                if(parseInt(c['parent_id'], 10) === parseInt(building)) {
+                    subLocationsObj[building]['count']++;
+                    subLocationsObj[building]['ids'].push(c['location_id']);
+                }
+            }            
+            
         }
 
+        
+        
+        
+        
 
+        for(let loc of response.locations) {
+            let
+                locsIds = [],
+                mobilityModel = new MobilityImpairedModel(),
+                accountModelTenantCount = new Account(),
+                emRolesModel = new UserEmRoleRelation(),
+                sublocsids = [],
+                wardens = [];
+
+            // FRP            
+            if (subLocsArr.indexOf(loc['location_id']) != -1) {
+                // loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];
+                let
+                subLocsModel = new Location(),                
+                sublocs = <any> await subLocsModel.getChildren(loc['location_id']);
+
+                if (loc['location_id'] in subLocationsObj) {
+                    loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];
+                    locsIds = JSON.parse(JSON.stringify(subLocationsObj[loc['location_id']]['ids']));
+                } else {
+                    loc['sublocation_count'] = 0;
+                }
+                 
+                    
+                if(queries.sublocations){
+                    loc['sublocations'] = sublocs;
+                }
+                for(let sub of sublocs){
+                    sublocsids.push(sub.location_id);
+                }
+                
+
+                if(loc.parent_id > -1){
+                    locsIds.push(loc.location_id);
+                }
+
+                sublocsids.push(loc['location_id']);
+
+                loc['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds(locsIds.join(','));
+                
+
+                wardens = <any> await emRolesModel.getWardensInLocationIds(sublocsids.join(','), 0, queryAccountId);
+
+                loc['num_wardens'] = wardens.length;
+                loc['wardens'] = wardens;
+
+                let impaired = <any> await mobilityModel.getImpairedUsersInLocationIds(locsIds.join(','), queryAccountId);
+
+                loc['mobility_impaired'] = impaired.length;
+            } else if (tenantAccountLocations.indexOf(loc['location_id']) != -1) {
+                
+                // TRP
+                if (loc['location_id'] in subLocationsObj) {
+                    loc['sublocation_count'] = subLocationsObj[loc['location_id']]['count'];
+                    locsIds = JSON.parse(JSON.stringify(subLocationsObj[loc['location_id']]['ids']));
+                } else {
+                    loc['sublocation_count'] = 0;
+                }
+                if(loc.parent_id > -1){
+                    locsIds.push(loc.location_id);
+                }
+
+                loc['num_tenants'] = <any> await accountModelTenantCount.countTenantsFromLocationIds(locsIds.join(','));
+                wardens = <any> await emRolesModel.getWardensInLocationIds(locsIds.join(','), 0, queryAccountId);
+
+                loc['num_wardens'] = wardens.length;
+                loc['wardens'] = wardens;
+                let impaired = <any> await mobilityModel.getImpairedUsersInLocationIds(locsIds.join(','), queryAccountId);
+                loc['mobility_impaired'] = impaired.length;
+            }
+        }
+
+        
         response['under_location'] = (parentId) ? await new Location(parentId).load() : {};
         if(parentId){
             let ancestriesModel = new Location(),
