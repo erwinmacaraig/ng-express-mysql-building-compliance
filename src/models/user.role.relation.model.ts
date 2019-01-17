@@ -1,8 +1,7 @@
-import * as db from 'mysql2';
-import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 
+import { BaseClass } from './base.model';
 import * as Promise from 'promise';
+import { LocationAccountRelation } from './location.account.relation';
 
 export class UserRoleRelation extends BaseClass {
 
@@ -220,41 +219,43 @@ export class UserRoleRelation extends BaseClass {
       });
     }
 
-    public getTRPbyLocationId(locationId){
+    public getAccountRoleInLocation(accountId=0): Promise<Object> {
+        const locationAccountRelationObj = new LocationAccountRelation();        
         return new Promise((resolve, reject) => {
-
-            const sql_load = `
-                SELECT u.*
-                FROM user_role_relation urr
-                INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
-                INNER JOIN users u ON urr.user_id = u.user_id
-                WHERE lau.location_id = ${locationId} AND urr.role_id = 2
-            `;
-            
-
-            this.pool.getConnection((err, connection) => {
-              if (err) {                    
-                  throw new Error(err);
-              }
-
-              connection.query(sql_load, (error, results, fields) => {
-                  if (error) {
-                      return console.log(error);
-                  }
-
-                  if(results){
-                      this.dbData = results;
-                      resolve(results);
-                  }else{
-                      reject();
-                  }
-
-              });
-
-              connection.release();
+            if (!accountId) {
+                console.log('user role relation model getAccountRoleInLocation() called without account id');
+                reject(false);
+                return;
+            }
+            locationAccountRelationObj.getByAccountId(accountId)
+            .then((roleOfAccountInLocationArr: Array<object>) => {
+                let roleOfAccountInLocationObj = {};
+                for (let role of roleOfAccountInLocationArr) {
+                    let account_role = '';
+                    let role_id = 0;
+                    if (role['responsibility'] == 'Manager') {
+                      role_id = 1;
+                      account_role = 'FRP';
+                    } else if (role['responsibility'] == 'Tenant') {
+                      role_id = 2;
+                      account_role = 'TRP';
+                    }
+                    roleOfAccountInLocationObj[role['location_id']] = {
+                      role_id: role_id,
+                      account_role: account_role
+                    };
+                }
+                resolve(roleOfAccountInLocationObj);
+            })
+            .catch((locAcctRelObjError) => {
+                console.log('user role relation model getAccountRoleInLocation()', locAcctRelObjError);
+                reject(false);
             });
             
         });
+
+
+        
     }
 
 }

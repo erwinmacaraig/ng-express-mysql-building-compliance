@@ -618,4 +618,84 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
+    public getTenantAccountRoleOfBlgSublocs(buildingId=0, accountId=0): Promise<Array<Object>> {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT
+                            location_account_relation.location_id,
+                            location_account_relation.account_id,
+                            location_account_relation.responsibility,
+                            locations.parent_id
+                        FROM
+                            location_account_relation
+                        INNER JOIN
+                            locations
+                        ON
+                            locations.location_id = location_account_relation.location_id
+                        WHERE
+                            location_account_relation.responsibility = 'Tenant'
+                        AND
+                            locations.parent_id = ?
+                        AND
+                            location_account_relation.account_id = ?`;
+            const params = [buildingId, accountId];
+            this.pool.getConnection((egc, connection) => {
+                if (egc) {
+                    throw new Error(egc);
+                }
+                connection.query(sql, params, (errInQuery, results) => {
+                    if (errInQuery) {
+                        console.log('location account relation getTenantAccountRoleOfBlgSublocs() call', sql, params);
+                        throw new Error(errInQuery);
+                    }
+                    if (results.length) {
+                        resolve(results);
+                    } else {
+                        reject(results)
+                    }
+                });
+                connection.release();
+            });
+        });
+    }
+
+    public getTenantAccountRoleAssignToBuilding(buildingId=0, accountId=0): Promise<Array<Object>> { 
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT
+                            location_account_relation.location_id,
+                            location_account_relation.account_id,
+                            location_account_relation.responsibility,
+                            locations.location_id AS parent_id
+                        FROM
+                            location_account_relation
+                        INNER JOIN
+                            locations
+                        ON
+                            locations.location_id = location_account_relation.location_id
+                        WHERE
+                            location_account_relation.responsibility = 'Tenant'
+                        AND
+                            locations.location_id = ?
+                        AND
+                            location_account_relation.account_id = ?`;
+            const params = [buildingId, accountId];
+            this.pool.getConnection((egc, connection) => {
+                if (egc) {
+                    throw new Error(egc);
+                }
+                connection.query(sql, params, (errInQuery, results) => {
+                    if (errInQuery) {
+                        console.log('location account relation getTenantAccountRoleOfBlgSublocs() call', sql, params);
+                        throw new Error(errInQuery);
+                    }
+                    if (results.length) {
+                        resolve(results);
+                    } else {
+                        reject(results)
+                    }
+                });
+                connection.release();
+            });
+        });
+    }
+
 }
