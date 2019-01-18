@@ -1461,7 +1461,7 @@ const defs = require('../config/defs.json');
         } catch (e) {
             console.log('Getting the account role for a location error');
         }
-        console.log(roleOfAccountInLocationObj);
+        // console.log(roleOfAccountInLocationObj);
         
 
         const subLocsArr = [];
