@@ -607,7 +607,7 @@ export class User extends BaseClass {
         });
     }
 
-    public query(queries){
+    public query(queries): Promise<Array<Object>>{
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
                 if(err){ 
@@ -687,15 +687,14 @@ export class User extends BaseClass {
                 }
 
                 let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
-                // console.log(sql_load);
+                // console.log('========= ', sql_load, " =========");
                 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log(sql_load);
                         return console.log(error);
                     }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    resolve(results);
                 });
                 connection.release();
             });

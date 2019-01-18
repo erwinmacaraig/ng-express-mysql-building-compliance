@@ -431,7 +431,7 @@ export class CourseRoute extends BaseRoute {
             from : '',
             fromName : 'EvacConnect',
             to : [user.email],
-            cc: ['']
+            cc: []
         },
         emailData = {
             users_fullname : this.toTitleCase(fullname),

@@ -1076,6 +1076,7 @@ export class UsersRoute extends BaseRoute {
 
     public async queryUsers(req: Request, res: Response){
         let
+        childForTenant = [],
         accountId = parseInt(req['user']['account_id']),
         userID = req['user']['user_id'],
         query = req.query,
@@ -1113,7 +1114,14 @@ export class UsersRoute extends BaseRoute {
         selectedLocIds = <any> [],
         userRoleRel = new UserRoleRelation(),
         userRole = <any> '',
-        locations = <any> [];
+        roleOfAccountInLocationObj = {},
+        locations = <any> [], 
+        queryAccountRoles = false;
+
+
+
+        const idsOfBuildingsForFRP = [];
+        const idsOfLocationsForTRP = [];
 
         let role = await userRoleRel.getByUserId(userID);
         for(let r of role){
@@ -1128,27 +1136,69 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        if(locationId){
-            selectedLocIds.push(locationId);
-            let locs = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(locationId);
-            for(let loc of locs){ 
-                selectedLocIds.push(loc.location_id);
+        
+        roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);  
+        if(locationId) { 
+            try {
+                // determine if you are a building manager or tenant in these locations - response.locations                          
+                if (locationId in roleOfAccountInLocationObj) {            
+                    userRole = (roleOfAccountInLocationObj[locationId]['account_role']).toLowerCase();   
+                } else {
+                    userRole = 'trp';
+                }
+            } catch (e) {
+                console.log('Getting the account role for a location error');
             }
-        }else{
-            let
-            locAccRel = new LocationAccountRelation(),
-            filter = { userId : userID },
-            locs = <any> await locAccRel.listAllLocationsOnAccount(accountId, filter);
-            // console.log(locs);
-            for(let loc of locs){
-                selectedLocIds.push(loc.location_id);
-                let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc.location_id);
+
+            if (userRole == 'frp') {
+                selectedLocIds.push(locationId);
+                let locs = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(locationId);
+                for(let loc of locs){ 
+                    selectedLocIds.push(loc.location_id);
+                }
+            } else if (userRole == 'trp') {
+                try {                
+                    childForTenant = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(locationId, accountId);
+                    
+                } catch(e) {
+                    // this is at the case of malls where in a tenant is assign to the building               
+                    try {
+                        childForTenant = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(locationId, accountId);                         
+                    } catch(sub_e) {
+    
+                    }
+                }
+                for (let c of childForTenant) {                    
+                    selectedLocIds.push(c['location_id']);
+                }
+                 
+            }
+
+
+            
+        } else {
+            selectedLocIds = [];
+            
+            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {                
+                if (roleOfAccountInLocationObj[locId]['role_id'] == 2 ) {
+                    idsOfLocationsForTRP.push(parseInt(locId, 10));
+                } else if (roleOfAccountInLocationObj[locId]['role_id'] == 1) {
+                    idsOfBuildingsForFRP.push(parseInt(locId, 10));
+                }
+            });
+            for (let loc of idsOfBuildingsForFRP) {
+                
+                let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc);
+                
                 for(let h of hier){ 
                     selectedLocIds.push(h.location_id);
                 }
             }
+            // GET EM USERS FOR THIS LOCATIONS (FRP ACCOUNT)
+            selectedLocIds = selectedLocIds.concat(idsOfLocationsForTRP);
+          
         }
-
+        // console.log('SELECTED IDS ' +  selectedLocIds.join(',') + ' ***');
         locations = await locationsModel.getByInIds(selectedLocIds, false, true);
 
         for(let id of emRoleIds){
@@ -1158,10 +1208,8 @@ export class UsersRoute extends BaseRoute {
             }
         }
 
-        const training_requirements = await new TrainingCertification().getRequiredTrainings();
-
         modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived', 'profile_completion'];
-
+       
         if(query.archived){
             archived = query.archived;
         }
@@ -1194,9 +1242,7 @@ export class UsersRoute extends BaseRoute {
                     break;
             }
         }
-
-        modelQueries.joins.push(' LEFT JOIN file_user ON users.user_id = file_user.user_id LEFT JOIN files ON files.file_id = file_user.file_id INNER JOIN accounts ON users.account_id = accounts.account_id ');
-
+        
         if(query.roles){
 
             let emRoleIdInQuery = '';
@@ -1210,6 +1256,13 @@ export class UsersRoute extends BaseRoute {
             }
 
             if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
+                queryAccountRoles = true;
+                modelQueries.joins.push(`
+                    LEFT JOIN file_user ON users.user_id = file_user.user_id
+                    LEFT JOIN files ON files.file_id = file_user.file_id
+                    INNER JOIN accounts ON users.account_id = accounts.account_id
+                `);
+
                 let roleIdsQ = ' WHERE role_id IN (1,2) ';
                 if(getFRP && !getTRP){
                     roleIdsQ = ' WHERE role_id IN (1) '
@@ -1225,6 +1278,16 @@ export class UsersRoute extends BaseRoute {
                 if(getPendings){
                     modelQueries.where.push(' users.profile_completion = 0 ');
                 }
+            } else {
+                modelQueries.select['user_em_roles_relation'] = ['location_id'];
+                modelQueries.select['locations'] = ['parent_id'];
+                modelQueries.joins.push(`
+                    INNER JOIN user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
+                    INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id         
+                    LEFT JOIN file_user ON users.user_id = file_user.user_id
+                    LEFT JOIN files ON files.file_id = file_user.file_id
+                    INNER JOIN accounts ON users.account_id = accounts.account_id
+                `);
             }
 
             if( (queryRoles.indexOf('users') > -1 || getUsersByEmRoleId) && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ) == true ){
@@ -1323,9 +1386,33 @@ export class UsersRoute extends BaseRoute {
                 modelQueries.where.push(`users.user_id IN (SELECT user_id FROM location_account_user WHERE location_id IN (`+selectedLocIds.join(',')+`) ) `);
             }
         }
+        response.data['users'] = [];
+        
+        if (!locationId && !queryAccountRoles) {
+            let tempUsers = [];
+            tempUsers = await userModel.query(modelQueries);                        
+            for (let u of tempUsers) {
+                let parentId = parseInt(u['parent_id'], 10);
+                let subId = parseInt(u['location_id'], 10);
+                
+                if (idsOfBuildingsForFRP.indexOf(parentId) != -1) {
+                    response.data['users'].push(u);
+                }
+                if (idsOfLocationsForTRP.indexOf(subId) != -1 && u['account_id'] == accountId) {
+                    
+                    response.data['users'].push(u);
+                }
 
-        response.data['users'] = await userModel.query(modelQueries);
+            }           
 
+        } else {
+             response.data['users'] = await userModel.query(modelQueries);
+        }         
+
+        // response.data['users'] = await userModel.query(modelQueries);
+        
+
+        const training_requirements = await new TrainingCertification().getRequiredTrainings(); 
         for(let user of response.data['users']){
             userIds.push(user.user_id);
             
@@ -1524,23 +1611,7 @@ export class UsersRoute extends BaseRoute {
                 user_training_total,
                 training = new TrainingCertification(),
                 userCourseRel = new CourseUserRelation();
-            /*
-            try {
-                user_course_total = await userCourseRel.getNumberOfAssignedCourses(userIds);
-
-            } catch (e) {
-                user_course_total = {};
-            }
-
-            try {
-                user_training_total = await training.getNumberOfTrainings(userIds, {
-                  'pass': 1,
-                  'current': 1
-                });
-            } catch(e) {
-                user_training_total = {};
-            }
-            */
+           
           for(let user of response.data['users']) {
               try {
               user_training_total = await training.getNumberOfTrainings([user.user_id], {
