@@ -1098,11 +1098,11 @@ export class User extends BaseClass {
                     INNER JOIN location_account_relation
                     ON location_account_relation.location_id = location_account_user.location_id
                     WHERE location_account_user.location_id IN (${locationIds}) GROUP BY location_account_user.location_id`;
-                console.log(innerSqlFrpTrp);
+                // console.log(innerSqlFrpTrp);
                 if(config['eco_only']){ innerSqlFrpTrp = ''; }
 
                 let select = `
-                    u.user_id
+                    u.user_id,
                     u.first_name,
                     u.last_name,
                     u.email,

@@ -818,7 +818,6 @@ export class ReportsRoute extends BaseRoute {
             console.log('Getting the account role for a location error');
         }
 
-        console.log('Role is ' + role);
 
 
 
@@ -827,12 +826,72 @@ export class ReportsRoute extends BaseRoute {
             compliant = -1;
         }
 
+        let ids = [];
+        let locsIds = [0],
+             whereLoc = [];
+        if (location_id == 0 || getAll) { 
+            ids = Object.keys(roleOfAccountInLocationObj);
+        } else {
+             ids = location_id.split('-');
+        }
+        for(let i of ids) {            
+            if (i in roleOfAccountInLocationObj && roleOfAccountInLocationObj[i]['role_id'] == 1) {            
+                frpAccountLocations.push(parseInt(i, 10));
+                locsIds.push(i);
+            } else {
+                tenantAccountLocations.push(parseInt(i, 10));  
+            }
+    
+        }
+        let childForTenant = [];
+        // since they are only tenant on this building locations, go get the sub locations related to the account
+        for (let building of tenantAccountLocations) {
+            let tempArr = [];                
+            try {                
+                tempArr = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(building,accountId);                
+                childForTenant = childForTenant.concat(tempArr);    
+                
+            } catch(e) {
+                // this is at the case of malls where in a tenant is assign to the building               
+                try {
+                    tempArr = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(building, accountId);
+                    childForTenant = childForTenant.concat(tempArr); 
+                } catch(sub_e) {
+
+                }
+            }
+            
+            for (let c of childForTenant) {
+                locsIds.push(c['location_id']);
+            }            
+            
+        }
+        
+        whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
+
+        try{
+            locations = <any> await locationModel.getWhere( whereLoc );
+        }catch(e){  }
+
+
+/*
         if (location_id == 0 || getAll) {
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
-                console.log('responseLocations', responseLocations);
-                locations = responseLocations.data;
-            }catch(e){}
+                console.log('responseLocations', responseLocations.data);
+                for (let responseLoc of responseLocations.data) {                    
+                    if (responseLoc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[responseLoc['location_id']]['role_id'] == 1) {
+                        locations.push(responseLoc);                        
+                    } else {
+                        tenantAccountLocations.push(responseLoc['location_id']);
+                    }
+                }
+                // locations = responseLocations.data;
+                // console.log(locations);
+            }catch(e){
+                
+                console.log('I am here', e);
+            }
         } else {
             let ids = location_id.split('-'),
                 locsIds = [0],
@@ -873,16 +932,6 @@ export class ReportsRoute extends BaseRoute {
             console.log(`frpAccountLocations are ${frpAccountLocations.join(',')}`);
             console.log(`tenantAccountLocations are ${tenantAccountLocations.join(',')}`);
             console.log();
-
-
-
-            /*
-            for(let i in ids){
-                locsIds.push(ids[i]);
-            }
-            */
-
-
             whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
 
             try{
@@ -890,6 +939,7 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){  }
         }
 
+*/        
         let allUserIds = [0],
             allLocationIds = [],
             allLocations = [],
@@ -968,14 +1018,17 @@ export class ReportsRoute extends BaseRoute {
         };
 
         for(let loc of locations){
+            // console.log('==== ' + loc.location_id + ' ===== ');
             allLocationIds.push(loc.location_id);
             let hier = findLocationFromHierarhy(hierarchies, loc.location_id);
+            
             if(hier){
                 let ids = collectLocIdsFromHierarchy(hier.sublocations);
                 allLocationIds = allLocationIds.concat(ids);
+
             }
         }
-
+        
         let 
         usersModel = new User(),
         frpAndTrp = [];
@@ -987,6 +1040,15 @@ export class ReportsRoute extends BaseRoute {
         users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
         // console.log(users);
         for(let user of users){
+            /*
+            if(allUserIds.indexOf(user.user_id) == -1){
+                allUserIds.push(user.user_id);
+            }
+            if(user.role_id == 1 || user.role_id == 2){ 
+                frpAndTrp.push(user);
+            }
+            */
+            
             if(allUserIds.indexOf(user.user_id) == -1){
                 if (frpAccountLocations.indexOf(user.parent_id) != -1) {
                     allUserIds.push(user.user_id);
@@ -1001,6 +1063,7 @@ export class ReportsRoute extends BaseRoute {
                     frpAndTrp.push(user);
                 }                  
             }
+            
         }
 
         // response['users'] = users;
