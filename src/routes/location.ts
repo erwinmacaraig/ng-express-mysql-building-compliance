@@ -1494,7 +1494,7 @@ const defs = require('../config/defs.json');
         
         let childForTenant = [];
         // since they are only tenant on this building locations, go get the sub locations related to the account
-        console.log(tenantAccountLocations);
+        
         for (let building of tenantAccountLocations) {
             let tempArr = [];
             
@@ -1518,7 +1518,6 @@ const defs = require('../config/defs.json');
                   };
             }
             for (let c of childForTenant) {
-                console.log(c);
                 if(parseInt(c['parent_id'], 10) === parseInt(building)) {
                     subLocationsObj[building]['count']++;
                     subLocationsObj[building]['ids'].push(c['location_id']);
