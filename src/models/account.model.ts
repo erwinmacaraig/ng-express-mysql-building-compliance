@@ -764,10 +764,11 @@ export class Account extends BaseClass {
                     accounts.account_name,                     
                     locations.location_id,
                     locations.name,
-                    parent_locations.name as parent_name
+                    parent_locations.name as parent_name,
+                    location_account_user.location_account_user_id
                     FROM users
                     INNER JOIN accounts ON users.account_id = accounts.account_id                                                         
-                    INNER JOIN location_account_user
+                    LEFT JOIN location_account_user
                     ON
                     location_account_user.user_id = users.user_id                    
                     LEFT JOIN
@@ -782,10 +783,9 @@ export class Account extends BaseClass {
                     locations.parent_id = parent_locations.location_id
                     WHERE
                     users.account_id = ? ${userStr}
-                    GROUP BY locations.location_id
+                    GROUP BY location_account_user.location_account_user_id
                     ORDER BY users.user_id DESC
                 `;
-
                 connection.query(sql, [account], (error, results) => {
                     if (error) {
                         console.log('account.model.generateAdminAccountUsers', error, sql);
