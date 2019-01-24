@@ -762,8 +762,7 @@ export class User extends BaseClass {
                 }else{
                     sql += where;
                     sql += ` LIMIT ${page}, ${limit} `;
-                }
-                console.log(sql);
+                }                
                 connection.query(sql, (error, results) => {
                     if (error) {
                         console.log('user.model.getSpliceUsers', error, sql);
