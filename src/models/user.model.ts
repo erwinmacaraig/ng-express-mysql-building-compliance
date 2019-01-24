@@ -747,7 +747,8 @@ export class User extends BaseClass {
                 resultSet = [];
 
                 if ('page' in filter) {
-                    page = ( typeof filter['page'] == 'string'  ) ? (isNaN(parseInt(filter['page']))) ? 0 : parseInt(filter['page']) : filter['page']; 
+                    page = ( typeof filter['page'] == 'string'  ) ? (isNaN(parseInt(filter['page']))) ? 0 : parseInt(filter['page']) : filter['page'];
+                    page = page * limit; 
                 }
 
                 if ('query' in filter && filter['query'].length > 0 && filter['query'] != 'all') {
@@ -762,7 +763,7 @@ export class User extends BaseClass {
                     sql += where;
                     sql += ` LIMIT ${page}, ${limit} `;
                 }
-
+                console.log(sql);
                 connection.query(sql, (error, results) => {
                     if (error) {
                         console.log('user.model.getSpliceUsers', error, sql);
