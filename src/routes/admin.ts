@@ -1259,7 +1259,7 @@ export class AdminRoute extends BaseRoute {
         countUsers = <any> [],
         totalResult = 0;
       selectedUsers = await user.getSpliceUsers(req.params.accountId, user_filter);
-      
+      // console.log('selectedUsers == ', selectedUsers);
       user_filter['count'] = true;
       countUsers =  await user.getSpliceUsers(req.params.accountId, user_filter);
       

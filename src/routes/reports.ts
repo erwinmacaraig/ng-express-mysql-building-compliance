@@ -775,6 +775,7 @@ export class ReportsRoute extends BaseRoute {
     }
 
     public async locationTrainings(req: AuthRequest, res: Response, toPdf?, toCsv?){
+        console.log(req.body);
       let
         response = {
             status : false, data : [], message : '',
@@ -784,6 +785,9 @@ export class ReportsRoute extends BaseRoute {
             },
             'location-origin': req.body.location_id
         },
+        roleOfAccountInLocationObj = {},
+        tenantAccountLocations = [],
+        frpAccountLocations = [],
         offset = req.body.offset,
         limit = req.body.limit,
         course_method = req.body.course_method,
@@ -807,27 +811,127 @@ export class ReportsRoute extends BaseRoute {
         try{
             role = await userRoleModel.getByUserId(userId, true);
         }catch(e){}
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);            
+        } catch (e) {
+            console.log('Getting the account role for a location error');
+        }
+
+
+
 
         if(getAll || filterExceptLocation){
             training_id = false;
             compliant = -1;
         }
 
+        let ids = [];
+        let locsIds = [0],
+             whereLoc = [];
+        if (location_id == 0 || getAll) { 
+            ids = Object.keys(roleOfAccountInLocationObj);
+        } else {
+             ids = location_id.split('-');
+        }
+        for(let i of ids) {            
+            if (i in roleOfAccountInLocationObj && roleOfAccountInLocationObj[i]['role_id'] == 1) {            
+                frpAccountLocations.push(parseInt(i, 10));
+                locsIds.push(i);
+            } else {
+                tenantAccountLocations.push(parseInt(i, 10));  
+            }
+    
+        }
+        let childForTenant = [];
+        // since they are only tenant on this building locations, go get the sub locations related to the account
+        for (let building of tenantAccountLocations) {
+            let tempArr = [];                
+            try {                
+                tempArr = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(building,accountId);                
+                childForTenant = childForTenant.concat(tempArr);    
+                
+            } catch(e) {
+                // this is at the case of malls where in a tenant is assign to the building               
+                try {
+                    tempArr = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(building, accountId);
+                    childForTenant = childForTenant.concat(tempArr); 
+                } catch(sub_e) {
+
+                }
+            }
+            
+            for (let c of childForTenant) {
+                locsIds.push(c['location_id']);
+            }            
+            
+        }
+        
+        whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
+
+        try{
+            locations = <any> await locationModel.getWhere( whereLoc );
+        }catch(e){  }
+
+
+/*
         if (location_id == 0 || getAll) {
             try{
                 let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
-
-                locations = responseLocations.data;
-            }catch(e){}
-        } else{
+                console.log('responseLocations', responseLocations.data);
+                for (let responseLoc of responseLocations.data) {                    
+                    if (responseLoc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[responseLoc['location_id']]['role_id'] == 1) {
+                        locations.push(responseLoc);                        
+                    } else {
+                        tenantAccountLocations.push(responseLoc['location_id']);
+                    }
+                }
+                // locations = responseLocations.data;
+                // console.log(locations);
+            }catch(e){
+                
+                console.log('I am here', e);
+            }
+        } else {
             let ids = location_id.split('-'),
                 locsIds = [0],
                 whereLoc = [];
-
-            for(let i in ids){
-                locsIds.push(ids[i]);
+            for(let i of ids) {            
+                if (i in roleOfAccountInLocationObj && roleOfAccountInLocationObj[i]['role_id'] == 1) {            
+                    frpAccountLocations.push(parseInt(i, 10));
+                    locsIds.push(i);
+                } else {
+                    tenantAccountLocations.push(parseInt(i, 10));  
+                }
+        
             }
-
+            let childForTenant = [];
+            // since they are only tenant on this building locations, go get the sub locations related to the account
+            for (let building of tenantAccountLocations) {
+                let tempArr = [];                
+                try {                
+                    tempArr = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(building,accountId);                
+                    childForTenant = childForTenant.concat(tempArr);    
+                    
+                } catch(e) {
+                    // this is at the case of malls where in a tenant is assign to the building               
+                    try {
+                        tempArr = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(building, accountId);
+                        childForTenant = childForTenant.concat(tempArr); 
+                    } catch(sub_e) {
+    
+                    }
+                }
+                
+                for (let c of childForTenant) {
+                    locsIds.push(c['location_id']);
+                }            
+                
+            }
+            console.log(`locsIds are ${locsIds.join(', ')}`);
+            console.log(`frpAccountLocations are ${frpAccountLocations.join(',')}`);
+            console.log(`tenantAccountLocations are ${tenantAccountLocations.join(',')}`);
+            console.log();
             whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
 
             try{
@@ -835,6 +939,7 @@ export class ReportsRoute extends BaseRoute {
             }catch(e){  }
         }
 
+*/        
         let allUserIds = [0],
             allLocationIds = [],
             allLocations = [],
@@ -913,14 +1018,17 @@ export class ReportsRoute extends BaseRoute {
         };
 
         for(let loc of locations){
+            // console.log('==== ' + loc.location_id + ' ===== ');
             allLocationIds.push(loc.location_id);
             let hier = findLocationFromHierarhy(hierarchies, loc.location_id);
+            
             if(hier){
                 let ids = collectLocIdsFromHierarchy(hier.sublocations);
                 allLocationIds = allLocationIds.concat(ids);
+
             }
         }
-
+        
         let 
         usersModel = new User(),
         frpAndTrp = [];
@@ -930,15 +1038,32 @@ export class ReportsRoute extends BaseRoute {
         }
 
         users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
-
+        // console.log(users);
         for(let user of users){
+            /*
             if(allUserIds.indexOf(user.user_id) == -1){
                 allUserIds.push(user.user_id);
             }
-
-            if(user.role_id == 1 || user.role_id == 2){
+            if(user.role_id == 1 || user.role_id == 2){ 
                 frpAndTrp.push(user);
             }
+            */
+            
+            if(allUserIds.indexOf(user.user_id) == -1){
+                if (frpAccountLocations.indexOf(user.parent_id) != -1) {
+                    allUserIds.push(user.user_id);
+                } else if (user.account_id == accountId) {
+                    allUserIds.push(user.user_id);
+                }                
+            }
+            if(user.role_id == 1 || user.role_id == 2){
+                if (frpAccountLocations.indexOf(user.parent_id) != -1) {
+                    frpAndTrp.push(user);
+                } else if (user.account_id == accountId) {
+                    frpAndTrp.push(user);
+                }                  
+            }
+            
         }
 
         // response['users'] = users;

@@ -89,10 +89,13 @@ const defs = require('../config/defs.json');
             new LocationRoute().getParentLocationsByAccount(req, res, 0, true).then((data) => {
                 return res.status(200).send(data);
             }).catch((err) => {
-                return res.status(400).send({
-                    locations : [],
-                    message: err
-                });
+                console.log('error at endpoint /location/get-parent-locations-by-account-id-paginated calling the method getParentLocationsByAccount', err);
+                /*
+                    return res.status(400).send({
+                        locations : [],
+                        message: err
+                    });
+                */
             });
         });
 
@@ -100,10 +103,13 @@ const defs = require('../config/defs.json');
             new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
                 return res.status(200).send(data);
             }).catch((err) => {
-                return res.status(400).send({
-                    locations : [],
-                    message: err
-                });
+                console.log('error at endpoint /location/get-parent-locations-by-account-id calling the method getParentLocationsByAccount', err);
+                /*
+                    return res.status(400).send({
+                        locations : [],
+                        message: err
+                    });
+                */
             });
 
         });
@@ -1461,7 +1467,7 @@ const defs = require('../config/defs.json');
         } catch (e) {
             console.log('Getting the account role for a location error');
         }
-        console.log(roleOfAccountInLocationObj);
+        // console.log(roleOfAccountInLocationObj);
         
 
         const subLocsArr = [];
@@ -1494,7 +1500,7 @@ const defs = require('../config/defs.json');
         
         let childForTenant = [];
         // since they are only tenant on this building locations, go get the sub locations related to the account
-        console.log(tenantAccountLocations);
+        
         for (let building of tenantAccountLocations) {
             let tempArr = [];
             
@@ -1518,7 +1524,6 @@ const defs = require('../config/defs.json');
                   };
             }
             for (let c of childForTenant) {
-                console.log(c);
                 if(parseInt(c['parent_id'], 10) === parseInt(building)) {
                     subLocationsObj[building]['count']++;
                     subLocationsObj[building]['ids'].push(c['location_id']);
