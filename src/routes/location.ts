@@ -89,10 +89,13 @@ const defs = require('../config/defs.json');
             new LocationRoute().getParentLocationsByAccount(req, res, 0, true).then((data) => {
                 return res.status(200).send(data);
             }).catch((err) => {
-                return res.status(400).send({
-                    locations : [],
-                    message: err
-                });
+                console.log('error at endpoint /location/get-parent-locations-by-account-id-paginated calling the method getParentLocationsByAccount', err);
+                /*
+                    return res.status(400).send({
+                        locations : [],
+                        message: err
+                    });
+                */
             });
         });
 
@@ -100,10 +103,13 @@ const defs = require('../config/defs.json');
             new LocationRoute().getParentLocationsByAccount(req, res, 0).then((data) => {
                 return res.status(200).send(data);
             }).catch((err) => {
-                return res.status(400).send({
-                    locations : [],
-                    message: err
-                });
+                console.log('error at endpoint /location/get-parent-locations-by-account-id calling the method getParentLocationsByAccount', err);
+                /*
+                    return res.status(400).send({
+                        locations : [],
+                        message: err
+                    });
+                */
             });
 
         });

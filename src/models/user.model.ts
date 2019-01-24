@@ -1086,11 +1086,27 @@ export class User extends BaseClass {
                     INNER JOIN location_account_user lau ON urr.user_id = lau.user_id
                     WHERE  lau.location_id IN (${locationIds})
                 `;
-
+                innerSqlFrpTrp = `
+                    UNION
+                    SELECT
+                    location_account_user.user_id,
+                    IF(location_account_relation.responsibility='Manager', 1, 2) AS role_id,
+                    IF(location_account_relation.responsibility='Manager', 'FRP', 'TRP') AS role_name,
+                    location_account_user.location_id
+                    FROM location_account_user INNER JOIN users 
+                    ON users.account_id = location_account_user.account_id
+                    INNER JOIN location_account_relation
+                    ON location_account_relation.location_id = location_account_user.location_id
+                    WHERE location_account_user.location_id IN (${locationIds}) GROUP BY location_account_user.location_id`;
+                // console.log(innerSqlFrpTrp);
                 if(config['eco_only']){ innerSqlFrpTrp = ''; }
 
                 let select = `
-                    u.*,
+                    u.user_id,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.account_id,                    
                     userolelocation.role_id,
                     userolelocation.role_name,
                     userolelocation.location_id,
@@ -1098,7 +1114,7 @@ export class User extends BaseClass {
                     l.name,
                     l.is_building,
                     IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
-                    l.parent_id,
+                    IF(l.parent_id = -1,  userolelocation.location_id, l.parent_id ) AS parent_id,                    
                     p.is_building as parent_is_building,
                     IF(p.location_id IS NOT NULL, p.name, '') as parent_location_name,
                     p2.is_building as parent2_is_building,

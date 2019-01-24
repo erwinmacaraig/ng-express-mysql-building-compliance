@@ -1137,7 +1137,8 @@ export class UsersRoute extends BaseRoute {
         }
 
         
-        roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);  
+        roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);
+        // console.log(roleOfAccountInLocationObj);  
         if(locationId) { 
             try {
                 // determine if you are a building manager or tenant in these locations - response.locations                          
@@ -1179,13 +1180,15 @@ export class UsersRoute extends BaseRoute {
         } else {
             selectedLocIds = [];
             
-            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {                
+            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {                             
                 if (roleOfAccountInLocationObj[locId]['role_id'] == 2 ) {
                     idsOfLocationsForTRP.push(parseInt(locId, 10));
                 } else if (roleOfAccountInLocationObj[locId]['role_id'] == 1) {
                     idsOfBuildingsForFRP.push(parseInt(locId, 10));
                 }
             });
+            // console.log('idsOfLocationsForTRP ' + idsOfLocationsForTRP.join(', '));
+            // console.log('idsOfBuildingsForFRP ' + idsOfBuildingsForFRP.join(', '));
             for (let loc of idsOfBuildingsForFRP) {
                 
                 let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc);
@@ -1196,6 +1199,9 @@ export class UsersRoute extends BaseRoute {
             }
             // GET EM USERS FOR THIS LOCATIONS (FRP ACCOUNT)
             selectedLocIds = selectedLocIds.concat(idsOfLocationsForTRP);
+
+            // THERE ARE EM THAT IS ASSIGNED TO THE BUILDING SO WE NEED TO INCLUDE THEM
+            selectedLocIds = selectedLocIds.concat(idsOfBuildingsForFRP);
           
         }
         // console.log('SELECTED IDS ' +  selectedLocIds.join(',') + ' ***');
@@ -1215,7 +1221,7 @@ export class UsersRoute extends BaseRoute {
         }
         modelQueries.where.push('users.archived = '+archived);
         if(userRole != 'frp'){
-            modelQueries.where.push('users.account_id = '+accountId);
+            // modelQueries.where.push('users.account_id = '+accountId);
         }
         if(getPendings){
             modelQueries.where.push('users.profile_completion = 0');
@@ -1389,6 +1395,7 @@ export class UsersRoute extends BaseRoute {
         response.data['users'] = [];
         
         if (!locationId && !queryAccountRoles) {
+            // console.log('Here at locationId ' + locationId + ' and queryAccountRoles = ' +  queryAccountRoles, modelQueries);
             let tempUsers = [];
             tempUsers = await userModel.query(modelQueries);                        
             for (let u of tempUsers) {
@@ -1397,9 +1404,10 @@ export class UsersRoute extends BaseRoute {
                 
                 if (idsOfBuildingsForFRP.indexOf(parentId) != -1) {
                     response.data['users'].push(u);
+                } else if (idsOfBuildingsForFRP.indexOf(u['location_id']) != -1 && parentId == -1) {
+                    response.data['users'].push(u);
                 }
-                if (idsOfLocationsForTRP.indexOf(subId) != -1 && u['account_id'] == accountId) {
-                    
+                if (idsOfLocationsForTRP.indexOf(subId) != -1 && u['account_id'] == accountId) {                    
                     response.data['users'].push(u);
                 }
 
