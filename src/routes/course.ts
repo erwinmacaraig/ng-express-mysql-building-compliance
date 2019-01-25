@@ -317,12 +317,14 @@ export class CourseRoute extends BaseRoute {
             response.data.total_users_trained = users_took_trainings['total_passed'];
             response.data['allUsers'] = allUsers;
 
-        } catch (e) { }
+        } catch (e) {
+            console.log('course route endpoint getCountsBuildingTrainings', e);
+         }
 
         res.send(response);
     }
 
-    public async sendTrainingInvitation(req: AuthRequest, res: Response){
+    public async sendTrainingInvitation(req: AuthRequest, res: Response) {
         let
         response = {
             status : true, data : [], message : ''
@@ -342,7 +344,7 @@ export class CourseRoute extends BaseRoute {
             nominator = await nominatorModel.load();
         }catch(e){}
 
-        try{
+        try {
 
             account = await accountModel.load();
             accountModel = new Account();
@@ -368,12 +370,17 @@ export class CourseRoute extends BaseRoute {
                     await this.sendEmailTrainingInvitation(user, req, res, nominator);
                 }
             }
+            console.log('Now sending response');
+            response.data = users;
+            res.send(response);
 
-        } catch(e) { }
-
+        } catch(e) {            
+            console.log('Error sending email training invite at course route calling sendTrainingInvitation method');
+        }
+        /*
         response.data = users;
-
         res.send(response);
+        */
     }
 
     public async sendEmailTrainingInvitation(user, req, res, nominator){

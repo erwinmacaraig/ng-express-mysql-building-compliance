@@ -745,6 +745,14 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         this.courseService.sendTrainingInvitation(form, (response) => {
             $('#modalSendInvitation').modal('close');
             this.showModalLoader = false;
+            $('#trainingInviteResult').modal('open');
+            for(let i in this.listData){
+                for(let sel of this.selectedFromList){
+                    if(sel.user_id == this.listData[i]['user_id']){
+                        this.listData[i]['isselected'] = false;                        
+                    }
+                }
+            }  
         });
     }
 

@@ -1,4 +1,17 @@
-<div>
+<div class="preloader-wrapper active" style="top: 50%; left: 50%; margin-top: 20%" *ngIf="showLoading">
+    <div class="spinner-layer spinner-red-only">
+      <div class="circle-clipper left">
+        <div class="circle"></div>
+      </div><div class="gap-patch">
+        <div class="circle"></div>
+      </div><div class="circle-clipper right">
+        <div class="circle"></div>
+      </div>
+    </div>
+</div>
+
+<div *ngIf="!showLoading">
+    <form [formGroup]="configForm">
     <div class="row">
         <div class="col s12">
             <h2>Create New Reward Program</h2>
@@ -9,44 +22,185 @@
             <h6>Sponsor</h6>
         </div>
         <div class="col s12">
-            <input type="text">
+            <div class="row filter-container">
+                <div class="col l6 m6 s12">
+                    <div class="config-field">
+                        <input type="text" formControlName="sponsor">
+                    </div> 
+                </div>
+            </div>                       
         </div> 
         <div class="col s12">
-            <h5>Account/Location</h5>            
+            <h6>Account/Location</h6>            
         </div>
         <div class="col s12">
-            <input type="text">
+            <div class="row filter-container">
+                <div class="col l6 m6 s12">
+                    <div class="config-field">
+                        <input type="text" name="search" formControlName="search">
+                        <div class="search-result" *ngIf="filteredList.length > 0">
+                            <ul>
+                                <li *ngFor="let item of filteredList">
+                                    <a (click)="getSelection(item['id'], item['type'], item['name'])">{{item['name']}} ({{item['type']}})</a>                                        
+                                </li>                                    
+                            </ul>
+                        </div>
+                    </div> 
+                </div>
+            </div> 
         </div> 
+        <div class="col s12" *ngIf="selectionType == 'account'">
+            <h6>Choose Locations</h6>                        
+        </div>
+        <div class="col s12" *ngIf="selectionType == 'account'">
+            <div class="row filter-container">
+                <div class="col l6 m6 s12">
+                    <div class="config-field">                            
+                        <ng-multiselect-dropdown
+                            #thisDropDown
+                            [placeholder]="'Select Location'"
+                            [data]="locations"
+                            [(ngModel)]="selectedLocations"                                                                
+                            [settings]="dropdownSettings"                                
+                            formControlName="config_locations"
+                            (onSelect)="onLocationSelect($event)"
+                            (onSelectAll)="onSelectAllLocation($event)"
+                            (onDeSelect)="onLocationDeSelect($event)" 
+                            (onDeSelectAll)="onLocationDeSelectAll($event)"></ng-multiselect-dropdown>                                                       
+                    </div>                        
+                </div>
+            </div>
+        </div>
+
         <div class="col s12">
-            <h5>Choose Locations</h5>                        
+            <h6>Sponsor Email</h6>            
         </div>
         <div class="col s12">
-            <p>
-                <select name="accountLocations">
-                    <option value="0">Test Option</option>
-                </select>
-            </p>
-            <p>
-                <input type="checkbox" id="allAccountLocationChkb" name="allAccountLocationChkb">All Locations
-            </p>
+            <div class="row filter-container">
+                <div class="col l6 m6 s12">
+                    <div class="config-field">
+                        <input type="text" formControlName="sponsor_emails">
+                    </div> 
+                </div>
+            </div> 
+        </div>
+    </div>
+
+
+
+        
+
+
+
+        <div class="row">
+            <div class="col s6">
+                <div class="row">
+                    <div class="col l6 m6 s12">
+                        <h6>Activity</h6>
+                    </div>
+                    <div class="col s12" formArrayName="activities">
+                        <div class="row filter-container" *ngFor="let activity of configForm.get('activities')['controls']; let i = index">
+                            <div class="col l12 m12 s12" >
+                                <div class="config-field">
+                                    <input type="text" [formControlName]="i">
+                                </div> 
+                            </div>
+                        </div>                       
+                    </div> 
+                </div>                
+            </div> 
+            <div class="col s6">
+                <div class="row">
+                    <div class="col l4 m2 s12">
+                        <h6>Equivalent Points</h6>
+                    </div>
+                    <div class="col s12" formArrayName="activity_points">
+                        <div class="row filter-container" *ngFor="let points of configForm.get('activity_points')['controls']; let i = index">
+                            <div class="col l4 m5 s12" >
+                                <div class="config-field">
+                                    <input type="text" [formControlName]="i">
+                                </div> 
+                            </div>
+                            <div *ngIf="i > 2" (click)="removeActivityItem(i)" style="line-height: 70px">
+                                <a>
+                                    <i class="small material-icons red-text">delete_forever</i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col s6">
+                <div class="row">
+                    <div class="col l4 m2 s12">
+                       <a (click)="addNewActivity()">+ Add New Activity</a> 
+                    </div>
+                </div>
+            </div>
+        </div>
             
+        <div class="row">
+            <div class="col s6">
+                <div class="row">
+                    <div class="col l6 m6 s12">
+                        <h6>Reward (Redeem)</h6>
+                    </div>                
+                    <div class="col s12" formArrayName="reward_items">
+                        <div class="row filter-container" *ngFor="let item of configForm.get('reward_items')['controls']; let i = index">
+                            <div class="col l12 m12 s12" >
+                                <div class="config-field">
+                                    <input type="text" [formControlName]="i">
+                                </div> 
+                            </div>
+                            
+                        </div>                       
+                    </div>
+            </div>
+                
+        </div> 
+            <div class="col s6">
+                <div class="row">
+                    <div class="col l4 m2 s12">
+                        <h6>Required Points</h6>
+                    </div>
+                <div class="col s12" formArrayName="reward_item_points">
+                    <div class="row filter-container" *ngFor="let pts of configForm.get('reward_item_points')['controls']; let i = index">
+                        <div class="col l4 m5 s12" >
+                            <div class="config-field">
+                                <input type="text" [formControlName]="i">                                
+                            </div> 
+                        </div>
+                        <div *ngIf="i > 0" (click)="removeRewardItem(i)" style="line-height: 70px">
+                            <a>
+                                <i class="small material-icons red-text">delete_forever</i>
+                            </a>
+                        </div>
+                        
+                    </div>
+                </div>
+                
+            </div>
         </div>
-        <div class="col s12">
-            <input type="text">
-        </div>
-        <div class="col s12">
-            <h5>Sponsor Email</h5>            
-        </div>
-        <div class="col s12">
-            <input type="text">
-        </div>
-    </div>
-    <div class="row">
-        <div class="col s2">Activity</div>
-        <div class="col s2">Equivalent Points</div>
-    </div>
-    <div class="row">
 
-    </div>
+            <div class="col s6">
+                <div class="row">
+                    <div class="col l4 m2 s12">
+                       <a (click)="addNewReward()">+ Add New Reward</a> 
+                    </div>
+                </div>
+            </div>
+        </div>
 
+
+        <div class="row">
+            <div class="col l6 m6 s6">
+                <button [routerLink]="['/admin', 'list-reward-configuration']" type="button" class="btn grey lighten-1 waves-light waves-effect">Cancel</button>
+                <button type="button" (click)="finalizeConfig()" class="btn orange waves-light waves-effect" [disabled]="!configForm.valid">Submit</button>
+            </div>
+        </div>
+
+    </form>
+    <pre></pre>
+
+    
 </div>

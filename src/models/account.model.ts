@@ -654,10 +654,7 @@ export class Account extends BaseClass {
                         console.log('account.model.getAllEMRolesOnThisAccount', error, sql_all);
                         throw Error('Cannot generate the list of emergency roles');
                     }
-                    for (const r of results) {
-                        resultSet.push(r);
-                    }
-                    resolve(resultSet);
+                    resolve(results);
                 });
 
                 connection.release();

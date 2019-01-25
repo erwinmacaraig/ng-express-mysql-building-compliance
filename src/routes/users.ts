@@ -1206,7 +1206,7 @@ export class UsersRoute extends BaseRoute {
         }
         // console.log('SELECTED IDS ' +  selectedLocIds.join(',') + ' ***');
         locations = await locationsModel.getByInIds(selectedLocIds, false, true);
-
+       
         for(let id of emRoleIds){
             if(queryRoles.indexOf(''+id) > -1){
                 getUsersByEmRoleId = true;
@@ -1219,6 +1219,8 @@ export class UsersRoute extends BaseRoute {
         if(query.archived){
             archived = query.archived;
         }
+        
+
         modelQueries.where.push('users.archived = '+archived);
         if(userRole != 'frp'){
             // modelQueries.where.push('users.account_id = '+accountId);
@@ -1322,7 +1324,7 @@ export class UsersRoute extends BaseRoute {
                 if(getPendings){
                     modelQueries.orWhere.push(' AND users.profile_completion = 0');
                 }
-            }else if( queryRoles.indexOf('users') > -1 || getUsersByEmRoleId && ( (queryRoles.indexOf('frp') == -1 || queryRoles.indexOf('1') == -1) && ( queryRoles.indexOf('trp') == -1 || queryRoles.indexOf('2') == -1 ) ) == true){
+            } else if( queryRoles.indexOf('users') > -1 || getUsersByEmRoleId && ( (queryRoles.indexOf('frp') == -1 || queryRoles.indexOf('1') == -1) && ( queryRoles.indexOf('trp') == -1 || queryRoles.indexOf('2') == -1 ) ) == true){
                 if(noGeneralOcc){
                     modelQueries.where.push(' users.user_id IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id > 8 '+emRoleIdInQuery+' '+inLocIdQuery+' ) ');
                 }else{
@@ -1371,7 +1373,7 @@ export class UsersRoute extends BaseRoute {
                 modelQueries.orWhere.push(noRole);
             }
 
-        }else{
+        } else{
             if(query.search){
                 modelQueries.where.push(' users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
             }
@@ -1646,7 +1648,7 @@ export class UsersRoute extends BaseRoute {
                 user['misc_trainings'] = [];                
               }             
             } catch (e) {
-                console.log(e);
+                console.log('users route get queryUsers endpoint getNumberOfAssignedCourses', e);
                 user_course_total = {};
                 user['assigned_courses'] = 0;
                 user['assigned_courses_tr'] = [];
@@ -2011,7 +2013,7 @@ export class UsersRoute extends BaseRoute {
                 try {
                   response.data.required_trainings = await tr.requirements_details(required_missing_trainings, user_em_roles);
                 } catch (e) {
-                    console.log(e);
+                    console.log('users route requirements_details() ', e);
                 }
 
                 for (const t of response.data.required_trainings) {
@@ -2044,7 +2046,7 @@ export class UsersRoute extends BaseRoute {
 
                         user['mobility_impaired_details'] = mobilityDetails;
                     } catch (e) {
-                        console.log(e);
+                        console.log('users route mobility impaired getMany()', e);
                         user['mobility_impaired_details'] = [];
                     }
                 }

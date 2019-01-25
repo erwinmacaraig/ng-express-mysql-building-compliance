@@ -116,8 +116,7 @@ export class NotificationConfiguration extends BaseClass {
             console.log('Cannot create record NotificationConfiguration', err, sql_insert);
             throw new Error(err);
           }
-          this.id = results.insertId;
-          console.log('Config ID is ' + results.insertId);
+          this.id = results.insertId;          
           this.dbData['notification_config_id'] = this.id;
           resolve(true);
         });

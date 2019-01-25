@@ -571,20 +571,7 @@ const request = require('request');
                 role = await userRoleRelObj.getByUserId(userId, true);
             } catch(e) {
                 role = 0;
-            }
-            
-            /*
-            try {
-                role = await userRoleRelObj.getByUserId(userId, true, locationID);
-            } catch (e) {
-                try {
-                    role = await userRoleRelObj.getByUserId(userId, true);
-                } catch (err) {
-                    console.log(err);
-                    role = 0;
-                }
-            }
-            */
+            }            
         }
 
         if(req.user.evac_role == 'admin'){
@@ -860,7 +847,9 @@ const request = require('request');
 
             // console.log(emrolesOnThisLocation);
         } catch (e) {
-            console.log(e);
+            if (typeof e !== 'boolean') {
+                console.log('compliance route getting EM Roles on Location', e);
+            }
             emrolesOnThisLocation = {};
         }
 
@@ -1727,8 +1716,12 @@ const request = require('request');
                 'account' : account,
                 'role' : r
             };
-
-            compliance = await this.getLocationsLatestCompliance(req, res, true, formData);
+            try {
+                compliance = await this.getLocationsLatestCompliance(req, res, true, formData);
+            } catch(e) {
+                console.log('compliance route - getLocationsLatestCompliance', e);
+            }
+            
             response.data.push( compliance );
 
         }

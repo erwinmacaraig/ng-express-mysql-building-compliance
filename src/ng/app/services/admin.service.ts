@@ -230,5 +230,46 @@ export class AdminService {
     });
   }
 
+  createRewardProgramConfig(config) {
+    return this.http.post(`${this.baseUrl}/admin/create-reward-program-config/`, config);
+  }
+
+  getRelatedBuildings(accountId) {
+    return this.http.post(`${this.baseUrl}/admin/get-candidate-buildings-for-rewards/`, {account_id: accountId});
+  }
+
+  listRewardConfig() {
+    return this.http.get(`${this.baseUrl}/admin/get-all-reward-program-config/`,this.options);
+  }
+
+  listProgramRewardees(config=0) {
+    let httpParams = new HttpParams().set('config', config.toString());
+    this.options['params'] = httpParams;
+    return this.http.get(this.baseUrl + `/admin/get-all-rewardee/`, this.options);
+
+  }
+
+  getRewardProgramConfigDetails(config='') {
+    let httpParams = new HttpParams().set('config', config);
+    this.options['params'] = httpParams;
+    return this.http.get<{
+      sponsor: string,
+      sponsor_emails: string,
+      activities: Array<object>,
+      incentives: Array<object>,
+      buildings: Array<object>,
+      selectionType: string,
+      selectionId: number,
+      searchKey: string,
+      accountLocations: Array<object>
+    }>(this.baseUrl + `/admin/get-program-config-details/`, this.options);
+  }
+
+  deleteRewardProgramConfig(config=0) {
+    return this.http.post(`${this.baseUrl}/admin/delete-reward-program-config/`, {configId: config});
+  }
+
+
+
   
 }

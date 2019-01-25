@@ -189,7 +189,7 @@ export class Location extends BaseClass {
             });
         });
     }
-
+    /*
     public getParentLocationByAccountId(accountId: Number){
         return new Promise((resolve, reject) => {
             const sql_load = `
@@ -227,7 +227,7 @@ export class Location extends BaseClass {
             });
         });
     }
-
+    */
     public getManyByAccountId(accountId: Number, getChild: Boolean = false) {
         return new Promise((resolve, reject) => {
             const sql_load = `
@@ -1236,10 +1236,9 @@ export class Location extends BaseClass {
                 }
 
                 if(results.length > 0){
-                    this.dbData = results;
                     resolve(results[0]);
                 }else{
-                    reject();
+                    reject('location.model.getTheParentORBuiling no results found');
                 }
 
             });
@@ -1265,8 +1264,10 @@ export class Location extends BaseClass {
             if ('parent_id' in searchCriteria) {
                 sql_search += ` AND l.parent_id = ${searchCriteria['parent_id']}`;
             }
-
-            console.log(searchBuildings);
+            if ('is_building' in searchCriteria) {
+                sql_search += `AND l.is_building = ${searchCriteria['is_building']}`;
+            }
+            
             if(searchBuildings !== undefined){
                 let building = (searchBuildings) ? searchBuildings : 0;
                 sql_search += ` AND l.is_building = `+building;
