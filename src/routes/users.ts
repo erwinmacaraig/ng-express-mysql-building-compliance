@@ -1648,7 +1648,7 @@ export class UsersRoute extends BaseRoute {
                 user['misc_trainings'] = [];                
               }             
             } catch (e) {
-                console.log(e);
+                console.log('users route get queryUsers endpoint getNumberOfAssignedCourses', e);
                 user_course_total = {};
                 user['assigned_courses'] = 0;
                 user['assigned_courses_tr'] = [];
@@ -2013,7 +2013,7 @@ export class UsersRoute extends BaseRoute {
                 try {
                   response.data.required_trainings = await tr.requirements_details(required_missing_trainings, user_em_roles);
                 } catch (e) {
-                    console.log(e);
+                    console.log('users route requirements_details() ', e);
                 }
 
                 for (const t of response.data.required_trainings) {
@@ -2046,7 +2046,7 @@ export class UsersRoute extends BaseRoute {
 
                         user['mobility_impaired_details'] = mobilityDetails;
                     } catch (e) {
-                        console.log(e);
+                        console.log('users route mobility impaired getMany()', e);
                         user['mobility_impaired_details'] = [];
                     }
                 }

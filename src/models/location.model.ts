@@ -1236,10 +1236,9 @@ export class Location extends BaseClass {
                 }
 
                 if(results.length > 0){
-                    this.dbData = results;
                     resolve(results[0]);
                 }else{
-                    reject();
+                    reject('location.model.getTheParentORBuiling no results found');
                 }
 
             });
