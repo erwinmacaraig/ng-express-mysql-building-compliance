@@ -701,6 +701,14 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         this.courseService.sendTrainingInvitation(form, (response) => {
             $('#modalSendInvitation').modal('close');
             this.showModalLoader = false;
+            $('#trainingInviteResult').modal('open');
+            for(let i in this.wardenArr){
+                for(let sel of this.selectedFromList){
+                    if(sel.user_id == this.wardenArr[i]['user_id']){
+                        this.wardenArr[i]['isselected'] = false;                        
+                    }
+                }
+            }            
         });
     }
 

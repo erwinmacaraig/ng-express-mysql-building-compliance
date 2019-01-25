@@ -335,7 +335,7 @@
 
 </div>
 
-<div id="modalMobilityHealty" class="modal">
+<div id="modalMobilityHealthy" class="modal">
 
     <div class="modal-content center" [hidden]="!showModalLoader">
         <div class="preloader-wrapper active">
@@ -407,5 +407,16 @@
     <div class="modal-footer" [hidden]="showModalLoader">
         <a  class="modal-action modal-close waves-effect waves-red btn-flat" (click)="clickCancelSendInvitation()">Cancel</a>
         <button type="submit" class="waves-effect waves-blue btn-flat" (click)="clickSendInvitation()" [disabled]="selectedToInvite.length == 0 && (!sendInviteToAll && !sendInviteToAllNonCompliant) ">Confirm</button>
+    </div>
+</div>
+
+<div id="trainingInviteResult" class="modal">
+    <div class="modal-content">
+        <h5>Success</h5>
+        <h6>Your training invite was sent successfully.</h6>
+    </div>
+
+    <div class="modal-footer">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
     </div>
 </div>

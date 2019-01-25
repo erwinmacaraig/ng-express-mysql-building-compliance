@@ -221,6 +221,7 @@ table tr td .image img{
 }
 
 #modalMobilityHealty,
+#trainingInviteResult,
 #modalSendInvitation{
     width: 35%;
 }
@@ -235,6 +236,7 @@ table tr td .image img{
 @media only screen and (max-width: 1024px) {
     #modalArchiveBulk,
     #modalArchive,
+    #trainingInviteResult,
     #modalSendInvitation{
         width: 60%;
     }
@@ -247,8 +249,9 @@ table tr td .image img{
 @media only screen and (max-width: 500px) {
     #modalArchiveBulk,
     #modalArchive,
-    #modalMobility.
-    #modalMobilityHealty,
+    #modalMobility,
+    #modalMobilityHealthy,
+    #trainingInviteResult,
     #modalSendInvitation{
         width: 90%;
     }

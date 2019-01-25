@@ -416,3 +416,14 @@
         <button type="submit" class="waves-effect waves-blue btn-flat" (click)="clickSendInvitation()" [disabled]="selectedToInvite.length == 0 && (!sendInviteToAll && !sendInviteToAllNonCompliant) ">Confirm</button>
     </div>
 </div>
+
+<div id="trainingInviteResult" class="modal">
+    <div class="modal-content">
+        <h5>Success</h5>
+        <h6>Your training invite was sent successfully.</h6>
+    </div>
+
+    <div class="modal-footer">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Close</a>
+    </div>
+</div>
