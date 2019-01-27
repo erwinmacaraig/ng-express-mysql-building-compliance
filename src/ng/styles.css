@@ -482,3 +482,213 @@ app-view-user-component .left-panel .select-wrapper ul.select-dropdown li span {
 .filter-container > .col{
     margin-bottom: 20px;
 }
+
+.form-wrap.form-builder .field-label{
+    font-size: 14px !important;
+}
+
+.form-wrap.form-builder .frmb .field-actions{
+    z-index: 999;
+}
+
+.form-wrap.form-builder .frmb .field-actions .btn{
+    display: inline-block;
+    width: 32px;
+    height: 32px !important;
+    padding: 0 6px !important;
+    border-radius: 0 !important;
+    border-color: #c5c5c5;
+    background-color: #fff;
+    color: #c5c5c5 !important;
+    line-height: 32px !important;
+    font-size: 16px !important;
+    border-width: 0 0 1px 1px;
+}
+
+.select-field label,
+.rendered-form label{
+    position: unset !important;
+    top: 0px !important;
+    left: 0px !important;
+}
+
+.form-wrap.form-builder .frmb .field-actions .btn:hover{
+    color: #fff !important;
+}
+
+.form-wrap.form-builder .form-actions.btn-group{
+    margin: 20px 0px;
+}
+
+.form-wrap.form-builder .form-actions.btn-group .btn,
+.form-elements .style-wrap .btn-group .btn{
+    margin-right: 10px;
+}
+
+.form-wrap.form-builder *,
+.rendered-form * {
+    box-sizing: border-box !important;
+}
+
+.form-elements input{
+    margin:0px !important;
+}
+
+.form-elements .close-field{
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.form-wrap.form-builder .frmb .prev-holder input[type=number],
+.form-wrap.form-builder .frmb .prev-holder input[type=date]{
+    width: inherit !important;
+}
+
+.form-wrap .input-wrap,
+.fb-checkbox,
+.fb-radio{
+    position: relative;
+}
+
+label {
+    font-size: inherit !important;
+}
+
+ .form-wrap.form-builder .btn,
+.rendered-form .btn{
+    padding: 6px 12px !important;
+    margin-bottom: 0;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+    line-height: 1.42857143 !important;
+}
+
+.form-wrap.form-builder .frmb .sortable-options>li .remove{
+    position: absolute;
+    opacity: 1;
+    right: 14px;
+    height: 18px !important;
+    width: 18px;
+    top: 14px;
+    font-size: 12px !important;
+    padding: 0 !important;
+    color: #c10000 !important;
+    background-color: #fff;
+}
+
+.form-wrap.form-builder .frmb .sortable-options>li .remove:hover{
+    background-color: #c10000;
+    text-decoration: none;
+    color: #fff !important;
+}
+
+.btn-danger{
+    background-color: #C62828 !important;
+}
+
+.btn-default{
+    background-color: #9e9e9e !important;
+}
+
+.btn-primary{
+    background-color: #1976D2 !important;
+}
+
+.btn-info{
+    background-color: #40c4ff !important;
+}
+
+.btn-success{
+    background-color: #43A047 !important;
+}
+
+.btn-warning{
+    background-color: #f9a825 !important;
+}
+
+.btn.btn-xs {
+    padding: 1px 10px !important;
+    font-size: 12px !important;
+    line-height: 1.5 !important;
+    border-radius: 3px !important;
+    height: 30px !important;
+}
+
+.btn.btn-sm{
+    padding: 1px 10px !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    border-radius: 3px !important;
+    height: 32px !important;
+}
+
+.form-wrap.form-builder input[type=text],
+.form-wrap.form-builder input[type=number],
+.form-wrap.form-builder input[type=date],
+.form-wrap.form-builder input[autocomplete],
+.form-wrap.form-builder select{
+    margin-bottom: 0px;
+    width: 100% !important;
+    box-sizing: border-box;
+}
+
+.modal-fixed-footer .modal-footer{
+    min-height: 65px;
+}
+
+.modal-fixed-footer .modal-content{
+    overflow-y: auto;
+    height: 90%;
+}
+
+.form-wrap.form-builder select,
+.rendered-form select{
+    display: block;
+}
+
+.form-wrap.form-builder .stage-wrap{
+    width: calc(76% - 5px);
+    background-color: #f7f7f7;
+    padding: 10px 20px;
+}
+
+.form-wrap.form-builder .cb-wrap{
+    width: 22%;
+    left: 0px !important;
+}
+
+.form-wrap.form-builder .frmb li{
+    background-color: transparent !important;
+}
+
+.form-wrap.form-builder input[type=date]{
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+}
+
+.rendered-smart-form .form-control{
+    background-color: #fff !important;
+    border: 1px solid #ccc !important;
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.075) !important;
+    padding: 5px 10px !important;
+    border-radius: 5px !important;
+}
+
+.rendered-smart-form select.form-control{
+    height: 45px;
+}
+
+.rendered-form label{
+    font-size: 14px !important;
+}
+
+.rendered-form p{
+    font-size: 16px;
+    line-height: 12px;
+}
+
+.form-wrap.form-builder p{
+    font-size: 16px;
+    line-height: 22px;
+}

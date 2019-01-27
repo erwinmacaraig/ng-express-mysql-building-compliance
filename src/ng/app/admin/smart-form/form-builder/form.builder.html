@@ -1,0 +1,59 @@
+<div class="row">
+    <div class="col l12" style="position: relative">
+
+        <h5 class="blue-text" [hidden]="showPreview">Form Builder</h5>
+        <h5 class="blue-text" [hidden]="!showPreview">Preview</h5>
+        
+        <div class="right-action-buttons">
+            <button class="btn grey" [routerLink]="['/admin/smart-form-list']">Close</button>
+            <button class="btn orange"  (click)="saveFormBuilder()">Save</button>
+        </div>
+
+    </div>
+</div> 
+
+<div class="row">
+    <div class="col l4 m12 s12">
+        <input type="text" placeholder="Form name" id="formName">
+    </div>
+    <div class="col l4 m12 s12">
+        <select class="materialize" id="selectComplianceType">
+            <option value="false" selected disabled>Compliance Activity</option>
+            <option value="2">EPC Meeting</option>
+            <option value="3">Fire Safety Advisor</option>
+            <option value="9">Evacuation Exercise</option>
+            <option value="4">Emergency Procedure Manual</option>
+        </select>
+    </div>
+    <div class="col l4 m12 s12">
+        <select class="materialize" id="selectFormType">>
+            <option value="false" selected disabled>User Type</option>
+            <option value="consultant">Consultant</option>
+            <option value="tenant">Tenant</option>
+        </select>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col l12">
+        <div id="formBuilder" [hidden]="showPreview"></div>
+
+        <div [hidden]="!showPreview">
+    
+            <div style="width: 100%; position: relative;">
+                <h5 class="modal-title">Preview</h5>
+                <button class="btn red left" (click)="hidePreview()" style="font-size: 13px !important; height: 30px !important; line-height: 14px; position: absolute; right: 0px; top: 5px;">Hide</button>
+                <div class="clearfix"></div>
+            </div>
+
+            
+            
+            
+            <div class="form-wrap form-builder" id="previewContainer"></div>
+        </div>
+    </div>
+</div>
+
+
+
+

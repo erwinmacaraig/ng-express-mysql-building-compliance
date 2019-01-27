@@ -8,6 +8,8 @@ import { Account } from '../models/account.model';
 import { Location } from '../models/location.model';
 import { User } from './../models/user.model';
 import { Token } from './../models/token.model';
+import { SmartFormModel } from './../models/smartform.model';
+import { SmartFormAnswersModel } from './../models/smartform.answers.model';
 import { parse } from 'url';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
@@ -42,6 +44,7 @@ import { RewardConfig } from '../models/reward.program.config.model';
 
 const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
+import * as PDFDocument from 'pdfkit';
 
 export class AdminRoute extends BaseRoute {
 
@@ -2283,6 +2286,26 @@ export class AdminRoute extends BaseRoute {
     (req: AuthRequest, res: Response) => {
       new AdminRoute().manualSendNotificationSummaryLink(req, res);
     });
+
+    router.post('/admin/save-form-builder', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().saveFormBuilder(req, res);
+    });
+
+    router.get('/admin/get-smart-form-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().listSmartForms(req, res);
+    });
+
+    router.get('/admin/get-smart-form', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().getSmartForm(req, res);
+    });
+
+    router.get('/admin/get-location-and-account',  (req: AuthRequest, res: Response) => {
+        new AdminRoute().getLocationAndAccount(req, res);
+    });
+
+    router.post('/admin/submit-smart-form', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().submitSmartForm(req, res);
+    });
   // ===============
   }
 
@@ -2996,6 +3019,305 @@ export class AdminRoute extends BaseRoute {
 
     });
   }
+
+  public async saveFormBuilder(req: AuthRequest, res: Response){
+        let 
+        smartFormModel = new SmartFormModel(),
+        body = req.body,
+        response = {
+            status : false,
+            message : 'invalid fields'
+        };
+
+        if(
+            body.name.trim().length > 0 &&
+            'compliance_kpis_id' in body &&
+            'type' in body &&
+            'data' in body
+            ){
+
+            await smartFormModel.create({
+                'name' : body.name,
+                'compliance_kpis_id' : body.compliance_kpis_id,
+                'type' : body.type,
+                'data' : JSON.stringify(body.data),
+                'is_deleted' : 0,
+                'date_created' : moment().format('YYYY-MM-DD HH:mm:00'),
+            });
+
+            response.status = true;
+            response.message = '';
+        }
+
+        res.send(response);
+    }
+
+    public async listSmartForms(req: AuthRequest, res: Response){
+        let smartFormModel = new SmartFormModel();
+
+        res.send( await smartFormModel.all() );
+    }
+
+    public async getSmartForm(req: AuthRequest, res: Response){
+        let smartFormModel = new SmartFormModel();
+        let where = [];
+        for(let i in req.query){
+            where.push( i+' = "'+req.query[i]+'"' );
+        }
+        let forms = await smartFormModel.getWhere(where);
+        res.send(forms);
+    }
+
+    public async submitSmartForm(req: AuthRequest, res: Response){
+        let 
+        complKpisModel = new ComplianceKpisModel(),
+        compliaceDocsModel = new ComplianceDocumentsModel(),
+        smartFormModel = new SmartFormModel(),
+        smartformAnswerModel = new SmartFormAnswersModel(),
+        response = {
+            status : false, message : '', pdf : ''
+        },
+        locModel = <any> new Location(req.body.location_id),
+        locParentModel = <any> new Location(),
+        accntModel = <any> new Account(req.body.account_id),
+        timestamp = new Date().getTime(),
+        doc:PDFDocument = new PDFDocument({
+          margins : {
+            top:25, left:25, right:25, bottom:25
+          }
+        }),
+        DIR = __dirname + '/../public/temp/'; 
+
+        try{
+
+            await locModel.load();
+            await accntModel.load();
+            locParentModel.setID(locModel.getDBData().parent_id);
+
+            let 
+            account = accntModel.getDBData(),
+            location = locModel.getDBData();
+            
+            try{
+                await locParentModel.load();
+            }catch(e){}
+
+            location['parent'] = locParentModel.getDBData();
+
+            smartFormModel.setID(req.body.smart_form_id);
+            await smartFormModel.load();
+
+            await smartformAnswerModel.create({
+                'smart_form_id' : req.body.smart_form_id,
+                'answers' : req.body.answers,
+                'user_id' : req.user.user_id,
+                'location_id' : req.body.location_id,
+                'account_id' : req.body.account_id,
+                'date_created' : moment().format('YYYY-MM-DD')
+            });
+
+            let 
+            smartForm = <any> smartFormModel.getDBData(),
+            filename = smartForm['name'] +'-'+timestamp+'.pdf',
+            filepath = DIR + filename,
+            writeStream = fs.createWriteStream(filepath),
+            ypos = 25,
+            answersData = JSON.parse(req.body.answers),
+            allKpis = <any> await complKpisModel.getAllKPIs(true),
+            kpis = {};
+
+            for(let kp of allKpis){
+                if(kp.compliance_kpis_id == smartForm.compliance_kpis_id){
+                    kpis = kp;
+                }
+            }
+            
+            doc.pipe(writeStream);
+            doc.image( __dirname + '/../public/assets/images/ec_logo.png', 25, 15, { width: 200, height: 60, align: 'center' });
+            doc.moveDown(4);
+
+            doc.fontSize(12).text(account.account_name);
+            doc.moveDown(0);
+
+            let locName = (location['parent']['name']) ? location['parent']['name'] : '';
+            locName +=  (location['parent']['name']) ? ' '+location['name'] : location['name'];
+            doc.fontSize(12).text(locName);
+            doc.moveDown(0);
+
+            doc.fontSize(12).text(smartForm['name']);
+            doc.moveDown(2);
+
+            for(let item of JSON.parse(smartForm.data)){
+
+                if(item.type != 'button'){
+
+                    if(item.type == 'paragraph'){
+                        let splittedBR = item.label.split('<br>'),
+                        newLines = [];
+                        splittedBR.forEach(function(txt, ind){
+                            splittedBR[ind] = txt.replace(/<div>/g, '');
+                            splittedBR[ind] = txt.replace(/<\/div>/g, '');
+
+                            let divReplace = txt.replace(/<div>/g, '');
+
+                            divReplace = divReplace.replace(/<\/div>/g, '');
+
+                            newLines.push(divReplace);
+                        });
+
+                        for(let p of newLines){
+                            doc.fontSize(10).fillColor('black').text(p);
+                            doc.moveDown(0);
+                        }
+
+                    }else if(item.type == 'header'){
+                        if(item.subtype == 'h1'){
+                            doc.fontSize(18).fillColor('black').text(item.label);
+                        }else if(item.subtype == 'h2'){
+                            doc.fontSize(16).fillColor('black').text(item.label);
+                        }else if(item.subtype == 'h3'){
+                            doc.fontSize(14).fillColor('black').text(item.label);
+                        }else if(item.subtype == 'h4'){
+                            doc.fontSize(12).fillColor('black').text(item.label);
+                        }else if(item.subtype == 'h5'){
+                            doc.fontSize(11).fillColor('black').text(item.label);
+                        }else if(item.subtype == 'h6'){
+                            doc.fontSize(10).fillColor('black').text(item.label);
+                        }
+                        
+                        doc.moveDown(0);
+                    }else{
+                        doc.fontSize(10).fillColor('grey').text(item.label);
+                        doc.moveDown(0);
+                    }
+                    
+                    if(item.type != 'checkbox-group'){
+                        for(let ans of answersData){
+                            if(item.name == ans.name){
+
+                                ans.value = ans.value.replace(/\n/g, '');
+                                ans.value = ans.value.replace(/\r/g, '');
+
+                                doc.fontSize(10).fillColor('black').text(ans.value);
+                                doc.moveDown(0);
+                            }
+                        }
+                    }else if(item.type == 'checkbox-group'){
+                        for(let val of item.values){
+                            let allAns = [];
+                            for(let ans of answersData){
+                                if(item.name+'[]' == ans.name){
+                                    if(ans.value == val.value){
+                                        allAns.push(val.label);
+                                    }
+                                }
+                            }
+
+                            doc.fontSize(10).fillColor('black').text( allAns.join(',') );
+                        }
+                    }
+
+                    doc.moveDown(1);
+                }
+
+            }
+
+            doc.end();
+
+            writeStream.on('finish', async function(){
+                fs.readFile(filepath, "utf8", async function(err, data){
+                    if(err) throw err;
+
+                    var file = fs.createReadStream(filepath);
+                    var stat = fs.statSync(filepath);
+
+                    AWS.config.accessKeyId = AWSCredential.AWSAccessKeyId;
+                    AWS.config.secretAccessKey = AWSCredential.AWSSecretKey;
+                    AWS.config.region = AWSCredential.AWS_REGION;
+                    const aws_bucket_name = AWSCredential.AWS_Bucket;
+                    const aws_s3 = new AWS.S3();
+
+                    const dataStream = await fs.readFileSync(filepath);
+                    const keyPath = account['account_directory_name']+"/"+location['location_directory_name']+"/"+kpis['directory_name']+"/Primary/"+filename;
+                    const params = {
+                        Bucket: aws_bucket_name,
+                        Key: keyPath,
+                        ACL: 'public-read',
+                        Body: dataStream
+                    };
+                    console.log('Processing ', keyPath);
+                    const dateToday = moment().format('YYYY-MM-DD');
+                    aws_s3.putObject(params, async (e, d) => {
+                        if (e) {
+                            response.message = 'Error on uploading to server';
+                            res.send(response);
+                        }
+
+                        console.log(e, d);
+
+                        await compliaceDocsModel.create({
+                            'account_id' : req.body.account_id,
+                            'building_id' : req.body.location_id,
+                            'compliance_kpis_id' : smartForm.compliance_kpis_id,
+                            'document_type' : 'Primary',
+                            'file_name' : filename,
+                            'override_document' : -1,
+                            'description' : 'Smart form',
+                            'date_of_activity' : dateToday,
+                            'viewable_by_trp' : 0,
+                            'file_size' : stat.size,
+                            'filte_type' : 'application/pdf',
+                            'timestamp': moment().format('YYYY-MM-DD HH:mm:ss')
+                        });
+
+                        response['pdf'] = '';
+                        response.status = true;
+                        res.send(response);
+
+                    });
+
+                    
+                });
+            });
+
+            
+        }catch(e){
+            response.message = e.message;
+            res.send(response);
+        }
+
+        
+    }
+
+    public async getLocationAndAccount(req: Request, res: Response){
+        let 
+        locModel = <any> new Location(req.query.location_id),
+        locParentModel = <any> new Location(),
+        accntModel = <any> new Account(req.query.account_id),
+        response = <any> {
+            'account' : {}, 'location' : {}
+        };
+
+        try{
+            await locModel.load();
+            await accntModel.load();
+            locParentModel.setID(locModel.getDBData().parent_id);
+
+            response = {
+                'account' : accntModel.getDBData(), 'location' : locModel.getDBData()
+            };
+
+            try{
+                await locParentModel.load();
+            }catch(e){}
+
+            response['location']['parent'] = locParentModel.getDBData();
+
+        }catch(e){}
+
+
+        res.send(response);
+    }
 
 
 
