@@ -1,0 +1,237 @@
+<div class="main">
+
+    <div class="left-nav">
+        
+        <div class="avatar-container">
+            <div class="doll"></div>
+            <div class="name-location-container">
+                <div class="name blue-text">{{userData['name']}}</div>
+                <div class="location-image"></div>
+                <div class="location-text">Location, Sub Location</div>
+                <div class="location-text">Location, Sub Location</div>
+                <div class="location-text">Location, Sub Location</div>
+                <div class="location-text">Location, Sub Location</div>
+            </div>
+        </div>
+            
+        <div class="level-skill">
+            <div class="left blue-text">Level 5</div>
+            <div class="right">155 skill points</div>
+            <div class="clearfix"></div>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress" style="width: 50%;"></div>
+        </div>
+
+        <p class="small-text">10 skill points to next level</p>
+        
+        <div class="spacer"></div>
+        <!--
+        <div class="myskill-container">
+            <h5>My Skills</h5>
+            <div class="badges">
+                <div class="badge badge-1"></div>
+                <div class="badge badge-2"></div>
+            </div>
+        </div>
+        -->    
+        <div class="training-status-container">
+            <h5>My Roles</h5>
+            <div *ngFor="let trainingInfo of userTrainingInfo" class="role-list-container">
+                    <div [ngClass]="{ 'role-icon': trainingInfo['em_role_id'], 'general-occupant': trainingInfo['em_role_id'] == 8, 'warden': trainingInfo['em_role_id'] != 8 }"></div>
+                    <div class="role-text-compliant">
+                        <div class="role-name">{{trainingInfo['role_name']}}</div>
+                        <div class="compliant-container non-compliant">
+                            <div class="image"></div>
+                            <div class="text"></div>
+                        </div>
+                    </div>
+                    <div class="training-requirements">
+                        <div class="icon"></div>
+                        <div class="text blue-text">
+                            Training Requirements <br/>
+                            
+                        </div>
+                    </div>
+            </div>
+                        
+  <!--
+            <div class="role-list-container">
+                <div class="role-icon general-occupant"></div>
+                <div class="role-text-compliant">
+                    <div class="role-name">General Occupant</div>
+                    <div class="compliant-container non-compliant">
+                        <div class="image"></div>
+                        <div class="text"></div>
+                    </div>
+                </div>
+
+                <div class="training-requirements">
+                    <div class="icon"></div>
+                    <div class="text blue-text">
+                        Training Requirements <br/>
+                        ( 2 / 3 )
+                    </div>
+                </div>
+            </div>
+
+            <div class="role-list-container">
+                <div class="role-icon warden"></div>
+                <div class="role-text-compliant">
+                    <div class="role-name">Warden</div>
+                    <div class="compliant-container compliant">
+                        <div class="image"></div>
+                        <div class="text"></div>
+                    </div>
+                </div>
+
+                <div class="training-requirements">
+                    <div class="icon"></div>
+                    <div class="text blue-text">
+                        Training Requirements <br/>
+                        ( 2 / 3 )
+                    </div>
+                </div>
+            </div>
+        -->
+        </div>    
+    </div>
+
+    <div class="right-container">
+        <!--
+        <div class="top">
+            <h4 class="title left">Training</h4>
+            <div class="right">
+                <ul>
+                    <li>
+                        <div class="image star"></div>
+                        10 reward points
+                    </li>
+
+                    <li>
+                        <div class="image calendar"></div>
+                        Earn reward points
+                    </li>
+
+                    <li>
+                        <div class="image gift"></div>
+                        Redeem points
+                    </li>
+                </ul>
+            </div>
+        </div>
+-->
+        <div class="box-container">
+            
+            <div class="box center check">
+
+                <div class="icon-right"></div>
+
+                <div class="image-container">
+                    <div class="image badge-1"></div>
+                </div>
+                <p class="blue-text module">Module 1</p>
+
+                <h4 class="center title">
+                    General Occupant Basic Training
+                </h4>
+
+                <div class="button-container ">
+                    <button class="btn blue">Retake Training</button>
+                </div>
+
+                <p class="blue-text bottom-text">Training expiration 10/14/2019</p>
+
+            </div>
+
+            <div class="box center check">
+                
+                <div class="icon-right"></div>
+
+                <div class="image-container">
+                    <div class="image badge-2"></div>
+                </div>
+                <p class="blue-text module">Module 2</p>
+
+                <h4 class="center title">
+                    General Occupant First Response Course
+                </h4>
+
+                <div class="button-container ">
+                    <button class="btn blue">Retake Training</button>
+                </div>
+
+                <p class="blue-text bottom-text">Training expiration 10/14/2019</p>
+
+            </div>
+
+            <div class="box center unlocked">
+                
+                <div class="icon-right"></div>
+
+                <div class="image-container">
+                    <div class="image badge-3"></div>
+                </div>
+                <p class="blue-text module">Module 3</p>
+
+                <h4 class="center title">
+                    Generic Bomb Threat Training
+                </h4>
+
+                <div class="button-container ">
+                    <button class="btn orange">Take Training</button>
+                </div>
+
+                <p class="blue-text bottom-text">Earn 30 Skill Points & 15 Reward Points</p>
+
+            </div>
+
+            <div class="box center locked">
+                
+                <div class="icon-right"></div>
+
+                <div class="image-container">
+                    <div class="image badge-4"></div>
+                </div>
+                <p class="blue-text module">Module 4</p>
+
+                <h4 class="center title">
+                    Emergency Control Organisation Training
+                </h4>
+
+                <div class="button-container ">
+                    <button class="btn grey">Unlocked</button>
+                </div>
+
+                <p class="blue-text bottom-text">You need to be level 4 to take this training</p>
+
+            </div>
+
+            <div class="box center bonus">
+                
+                <div class="icon-right"></div>
+
+                <div class="image-container">
+                    <div class="image badge-5"></div>
+                </div>
+                <p class="blue-text module">Advance Module</p>
+
+                <h4 class="center title">
+                    Advance Bomb Threat Training
+                </h4>
+
+                <div class="button-container ">
+                    <button class="btn orange">Take training for 40 points</button>
+                </div>
+
+                <p class="blue-text bottom-text">Earn 100 skill points</p>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+</div>

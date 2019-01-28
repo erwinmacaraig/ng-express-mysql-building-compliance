@@ -1,9 +1,9 @@
-import * as db from 'mysql2';
+
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
-import * as moment from 'moment';
+
 
 export class TrainingRequirements extends BaseClass {
 
@@ -182,6 +182,7 @@ export class TrainingRequirements extends BaseClass {
                 FROM em_role_training_requirements emt
                 INNER JOIN em_roles em ON emt.em_role_id = em.em_roles_id
                 INNER JOIN training_requirement tr ON emt.training_requirement_id = tr.training_requirement_id
+                ORDER BY em.em_roles_id
             `;
             
 
@@ -199,7 +200,72 @@ export class TrainingRequirements extends BaseClass {
         });
     }
 
+    public addTrainingModule(trainingRequirementId=0, moduleData={}): Promise<boolean> {
+        let trid = this.ID();
 
+        if (trainingRequirementId) {
+            trid = trainingRequirementId;
+        }
+                
+        return new Promise((resolve, reject) => {
+            const sql = `INSERT INT training_module  (
+                            training_requirement_id,
+                            module_name,
+                            module_subname,
+                            module_launcher,
+                            module_skill_points,
+                            addedBy
+                        VALUES (?, ?, ?, ?, ?, ?);`;
+            const params = [
+                trid,
+                ('module_name' in moduleData) ?  moduleData['module_name'] : null,
+                ('module_subname' in moduleData) ? moduleData['module_subname'] : null,
+                ('module_launcher' in moduleData) ? moduleData['module_launcher'] : null,
+                ('module_skill_points' in moduleData) ? moduleData['module_skill_points'] : null,
+                ('addedBy' in moduleData) ? moduleData['addedBy'] : null
+            ];            
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error();
+                } 
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log('Cannot insert training module', sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(true);
+                });
+                connection.release();
 
+            });
+        });
+    } 
+
+    public getTrainingModulesForRequirement(trainingRequirementId=0): Promise<Array<object>> {
+        let trid = this.ID();
+
+        if (trainingRequirementId) {
+            trid = trainingRequirementId;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ?`;
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error();
+                }
+                const params = [trid]; 
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log('Cannot retrieve training modules for this requirement id', sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+
+            });
+        });
+    }
 
 }
