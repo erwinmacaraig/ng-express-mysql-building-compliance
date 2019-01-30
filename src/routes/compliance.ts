@@ -1280,13 +1280,17 @@ const request = require('request');
                 diagrams = [],
                 docsWhere = [];
 
+                
+
                 if(subIds.length > 0){
                     docsWhere.push( ['compliance_documents.compliance_kpis_id = '+evacDiagramId] );
                     docsWhere.push( ['compliance_documents.document_type = "Primary" '] );
-                    docsWhere.push( ['compliance_documents.building_id IN ('+subIds.join(',')+')'] );
+                    // we need to include the main building in case of malls etc
+                    docsWhere.push( ['compliance_documents.building_id IN ('+subIds.join(',')+',' + locationID + ')'] );
                     diagrams = <any> await compianceDocsModel.getWhere(docsWhere);
                 }
 
+                console.log(diagrams);
                 let valids = 0;
                 for(let diag of diagrams){
                     let validTillMoment = moment(diag['valid_till'], ['DD/MM/YYYY']);
@@ -1300,6 +1304,10 @@ const request = require('request');
                 if(Math.round( ( valids / diagrams.length ) * 100) >= 100){
                     comp['valid'] = 1;
                     comp['validity_status'] = 'valid';
+                } else if (valids != diagrams.length && valids > 0) {
+                    comp['validity_status'] = 'invalid';
+                } else if (valids == 0) {
+                    comp['validity_status'] = 'none-exist';
                 }
                 comp['total_valid_diagrams'] = valids;
                 comp['total_diagrams'] = diagrams.length;
