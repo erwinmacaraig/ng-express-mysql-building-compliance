@@ -1290,7 +1290,6 @@ const request = require('request');
                     diagrams = <any> await compianceDocsModel.getWhere(docsWhere);
                 }
 
-                console.log(diagrams);
                 let valids = 0;
                 for(let diag of diagrams){
                     let validTillMoment = moment(diag['valid_till'], ['DD/MM/YYYY']);
