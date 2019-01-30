@@ -1,5 +1,6 @@
 import {BaseClass} from './base.model';
 import * as Promise from 'promise';
+import { getModuleFactory } from '@angular/core';
 
 export class UserTrainingModuleRelation extends BaseClass {
     constructor(id: number = 0) {
@@ -40,7 +41,7 @@ export class UserTrainingModuleRelation extends BaseClass {
                 disabled,
                 completed,
                 dtLastAccessed,
-                dtCompleted,
+                dtCompleted
             )
             VALUES
                 (?, ?, ?, ?, ?, ?, ?) 
@@ -67,6 +68,7 @@ export class UserTrainingModuleRelation extends BaseClass {
                     if (err) {
                         console.log('Cannot insert user training module relations', sql, params);
                     }
+                   
                     resolve(true);
                     return;
                 });
@@ -133,6 +135,80 @@ export class UserTrainingModuleRelation extends BaseClass {
             const sql = `SELECT * FROM user_`;
         });
     }
-    
-}
 
+    userTrainingModuleRelationId(userId=0, trainingRequirementId=0, trainingModuleId=0, raw=false): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT
+                            *
+                        FROM
+                            user_training_module_relation
+                        WHERE
+                            user_id = ?
+                        AND
+                            training_requirement_id = ?
+                        AND
+                            training_module_id = ?`;
+
+            const params = [userId, trainingRequirementId, trainingModuleId];
+
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw new Error(error);
+                }
+                connection.query(sql, params, (err, results) => {
+                    if (err) {
+                        console.log('Cannot retrieve user_training_module_relation_id from method userTrainingModuleRelationId', sql, params);
+                    }
+                    this.id = results[0]['user_training_module_relation_id'];
+                    this.dbData = results[0];
+                    if (raw) {                        
+                        resolve(results[0]);
+                        
+                    } else {
+                        resolve(results[0]['user_training_module_relation_id']);
+                    }
+                    
+                });
+                connection.release();
+            });
+                        
+        });
+        
+    }
+
+    public getUserTrainingModule(trainingRqmtId=0, userId=0, moduleId=0) {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT
+                            user_training_module_relation_id,
+                            training_requirement_id,
+                            user_id,
+                            training_module_id,
+                            disabled,
+                            dtLastAccessed,
+                            dtCompleted
+                        FROM
+                            user_training_module_relation
+                        WHERE
+                            training_requirement_id = ?
+                        AND
+                            user_id = ?
+                        AND
+                            training_module_id = ?`;
+            
+            const params = [trainingRqmtId, userId, moduleId];
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw new Error(error);
+                }
+                connection.query(sql, params, (err, results) => {
+                    if (err) {
+                        console.log('user training module model method getUserTrainingModule', sql, params, err);
+                        throw new Error(err);
+                    }
+                    resolve(results[0]);
+                });
+            });
+
+        });
+    }
+}

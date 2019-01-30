@@ -26,7 +26,7 @@ import { MobilityImpairedModel } from '../models/mobility.impaired.details.model
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { NotificationUserSettingsModel } from '../models/notification.user.settings';
 import { NotificationToken } from '../models/notification_token.model';
-
+import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
 import * as moment from 'moment';
 import * as validator from 'validator';
 import * as path from 'path';
@@ -439,7 +439,9 @@ export class UsersRoute extends BaseRoute {
         (req: AuthRequest, res: Response) => {
             new UsersRoute().userTrainingInfo(req, res);
         }
-      )
+      );
+
+
 
     }
 
@@ -447,21 +449,9 @@ export class UsersRoute extends BaseRoute {
         const userId = req.query.userId;
         let userRoleModel;
         let userTrainingInfoArr = [];
-        /*
-        let trainingRequirementModules = {
-            training_requirement_id: 0,
-            training_requirement_name: '',
-            module: []
-        };
-        */
+       
        let trainingRequirementModules = {};
-       /*
-       let userTrainingInfoObj = {
-            em_role_id: 0,
-            role_name: '',            
-            traning_requirement: []
-        };
-        */
+       
        let userTrainingInfoObj = {};
         let temp;
         let emroles = new UserEmRoleRelation(); 
@@ -530,15 +520,31 @@ export class UsersRoute extends BaseRoute {
             }
 
         }
-
         temp = null;
+        // cross reference to user_training_module_relation
+        Object.keys(trainingRequirementModules).forEach((tridKey) => {
+            for(let i = 0; i < trainingRequirementModules[tridKey]['modules'].length; i++) {                
+                new UserTrainingModuleRelation().getUserTrainingModule(parseInt(tridKey, 10), userId, trainingRequirementModules[tridKey]['modules'][i]['training_module_id'])
+                .then((userMod) => {
+                    trainingRequirementModules[tridKey]['modules'][i] = {
+                        ...trainingRequirementModules[tridKey]['modules'][i],
+                        ...userMod
+                    };
+                })
+                .catch((e) => {
+                    console.log('Cannot get user training module information at ', e);
+                });
+            }
+        });
+
+
 
         const myEmRoleIds = (emRolesInfoArr[0] as Array<number>);
         for (let em_role_id of myEmRoleIds) {
             userTrainingInfoObj = {
                 em_role_id: em_role_id,
                 role_name:  trainingReqmtObj[em_role_id.toString()]['role_name'],
-                traning_requirement: [],
+                training_requirement: [],
                 active_training: [],
             }
             let missingRequiredTrainingsIdArr = [];
@@ -548,7 +554,7 @@ export class UsersRoute extends BaseRoute {
                 if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
                     status = 'non-compliant';
                 }
-                userTrainingInfoObj['traning_requirement'].push({
+                userTrainingInfoObj['training_requirement'].push({
                     ...tr,
                     modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
                     status: status

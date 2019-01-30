@@ -5,7 +5,7 @@
 }
 
 .left-nav{
-    width: 265px;
+    width: 431px;
     background-color: #f1f1f1;
     padding: 20px;
     height: 100%;
@@ -398,3 +398,28 @@
     vertical-align: top;
     font-size: 14px;
 }
+
+ div.module-container{ 
+     width: 310px;
+     position: relative;
+     display: inline-block; 
+}
+
+#training iframe {
+    height: 90%;
+    width: 97%;
+    position: absolute;
+  }
+  
+  #training{
+    top: 11% !important;
+    left: 1%;
+    width: 98vw;
+    height: 92vh;
+    max-height: 100vh;
+  }
+  
+  #training .modal-footer{
+    position: absolute;
+    bottom: 10px;
+  }
