@@ -296,7 +296,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     if ( (this.selectedKPI in this.complianceDocuments && this.complianceDocuments[this.selectedKPI].length == 0) || ( this.selectedKPI in this.complianceDocuments && reload)) {
       this.adminService.getDocumentList(this.accountId, this.locationId, this.selectedKPI).subscribe((response) => {
         this.documentFiles = response['data'];        
-        
+        this.complianceDocuments[this.selectedKPI] = [];
         this.locationName = response['displayName'].join(' >> ');
         for (const doc of this.documentFiles) {
           doc['downloadCtrl'] = false; 
