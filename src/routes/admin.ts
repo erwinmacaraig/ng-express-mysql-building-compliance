@@ -10,7 +10,7 @@ import { User } from './../models/user.model';
 import { Token } from './../models/token.model';
 import { SmartFormModel } from './../models/smartform.model';
 import { SmartFormAnswersModel } from './../models/smartform.answers.model';
-import { parse } from 'url';
+
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
@@ -28,7 +28,7 @@ const validator = require('validator');
 const cryptoJs = require('crypto-js');
 import * as multer from 'multer';
 import * as fs from 'fs';
-import * as path from 'path';
+
 import * as AWS from 'aws-sdk';
 import * as async from 'async';
 import { TrainingRequirements } from '../models/training.requirements';
@@ -41,7 +41,7 @@ import { NotificationConfiguration } from '../models/notification_config.model';
 import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 import { RewardConfig } from '../models/reward.program.config.model';
-
+import { PaperAttendanceComplianceDocumentModel } from '../models/paper.attendance.compliance.document.model';
 const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
 import * as PDFDocument from 'pdfkit';
@@ -1620,6 +1620,9 @@ export class AdminRoute extends BaseRoute {
       let idDir = await attendance.getLastInsertedId();
       idDir = idDir + 1;
       let filename;
+      let locationAccountRelationObj = new LocationAccountRelation();
+      let paperAttendaceForCompliance = new PaperAttendanceComplianceDocumentModel();
+      let dataArr = [];
 
       // process upload
       // const fu = new FileUploader(req, res, next);
@@ -1699,6 +1702,69 @@ export class AdminRoute extends BaseRoute {
             type: req.body.type,
             compliance_kpis_id: compliance_kpis_id
           });
+
+          // Check if uploaded against a location
+          if (req.body.type == 'location') {
+            // GET FRP Accounts in this location 
+            try {
+              dataArr = await locationAccountRelationObj.getLocationAccountRelation({
+                location_id:req.body.id,
+                responsibility: defs['role_text'][1]
+              });
+              for (let record of dataArr) {
+                try {
+                  paperAttendaceForCompliance.create({
+                    paper_attendance_docs_id: attendance.ID(),
+                    account_id: record['account_id'],
+                    location_id: record['location_id'],
+                    compliance_kpis_id: compliance_kpis_id,
+                    training_requirement_id: req.body.training,
+                    dtTraining: req.body.dtTraining,
+                    strOriginalfilename: filename,
+                    responsibility: defs['role_text'][1] 
+                  });
+                } catch(e) {
+                  console.log('error creating paper attendance documents for compliance for this manager account in the location', record, e);
+                }
+                
+              }
+            } catch(e) {
+              console.log('admin route', e);
+              try {
+                dataArr = await locationAccountRelationObj.getLocationAccountRelation({
+                  location_id:req.body.id,
+                  responsibility: defs['role_text'][2]
+                });
+                if (dataArr.length == 1) {
+                  try {
+                    paperAttendaceForCompliance.create({
+                      paper_attendance_docs_id: attendance.ID(),
+                      account_id: dataArr[0]['account_id'],
+                      location_id: dataArr[0]['location_id'],
+                      compliance_kpis_id: compliance_kpis_id,
+                      training_requirement_id: req.body.training,
+                      dtTraining: req.body.dtTraining,
+                      strOriginalfilename: filename,
+                      responsibility: defs['role_text'][2] 
+                    });
+                  } catch(e) {
+                    console.log('error creating paper attendance documents for compliance for tenant', dataArr, e);
+                  }
+                } else {
+                  return res.status(200).send({
+                    message: 'File uploaded successfully but there was no appropriate compliance to store because there was more than one tenant account for this location'
+                  });
+                }
+              } catch (err) {
+                return res.status(200).send({
+                  message: 'File uploaded successfully but there was no appropriate compliance to store - no tenant account can be retrieve'
+                });
+              }
+            }
+          }
+          
+
+
         }
       });
     });

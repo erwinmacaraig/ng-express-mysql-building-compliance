@@ -9,6 +9,7 @@ import { Utils } from '../models/utils.model';
 
 import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
+import { LocationAccountUser } from '../models/location.account.user';
 
 export class AuthenticateLoginRoute extends BaseRoute {
 
@@ -55,10 +56,12 @@ export class AuthenticateLoginRoute extends BaseRoute {
                 accountId: userModel.get('account_id'),
                 evac_role: userModel.get('evac_role'),
                 roles : [],
-                profilePic : ''
+                profilePic : '',
+                account_roles: {}
             }
         };
-
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
         let fileModel = new Files(),
             fileData = <any> [],
             wardenRoles = [];
@@ -85,12 +88,39 @@ export class AuthenticateLoginRoute extends BaseRoute {
             }
         }catch(e){ }
 
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(userModel.get('account_id'));
+            // response.data['account_roles'] = { ...roleOfAccountInLocationObj };
+        } catch(err) {
+            console.log('authenticate route get account role relation in locatio', err);
+        }
+
+        try {
+            accountUserData = await new LocationAccountUser().getByUserId(userModel.get('user_id'));
+            for(let data of accountUserData) {
+                if (data['location_id'] in roleOfAccountInLocationObj) {
+                    response.data['roles'].push({
+                        role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                        location_id: data['location_id'],
+                        user_id:userModel.get('user_id') 
+                    });
+                }
+            }
+        } catch(e) {
+            console.log(' authenticate route, error getting in location account user data', e);
+        }
+
+        /*
         try{
             let userRoles = await new UserRoleRelation().getByUserId(userModel.get('user_id'));
             for (let role of userRoles){
                 response.data['roles'].push(role);
             }
         }catch(e){ }
+        */
+
+        
 
         const now = moment().format('YYYY-MM-DD HH-mm-ss');
         userModel.set('last_login', now);

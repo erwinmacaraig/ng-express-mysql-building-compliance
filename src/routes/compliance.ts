@@ -23,6 +23,7 @@ import { UtilsSync } from '../models/util.sync';
 import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
 import {EmailSender} from '../models/email.sender';
 import * as moment from 'moment';
+import { PaperAttendanceComplianceDocumentModel } from '../models/paper.attendance.compliance.document.model';
 // import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 const archiver = require('archiver');
@@ -205,8 +206,12 @@ const request = require('request');
     public async getPaperAttendanceRecord(req: AuthRequest, res: Response, next: NextFunction) {
         //
         const location = req.body.location;
-        const recordObj = new PaperAttendanceDocumentModel();
-        const attendanceFile: Array<object> = await recordObj.getPaperAttendanceRecordByLocation(location);
+        const account = req.body.account;
+        const responsibility = defs['role_text'][req.body.responsibilty_id];
+        const paperAttendanceComplianceRec = new PaperAttendanceComplianceDocumentModel();
+        const attendanceFile: Array<object> = await paperAttendanceComplianceRec.getPaperAttendanceRecordByLocationForCompliance(location, account, responsibility);
+        
+        // 
         const utils = new Utils();
         const keyPrefix = 'paper_attendance/';
         const attendanceRecord = [];
