@@ -211,22 +211,23 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         this.route.params.subscribe((params) => {
             this.encryptedID = decodeURIComponent(params['encrypted']);
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
-            for(let role of this.userData.roles){
-                /*
-                if(role.role_id == 1){
-                    this.isFRP = true;
-                }
-                if(role.role_id == 2){
-                    this.isTRP = true;
-                }
-                */
+            for(let role of this.userData.roles){                
                 if (role['location_id'] == this.locationID ) {
                     this.accountResponsibilityId = role['role_id'];
+                    if (role['role_id'] == 1) {
+                        this.isFRP = true;
+                        this.isTRP = false;
+                    } else if (role['role_id'] == 2) {
+                        this.isTRP = true;
+                        this.isFRP = false;
+                    }
                 }
             }
             // Just set the responsibility to 2, assuming account profile user is TRP
             if (!this.accountResponsibilityId) {
                 this.accountResponsibilityId = 2;
+                this.isTRP = true;
+                this.isFRP = false;
             }
 
         });
