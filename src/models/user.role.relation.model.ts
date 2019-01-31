@@ -51,6 +51,7 @@ export class UserRoleRelation extends BaseClass {
       return new Promise((resolve, reject) => {
           let sql_load = '', param = [];
           sql_load = 'SELECT * FROM user_role_relation WHERE user_id = ?';
+          
           param = [user_id];
           if (location) {
             sql_load = `SELECT

@@ -1,0 +1,197 @@
+.right-action-buttons{
+    position: absolute;
+    right: 12px;
+    top: 2px;
+}
+
+.right-action-buttons > button{
+    display: inline-block;
+    font-size: 15px !important;
+}
+
+.filter-container .btn{
+    width: 100%;
+    padding: 0px;
+    height: 50px !important;
+}
+
+.filter-container .search-field,
+.filter-container .datepicker,
+.filter-container select{
+    background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+
+.filter-container select{
+    font-size: 14px;
+}
+
+.filter-container .search-field input,
+.filter-container .datepicker input{
+    margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border: 0px;
+}
+
+.filter-container .search-field input:focus,
+.filter-container .datepicker input:focus{
+    border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons,
+.filter-container .datepicker .material-icons{
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 20px;
+}
+
+.inline-block{
+    display: inline-block;
+}
+
+.filter-container .search-field input.ng-invalid.ng-touched,
+.filter-container .datepicker input.ng-invalid.ng-touched,{
+    border: none;
+}
+
+.box-compliance{
+    width: 190px;
+    background-color: #eaeaea;
+    height: 225px;
+    border-radius: 10px;
+    display: inline-block;
+    margin: 10px;
+    position: relative;
+    transition: 0.2s all;
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+.box-compliance.selected{
+    transform: scale(1.02);
+    box-shadow: 0px 2px 5px #51799e;
+    border: 1px solid #51799e;
+}
+
+.box-compliance.available{
+    pointer-events: all;
+    opacity: 1;
+}
+
+.box-compliance.available:hover{
+    cursor: pointer;
+    transform: scale(1.02);
+}
+
+.box-compliance .image{
+    position: absolute;
+    top: 25px;
+    left: 36px;
+    width: 120px;
+    height: 120px;
+    border-radius: 60px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.box-compliance .title{
+    position: absolute;
+    top: 155px;
+    font-size: 16px;
+    text-align: center;
+    width: 100%;
+    padding: 0px 20px;
+    line-height: 18px;
+}
+
+.epm-icon{
+    background-image: url(/assets/images/compliance/icons/epm.png);
+    background-size: 50% !important;
+    background-color: rgb(235, 77, 75);
+}
+
+.epc-icon{
+    background-image: url(/assets/images/compliance/icons/epc_meeting.png);
+    background-size: 50% !important;
+    background-color: rgb(131, 92, 183);
+}
+
+.evacuation-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_exercise.png);
+    background-size: 50% !important;
+    background-color: rgb(190, 46, 221);
+}
+
+.diagram-icon{
+    background-image: url(/assets/images/compliance/icons/evacuation_diagram.png);
+    background-size: 50% !important;
+    background-color: rgb(106, 176, 76);
+}
+
+.chief-icon{
+    background-image: url(/assets/images/compliance/icons/chiefwarden_training.png);
+    background-size: 50% !important;
+    background-color: rgb(149, 175, 192);
+}
+
+.warden-icon{
+    background-image: url(/assets/images/compliance/icons/warden_training.png);
+    background-size: 50% !important;
+    background-color: rgb(48, 51, 107);
+}
+
+.fsa-icon{
+    background-image: url(/assets/images/compliance/icons/fire_advisor.png);
+    background-size: 50% !important;
+    background-color: rgb(240, 147, 43);
+}
+
+.gen-occ-icon{
+    background-image: url(/assets/images/compliance/icons/occupant_training.png);
+    background-size: 50% !important;
+    background-color: rgb(34, 166, 179);
+}
+
+.sundry-icon{
+    background-image: url(/assets/images/compliance/icons/sundry_compliance.png);
+    background-size: 50% !important;
+    background-color: rgb(61, 61, 61);
+}
+
+.result-container {
+    position: absolute;
+    z-index: 999;
+    width: 100%;
+    left: 0px;
+    top: 44px;
+    box-shadow: 0px 2px 3px 1px #ddd;
+    border-radius: 5px;
+    max-height: 300px;
+    overflow: auto;
+}
+
+.result-container ul {
+    margin: 0px;
+    background-color: #fffdd2;
+}
+
+.result-container ul li {
+    padding: 10px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.result-container ul li:hover {
+    cursor: pointer;
+    background-color: #fbf79e;
+}

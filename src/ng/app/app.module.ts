@@ -154,6 +154,10 @@ import {  PeepFormComponent } from './peep.form/peep.form';
 import { RewardProgramConfigComponent } from './admin/rewards/config/reward-program-config.component';
 import { ListRewardConfigComponent } from './admin/rewards/list/list-reward-config.component';
 import { RedeemersComponent } from './admin/rewards/redeemers/redeemers.component';
+import { SmartFormComponent } from './admin/smart-form/smart-form-component';
+import { FormBuilderComponent } from './admin/smart-form/form-builder/form.builder';
+import { FormListComponent } from './admin/smart-form/form-list/form.list';
+import { FormRenderComponent } from './admin/smart-form/form-render/form.render';
 
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
@@ -286,7 +290,11 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AddAccountLocationComponent,
     RewardProgramConfigComponent,
     ListRewardConfigComponent,
-    RedeemersComponent
+    RedeemersComponent,
+    SmartFormComponent,
+    FormBuilderComponent,
+    FormListComponent,
+    FormRenderComponent
   ],
   imports: [
     BrowserModule,

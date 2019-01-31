@@ -167,7 +167,7 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getLocationAccountRelation(filter: object) {
+    public getLocationAccountRelation(filter: object): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         const val = [];
         let whereClause = '';

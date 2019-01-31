@@ -162,8 +162,12 @@ export class ComplianceService {
         return this.http.get(this.baseUrl + '/compliance/paginate-all-locationids');
     }
 
-    public getPaperAttendanceFileUpload(building = 0) {
-        return this.http.post<PaperAttendanceDocument>(this.baseUrl + '/compliance/retrieve-paper-attendance-file-records/', {location: building});
+    public getPaperAttendanceFileUpload(building = 0, accountId = 0, responsibility = 0) {
+        return this.http.post<PaperAttendanceDocument>(this.baseUrl + '/compliance/retrieve-paper-attendance-file-records/', {
+            location: building,
+            account: accountId,
+            responsibilty_id: responsibility
+        });
     }
 
 }

@@ -270,6 +270,32 @@ export class AdminService {
   }
 
 
+  saveFormBuilder(form){
+    return this.http.post( this.baseUrl+'/admin/save-form-builder',  form);
+  }
+
+  getSmartFormList(){
+    return this.http.get( this.baseUrl+'/admin/get-smart-form-list');
+  }
+
+  getSmartForm(param={}){
+    let opt = this.options;
+    opt['params'] = param;
+    return this.http.get( this.baseUrl+'/admin/get-smart-form', opt);
+  }
+
+  getLocationAndAccountByIds(locId=0, accntId=0){
+    let opt = this.options;
+    opt['params'] = {
+      location_id : locId,
+      account_id : accntId
+    };
+    return this.http.get( this.baseUrl+'/admin/get-location-and-account', opt);
+  }
+
+  submitSmartForm(formData={}){
+    return this.http.post( this.baseUrl+'/admin/submit-smart-form', formData);
+  }
 
   
 }

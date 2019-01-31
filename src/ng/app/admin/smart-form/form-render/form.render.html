@@ -1,0 +1,39 @@
+<div class="row" *ngIf="success">
+    <div class="col l12">
+        <h4 class="green-text" style="margin: 40px 0px;">
+            Success! A pdf file has been generated for {{accountData.account_name}} 
+            <span *ngIf="locationData.name"> <span *ngIf="locationData.parent.name">{{locationData.parent.name}}</span> {{locationData.name}}</span>
+        </h4>
+    </div>
+</div>
+
+
+<div class="row" *ngIf="!success">
+    <div class="col l12">
+        <h5 class="blue-text" [hidden]="!renderData.data">{{renderData.name}}</h5>
+        <h6>Account : <span *ngIf="accountData.account_name">{{accountData.account_name}}</span></h6>
+        <h6>Location : <span *ngIf="locationData.name"> <span *ngIf="locationData.parent.name">{{locationData.parent.name}}</span> {{locationData.name}}</span></h6>
+        <h6 class="red-text" *ngIf="isFormInvalid">Please complete the field! Check if some answer left undone.</h6>
+    </div>
+</div>
+
+<div class="row"  *ngIf="!success">
+    <div class="col l12" [hidden]="!renderData.data">
+        <form id="smartForm">
+            <div id="previewContainer" class="rendered-smart-form"></div>
+        </form>
+    </div>
+
+    <div class="col l12" [hidden]="renderData.data">
+        <h5>No form found! <a [routerLink]="['/admin/smart-form-builder']">Click here to create</a></h5>
+    </div>
+</div>
+
+
+<div class="row" *ngIf="submitHasError">
+    <div class="col l12">
+        <h5>
+            {{errorMessageSubmit}}
+        </h5>
+    </div>
+</div>

@@ -150,8 +150,7 @@ export class LocationAccountUser extends BaseClass {
                   if (error) {
                       return console.log(error);
                   }
-                  this.dbData = results;
-                  resolve(this.dbData);
+                  resolve(results);
               });
                  
               connection.release();
@@ -587,7 +586,6 @@ export class LocationAccountUser extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
-                    this.dbData = results[0];
                     resolve(results);
                 });
 
