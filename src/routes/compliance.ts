@@ -23,6 +23,7 @@ import { UtilsSync } from '../models/util.sync';
 import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
 import {EmailSender} from '../models/email.sender';
 import * as moment from 'moment';
+import { PaperAttendanceComplianceDocumentModel } from '../models/paper.attendance.compliance.document.model';
 // import * as AWS from 'aws-sdk';
 import * as fs from 'fs';
 const archiver = require('archiver');
@@ -205,8 +206,12 @@ const request = require('request');
     public async getPaperAttendanceRecord(req: AuthRequest, res: Response, next: NextFunction) {
         //
         const location = req.body.location;
-        const recordObj = new PaperAttendanceDocumentModel();
-        const attendanceFile: Array<object> = await recordObj.getPaperAttendanceRecordByLocation(location);
+        const account = req.body.account;
+        const responsibility = defs['role_text'][req.body.responsibilty_id];
+        const paperAttendanceComplianceRec = new PaperAttendanceComplianceDocumentModel();
+        const attendanceFile: Array<object> = await paperAttendanceComplianceRec.getPaperAttendanceRecordByLocationForCompliance(location, account, responsibility);
+        
+        // 
         const utils = new Utils();
         const keyPrefix = 'paper_attendance/';
         const attendanceRecord = [];
@@ -1280,10 +1285,13 @@ const request = require('request');
                 diagrams = [],
                 docsWhere = [];
 
+                
+
                 if(subIds.length > 0){
                     docsWhere.push( ['compliance_documents.compliance_kpis_id = '+evacDiagramId] );
                     docsWhere.push( ['compliance_documents.document_type = "Primary" '] );
-                    docsWhere.push( ['compliance_documents.building_id IN ('+subIds.join(',')+')'] );
+                    // we need to include the main building in case of malls etc
+                    docsWhere.push( ['compliance_documents.building_id IN ('+subIds.join(',')+',' + locationID + ')'] );
                     diagrams = <any> await compianceDocsModel.getWhere(docsWhere);
                 }
 
@@ -1300,6 +1308,10 @@ const request = require('request');
                 if(Math.round( ( valids / diagrams.length ) * 100) >= 100){
                     comp['valid'] = 1;
                     comp['validity_status'] = 'valid';
+                } else if (valids != diagrams.length && valids > 0) {
+                    comp['validity_status'] = 'invalid';
+                } else if (valids == 0) {
+                    comp['validity_status'] = 'none-exist';
                 }
                 comp['total_valid_diagrams'] = valids;
                 comp['total_diagrams'] = diagrams.length;

@@ -653,7 +653,7 @@
                                             <div class="indeterminate"></div>
                                         </div>
                                     </td>
-                                    <td><span *ngIf="!a.downloadCtrl">{{a.dtUploaded | date:'yyyy-MM-dd'}}</span>
+                                    <td><span *ngIf="!a.downloadCtrl">{{a.dtTraining | date:'yyyy-MM-dd'}}</span>
                                         <div *ngIf="a.downloadCtrl" class="progress">
                                             <div class="indeterminate"></div>
                                         </div>
@@ -889,7 +889,7 @@
                                             <div class="indeterminate"></div>
                                         </div>
                                     </td>
-                                    <td><span *ngIf="!a.downloadCtrl">{{a.dtUploaded | date:'yyyy-MM-dd'}}</span>
+                                    <td><span *ngIf="!a.downloadCtrl">{{a.dtTraining | date:'yyyy-MM-dd'}}</span>
                                         <div *ngIf="a.downloadCtrl" class="progress">
                                             <div class="indeterminate"></div>
                                         </div>
@@ -1029,7 +1029,7 @@
                         <div class="indeterminate"></div>
                     </div>
                 </td>
-                <td><span *ngIf="!a.downloadCtrl">{{a.dtUploaded | date:'yyyy-MM-dd'}}</span>
+                <td><span *ngIf="!a.downloadCtrl">{{a.dtTraining | date:'yyyy-MM-dd'}}</span>
                     <div *ngIf="a.downloadCtrl" class="progress">
                         <div class="indeterminate"></div>
                     </div>
@@ -1113,12 +1113,15 @@
                   <input type="file" name="file" id="file" required class="file" #inpFileUploadDocs (change)="onFileSelected()" ngModel>
                 </div>
             </div>
+            <div class="modal-footer">
+                <a class="modal-action modal-close waves-effect waves-red btn-flat" (click)="cancelUploadDocs(form)">Cancel</a>
+                <button
+                [ngClass]="{'btn':true, 'blue':form.valid, 'btn-block': true, 'waves-effect': true, 'waves-light':true}"
+                type="submit" [disabled]="!form.valid" (click)="submitUploadDocs(form)">Submit</button>
+            </div>
 
         </div>
-        <div class="modal-footer">
-            <a class="modal-action modal-close waves-effect waves-red btn-flat" (click)="cancelUploadDocs(form)">Cancel</a>
-            <button class="waves-effect waves-blue btn-flat" type="submit" [disabled]="!form.valid" (click)="submitUploadDocs(form)">Submit</button>
-        </div>
+        
     </form>
 </div>
 

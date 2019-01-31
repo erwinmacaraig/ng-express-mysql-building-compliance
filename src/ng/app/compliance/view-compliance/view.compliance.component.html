@@ -362,7 +362,7 @@
 						</tr>
 						<tr *ngFor="let a of gofr_attendance_record">
 							<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
-							<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+							<td>{{a.dtTraining | date:'dd/MM/yyyy'}}</td>
 						</tr>
 					</tbody>
 				</table>
@@ -460,7 +460,7 @@
 					</tr>
 					<tr *ngFor="let a of eco_attendance_record">
 						<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
-						<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+						<td>{{a.dtTraining | date:'dd/MM/yyyy'}}</td>
 					</tr>
                 </tbody>
             </table>
@@ -724,7 +724,7 @@
 						</tr>
 						<tr *ngFor="let a of gofr_attendance_record">
 							<td><a href="{{a.downloadUrl}}" target="_blank" download class="black-text">{{a.strOriginalfilename}}</a></td>
-							<td>{{a.dtUploaded | date:'dd/MM/yyyy'}}</td>
+							<td>{{a.dtTraining | date:'dd/MM/yyyy'}}</td>
 						</tr>
 					</tbody>
 				</table>
