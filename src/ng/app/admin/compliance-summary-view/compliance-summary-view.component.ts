@@ -38,6 +38,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   @Input() hideAccountComponent = false;
   KPIS: object[] = [];
   selectedKPI;
+  accountResponsibilityId;
   documentFiles = [];
   obsComb;
   kpisObject: object = {};
@@ -110,6 +111,8 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     this.dashboard.show();
     this.accountId = this.route.snapshot.params['accntId'];
     this.locationId = this.route.snapshot.params['locationId'];
+    this.accountResponsibilityId = this.route.snapshot.params['accountResponsibilityId'];
+
     if(this.locationIdInput){
         this.locationId = this.locationIdInput;
     }
@@ -168,7 +171,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       }
     });
 
-    this.complianceService.getPaperAttendanceFileUpload(this.locationId).subscribe((response) => {
+    this.complianceService.getPaperAttendanceFileUpload(this.locationId, this.accountId, this.accountResponsibilityId).subscribe((response) => {
       this.paperAttendanceRecord = response['attendance_record'];
       for (let attendance of this.paperAttendanceRecord) {
           attendance['downloadCtrl'] = false;

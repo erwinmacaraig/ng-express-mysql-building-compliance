@@ -644,8 +644,8 @@ export class List extends BaseClass{
                 
                 SELECT
                 
-                account_id, responsibility, location_id, parent_id, name, formatted_address, is_building, display_name
-
+                account_id, responsibility, location_id, parent_id, name, formatted_address, is_building, display_name,
+                IF(responsibility = 'Manager', 1, 2) AS responsibility_id
                 FROM
                 (
                     SELECT

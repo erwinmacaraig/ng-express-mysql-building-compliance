@@ -590,7 +590,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   
       this.cancelUserForm();
       this.exceptionCtrl = [];
-      /*
+      
       const paperAttandanceForm = new FormData();
   
       // console.log('paper attandance value' + this.userForm.get('paperAttandnce').value['value']);
@@ -605,12 +605,13 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/paper-attendance/`, paperAttandanceForm, {
         reportProgress: true
       });
-      */
+      
       this.adminService.validateUserTrainings(JSON.stringify(values))
       .subscribe((response) => {
         this.validUsers = response['validUsers'];
         this.invalidUsers = response['invalid_users'];  
         this.takenEmailAddress = response['takenEmailAdress'];
+        this.courseTraining.reset();
         this.genericSub = this.smartSearch();    
         setTimeout(() => {
           this.dashboard.hide();
@@ -620,14 +621,15 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       (error) => {
 
       });
-      /*
+      
       // upload document here    
       return this.httpEmitter = this.http.request(req).subscribe(
         event => {
             this.httpEvent = event;
             if (event instanceof HttpResponse) {
                 delete this.httpEmitter;
-                console.log('request done', event);                
+                console.log('request done', event);  
+                this.fileInput.nativeElement.value = '';                              
             }
         },
         error => {
@@ -636,7 +638,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
             this.dashboard.hide();
         }
       );
-      */
+      
     }
   
     switchLocationDropDown(e: any) {

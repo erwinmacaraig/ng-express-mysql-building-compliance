@@ -68,7 +68,7 @@
         </tr>
         <tr *ngFor="let location of locations">
           <td><a [routerLink]="['/admin', 'view-location', location['location_id']]" [queryParams]="{ 'accntId' : accountId }">{{location['display_name']}}</a></td>
-          <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], '2']">View Compliance</a></td>
+          <td><a [routerLink]="['/admin', 'view-location-compliance', accountId, location['location_id'], location['responsibility_id'], '2']">View Compliance</a></td>
           <td>{{location['formatted_address']}}</td>
           <td>{{location['responsibility']}}</td>
           <td>

@@ -65,7 +65,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	selectedComplianceClasses = 'green darken-1 epm-icon';
     showLoadingForSignedURL:boolean = true;
 	previewTemplate = 1;
-
+    accountResponsibilityId;
 	selectedCompliance = {
 		compliance : {
 			note : null,
@@ -204,22 +204,31 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         private accountService: AccountsDataProviderService
         ) {
 
-        this.userData = this.authService.getUserData(); 
-
-        for(let role of this.userData.roles){
-            if(role.role_id == 1){
-                this.isFRP = true;
-            }
-            if(role.role_id == 2){
-                this.isTRP = true;
-            }
-        }
+        this.userData = this.authService.getUserData();
 
         this.setDatePickerDefaultDate();
 
         this.route.params.subscribe((params) => {
             this.encryptedID = decodeURIComponent(params['encrypted']);
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
+            for(let role of this.userData.roles){
+                /*
+                if(role.role_id == 1){
+                    this.isFRP = true;
+                }
+                if(role.role_id == 2){
+                    this.isTRP = true;
+                }
+                */
+                if (role['location_id'] == this.locationID ) {
+                    this.accountResponsibilityId = role['role_id'];
+                }
+            }
+            // Just set the responsibility to 2, assuming account profile user is TRP
+            if (!this.accountResponsibilityId) {
+                this.accountResponsibilityId = 2;
+            }
+
         });
 
         this.messageService.sendMessage({ 'breadcrumbs' : this.breadcrumbsData });
@@ -395,7 +404,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 this.evacDiagramSublocations = responseSubs.data.sublocations;
             });
 
-            this.complianceService.getPaperAttendanceFileUpload(this.locationID).subscribe((response) => {
+            this.complianceService.getPaperAttendanceFileUpload(this.locationID, this.userData['accountId'], this.accountResponsibilityId).subscribe((response) => {
                 this.paperAttendanceRecord = response['attendance_record'];
                 for (let attendance of this.paperAttendanceRecord) {
                     switch(attendance.compliance_kpis_id.toString()) {
