@@ -205,8 +205,8 @@ export class Scorm extends BaseClass {
 
     public getDataModelVal(relation: number = 0, param: string = ''): Promise<string> {
         return new Promise((resolve, reject) => {
-            console.log(`relation is ${relation}`);
-            console.log(`parameter is ${param}`);
+            // console.log(`relation is ${relation}`);
+            // console.log(`parameter is ${param}`);
             const sql_get = `SELECT
                               parameter_value
                             FROM

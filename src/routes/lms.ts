@@ -8,6 +8,8 @@ import { Course } from '../models/course.model';
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { Scorm } from '../models/scorm.model';
 
+import { TrainingCertification } from '../models/training.certification.model';
+import { TrainingRequirements } from '../models/training.requirements';
 import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
 export class LMSRoute extends BaseRoute {
   constructor() {
@@ -55,14 +57,56 @@ export class LMSRoute extends BaseRoute {
       });
     });
 
-    router.post('/lms/setParameterValue/', (req: Request, res: Response, next: NextFunction) => {
+    router.post('/lms/setParameterValue/', async (req: Request, res: Response, next: NextFunction) => {
       const scorm = new Scorm();
-      scorm.setDataModelVal(req.body.relation, 'last_accessed', moment().format('YYYY-MM-DD HH:mm:ss')).then((data) => {
+      console.log(req.body);
+      scorm.setDataModelVal(req.body.relation, 'last_accessed', moment().format('YYYY-MM-DD HH:mm:ss'));
+      scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value);
+      if (req.body.param == 'cmi.core.lesson_status' && (req.body.value == 'completed' || req.body.value == 'passed')) { 
+        const userToTrainingModuleRelation = new UserTrainingModuleRelation(req.body.relation);                
+        const userTrainingModuleData = await userToTrainingModuleRelation.load();
+        userTrainingModuleData['completed'] = 1;
+        userTrainingModuleData['dtCompleted'] = moment().format('YYYY-MM-DD');
+        await userToTrainingModuleRelation.create(userTrainingModuleData);
+        const trainingRqmtObj = new TrainingRequirements(userTrainingModuleData['training_requirement_id']);
         
+        /*check the completion of the whole training requirement */
+        const requirementModules = await trainingRqmtObj.getTrainingModulesForRequirement();
+        //********* DEBUG CODE ********* */
+        //console.log('requirementModules', requirementModules);
+        let completed = 0;
+        // retrieve user modules
+        const availableUserTrainingModules = await userToTrainingModuleRelation.trainingRequirementModuleStatuses(userTrainingModuleData['user_id'], userTrainingModuleData['training_requirement_id']); 
+        //********* DEBUG CODE ********* */
+        //console.log('availableUserTrainingModules', availableUserTrainingModules);
+        
+        // cross reference
+        for ( let mod of requirementModules ) {
+          for(let userModule of availableUserTrainingModules) {
+            if (mod['training_module_id'] == userModule['training_module_id'] && userModule['completed'] == 1) {
+              completed++;
+              break;
+            }
+          }
+        }
+        if (requirementModules.length == completed) {
+          const trainingCertObj = new TrainingCertification();
+          await trainingCertObj.checkAndUpdateTrainingCert({
+            'training_requirement_id': userTrainingModuleData['training_requirement_id'],
+            'user_id': userTrainingModuleData['user_id']
+          });
+        }
+
+        console.log('TOTAL COMPLETED: ' + completed);
+      }
+      return res.status(200).send({
+        'status': true
       });
 
+      /*
       scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value).then((data) => {
         // Need to update user_training_module_relation
+        
 
         // Scorm 1.1 and Scorm 1.2
         // console.log(req.body);        
@@ -86,13 +130,13 @@ export class LMSRoute extends BaseRoute {
             'status': true
           });
         }
-        */
+        
       }).catch((e) => {
         return res.status(400).send({
           'status': false
         });
       });
-      
+    */      
     });
 
     router.get('/lms/getAllCourses/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {

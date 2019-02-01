@@ -546,11 +546,14 @@ export class UsersRoute extends BaseRoute {
                 role_name:  trainingReqmtObj[em_role_id.toString()]['role_name'],
                 training_requirement: [],
                 active_training: [],
+                role_training_status: 'non-compliant' // as of Feb 2, 2019 we assume that there is only one training requirement for a role
             }
             let missingRequiredTrainingsIdArr = [];
+            let status = 'non-compliant';
             missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
+            // although we assume one training requirement for a role, for scability and future requirements that is why I iterated 
             for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
-                let status = 'compliant';
+                status = 'compliant';
                 if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
                     status = 'non-compliant';
                 }
@@ -560,6 +563,7 @@ export class UsersRoute extends BaseRoute {
                     status: status
                 }); 
             }
+            userTrainingInfoObj['role_training_status'] = status;
             userTrainingInfoArr.push(userTrainingInfoObj);
         }
 

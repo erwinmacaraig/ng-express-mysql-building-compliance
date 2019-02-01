@@ -12,7 +12,7 @@ export class UserTrainingModuleRelation extends BaseClass {
 
     public load(): Promise<Object> {
         return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM user_training_module_relation WHERE user_training_module_id = ?`;
+            const sql = `SELECT * FROM user_training_module_relation WHERE user_training_module_relation_id = ?`;
             this.pool.getConnection((error, connection) => {
                 if (error) {
                     throw new Error(error);
@@ -130,9 +130,33 @@ export class UserTrainingModuleRelation extends BaseClass {
         });
     }
 
-    trainingRequirementModuleStatus(userId=0, trId=0, moduleId=0) {
+    trainingRequirementModuleStatuses(userId=0, trainingRequirementId=0): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM user_`;
+            const sql = `SELECT
+                            *
+                        FROM
+                            user_training_module_relation
+                        WHERE
+                            user_id = ?
+                        AND
+                            training_requirement_id = ? `;
+            
+            const params = [userId, trainingRequirementId];
+
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw new Error(error);
+                }
+                connection.query(sql, params, (err, results) => {
+                    if (err) {
+                        console.log('Cannot retrieve user training modules from method trainingRequirementModuleStatuses', sql, params);
+                    }
+                    resolve(results);
+                    
+                });
+                connection.release();
+            });
+
         });
     }
 
@@ -184,6 +208,7 @@ export class UserTrainingModuleRelation extends BaseClass {
                             user_id,
                             training_module_id,
                             disabled,
+                            completed,
                             dtLastAccessed,
                             dtCompleted
                         FROM

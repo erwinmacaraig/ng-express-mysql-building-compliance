@@ -51,15 +51,14 @@ export class UserEmRoleRelation extends BaseClass {
                       l.name as location_name,
                       l.name,
                       l.parent_id,
-                      l.location_id,
                       l.formatted_address,
                       l.google_place_id,
                       l.google_photo_url,
                       l.is_building,
                       l.admin_verified,
                       l.archived
-                    FROM em_roles er
-                    INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
+                    FROM user_em_roles_relation uer
+                    INNER JOIN em_roles er  ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
                     WHERE uer.user_id = ? AND l.archived = ${archived}`;
             const uid = [userId];

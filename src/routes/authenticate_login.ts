@@ -82,6 +82,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
             for(let role of wardenRoles){
                 response.data['roles'].push({
                     role_id : role['em_roles_id'],
+                    location_id: role['location_id'],
                     role_name : role['role_name'],
                     is_warden_role : role['is_warden_role']
                 });
