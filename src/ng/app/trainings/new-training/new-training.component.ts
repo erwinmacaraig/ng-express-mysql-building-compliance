@@ -54,15 +54,26 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
         this.userService.userTrainingInfo(this.userData['userId']).subscribe((response) => {
             this.userTrainingInfo = response['userInfoTraining'];
             for (let roles of this.userTrainingInfo) {
-                console.log(roles);                
+               
+                roles['completed'] = 0;
+                roles['total_modules'] = 0;
+                roles['percent_status'] = 0;                
                 for (let trainingRqmt of roles['training_requirement'] ) {
+                    roles['total_modules'] = (trainingRqmt['modules'] as Array<object>).length;
                     console.log('training requirement', trainingRqmt);
                     for (let trainingReqmtModules of trainingRqmt['modules']) {
                         this.allTrainingModules.push(trainingReqmtModules);
+                        if (trainingReqmtModules['completed']) {
+                            roles['completed']++; 
+                        }
                     }
-                }                
+                    roles['percent_status'] =   (roles['completed'] / roles['total_modules']) * 100;
+                }
+                console.log(roles);                
             }
-            console.log(this.allTrainingModules);
+
+            
+            
         });
     }
 

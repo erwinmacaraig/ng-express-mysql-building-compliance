@@ -216,6 +216,12 @@
     background-position: 72.4% 63%;
 }
 
+div.total_modules_completed_text {
+    font-size: 14px;
+    margin: 5px 70px;
+    display:  inline-block;
+}
+
 .avatar-container .name-location-container .location-text{
     font-size: 14px;
     max-width: 85px;
@@ -233,7 +239,7 @@
 .progress-container{
     position: relative;
     height: 12px;
-    margin: 10px 0px;
+    margin-left: 70px;
     background-color: #757575;
     border-radius: 20px;
     overflow: hidden;
@@ -315,15 +321,20 @@
     vertical-align: middle;
 }
 
-.role-text-compliant .role-name{
+.role-text-compliant{
     font-size: 18px;
     width: 150px;
     line-height: 15px;
     margin-bottom: 5px;
 }
 
+div.role-name {
+    width: 150px;
+}
+
 .compliant-container{
     width: 150px;
+    display: inline-block;
 }
 
 .compliant-container .image{

@@ -13,20 +13,20 @@
                 <div class="location-text">Location, Sub Location</div>
             </div>
         </div>
-            
+        <!--
         <div class="level-skill">
             <div class="left blue-text">Level 5</div>
             <div class="right">155 skill points</div>
             <div class="clearfix"></div>
         </div>
+        -->    
 
-        <div class="progress-container">
-            <div class="progress" style="width: 50%;"></div>
-        </div>
-
+        
+        <!--
         <p class="small-text">10 skill points to next level</p>
         
         <div class="spacer"></div>
+        -->
         <!--
         <div class="myskill-container">
             <h5>My Skills</h5>
@@ -41,15 +41,22 @@
             <div *ngFor="let trainingInfo of userTrainingInfo" class="role-list-container">
                     <div [ngClass]="{ 'role-icon': trainingInfo['em_role_id'], 'general-occupant': trainingInfo['em_role_id'] == 8, 'warden': trainingInfo['em_role_id'] != 8 }"></div>
                     <div class="role-text-compliant">
-                        <div class="role-name">{{trainingInfo['role_name']}}</div>
-                        <div
-                            [ngClass]="{'compliant-container': true,
-                                        'non-compliant': trainingInfo['role_training_status']=='non-compliant',
-                                        'compliant': trainingInfo['role_training_status']=='compliant'}">                            
-                            <div class="image"></div>
-                            <div class="text"></div>
-                        </div>
+                        <div class="role-name">{{trainingInfo['role_name']}}</div>                        
                     </div>
+                    <div
+                        [ngClass]="{'compliant-container': true,
+                                    'non-compliant': trainingInfo['role_training_status']=='non-compliant',
+                                    'compliant': trainingInfo['role_training_status']=='compliant'}">                            
+                        <div class="image"></div>
+                        <div class="text"></div>
+                    </div>
+                    <div class="progress-container">
+                        <!--<div class="progress" style="width: 50%;"></div> -->
+                        <div class="progress" [style.width.%] = "trainingInfo['role_training_status']=='compliant' ? 100 :  trainingInfo['percent_status']"></div>
+                    </div>
+                    <div *ngIf="trainingInfo['role_training_status']=='compliant'" class="total_modules_completed_text">{{trainingInfo['total_modules']}} of  {{trainingInfo['total_modules']}} requirements complete</div>
+                    <div *ngIf="trainingInfo['role_training_status']=='non-compliant'" class="total_modules_completed_text">{{trainingInfo['completed']}} of  {{trainingInfo['total_modules']}} requirements complete</div>
+                    <!--
                     <div class="training-requirements">
                         <div class="icon"></div>
                         <div class="text blue-text">
@@ -57,6 +64,7 @@
                             
                         </div>
                     </div>
+                    -->
             </div>
         </div>    
     </div>
