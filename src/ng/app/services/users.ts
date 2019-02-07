@@ -350,7 +350,9 @@ export class UserService {
 		this.options['params'] = httpParams;
 		return this.http.get<{
 			message: string,
-			userInfoTraining: Array<object>
+			userInfoTraining: Array<object>,
+			userInfoOtherTraining: Array<object>,
+			emRolesLocation: Array<object>
 		}>(this.baseUrl + '/users/all-training-info', this.options);
 	}
 

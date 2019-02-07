@@ -105,7 +105,8 @@
 .box .icon-right,
 .image-container .image,
 .right-container .right ul li .image,
-.avatar-container .doll{
+.avatar-container .doll,
+.avatar-container .compliant-doll{
     background-image: url('/assets/images/trainings/newtrainings.png');
     background-repeat: no-repeat;
 }
@@ -193,10 +194,18 @@
     vertical-align: middle;
 }
 
+.avatar-container .compliant-doll {
+    width: 76px;
+    height: 155px;
+    display: inline-block;
+    background-size: 1250%;
+    background-position: 83.45% 82.4%;
+    vertical-align: middle;
+}
 .avatar-container .name-location-container{
     display: inline-block;
     vertical-align: middle;
-    width: 130px;
+    width: 75%;
     margin: 0px 0px 0px 15px;
 }
 
@@ -224,7 +233,7 @@ div.total_modules_completed_text {
 
 .avatar-container .name-location-container .location-text{
     font-size: 14px;
-    max-width: 85px;
+    max-width: 250px;
     display: inline-block;
     vertical-align: middle;
     line-height: 16px;

@@ -232,8 +232,38 @@ export class UserTrainingModuleRelation extends BaseClass {
                     }
                     resolve(results[0]);
                 });
+                connection.release();
             });
 
+        });
+    }
+
+    public listMiscTraining(userId=0, excludeTrainingIds=[], includeTrainingIds=[], uniq=true): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            let trIdstr = '';
+            if (excludeTrainingIds.length) {
+                trIdstr = ` AND training_requirement_id NOT IN (${excludeTrainingIds.join(',')})`;
+            } else if (includeTrainingIds.length) {
+                trIdstr = ` AND training_requirement_id IN (${excludeTrainingIds.join(',')})`;
+            }
+            if (uniq) {
+                trIdstr += ` GROUP BY training_requirement_id`;
+            }
+            const sql = `SELECT * FROM user_training_module_relation WHERE disabled = 0 AND user_id = ? ${trIdstr}`;
+            const params = [userId];
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw new Error(error);
+                }
+                connection.query(sql, params, (err, results) => {
+                    if (err) {
+                        console.log('user training module model relation method listMiscTraining', sql, params, err);
+                        throw new Error(err);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
         });
     }
 }

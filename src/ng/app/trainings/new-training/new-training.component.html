@@ -1,16 +1,13 @@
 <div class="main">
-
-    <div class="left-nav">
-        
+    <div class="left-nav">        
         <div class="avatar-container">
-            <div class="doll"></div>
+            <div [ngClass]="{
+                'doll': !isWardenTrainingValid,
+                'compliant-doll': isWardenTrainingValid}"></div>
             <div class="name-location-container">
                 <div class="name blue-text">{{userData['name']}}</div>
                 <div class="location-image"></div>
-                <div class="location-text">Location, Sub Location</div>
-                <div class="location-text">Location, Sub Location</div>
-                <div class="location-text">Location, Sub Location</div>
-                <div class="location-text">Location, Sub Location</div>
+                <div *ngFor="let location of emRolesLocations" class="location-text">{{location.name}}</div>                
             </div>
         </div>
         <!--
@@ -54,8 +51,8 @@
                         <!--<div class="progress" style="width: 50%;"></div> -->
                         <div class="progress" [style.width.%] = "trainingInfo['role_training_status']=='compliant' ? 100 :  trainingInfo['percent_status']"></div>
                     </div>
-                    <div *ngIf="trainingInfo['role_training_status']=='compliant'" class="total_modules_completed_text">{{trainingInfo['total_modules']}} of  {{trainingInfo['total_modules']}} requirements complete</div>
-                    <div *ngIf="trainingInfo['role_training_status']=='non-compliant'" class="total_modules_completed_text">{{trainingInfo['completed']}} of  {{trainingInfo['total_modules']}} requirements complete</div>
+                    <div *ngIf="trainingInfo['role_training_status']=='compliant'" class="total_modules_completed_text">{{trainingInfo['total_modules']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
+                    <div *ngIf="trainingInfo['role_training_status']=='non-compliant'" class="total_modules_completed_text">{{trainingInfo['completed']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
                     <!--
                     <div class="training-requirements">
                         <div class="icon"></div>
@@ -76,138 +73,87 @@
                     [ngClass]="{'box': true,
                                 'center': true,
                                 'check': module['completed'] == 1,
-                                'unlocked': !module['completed'],
-                                'locked': module['disabled'] 
+                                'unlocked': !module['completed'] && !module['disabled'] && has_online_training,
+                                'locked': module['disabled'] || !has_online_training 
                             }">
                     <div class="icon-right"></div>
     
                     <div class="image-container">
-                        <div class="image badge-1"></div>
+                        <div 
+                            [ngClass]="{ 'image': true,
+                                     'badge-1': module['logo'] == 'badge-1',
+                                     'badge-2': module['logo'] == 'badge-2',
+                                     'badge-3': module['logo'] == 'badge-3',
+                                     'badge-4': module['logo'] == 'badge-4',
+                                     'badge-5': module['logo'] == 'badge-5',
+                                     'badge-6': module['logo'] == 'badge-6'
+                                   }">
+                        </div>
                     </div>
                     <p class="blue-text module">{{module['module_subname']}}</p>
     
                     <h4 class="center title">
                         {{module['module_name']}}
                     </h4>
-                    <div class="button-container ">
+                    <div class="button-container" *ngIf="!module['disabled']">
+                        <button type="button" [disabled]="!has_online_training" (click)="loadTrainingModule(module)" class="btn orange">Take Training</button>
+                    </div>
+                    
+    
+                    <p *ngIf="module['expiry']" class="blue-text bottom-text">Training expiration {{module['expiry'] | date: 'MM/dd/yy'}}</p>
+        
+                </div>
+            </div>
+            <div *ngFor="let module of allMiscModules" class="module-container">
+                <div
+                    [ngClass]="{'box': true,
+                                'center': true,
+                                'check': module['completed'] == 1,
+                                'unlocked': !module['completed'],
+                                'locked': module['disabled'] 
+                            }">
+                    <div class="icon-right"></div>
+    
+                    <div class="image-container">
+                        <div 
+                            [ngClass]="{ 'image': true,
+                                         'badge-1': module['logo'] == 'badge-1',
+                                         'badge-2': module['logo'] == 'badge-2',
+                                         'badge-3': module['logo'] == 'badge-3',
+                                         'badge-4': module['logo'] == 'badge-4',
+                                         'badge-5': module['logo'] == 'badge-5',
+                                         'badge-6': module['logo'] == 'badge-6'
+                                       }">
+                        </div>
+                    </div>
+                    <p class="blue-text module">{{module['module_subname']}}</p>
+    
+                    <h4 class="center title">
+                        {{module['module_name']}}
+                    </h4>
+                    <div class="button-container" *ngIf="!module['disabled']">
                         <button type="button" (click)="loadTrainingModule(module)" class="btn orange">Take Training</button>
                     </div>
                     
     
-                    <p class="blue-text bottom-text">Training expiration 10/14/2019</p>
+                    <p *ngIf="module['expiry']" class="blue-text bottom-text">Training expiration {{module['expiry'] | date: 'MM/dd/yy'}}</p>
         
                 </div>
             </div>
-
-<!-- 
-            <div class="module-container">
-                    <div class="box center check">
-                
-                            <div class="icon-right"></div>
-            
-                            <div class="image-container">
-                                <div class="image badge-2"></div>
-                            </div>
-                            <p class="blue-text module">Module 2</p>
-            
-                            <h4 class="center title">
-                                General Occupant First Response Course
-                            </h4>
-            
-                            <div class="button-container ">
-                                <button class="btn blue">Retake Training</button>
-                            </div>
-            
-                            <p class="blue-text bottom-text">Training expiration 10/14/2019</p>
-            
-                        </div>
-            </div>
-            <div class="module-container">
-                    <div class="box center unlocked">
-                
-                            <div class="icon-right"></div>
-            
-                            <div class="image-container">
-                                <div class="image badge-3"></div>
-                            </div>
-                            <p class="blue-text module">Module 3</p>
-            
-                            <h4 class="center title">
-                                Generic Bomb Threat Training
-                            </h4>
-            
-                            <div class="button-container ">
-                                <button class="btn orange">Take Training</button>
-                            </div>
-            
-                            <p class="blue-text bottom-text">Earn 30 Skill Points & 15 Reward Points</p>
-            
-                        </div>
-            </div>
-
-            <div class="module-container">
-                    <div class="box center locked">
-                
-                            <div class="icon-right"></div>
-            
-                            <div class="image-container">
-                                <div class="image badge-4"></div>
-                            </div>
-                            <p class="blue-text module">Module 4</p>
-            
-                            <h4 class="center title">
-                                Emergency Control Organisation Training
-                            </h4>
-            
-                            <div class="button-container ">
-                                <button class="btn grey">Unlocked</button>
-                            </div>
-            
-                            <p class="blue-text bottom-text">You need to be level 4 to take this training</p>
-            
-                        </div>
-            </div>
-            <div class="module-container">
-                    <div class="box center bonus">
-                
-                            <div class="icon-right"></div>
-            
-                            <div class="image-container">
-                                <div class="image badge-5"></div>
-                            </div>
-                            <p class="blue-text module">Advance Module</p>
-            
-                            <h4 class="center title">
-                                Advance Bomb Threat Training
-                            </h4>
-            
-                            <div class="button-container ">
-                                <button class="btn orange">Take training for 40 points</button>
-                            </div>
-            
-                            <p class="blue-text bottom-text">Earn 100 skill points</p>
-            
-                        </div>
-            </div>
-
-        -->            
-
-            
-
-            
 
         </div>
 
     </div>
 </div>
 
-<div>
+<div *ngIf="formatted_launcher_url">
     <div class="modal" id="training">
         <div class="modal-content">
             <iframe [src]="formatted_launcher_url" frameborder="0" ><p>Not Supported by this browser</p></iframe>
         </div>
         <div class="modal-footer">
-            <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
+            <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseTrainingModule()" >Close</button>
         </div>
     </div>
 </div>
+<div preloader></div>

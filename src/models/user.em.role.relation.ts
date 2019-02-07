@@ -649,8 +649,8 @@ export class UserEmRoleRelation extends BaseClass {
                         console.log('sql_load', sql_load);
                         return console.log(error);
                     }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    
+                    resolve(results);
                 });
                 connection.release();
             });

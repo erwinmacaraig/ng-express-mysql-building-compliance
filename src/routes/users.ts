@@ -449,10 +449,11 @@ export class UsersRoute extends BaseRoute {
         const userId = req.query.userId;
         let userRoleModel;
         let userTrainingInfoArr = [];
+        let requiredTrainingRequirementIdsArr = [];
        
-       let trainingRequirementModules = {};
-       
-       let userTrainingInfoObj = {};
+        let trainingRequirementModules = {};
+        let miscTrainings = [];
+        let userTrainingInfoObj = {};
         let temp;
         let emroles = new UserEmRoleRelation(); 
         let isFRP = false, isTRP = false;
@@ -484,6 +485,10 @@ export class UsersRoute extends BaseRoute {
             user_id: userId,
             distinct: 'em_role_id' 
         });
+        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>);
+
+        // get locations for em roles
+        const designatedEMRoleLocations = await emroles.getLocationsByUserIds(userId, (emRolesInfoArr[1] as Array<number>).join(','));
 
         const trainingReqmtArr = await new TrainingRequirements().allEmRolesTrainings();
         const trainingReqmtObj = {};
@@ -539,7 +544,7 @@ export class UsersRoute extends BaseRoute {
 
 
 
-        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>);
+        
         for (let em_role_id of myEmRoleIds) {
             userTrainingInfoObj = {
                 em_role_id: em_role_id,
@@ -547,18 +552,29 @@ export class UsersRoute extends BaseRoute {
                 training_requirement: [],
                 active_training: [],
                 role_training_status: 'non-compliant' // as of Feb 2, 2019 we assume that there is only one training requirement for a role
-            }
+            };
             let missingRequiredTrainingsIdArr = [];
             let status = 'non-compliant';
             missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
+            requiredTrainingRequirementIdsArr.push(trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
             // although we assume one training requirement for a role, for scability and future requirements that is why I iterated 
             for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
                 status = 'compliant';
+                let expiry = '';
                 if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
                     status = 'non-compliant';
                 }
+                else {
+                    try {
+                        temp = await new TrainingCertification().getActiveCertificate(userId, tr['training_requirement_id']);
+                        expiry = temp[0]['expiry_date'];
+                    } catch(e) {
+                        expiry = '';
+                    }
+                }
                 userTrainingInfoObj['training_requirement'].push({
                     ...tr,
+                    expiry: expiry,
                     modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
                     status: status
                 }); 
@@ -567,11 +583,53 @@ export class UsersRoute extends BaseRoute {
             userTrainingInfoArr.push(userTrainingInfoObj);
         }
 
+        // load trainings not related to the role 
+        miscTrainings = await new UserTrainingModuleRelation().listMiscTraining(userId, requiredTrainingRequirementIdsArr); 
+        let otherTrainings = {
+            training_requirement: []
+        };
+        for (let misc of miscTrainings) {
+            temp = [];
+            let expiry = '';
+            try {
+                temp = await new TrainingCertification().getActiveCertificate(userId, misc['training_requirement_id']);
+                expiry = temp[0]['expiry_date'];
+            } catch(e) {
+                expiry = '';
+            }
+            let mods_misc = await new TrainingRequirements().getTrainingModulesForRequirement(misc['training_requirement_id']);
+            
+            let userMiscModules;
+            for (let i = 0; i < mods_misc.length; i++) {
+                 userMiscModules = await new UserTrainingModuleRelation().getUserTrainingModule(
+                    parseInt(misc['training_requirement_id'], 10),
+                    userId,
+                    mods_misc[i]['training_module_id']
+                );
+                mods_misc[i] = {
+                                ...mods_misc[i],
+                                ...userMiscModules,
+                                expiry: expiry
+                            };
+            } 
+
+           
+            otherTrainings['training_requirement'].push({
+                training_requirement_id: misc['training_requirement_id'],
+                expiry: expiry,
+                modules: mods_misc
+            });
+        }
+        // cross reference if these misc modules were already completed
+
+
         // get completed modules
 
         res.status(200).send({
             message: 'Success',
-            userInfoTraining: userTrainingInfoArr 
+            userInfoTraining: userTrainingInfoArr,
+            userInfoOtherTraining: otherTrainings,
+            emRolesLocation: designatedEMRoleLocations 
         });
                 
 

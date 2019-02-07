@@ -16,6 +16,7 @@ import { AdminService } from './../../services/admin.service';
 import { Observable } from 'rxjs/Rx';
 import { DomSanitizer } from '@angular/platform-browser';
 
+
 declare var $: any;
 declare var Materialize: any;
 declare var moment: any;
@@ -33,7 +34,12 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     public userTrainingInfo;
     public allTrainingModules = [];
     public formatted_launcher_url;
+    public emRolesLocations = [];
+    public userInfoOtherTraining = [];
+    public allMiscModules = [];
     private baseUrl;
+    public has_online_training = 0
+    public isWardenTrainingValid = 0;
 
     public constructor(
         private dashboardService : DashboardPreloaderService,
@@ -51,18 +57,41 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
 
     public ngOnInit() {
         this.userData = this.authService.getUserData();
+        this.has_online_training = this.userData['account_has_online_training'];
+        this.dashboardService.show();
         this.userService.userTrainingInfo(this.userData['userId']).subscribe((response) => {
             this.userTrainingInfo = response['userInfoTraining'];
-            for (let roles of this.userTrainingInfo) {
-               
+            // unique locations
+            let temp = [];
+            for (let loc of response.emRolesLocation) {
+                if (temp.indexOf(loc['location_id']) == -1) {
+                    temp.push(loc['location_id']);
+                    this.emRolesLocations.push(loc);
+                }
+            }
+
+            this.userInfoOtherTraining = response.userInfoOtherTraining['training_requirement'];
+            for (let roles of this.userTrainingInfo) {               
                 roles['completed'] = 0;
                 roles['total_modules'] = 0;
-                roles['percent_status'] = 0;                
+                roles['percent_status'] = 0;
+                if ( (roles['em_role_id'] == 9 ||
+                      roles['em_role_id'] == 10 ||
+                      roles['em_role_id'] == 11 ||
+                      roles['em_role_id'] == 15 ||
+                      roles['em_role_id'] == 16 ||
+                      roles['em_role_id'] == 18 ) && roles['role_training_status'] == 'compliant') {
+                    this.isWardenTrainingValid = 1;
+                }                
                 for (let trainingRqmt of roles['training_requirement'] ) {
                     roles['total_modules'] = (trainingRqmt['modules'] as Array<object>).length;
                     console.log('training requirement', trainingRqmt);
                     for (let trainingReqmtModules of trainingRqmt['modules']) {
-                        this.allTrainingModules.push(trainingReqmtModules);
+                        
+                        this.allTrainingModules.push({
+                            ...trainingReqmtModules,
+                            expiry: trainingRqmt['expiry']
+                        });
                         if (trainingReqmtModules['completed']) {
                             roles['completed']++; 
                         }
@@ -71,9 +100,20 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
                 console.log(roles);                
             }
+            
+            for(let other of this.userInfoOtherTraining) {
+                other['completed'] = 0;
+                other['total_modules'] = other['modules'].length;
+                other['percent_status'] = 0;
+                for (let module of other['modules']) {
+                    this.allMiscModules.push(module);
+                }
+            }
+            
+           console.log(this.userInfoOtherTraining);
 
             
-            
+            this.dashboardService.hide();
         });
     }
 
@@ -83,6 +123,7 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
 
     public ngOnDestroy(){
         user_training_module_relation = 0;
+        this.isWardenTrainingValid = 0;
         this.formatted_launcher_url = '';
         $('.workspace.container').css('padding', '');
 
@@ -125,6 +166,16 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
             }
         );
 
+    }
+
+    onCloseTrainingModule() {        
+        this.formatted_launcher_url = '';
+        this.courseService.logOutTrainingModule(user_training_module_relation).subscribe((response) => {
+            user_training_module_relation = 0;
+            if(response.lesson_status == 'completed' || response.lesson_status == 'passed') {
+                window.location.reload();
+            }
+        });
     }
 
 }

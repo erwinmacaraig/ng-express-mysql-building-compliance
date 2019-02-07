@@ -69,7 +69,8 @@ export class LMSRoute extends BaseRoute {
         userTrainingModuleData['dtCompleted'] = moment().format('YYYY-MM-DD');
         await userToTrainingModuleRelation.create(userTrainingModuleData);
         const trainingRqmtObj = new TrainingRequirements(userTrainingModuleData['training_requirement_id']);
-        
+        scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
+        scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
         /*check the completion of the whole training requirement */
         const requirementModules = await trainingRqmtObj.getTrainingModulesForRequirement();
         //********* DEBUG CODE ********* */
@@ -96,8 +97,9 @@ export class LMSRoute extends BaseRoute {
             'user_id': userTrainingModuleData['user_id']
           });
         }
-
+        
         console.log('TOTAL COMPLETED: ' + completed);
+        
       }
       return res.status(200).send({
         'status': true
@@ -148,6 +150,19 @@ export class LMSRoute extends BaseRoute {
       }).catch((e) => {
         return res.status(400).send({'message': 'No course registered for this user - ' + req.user.user_id});
       });
+    });
+
+    router.post('/lms/logoutModule', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response) => {
+      const scorm = new Scorm();
+      scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
+      const status = await scorm.getDataModelVal(req.body.relation,'cmi.core.lesson_status'); 
+      if (status == 'completed' || status == 'passed') {
+        scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
+      }
+      return res.status(200).send({
+        lesson_status: status
+      });
+
     });
 
   } // end of create
