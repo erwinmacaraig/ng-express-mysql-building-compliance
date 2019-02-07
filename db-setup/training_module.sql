@@ -4,6 +4,7 @@ CREATE TABLE training_module (
      training_requirement_id INT,
      module_name TEXT,
      module_subname TEXT,
+     logo VARCHAR(100),
      module_launcher TEXT,
      module_skill_points INT DEFAULT 0,
      addedBy INT,
