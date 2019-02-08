@@ -44,7 +44,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   };
   sublocations: Object[] = [];
   traversal: Object = {};
-
+  complianceLocation = 0;
   accountIdParam = 0;
 
   activeLink = '';
@@ -110,6 +110,22 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
         this.sublocations = response['data']['children'];
         this.accounts = response['data']['account'];
         this.traversal = response['data']['traversal'][0];
+        // check where compliance takes place
+        if (this.traversal['is_building']) {
+          this.complianceLocation = this.traversal['location_id'];
+        } else if (this.traversal['p1_is_building']) {
+          this.complianceLocation = this.traversal['p1_location_id'];
+        } else if (this.traversal['p2_is_building']) {
+          this.complianceLocation = this.traversal['p2_location_id'];
+        } else if (this.traversal['p3_is_building']) {
+          this.complianceLocation = this.traversal['p3_location_id'];
+        } else if (this.traversal['p4_is_building']) {
+          this.complianceLocation = this.traversal['p4_location_id'];
+        } else if (this.traversal['p5_is_building']) {
+          this.complianceLocation = this.traversal['p5_location_id'];
+        } else {
+          this.complianceLocation = this.traversal['location_id'];
+        }
         Object.keys(response['data']['people']).forEach((key) => {
           this.people.push(response['data']['people'][key]);
         });

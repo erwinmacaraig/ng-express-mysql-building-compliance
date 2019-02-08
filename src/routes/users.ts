@@ -1319,20 +1319,23 @@ export class UsersRoute extends BaseRoute {
 
         const idsOfBuildingsForFRP = [];
         const idsOfLocationsForTRP = [];
-
-        let role = await userRoleRel.getByUserId(userID);
-        for(let r of role){
-            if(userRole == ''){
-                if(userRole != 'frp' && r.role_id == 2){
-                    userRole = 'trp'
+        try {
+            let role = await userRoleRel.getByUserId(userID);
+            for(let r of role){
+                if(userRole == ''){
+                    if(userRole != 'frp' && r.role_id == 2){
+                        userRole = 'trp'
+                    }
+                }
+    
+                if(r.role_id == 1){
+                    userRole = 'frp';
                 }
             }
-
-            if(r.role_id == 1){
-                userRole = 'frp';
-            }
+        } catch(e) {
+            console.log('At users route queryUsers endpoint ', e);
+            userRole = 'trp';
         }
-
         
         roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);
         // console.log(roleOfAccountInLocationObj);  
@@ -2772,6 +2775,7 @@ export class UsersRoute extends BaseRoute {
     				hasError = false,
                     selectedRoles = (users[i]["selected_roles"]) ? users[i]["selected_roles"] : [];
 
+                const locationAccntRel = new LocationAccountRelation();
     			users[i]['errors'] = {};
 
     			if(isEmailValid) {
@@ -2947,7 +2951,21 @@ export class UsersRoute extends BaseRoute {
                     if(selectedRoles.length > 0){
                         for(let role of selectedRoles){
                             if(parseInt(role['role_id']) == 1 || parseInt(role['role_id']) == 2){
-                                await saveLocAccUser(users[i], users[i]['account_role_id']);
+                                try {
+                                    await locationAccntRel.getLocationAccountRelation({
+                                        'location_id': users[i]['account_location_id'],
+                                        'account_id': accountId,
+                                        'responsibility': defs['role_text'][role['role_id']]
+                                    });
+                                } catch (err) {
+                                    await locationAccntRel.create({
+                                        'location_id': users[i]['account_location_id'],
+                                        'account_id': accountId,
+                                        'responsibility': defs['role_text'][role['role_id']]
+                                    });
+                                }                                
+                                await saveLocAccUser(users[i], role['role_id']);
+
                             }else{
                                 await saveEmUser(users[i], role['role_id']);
                             }
