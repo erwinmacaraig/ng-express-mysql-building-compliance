@@ -1556,7 +1556,7 @@ export class AdminRoute extends BaseRoute {
                 } catch (e) {
                   console.log('Cannot create entry in db with ', createData);
                 }
-                /*
+                
                 try {
                     await locationAccntRel.getLocationAccountRelation({
                         'location_id': u['location'],
@@ -1570,7 +1570,7 @@ export class AdminRoute extends BaseRoute {
                         'responsibility': defs['role_text'][u['role']]
                     });
                 }
-                */
+                
                 // User Role Relation
                 const userRoleRelObj = new UserRoleRelation();
                 let accountRole = [];

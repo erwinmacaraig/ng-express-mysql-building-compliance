@@ -41,9 +41,11 @@ export class LocationAccountRelation extends BaseClass {
     public getByLocationId(locationId: Number, include_account: boolean = false): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             let sql_load = '';
-            sql_load = 'SELECT * FROM location_account_relation WHERE location_id = ?';
+            sql_load = `SELECT *, IF(location_account_relation.responsibility = 'Manager', 1, 2) AS responsibility_id FROM location_account_relation WHERE location_id = ?`;
             if (include_account) {
-              sql_load = `SELECT * FROM location_account_relation
+              sql_load = `SELECT *,
+                                IF(location_account_relation.responsibility = 'Manager', 1, 2) AS responsibility_id
+                FROM location_account_relation
                 INNER JOIN accounts
                 ON location_account_relation.account_id = accounts.account_id
                 WHERE location_account_relation.location_id = ?`;
