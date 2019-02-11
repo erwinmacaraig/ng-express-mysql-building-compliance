@@ -1,14 +1,11 @@
 <app-admin-account-info [accountId]="accountId"></app-admin-account-info>
 
 <div class="row filter-container">
-  <div class="col l4 m5 s12">
-    <!--
-    <div class="search-field">
-      
-			<input type="text" placeholder="Search" id="searchLocations">
+  <div class="col l4 m5 s12">    
+    <div class="search-field">      
+			<input type="text" placeholder="Search" id="searchLocations" (keyup)="searchLocationInAccounts($event)">
       <span class="material-icons">search</span>     
-    </div>
-     -->
+    </div>     
   </div>
   <div class="col l2 m4 s6">
     <!--
@@ -27,30 +24,30 @@
     </select>
      -->
   </div>
-  <div class="col l2 m6 s12"> 
-    <!--
+  <!--
+  <div class="col l2 m6 s12">     
 		<select class="bulk-manage">
 			<option value="0" selected disabled>Select Action</option>
 			<option value="archive" >Archive selected</option>
-    </select>
-    -->
+    </select>    
   </div>
-  <div class="col l2 m3 s12 ">
+  -->
+  <div class="col l3 m3 s12">
     <button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-account-location', accountId]">
       Add New Location
     </button> 
-	</div>
+  </div>
+  <div class="col l1 m3 s12" *ngIf="!isArchived">
+      <div style="padding-top: 10px">
+          <a class="archived" [routerLink]="['/admin', 'locations-in-account', accountId]" [queryParams]="{ archived : true }">
+            <span class="image"></span>
+            View Archive
+          </a>
+      </div>    
+  </div>  
 </div>
 
-<div class="row">
-  <div class="col l12 right" *ngIf="!isArchived">
-    <div class="right table-align">
-      <a class="archived" [routerLink]="['/admin/locations-in-account/', accountId]" [queryParams]="{ archived : true }">
-        <span class="image"></span>
-        View Archive
-      </a>
-    </div>
-  </div>
+<div class="row">  
   <div class="col s12">
     <table class="table striped">
       <thead>
