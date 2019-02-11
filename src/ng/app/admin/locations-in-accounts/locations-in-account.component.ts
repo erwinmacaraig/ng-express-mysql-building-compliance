@@ -24,6 +24,8 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
     accountId = 0;
     locations = [];
     isArchived = false;
+    typingTimeout:any;
+    private originalLocations = [];
 
     modalArchive = {
         loader : false,
@@ -57,8 +59,10 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
     getLocations(){
         this.adminService.taggedLocationsOnAccount(this.accountId, this.isArchived).subscribe((response) => {
             this.locations = response['data'];
+            this.originalLocations = [];
             for (const loc of this.locations) {
                 loc['id_encrypted'] = this.encryptDecrypt.encrypt(loc['location_id']);
+                this.originalLocations.push(loc);
             }
             console.log(response);
             this.dashboard.hide();
@@ -110,5 +114,30 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit() {}
+
+
+    searchLocationInAccounts(event) {
+        clearTimeout(this.typingTimeout);
+        
+        this.typingTimeout = setTimeout(() => {
+            let searchKey = event.target.value;        
+            let temp = [];
+            this.locations = [];
+            if (searchKey) {
+                searchKey = searchKey.toLowerCase();
+                for (let loc of this.originalLocations) {
+                    let locationName = loc['name'].toLowerCase();
+                    if (locationName.includes(searchKey)) {
+                        temp.push(loc);
+                    }
+                }
+                this.locations = [...temp];
+
+            } else {
+                this.locations = [...this.originalLocations];
+            }        
+        }, 500);
+        
+    }
 
 }
