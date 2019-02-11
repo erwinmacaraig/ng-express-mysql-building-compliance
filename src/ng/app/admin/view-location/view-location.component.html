@@ -51,9 +51,9 @@
             <ul id="nav-mobile">
                 <li *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations', accntId : accountIdParam }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
                 <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people', accntId : accountIdParam }" [ngClass]="{active:activeLink=='people'}"> Team </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts', accntId : accountIdParam }" [ngClass]="{active:activeLink=='accounts'}"> Accounts </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'compliance', accntId : accountIdParam }" [ngClass]="{active:activeLink=='compliance'}"> Compliance </li>
-                <!-- <li [routerLink]="['/admin', 'view-location', locationId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li> -->
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts', accntId : accountIdParam }" [ngClass]="{active:activeLink=='accounts'}"> Compliance </li>
+                <!--<li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'compliance', accntId : accountIdParam }" [ngClass]="{active:activeLink=='compliance'}"> Compliance </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li> -->
             </ul>
         </div>
     </div>
@@ -139,7 +139,7 @@
           <tr *ngFor="let account of accounts">
             <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['account_name']}}</a></td>
             <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['responsibility']}}</a></td>
-            <td></td>
+            <td><a [routerLink]="['/admin', 'view-location-compliance', account['account_id'], complianceLocation, account['responsibility_id'], '2']">View Compliance</a></td>
           </tr>
         </tbody>
     </table>
