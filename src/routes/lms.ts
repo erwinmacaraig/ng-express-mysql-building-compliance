@@ -117,6 +117,8 @@ export class LMSRoute extends BaseRoute {
           const courseUserRelObj = new CourseUserRelation(req.body.relation);
           courseUserRelObj.updateUserTrainingCourseCertificate().then((result) => {
             console.log('Update certification');
+            scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
+            scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
             return res.status(200).send({
               'status': true
             });
@@ -139,6 +141,19 @@ export class LMSRoute extends BaseRoute {
         });
       });
     */      
+    });
+
+    router.post('/lms/logoutCourse', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response) => {
+      const scorm = new Scorm();
+      scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
+      const status = await scorm.getDataModelVal(req.body.relation, 'cmi.core.lesson_status'); 
+      if (status == 'completed' || status == 'passed') {
+        scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
+      }
+      return res.status(200).send({
+        lesson_status: status
+      });
+
     });
 
     router.get('/lms/getAllCourses/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {

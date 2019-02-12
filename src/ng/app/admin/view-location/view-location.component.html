@@ -138,7 +138,7 @@
             </tr>
           <tr *ngFor="let account of accounts">
             <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['account_name']}}</a></td>
-            <td><a [routerLink]="['/admin', 'users-in-accounts', account['account_id']]">{{account['responsibility']}}</a></td>
+            <td>{{account['responsibility']}}</td>
             <td><a [routerLink]="['/admin', 'view-location-compliance', account['account_id'], complianceLocation, account['responsibility_id'], '2']">View Compliance</a></td>
           </tr>
         </tbody>

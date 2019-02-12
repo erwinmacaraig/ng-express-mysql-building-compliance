@@ -26,7 +26,10 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
     isArchived = false;
     typingTimeout:any;
     private originalLocations = [];
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature-list-all-accounts-in-compliance
     modalArchive = {
         loader : false,
         selected : {}
@@ -64,7 +67,6 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
                 loc['id_encrypted'] = this.encryptDecrypt.encrypt(loc['location_id']);
                 this.originalLocations.push(loc);
             }
-            console.log(response);
             this.dashboard.hide();
         }, (error) => {
             console.log(error);
@@ -115,7 +117,10 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit() {}
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> feature-list-all-accounts-in-compliance
     searchLocationInAccounts(event) {
         clearTimeout(this.typingTimeout);
         

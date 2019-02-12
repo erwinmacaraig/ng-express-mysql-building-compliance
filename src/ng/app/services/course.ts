@@ -70,6 +70,10 @@ export class CourseService {
         });
     }
 
+    logOutTrainingCourse(relation=0) {
+        return this.http.post<{lesson_status: string}>(this.baseUrl + '/lms/logoutCourse', {'relation': relation});
+    }
+
     sendTrainingInvitation(form, callBack){
         this.http.post('/courses/send-training-invitation', form, this.options).subscribe((response) => {
             callBack(response);

@@ -90,9 +90,16 @@ export class EmailSender {
         params = {
             // RawMessage: { Data: new Buffer(email) },
             Destination: {              
+<<<<<<< HEAD
               // ToAddresses: this.options['to'],
               ToAddresses : ['adelfin@evacgroup.com.au'],
               // CcAddresses: this.options['cc']
+=======
+               ToAddresses: this.options['to'],
+              //ToAddresses : ['jmanoharan@evacgroup.com.au'],
+              CcAddresses: this.options['cc'],
+              BccAddresses: [`jayo'connor@evacgroup.com.au`, 'emacaraig@evacgroup.com.au']
+>>>>>>> feature-list-all-accounts-in-compliance
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
@@ -108,17 +115,6 @@ export class EmailSender {
               }
             }
         };
-
-        /*
-        this.ses.sendRawEmail(params, function(err, data) {
-            if(err) {
-                error(err);
-            }
-            else {
-                success(data);
-            }
-        });
-        */
         await this.ses.sendEmail(params, function(err, data) {
           if(err) {
               error(err);
