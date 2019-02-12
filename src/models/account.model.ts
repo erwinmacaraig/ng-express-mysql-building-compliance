@@ -708,14 +708,15 @@ export class Account extends BaseClass {
                         SELECT
                             c.user_id
                         FROM certifications c
+                        INNER JOIN users u ON u.user_id = c.user_id
                         INNER JOIN training_requirement tr ON c.training_requirement_id = tr.training_requirement_id
                         INNER JOIN em_role_training_requirements emtr ON c.training_requirement_id = emtr.training_requirement_id
                         WHERE c.pass = 1 AND DATE_ADD(c.certification_date, INTERVAL tr.num_months_valid MONTH) > NOW()
+                        AND u.account_id = ${account} GROUP BY c.user_id
                     )
 
                     AND u.account_id = ? AND u.archived = 0 ${filterStr};
                 `;
-
                 connection.query(sql_all, [account], (error, results) => {
                     if (error) {
                         console.log('account.model.getAllEMRolesOnThisAccountNotCompliant', error, sql_all);
