@@ -762,16 +762,19 @@ export class TrainingProfile implements OnInit, OnDestroy {
     }
 
     public onCloseCourseModule(course: object = {}) {
-
-      this.complianceService.getAllRegisteredCourses().subscribe((data) => {
-        console.log(data);
-        if (data['courses'].length > 0) {
-          this.courses = data['courses'];
-          console.log('At onCloseCourseModule', this.courses);
+      this.courseService.logOutTrainingCourse(user_course_relation).subscribe((res) => {
+        if (res.lesson_status == 'completed' || res.lesson_status == 'passed') {
+          this.complianceService.getAllRegisteredCourses().subscribe((data) => {
+            console.log(data);
+            if (data['courses'].length > 0) {
+              this.courses = data['courses'];
+              console.log('At onCloseCourseModule', this.courses);
+            }
+          }, (error) => {
+            console.log('At onCloseCourseModule', error);
+            this.courses = [];
+          });
         }
-      }, (error) => {
-        console.log('At onCloseCourseModule', error);
-        this.courses = [];
       });
     }
 }

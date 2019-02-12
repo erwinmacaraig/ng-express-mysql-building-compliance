@@ -17,6 +17,7 @@ import { Token } from '../models/token.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 
+const RateLimiter = require('limiter').RateLimiter;
 import * as moment from 'moment';
 const defs = require('../config/defs');
 
@@ -340,23 +341,23 @@ export class CourseRoute extends BaseRoute {
         nominatorModel = new User(req.user.user_id),
         nominator = <any> {};
 
-        try{
+        try {
             nominator = await nominatorModel.load();
-        }catch(e){}
+        } catch (e) {}
 
         try {
 
             account = await accountModel.load();
             accountModel = new Account();
 
-            if(all) {
+            if (all) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id);
-            } else if(ids.length > 0) {
+            } else if (ids.length > 0) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id, { user_ids : ids.join(',') });
-            } else if(non_compliant) {
+            } else if (non_compliant) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccountNotCompliant(req.user.account_id);
             }
-
+           
             for(let user of users) {
                 user['trainings'] = [];
                 user['account'] = account;
@@ -374,7 +375,7 @@ export class CourseRoute extends BaseRoute {
             response.data = users;
             res.send(response);
 
-        } catch(e) {            
+        } catch(e) {
             console.log('Error sending email training invite at course route calling sendTrainingInvitation method');
         }
         /*
@@ -448,6 +449,7 @@ export class CourseRoute extends BaseRoute {
         },
         email = new EmailSender(opts);
         await email.sendFormattedEmail('online-training', emailData, res, (s) => { console.log(s); }, (e) => { console.log(e); } );
+
     }
 
     public async trainingInviteEmailAction(req, res, tokenData){
