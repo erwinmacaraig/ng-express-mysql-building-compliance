@@ -38,21 +38,24 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getByLocationId(locationId: Number, include_account: boolean = false): Promise<Array<object>> {
+    public getByLocationId(locationId: Number[], include_account: boolean = false): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             let sql_load = '';
-            sql_load = `SELECT *, IF(location_account_relation.responsibility = 'Manager', 1, 2) AS responsibility_id FROM location_account_relation WHERE location_id = ?`;
+            const locationIdsString = locationId.join(',');
+            sql_load = `SELECT *,
+            IF(location_account_relation.responsibility = 'Manager', 1, 2)
+            AS responsibility_id FROM location_account_relation WHERE location_id IN (${locationIdsString})`;
             if (include_account) {
               sql_load = `SELECT *,
                                 IF(location_account_relation.responsibility = 'Manager', 1, 2) AS responsibility_id
                 FROM location_account_relation
                 INNER JOIN accounts
                 ON location_account_relation.account_id = accounts.account_id
-                WHERE location_account_relation.location_id = ?`;
+                WHERE location_account_relation.location_id IN (${locationIdsString})`;
             }
-            const param = [locationId];
+            const param = [];
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, param, (error, results, fields) => {
