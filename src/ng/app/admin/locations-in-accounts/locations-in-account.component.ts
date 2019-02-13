@@ -26,10 +26,6 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
     isArchived = false;
     typingTimeout:any;
     private originalLocations = [];
-<<<<<<< HEAD
-
-=======
->>>>>>> feature-list-all-accounts-in-compliance
     modalArchive = {
         loader : false,
         selected : {}
@@ -117,15 +113,10 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
     ngAfterViewInit() {}
 
-<<<<<<< HEAD
-
-=======
->>>>>>> feature-list-all-accounts-in-compliance
     searchLocationInAccounts(event) {
         clearTimeout(this.typingTimeout);
-        
         this.typingTimeout = setTimeout(() => {
-            let searchKey = event.target.value;        
+            let searchKey = event.target.value;
             let temp = [];
             this.locations = [];
             if (searchKey) {
@@ -140,9 +131,9 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
             } else {
                 this.locations = [...this.originalLocations];
-            }        
+            }
         }, 500);
-        
+
     }
 
 }
