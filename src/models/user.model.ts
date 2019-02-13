@@ -1106,7 +1106,7 @@ export class User extends BaseClass {
                     u.first_name,
                     u.last_name,
                     u.email,
-                    u.account_id,                    
+                    u.account_id,
                     userolelocation.role_id,
                     userolelocation.role_name,
                     userolelocation.location_id,
@@ -1114,7 +1114,7 @@ export class User extends BaseClass {
                     l.name,
                     l.is_building,
                     IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name,
-                    IF(l.parent_id = -1,  userolelocation.location_id, l.parent_id ) AS parent_id,                    
+                    IF(l.parent_id = -1,  userolelocation.location_id, l.parent_id ) AS parent_id,
                     p.is_building as parent_is_building,
                     IF(p.location_id IS NOT NULL, p.name, '') as parent_location_name,
                     p2.is_building as parent2_is_building,
@@ -1158,7 +1158,7 @@ export class User extends BaseClass {
                 ${configFilter}
                 ${limitSql}
                 `;
-
+                // console.log(sql_load);
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log(sql_load);
@@ -1166,7 +1166,6 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
-    
                 });
                 connection.release();
 
