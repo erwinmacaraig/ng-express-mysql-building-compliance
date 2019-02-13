@@ -20,7 +20,7 @@ import { TrainingCertification } from '../models/training.certification.model';
 import { Utils } from '../models/utils.model';
 import { WardenBenchmarkingCalculator } from '../models/warden_benchmarking_calculator.model';
 import { ComplianceRoute } from './compliance';
-
+import { TrainingRequirements} from '../models/training.requirements';
 import { PDFDocumentWithTables } from '../models/pdftable';
 import * as PDFDocument from 'pdfkit';
 
@@ -807,13 +807,13 @@ export class ReportsRoute extends BaseRoute {
         userRoleModel = new UserRoleRelation(),
         userId = (req.body.user_id) ? req.body.user_id : req.user.user_id,
         role = 0;
-
+        const allUsers = [];
         try{
             role = await userRoleModel.getByUserId(userId, true);
         }catch(e){}
         try {
             // determine if you are a building manager or tenant in these locations - response.locations
-            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);            
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);
         } catch (e) {
             console.log('Getting the account role for a location error');
         }
@@ -834,25 +834,23 @@ export class ReportsRoute extends BaseRoute {
         } else {
              ids = location_id.split('-');
         }
-        for(let i of ids) {            
+        for(let i of ids) {
             if (i in roleOfAccountInLocationObj && roleOfAccountInLocationObj[i]['role_id'] == 1) {            
                 frpAccountLocations.push(parseInt(i, 10));
                 locsIds.push(i);
             } else {
                 tenantAccountLocations.push(parseInt(i, 10));  
             }
-    
         }
         let childForTenant = [];
         // since they are only tenant on this building locations, go get the sub locations related to the account
         for (let building of tenantAccountLocations) {
-            let tempArr = [];                
-            try {                
-                tempArr = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(building,accountId);                
+            let tempArr = [];
+            try {
+                tempArr = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(building,accountId);
                 childForTenant = childForTenant.concat(tempArr);    
-                
             } catch(e) {
-                // this is at the case of malls where in a tenant is assign to the building               
+                // this is at the case of malls where in a tenant is assign to the building
                 try {
                     tempArr = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(building, accountId);
                     childForTenant = childForTenant.concat(tempArr); 
@@ -860,7 +858,6 @@ export class ReportsRoute extends BaseRoute {
 
                 }
             }
-            
             for (let c of childForTenant) {
                 locsIds.push(c['location_id']);
             }            
@@ -871,75 +868,9 @@ export class ReportsRoute extends BaseRoute {
 
         try{
             locations = <any> await locationModel.getWhere( whereLoc );
-        }catch(e){  }
+        } catch(e) {  }
 
 
-/*
-        if (location_id == 0 || getAll) {
-            try{
-                let responseLocations = <any> await this.listLocations(req,res, true, { 'archived' : 0 });
-                console.log('responseLocations', responseLocations.data);
-                for (let responseLoc of responseLocations.data) {                    
-                    if (responseLoc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[responseLoc['location_id']]['role_id'] == 1) {
-                        locations.push(responseLoc);                        
-                    } else {
-                        tenantAccountLocations.push(responseLoc['location_id']);
-                    }
-                }
-                // locations = responseLocations.data;
-                // console.log(locations);
-            }catch(e){
-                
-                console.log('I am here', e);
-            }
-        } else {
-            let ids = location_id.split('-'),
-                locsIds = [0],
-                whereLoc = [];
-            for(let i of ids) {            
-                if (i in roleOfAccountInLocationObj && roleOfAccountInLocationObj[i]['role_id'] == 1) {            
-                    frpAccountLocations.push(parseInt(i, 10));
-                    locsIds.push(i);
-                } else {
-                    tenantAccountLocations.push(parseInt(i, 10));  
-                }
-        
-            }
-            let childForTenant = [];
-            // since they are only tenant on this building locations, go get the sub locations related to the account
-            for (let building of tenantAccountLocations) {
-                let tempArr = [];                
-                try {                
-                    tempArr = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(building,accountId);                
-                    childForTenant = childForTenant.concat(tempArr);    
-                    
-                } catch(e) {
-                    // this is at the case of malls where in a tenant is assign to the building               
-                    try {
-                        tempArr = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(building, accountId);
-                        childForTenant = childForTenant.concat(tempArr); 
-                    } catch(sub_e) {
-    
-                    }
-                }
-                
-                for (let c of childForTenant) {
-                    locsIds.push(c['location_id']);
-                }            
-                
-            }
-            console.log(`locsIds are ${locsIds.join(', ')}`);
-            console.log(`frpAccountLocations are ${frpAccountLocations.join(',')}`);
-            console.log(`tenantAccountLocations are ${tenantAccountLocations.join(',')}`);
-            console.log();
-            whereLoc.push([ 'location_id IN ('+locsIds.join(',')+') AND archived = 0' ]);
-
-            try{
-                locations = <any> await locationModel.getWhere( whereLoc );
-            }catch(e){  }
-        }
-
-*/        
         let allUserIds = [0],
             allLocationIds = [],
             allLocations = [],
@@ -1036,9 +967,9 @@ export class ReportsRoute extends BaseRoute {
         if(req.body.eco_only){
             config['eco_only'] = req.body.eco_only;
         }
-
+        const EMUsersTraining = await new TrainingRequirements().allEmRolesTrainings();
         users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
-        // console.log(users);
+        const EMRoleIds = [];
         for(let user of users){
             /*
             if(allUserIds.indexOf(user.user_id) == -1){
@@ -1048,39 +979,152 @@ export class ReportsRoute extends BaseRoute {
                 frpAndTrp.push(user);
             }
             */
-            
-            if(allUserIds.indexOf(user.user_id) == -1){
+            if(allUserIds.indexOf(user.user_id) == -1) {
                 if (frpAccountLocations.indexOf(user.parent_id) != -1) {
                     allUserIds.push(user.user_id);
+                    allUsers.push(user);
+                    EMRoleIds.push(user['role_id']);
                 } else if (user.account_id == accountId) {
                     allUserIds.push(user.user_id);
-                }                
+                    EMRoleIds.push(user['role_id']);
+                    allUsers.push(user);
+                }
+            } else if (allUserIds.indexOf(user.user_id) != -1  && EMRoleIds.indexOf(user['role_id']) == -1) {
+                allUsers.push(user);
             }
-            if(user.role_id == 1 || user.role_id == 2){
+
+            if(user.role_id == 1 || user.role_id == 2) {
                 if (frpAccountLocations.indexOf(user.parent_id) != -1) {
                     frpAndTrp.push(user);
                 } else if (user.account_id == accountId) {
                     frpAndTrp.push(user);
-                }                  
+                }
             }
-            
         }
 
+        // console.log(allUsers);
+        const trainingObj = {};
+        for (const tr of EMUsersTraining) {
+            if (tr['em_role_id'] in trainingObj ) {
+                (trainingObj[tr['em_role_id']]['training_requirement'] as Array<object>).push({
+                    training_requirement_name: tr['training_requirement_name'],
+                    training_requirement_id: tr['training_requirement_id'],
+                    num_months_valid: tr['num_months_valid']
+                });
+            } else {
+                trainingObj[tr['em_role_id']] = {
+                    em_role_id: tr['em_role_id'],
+                    training_requirement: [{
+                        training_requirement_name: tr['training_requirement_name'],
+                        training_requirement_id: tr['training_requirement_id'],
+                        num_months_valid: tr['num_months_valid']
+                    }]
+                }
+            }
+        }
+        let tempUserHolder = [];
+        for (let i = 0; i < allUsers.length; i++) {
+            try {
+                if (trainingObj[allUsers[i]['role_id']]['training_requirement'].length > 1) {
+                    for (const r of trainingObj[allUsers[i]['role_id']]['training_requirement']) {
+                        tempUserHolder.push({
+                            ...allUsers[i],
+                            ...r
+                        })
+                    }
+                } else {
+                    allUsers[i]['training_requirement_name'] =
+                        trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['training_requirement_name'];
+
+                    allUsers[i]['training_requirement_id'] =
+                        trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['training_requirement_id'];
+
+                    allUsers[i]['num_months_valid'] = trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['num_months_valid'];
+
+                }
+            } catch (e) {
+                console.log('No training requirment for this user', e, allUsers[i]);
+            }
+        }
+        for (const u of tempUserHolder) {
+            allUsers.push(u);
+        }
+        tempUserHolder = [];
         // response['users'] = users;
         // response['allLocationIds'] = allLocationIds.join(',');
+        // console.log(allUsers);
 
         let offsetLimit = (getAll || filterExceptLocation) ? false :  (limit == 0) ? false : offset+','+limit,
-            courseMethod = (course_method == 'online' && !getAll && !filterExceptLocation) ? 'online_by_evac' : (course_method == 'offline' && !getAll && !filterExceptLocation) ? 'offline_by_evac' : '',
+            courseMethod = (course_method == 'online' && !getAll && !filterExceptLocation) ? 
+            'online_by_evac' : (course_method == 'offline' && !getAll && !filterExceptLocation) ? 'offline_by_evac' : '',
             trainCertModel = new TrainingCertification(),
             trainCertCountModel = new TrainingCertification(),
-            certificates = <any> await trainCertModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, false, courseMethod, compliant, training_id ),
-            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId( allUserIds.join(','), offsetLimit, true, courseMethod, compliant, training_id );
+            certificates = <any> await trainCertModel.getCertificatesByInUsersId(
+                allUserIds.join(','),
+                offsetLimit,
+                false,
+                courseMethod,
+                compliant,
+                training_id ),
+            certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId(
+                allUserIds.join(','),
+                offsetLimit,
+                true,
+                courseMethod,
+                compliant,
+                training_id );
 
         response['certificates'] = certificates;
+        const finalResult = [];
+        for (const user of allUsers) {
+            for (const cert of certificates) {
+                if (user['user_id'] == cert['user_id'] && user['training_requirement_id'] == cert['training_requirement_id']) {
+                    user['region'] = '';
+                    user['building'] = '';
+                    user['sublocation'] = '';
 
-        for(let cert of certificates){
-            for(let user of users){
-                if(user.user_id == cert.user_id){
+                    if(user.parent_is_building == 1) {
+                        user['building'] = user.parent_location_name;
+                        user['sublocation'] = user.name;
+                        user['region'] = user.parent2_location_name;
+                    } else if(user.is_building == 1) {
+                        user['building'] = user.name;
+                        user['region'] = user.parent_location_name;
+                    }
+
+                    if(cert['certification_date'] != null) {
+                        cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
+                    } else {
+                        cert['certification_date_formatted'] = '';
+                    }
+
+                    if(cert['training_requirement_name'] == null) {
+                        cert['training_requirement_name'] = '';
+                    }
+
+                    const objectHolderTemp = {
+                        ...user,
+                        certifications_id: cert['certifications_id'],
+                        certification_date: cert['certification_date'],
+                        pass: cert['pass'],
+                        registered: cert['registered'],
+                        expiry_date: cert['expiry_date'],
+                        status:cert['status'],
+                        certification_date_formatted: cert['certification_date_formatted']
+                    };
+                    //console.log('==============',user);
+
+                    // console.log(objectHolderTemp);
+                    finalResult.push(objectHolderTemp);
+                    break;
+                }
+            }
+        }
+
+        /*
+        for(let cert of certificates) {
+            for(let user of users) {
+                if(user.user_id == cert.user_id) {
                     cert['first_name'] = user.first_name;
                     cert['last_name'] = user.last_name;
                     cert['email'] = user.email;
@@ -1094,7 +1138,7 @@ export class ReportsRoute extends BaseRoute {
                         cert['building'] = user.parent_location_name;
                         cert['sublocation'] = user.name;
                         cert['region'] = user.parent2_location_name;
-                    }else if(user.is_building == 1){
+                    } else if(user.is_building == 1){
                         cert['building'] = user.name;
                         cert['region'] = user.parent_location_name;
                     }
@@ -1119,11 +1163,12 @@ export class ReportsRoute extends BaseRoute {
                     }
                 }
             }
-        }
+        } */
 
         response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
 
-        let finalResult = [];
+        
+        /*
         for(let cert of certificates){
             let isIn = false;
             for(let fin of finalResult){
@@ -1135,7 +1180,7 @@ export class ReportsRoute extends BaseRoute {
                 finalResult.push(cert);
             }
         }
-
+        */
         response.data = finalResult;
 
         if(response.pagination.total > limit){
@@ -1157,7 +1202,7 @@ export class ReportsRoute extends BaseRoute {
 
         if(!toPdf && !toCsv){
             res.status(200).send(response);
-        }else if(toPdf || toCsv){
+        } else if(toPdf || toCsv){
           response['tables'] = [];
           let tblData = {
             title : (req.body.warden_report) ? 'Warden List Report' : 'Training Report',

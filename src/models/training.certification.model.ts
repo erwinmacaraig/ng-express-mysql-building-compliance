@@ -359,10 +359,10 @@ export class TrainingCertification extends BaseClass {
   public getCertificatesByInUsersId(userIds, limit?, count?, courseMethod?, pass?, trainingId?, orderBy?) {
     return new Promise((resolve) => {
       const limitSql = (limit) ? ' LIMIT '+limit : '';
-      const courseMethodSql = (courseMethod) ? ' AND  certifications.course_method = "'+courseMethod+'" ' : '';
+      const courseMethodSql = (courseMethod) ? ' AND  certifications.course_method = "' + courseMethod + '" ' : '';
       let sql = '',
           passSql = '',
-          trainingIdSql = (trainingId > 0) ? ' AND training_requirement.training_requirement_id = '+trainingId : '';
+          trainingIdSql = (trainingId > 0) ? ' AND training_requirement.training_requirement_id = ' + trainingId : '';
 
       if(pass == 1){
           passSql += '  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() ';
@@ -372,8 +372,8 @@ export class TrainingCertification extends BaseClass {
            `;
       }
 
-      let orderSql = (orderBy) ? orderBy : 'ORDER BY TRIM(a.account_name) ASC, certifications.certification_date DESC';
-
+      const orderSql = (orderBy) ? orderBy : 'ORDER BY TRIM(a.account_name) ASC, certifications.certification_date DESC';
+      // const orderSql = (orderBy) ? orderBy : 'ORDER BY certifications.user_id ASC, certifications.certification_date DESC';
       if(count){
           sql = `
             SELECT
@@ -387,12 +387,15 @@ export class TrainingCertification extends BaseClass {
                 users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
             ${orderSql}
           `;
-      }else{
+      } else {
           sql = `
             SELECT
-              IF(training_requirement.training_requirement_name IS NOT NULL, training_requirement.training_requirement_name, IF(tr2.training_requirement_name IS NOT NULL, tr2.training_requirement_name, 'No user role') ) as training_requirement_name,
+              IF (training_requirement.training_requirement_name IS NOT NULL,
+                training_requirement.training_requirement_name,
+                IF(tr2.training_requirement_name IS NOT NULL, tr2.training_requirement_name, 'No user role') ) as training_requirement_name,
               training_requirement.training_requirement_id,
               training_requirement.num_months_valid,
+              certifications.certifications_id,
               certifications.course_method,
               certifications.certification_date,
               certifications.pass,
@@ -402,7 +405,9 @@ export class TrainingCertification extends BaseClass {
               em_roles.role_name,
               users.user_id, users.first_name, users.last_name, users.account_id,
               DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
-              IF ( certifications.certification_date IS NOT NULL,  IF(DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired'), 'not taken') as status
+              IF ( certifications.certification_date IS NOT NULL,
+                 IF(DATE_ADD(certifications.certification_date,
+                  INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired'), 'not taken') as status
             FROM
               users
               LEFT JOIN certifications ON certifications.user_id = users.user_id
@@ -414,11 +419,12 @@ export class TrainingCertification extends BaseClass {
               LEFT JOIN course_user_relation as cur ON cur.user_id = users.user_id
               LEFT JOIN scorm_course as sc ON sc.course_id = cur.course_id
               LEFT JOIN accounts a ON users.account_id = a.account_id
-            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}            
+            WHERE users.user_id IN (${userIds}) ${courseMethodSql} ${trainingIdSql} ${passSql}
             GROUP BY certifications.certifications_id
             ${orderSql} ${limitSql}
           `;
-      }      
+      }
+      // console.log(sql);
       this.pool.getConnection((err, connection) => {
         if (err) {                    
             throw new Error(err);
