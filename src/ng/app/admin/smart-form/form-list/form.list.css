@@ -183,3 +183,13 @@ table tr td.with-image .impaired{
 .pagination .select{
     margin: 0px 10px;
 }
+
+#modalConfirm.modal {
+    left: 0;
+    right: 0;
+    background-color: #fafafa;
+    padding: 0;
+    max-height: 40%;
+    width: 35%;
+    will-change: top, opacity;
+}
