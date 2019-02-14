@@ -444,13 +444,13 @@ export class AdminRoute extends BaseRoute {
       });
 
     });
-    
+
     router.post('/admin/set-passwd-invite/',
     new MiddlewareAuth().authenticate,
     (req: AuthRequest, res: Response, next: NextFunction) => {
       new AdminRoute().setInvitePassword(req, res, next);
     });
-    
+
 
     router.post('/admin/send-notification/',
       new MiddlewareAuth().authenticate,
@@ -1612,7 +1612,8 @@ export class AdminRoute extends BaseRoute {
       });
     });
 
-    router.get('/admin/compliance/kpis/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+    router.get('/admin/compliance/kpis/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
       try {
         const kpis =  await new ComplianceKpisModel().getAllKPIs(true);
         return res.status(200).send({
@@ -1788,7 +1789,8 @@ export class AdminRoute extends BaseRoute {
     });
   });
 
-    router.post('/admin/upload/compliance/evac-diagrams/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+    router.post('/admin/upload/compliance/evac-diagrams/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
         const
             evacDiagramFiles = [],
             errMsgs = [],
@@ -2022,7 +2024,8 @@ export class AdminRoute extends BaseRoute {
         });
     });
 
-    router.post('/admin/utility/signedURL/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
+    router.post('/admin/utility/signedURL/', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next: NextFunction) => {
       const utils = new Utils();
       const key = req.body.key;
       let signedUrl = '';
@@ -2238,7 +2241,8 @@ export class AdminRoute extends BaseRoute {
 
 
 
-    router.get('/admin/account/trainings/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
+    router.get('/admin/account/trainings/:accountId', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next:NextFunction) => {
         let
         accountId = req.params.accountId,
         response = {
@@ -2257,7 +2261,8 @@ export class AdminRoute extends BaseRoute {
         res.send(response);
     });
 
-    router.get('/admin/account/location-heirarchy/:accountId', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next:NextFunction) => {
+    router.get('/admin/account/location-heirarchy/:accountId', new MiddlewareAuth().authenticate,
+    async (req: AuthRequest, res: Response, next:NextFunction) => {
         let
         accountId = req.params.accountId,
         locAccModel = new LocationAccountRelation(accountId),
@@ -2355,7 +2360,8 @@ export class AdminRoute extends BaseRoute {
         new AdminRoute().getUserInformation(req, res);
     });
 
-    router.get('/admin/get-tagged-locations-from-account/:accountId', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+    router.get('/admin/get-tagged-locations-from-account/:accountId',
+    new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new AdminRoute().getTaggedLocationsFromAccount(req, res);
     });
 
@@ -2387,9 +2393,36 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/submit-smart-form', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new AdminRoute().submitSmartForm(req, res);
     });
+
+    router.post('/admin/user-smart-form-action/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new AdminRoute().performActionOnSmartForm(req, res);
+    });
   // ===============
   }
 
+  public async performActionOnSmartForm(req: AuthRequest, res: Response) {
+    const a = req.body.a;
+    const smid = req.body.smid;
+    const smartFormModel = new SmartFormModel();
+
+    switch(a) {
+      case 'fb-delete':
+      smartFormModel.delete(smid).then(() => {
+        res.status(200).send({
+          message: 'Your form has successfully been deleted.'
+        });
+      }).catch((e) => {
+        console.log(e);
+        res.status(200).send({
+          message: 'Unable to delete smart form. Try again later.'
+        });
+      });
+      break;
+
+
+    }
+
+  }
   public async manualSendNotificationSummaryLink(req: AuthRequest, res: Response) {
     const user = req.body.userId;
     const role = req.body.roleId;

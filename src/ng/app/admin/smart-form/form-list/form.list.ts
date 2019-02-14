@@ -21,7 +21,10 @@ export class FormListComponent implements OnInit, AfterViewInit, OnDestroy {
 
     items = <any> [];
     kpis = <any> [];
-
+    subjectId = 0;
+    modalHeader = 'Result';
+    modalMessage = '';
+    @ViewChild('fbActions') fbActions: ElementRef;
     constructor(
         private adminService: AdminService,
         private dashboardPreloaderService: DashboardPreloaderService,
@@ -35,15 +38,30 @@ export class FormListComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit(){
+        this.generateFormList();
+    }
+
+    ngAfterViewInit(){
+        this.dashboardPreloaderService.show();
+        $('.modal').modal({
+            dismissible: false
+        });
+    }
+
+
+    ngOnDestroy() {
+
+    }
+
+    private generateFormList() {
         this.adminService.getSmartFormList().subscribe((response) => {
             this.items = response;
-            for(let item of this.items){
+            for(const item of this.items) {
                 item['compliance_activity'] = '';
                 switch (item['compliance_kpis_id']) {
                     case 2:
                         item['compliance_activity'] = 'EPC Meeting';
                         break;
-                    
                     case 3:
                         item['compliance_activity'] = 'Fire Safety Advisor';
                         break;
@@ -59,17 +77,30 @@ export class FormListComponent implements OnInit, AfterViewInit, OnDestroy {
             }
             this.dashboardPreloaderService.hide();
         });
-
-        console.log(this.kpis);
-        console.log(this.items);
     }
 
-    ngAfterViewInit(){
+    performActionPerFB(e: any, id: number|string) {
+        console.log(e.target.value);
+        const a = e.target.value;
+        this.subjectId = +id;
+        const elemId = `#fb-actions_${id}`;
+        $(elemId).prop('selectedIndex', 0);
+        switch (a) {
+            case 'fb-delete':
+            $('#modalConfirm').modal('open');
+            break;
+        }
+    }
+
+    public deleteSmartForm() {
         this.dashboardPreloaderService.show();
-    }
-
-
-    ngOnDestroy(){
-
+        this.adminService.performActionInSmartForm('fb-delete', this.subjectId).subscribe((response) => {
+            this.modalMessage = response['message'];
+            this.generateFormList();
+            setTimeout(() => {
+                this.dashboardPreloaderService.hide();
+            }, 600);
+            console.log(response);
+        });
     }
 }

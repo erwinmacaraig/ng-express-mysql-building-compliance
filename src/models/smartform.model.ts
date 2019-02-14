@@ -176,4 +176,28 @@ export class SmartFormModel extends BaseClass {
         });
     }
 
+    public delete(id = 0) {
+        return new Promise((resolve, reject) => {
+            let smartId = this.ID();
+            if (id) {
+                smartId = id;
+            }
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error('Cannot get connection');
+                }
+                const sql = `DELETE FROM smart_form WHERE smart_form_id = ?`;
+                const params = [smartId];
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log(sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
 }
