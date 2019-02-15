@@ -305,6 +305,33 @@ div.total_modules_completed_text {
     margin: 10px 0px;
 }
 
+.reward-list-container .reward-icon {
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    vertical-align: middle;
+    margin-right: 10px;
+    background-image: url(/assets/images/trainings/skillandrewards.png);
+    background-repeat: no-repeat;
+    background-size: 336%;    
+}
+.reward-icon.reward-points {
+    background-position: 79.92% 51.5%;
+}
+
+.reward-list-container .reward-text {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.reward-text {
+    font-size: 18px;
+    width: 150px;
+    line-height: 15px;
+    margin-bottom: 5px;
+}
+
 .role-list-container .role-icon{
     display: inline-block;
     width: 60px;
@@ -316,6 +343,13 @@ div.total_modules_completed_text {
     background-repeat: no-repeat;
     background-size: 1350%;
 }
+
+.reward-text .reward-points {
+    font-size: 18px;
+    color: blue;
+    padding-top: 7px;
+}
+
 
 .role-icon.general-occupant{
     background-position: 44.92% 63.5%;
@@ -344,6 +378,15 @@ div.role-name {
 .compliant-container{
     width: 150px;
     display: inline-block;
+}
+
+.redeem-container {
+    width: 150px;
+    display: inline-block;
+}
+
+.redeem-container .redeem-btn {
+    
 }
 
 .compliant-container .image{
