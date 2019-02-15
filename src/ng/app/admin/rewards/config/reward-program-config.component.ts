@@ -1,5 +1,5 @@
-import { Component } from '@angular/core';
-import { OnInit, AfterViewInit, OnDestroy } from '@angular/core';
+import { Component, ElementRef } from '@angular/core';
+import { OnInit, AfterViewInit, OnDestroy, ViewChild } from '@angular/core';
 import { FormGroup, FormArray, FormControl, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs/Subscription';
 import { AdminService } from '../../../services/admin.service';
@@ -25,8 +25,10 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
     public selectedLocations = [];
     public rewardProgramId;
     public showLoading = true;
+    public activityTable = [];
+    private myChosenActivities = [];
 
-    private searchSubscription:Subscription;
+    private searchSubscription: Subscription;
 
     public selectionType;
     public selectionTypeId;
@@ -42,15 +44,14 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
         enableCheckAll: true,
         noDataAvailablePlaceholderText: 'Fetching data from server'
     };
-    
-    
 
+    @ViewChild('programActivities') programActivities: ElementRef;
     constructor(private adminService: AdminService, private route: ActivatedRoute, private router: Router) {
 
     }
 
     private jquery_code() {
-        $(document).ready(function(){           
+        $(document).ready(function() {
             $('select').material_select();
         });
     }
@@ -62,21 +63,26 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
             sponsor_emails: new FormControl(null, Validators.required),
             activities: new FormArray([]),
             activity_points: new FormArray([]),
+            activity_ids: new FormControl(),
             reward_items: new FormArray([]),
             reward_item_points: new  FormArray([]),
             config_locations: new FormControl([]),
             selection_type: new FormControl(null, Validators.required),
-            selection_id: new FormControl(null, Validators.required)            
-        });  
-        
+            selection_id: new FormControl(null, Validators.required)
+        });
+
+        this.adminService.loadActivitiesFromLookup().subscribe((response) => {
+            this.activityTable = response.activities;
+        });
+
         this.route.paramMap.subscribe((paramMap: ParamMap) => {
             if (paramMap.has('programConfig')) {
                 this.rewardProgramId = paramMap.get('programConfig');
-                
+
                 this.adminService.getRewardProgramConfigDetails(this.rewardProgramId).subscribe((res) => {
                    if (res.selectionType == 'account') {
                        this.selectedLocations = res.buildings;
-                       this.locations = res.accountLocations
+                       this.locations = res.accountLocations;
 
                    }
 
@@ -90,7 +96,6 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
                     this.configForm.get('selection_id').patchValue(res.selectionId);
                     this.configForm.addControl('reward_proram_config_id', new FormControl(this.rewardProgramId, Validators.required));
 
-
                     for (let activity of res.activities) {
                        (this.configForm.get('activities') as FormArray).push(
                            new FormControl(activity['activity'], Validators.required)
@@ -99,15 +104,16 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
                            new FormControl(activity['activity_points'], Validators.required)
                        );
                     }
-
                     for (let reward of res.incentives) {
                         (this.configForm.get('reward_items') as FormArray).push(new FormControl(reward['incentive'], Validators.required));
-                        (this.configForm.get('reward_item_points') as FormArray).push(new FormControl(reward['points_to_earn'], Validators.required));
-                    }                    
+                        (this.configForm.get('reward_item_points') as FormArray).push(
+                            new FormControl(reward['points_to_earn'], Validators.required)
+                        );
+                    }
                     this.searchSubscription = this.smartSearch();
-                    
+
                 });
-            } else {                             
+            } /*else {
                 (this.configForm.get('activities') as FormArray).push(new FormControl('Sign up', Validators.required));
                 (this.configForm.get('activities') as FormArray).push(new FormControl('Anniversary', Validators.required));
                 (this.configForm.get('activities') as FormArray).push(new FormControl('Training', Validators.required));
@@ -120,14 +126,12 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
                 (this.configForm.get('reward_items') as FormArray).push(new FormControl('Coffee Voucher', Validators.required));
                 (this.configForm.get('reward_item_points') as FormArray).push(new FormControl('50', Validators.required));
                 this.searchSubscription = this.smartSearch();
-               
-            }
-        }); 
-        
+            }*/
+        });
         setTimeout(() => {  this.showLoading = false; }, 500);
     }
 
-    ngAfterViewInit() {        
+    ngAfterViewInit() {
         this.jquery_code();
     }
 
@@ -158,12 +162,20 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
         const accounts = this.adminService.getAccountListingForAdmin(0, key);
 
         return Observable.forkJoin([locations, accounts]);
-        
+
     }
 
     addNewActivity() {
-        (this.configForm.get('activities') as FormArray).push(new FormControl(null, Validators.required));
-        (this.configForm.get('activity_points') as FormArray).push(new FormControl(null, Validators.required));
+        const subjectIndex = this.programActivities.nativeElement.value;
+        const activity = this.activityTable[subjectIndex]['activity_name'];
+        const points = this.activityTable[subjectIndex]['default_points'];
+        if (this.myChosenActivities.indexOf(subjectIndex) === -1) {
+            this.myChosenActivities.push(subjectIndex);
+            (this.configForm.get('activities') as FormArray).push(new FormControl(activity, Validators.required));
+            (this.configForm.get('activity_points') as FormArray).push(new FormControl(points, Validators.required));
+
+            console.log(this.myChosenActivities);
+        }
     }
     addNewReward() {
         (this.configForm.get('reward_items') as FormArray).push(new FormControl(null, Validators.required));
@@ -174,9 +186,11 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
         (this.configForm.get('reward_item_points') as FormArray).removeAt(rewardIndex);
     }
 
-    removeActivityItem(activityIndex=3) {
+    removeActivityItem(activityIndex=0) {
+        this.myChosenActivities.splice(activityIndex, 1);
         (this.configForm.get('activities') as FormArray).removeAt(activityIndex);
         (this.configForm.get('activity_points') as FormArray).removeAt(activityIndex);
+        console.log(this.myChosenActivities);
     }
 
     getSelection(id, type, name) {

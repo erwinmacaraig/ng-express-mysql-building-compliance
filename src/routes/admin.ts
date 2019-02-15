@@ -2397,6 +2397,22 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/user-smart-form-action/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new AdminRoute().performActionOnSmartForm(req, res);
     });
+
+    router.get('/admin/refer-activity-lookup/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      const config = new RewardConfig();
+      config.getActivityLookup().then((activities) => {
+        res.status(200).send({
+          message: 'Success',
+          activities: activities
+        });
+      }).catch((e) => {
+        res.status(400).send({
+          message: 'Cannot retrieve activities from lookup table',
+          activities: []
+        });
+      });
+    });
+
   // ===============
   }
 
@@ -3088,17 +3104,16 @@ export class AdminRoute extends BaseRoute {
       activities: activities,
       incentives:rewards
     };
-    
+
     await rewardProgramConfigurator.create(configData);
     let wardenUsersArr;
-    
+
     if (req.body.selection_type == 'account') {      
       for (let building of req.body.config_locations) {
         await rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
         buildings.push(building['location_id']);
       }
       const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings, req.body.selection_id);
-     
       locations = [...buildings, ...sublevels];
       // get all emergency users in this account
       const account = new Account(req.body.selection_id);
@@ -3120,9 +3135,12 @@ export class AdminRoute extends BaseRoute {
 
     }
 
+    // look for sign up
+
+
     for (let warden of wardenUsersArr) {
       await rewardProgramConfigurator.setCandidateUserForReward(rewardProgramConfigurator.ID(), warden['user_id']);
-     }
+    }
 
 
     return res.status(200).send({
