@@ -83,9 +83,7 @@ export class RewardConfig extends BaseClass {
                             }
                         });
                     }
-                   
                     resolve(true);
-                
                 });
                 connection.release();
 
@@ -245,7 +243,7 @@ export class RewardConfig extends BaseClass {
     private insertActivities(activity, points) {
         return new Promise((resolve, reject) => {
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 const sql_insert_activities = `INSERT INTO reward_program_activities (
@@ -255,13 +253,16 @@ export class RewardConfig extends BaseClass {
                 ) VALUES ( ?, ?, ?)`;
                 connection.query(sql_insert_activities, [this.id, activity, points], (error, results) => {
                     if (error) {
-                        console.log('Cannot insert reward program activities', sql_insert_activities, error, `config_id = ${this.id}`, activity, points);
+                        console.log('Cannot insert reward program activities',
+                        sql_insert_activities, error,
+                        `config_id = ${this.id}`,
+                        activity, points);
                         throw new Error(error);
                     }
-                    resolve(true);                    
+                    resolve(true);
                 });
                 connection.release();
-            });            
+            });
         });
     }
 
@@ -872,7 +873,7 @@ export class RewardConfig extends BaseClass {
         });
     }
 
-    public getActivityLookup() {
+    public getActivityLookup(): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const sql = `SELECT * FROM reward_activity_lookup`;
             this.pool.getConnection((err, connection) => {
@@ -885,6 +886,48 @@ export class RewardConfig extends BaseClass {
                         throw new Error(error);
                     }
                     resolve(results);
+                });
+            });
+        });
+    }
+
+    public computeTotalUserRewardPoints(userId=0): Promise<number> {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT SUM(totalPoints) as total FROM user_reward_points WHERE user_reward_points.user_id = ?`;
+            const params = [userId];
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log('Cannot compute for the total points', sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(results[0]['total']);
+                });
+            });
+        });
+    }
+
+    public isUserEnrolledInAnyProgram(userId=0): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT user_id FROM user_reward_points where user_id = ? GROUP BY user_id;`;
+            const params = [userId];
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log('Error', sql, params);
+                        throw new Error(error);
+                    }
+                    if (results.length) {
+                        resolve(true);
+                    } else {
+                        reject(false);
+                    }
                 });
             });
         });

@@ -63,7 +63,7 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
             sponsor_emails: new FormControl(null, Validators.required),
             activities: new FormArray([]),
             activity_points: new FormArray([]),
-            activity_ids: new FormControl(),
+            activity_ids: new FormArray([]),
             reward_items: new FormArray([]),
             reward_item_points: new  FormArray([]),
             config_locations: new FormControl([]),
@@ -96,15 +96,26 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
                     this.configForm.get('selection_id').patchValue(res.selectionId);
                     this.configForm.addControl('reward_proram_config_id', new FormControl(this.rewardProgramId, Validators.required));
 
-                    for (let activity of res.activities) {
-                       (this.configForm.get('activities') as FormArray).push(
-                           new FormControl(activity['activity'], Validators.required)
-                       );
+                    for (const activity of res.activities) {
+                        for (let i = 0; i <= this.activityTable.length; i++) {
+                            if (+activity['activity'] == +this.activityTable[i]['reward_activity_lookup_id']) {
+                                this.myChosenActivities.push(i);
+                                (this.configForm.get('activities') as FormArray).push(
+                                    new FormControl(this.activityTable[i]['activity_name'], Validators.required)
+                                );
+                                break;
+                            }
+                        }
+
                        (this.configForm.get('activity_points') as FormArray).push(
                            new FormControl(activity['activity_points'], Validators.required)
                        );
+                       (this.configForm.get('activity_ids') as FormArray).push(
+                           new FormControl(activity['activity'], Validators.required)
+                       );
+
                     }
-                    for (let reward of res.incentives) {
+                    for (const reward of res.incentives) {
                         (this.configForm.get('reward_items') as FormArray).push(new FormControl(reward['incentive'], Validators.required));
                         (this.configForm.get('reward_item_points') as FormArray).push(
                             new FormControl(reward['points_to_earn'], Validators.required)
@@ -113,7 +124,8 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
                     this.searchSubscription = this.smartSearch();
 
                 });
-            } /*else {
+            } else {
+                /*
                 (this.configForm.get('activities') as FormArray).push(new FormControl('Sign up', Validators.required));
                 (this.configForm.get('activities') as FormArray).push(new FormControl('Anniversary', Validators.required));
                 (this.configForm.get('activities') as FormArray).push(new FormControl('Training', Validators.required));
@@ -125,9 +137,12 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
 
                 (this.configForm.get('reward_items') as FormArray).push(new FormControl('Coffee Voucher', Validators.required));
                 (this.configForm.get('reward_item_points') as FormArray).push(new FormControl('50', Validators.required));
+                */
+               console.log('I am here');
                 this.searchSubscription = this.smartSearch();
-            }*/
+            }
         });
+
         setTimeout(() => {  this.showLoading = false; }, 500);
     }
 
@@ -166,14 +181,17 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
     }
 
     addNewActivity() {
-        const subjectIndex = this.programActivities.nativeElement.value;
+        const subjectIndex = +this.programActivities.nativeElement.value;
         const activity = this.activityTable[subjectIndex]['activity_name'];
         const points = this.activityTable[subjectIndex]['default_points'];
+        const activityId = this.activityTable[subjectIndex]['reward_activity_lookup_id'];
         if (this.myChosenActivities.indexOf(subjectIndex) === -1) {
             this.myChosenActivities.push(subjectIndex);
             (this.configForm.get('activities') as FormArray).push(new FormControl(activity, Validators.required));
             (this.configForm.get('activity_points') as FormArray).push(new FormControl(points, Validators.required));
-
+            (this.configForm.get('activity_ids') as FormArray).push(
+                new FormControl(activityId,
+                Validators.required));
             console.log(this.myChosenActivities);
         }
     }
@@ -189,6 +207,7 @@ export class RewardProgramConfigComponent implements OnInit, AfterViewInit, OnDe
     removeActivityItem(activityIndex=0) {
         this.myChosenActivities.splice(activityIndex, 1);
         (this.configForm.get('activities') as FormArray).removeAt(activityIndex);
+        (this.configForm.get('activity_ids') as FormArray).removeAt(activityIndex);
         (this.configForm.get('activity_points') as FormArray).removeAt(activityIndex);
         console.log(this.myChosenActivities);
     }

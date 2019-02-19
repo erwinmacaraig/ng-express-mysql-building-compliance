@@ -67,13 +67,13 @@
             </div>
         </div>
         
-        <div class="training-status-container">
+        <div *ngIf="isEnrolledInRewardProgram" class="training-status-container">
             <h5>My Rewards</h5>
             <div class="reward-list-container">
                 <div class="reward-icon reward-points"></div>
                 <div class="reward-text">
                     <div class="role-name">Reward Points</div>
-                    <div class="reward-points">*100 points*</div>                        
+                    <div class="reward-points">{{totalRewardPoints}} points</div>                        
                 </div>
                 <div class="redeem-container"><button type="button" class="btn orange">Redeem</button></div>
                 <div> </div>

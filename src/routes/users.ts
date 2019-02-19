@@ -27,6 +27,8 @@ import { CourseUserRelation } from '../models/course-user-relation.model';
 import { NotificationUserSettingsModel } from '../models/notification.user.settings';
 import { NotificationToken } from '../models/notification_token.model';
 import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
+import { RewardConfig } from '../models/reward.program.config.model';
+
 import * as moment from 'moment';
 import * as validator from 'validator';
 import * as path from 'path';
@@ -441,10 +443,31 @@ export class UsersRoute extends BaseRoute {
         }
       );
 
+      router.get('/users/get-reward-points/:uid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new UsersRoute().computeRewardPoints(req, res);
+      });
 
 
     }
 
+    public async computeRewardPoints(req: AuthRequest, res: Response) {
+        const rewardConfigurator = new RewardConfig();
+        const uid = req.params.uid;
+
+        // check first if the user is in the program
+        try {
+            await rewardConfigurator.isUserEnrolledInAnyProgram(uid);
+            const total = await rewardConfigurator.computeTotalUserRewardPoints(uid);
+            return res.status(200).send({
+                message: 'Success',
+                total_points: total
+            });
+        } catch (e) {
+            return res.status(400).send({
+                message: 'User not enrolled in any program'
+            });
+        }
+    }
     public async allTrainingInfo(req: AuthRequest, res: Response, next: NextFunction) {
         const userId = req.query.userId;
         let userRoleModel;

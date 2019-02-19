@@ -344,7 +344,7 @@ export class UserService {
     getEmRoles() {
         return this.http.get(this.baseUrl + '/users/emroles', this.options);
 	}
-	
+
 	userTrainingInfo(userId=0) {
 		let httpParams: HttpParams = new HttpParams().set('userId', userId.toString());
 		this.options['params'] = httpParams;
@@ -355,5 +355,10 @@ export class UserService {
 			emRolesLocation: Array<object>
 		}>(this.baseUrl + '/users/all-training-info', this.options);
 	}
+
+    computeUserRewardPoints(uid = 0) {
+        return this.http.get<{message: string, total_points: number}>(this.baseUrl + '/users/get-reward-points/' + uid, this.options);
+    }
+
 
 }
