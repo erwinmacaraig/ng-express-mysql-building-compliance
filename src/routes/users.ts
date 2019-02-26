@@ -1968,7 +1968,6 @@ export class UsersRoute extends BaseRoute {
 		},
 		userId = (userIdParam) ? userIdParam : req.params['user_id'],
 		userModel = new User(userId),
-		locationAccountUserModel = new LocationAccountUser(),
 		fileModel = new Files(),
 		user = {},
 		emRolesModel = new UserEmRoleRelation(),
@@ -1982,8 +1981,8 @@ export class UsersRoute extends BaseRoute {
         // console.log(training_requirements);
         try {
 
-            let user = await userModel.load(),
-            locations = <any>[];
+            user = await userModel.load();
+            let locations = <any>[];
 
             if( Object.keys(user).length > 0 ) {
                 user['mobility_impaired_details'] = [];
@@ -2053,20 +2052,6 @@ export class UsersRoute extends BaseRoute {
                         user['mobility_impaired_details'] = [];
                     }
                 }
-                /*
-                try {
-                    await fileModel.getByUserIdAndType(userId, 'profile').then(
-                        (fileData) => {                            
-                            user['profilePic'] = fileData[0].url;
-                        },
-                        () => {
-                            user['profilePic'] = '';
-                        }
-                        );
-                }catch(e) {
-                    console.log(e);
-                }
-                */
 
                 try {
                     const fileData = await fileModel.getByUserIdAndType(userId, 'profile');
