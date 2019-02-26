@@ -1118,7 +1118,7 @@ export class UsersRoute extends BaseRoute {
         locations = <any> [], 
         queryAccountRoles = false;
 
-
+        selectedLocIds.push(0); // for users that has not been assigned a location
 
         const idsOfBuildingsForFRP = [];
         const idsOfLocationsForTRP = [];
@@ -1226,7 +1226,7 @@ export class UsersRoute extends BaseRoute {
 
         modelQueries.where.push('users.archived = '+archived);
         if(userRole != 'frp'){
-            // modelQueries.where.push('users.account_id = '+accountId);
+            modelQueries.where.push('users.account_id = '+accountId);
         }
         if(getPendings){
             modelQueries.where.push('users.profile_completion = 0');
@@ -1258,7 +1258,7 @@ export class UsersRoute extends BaseRoute {
 
             let emRoleIdInQuery = '';
             if(getUsersByEmRoleId){
-                emRoleIdInQuery = ' AND em_role_id IN ('+emRoleIdSelected.join(',')+') ';
+                emRoleIdInQuery = ' AND em_role_id IN (0, '+emRoleIdSelected.join(',')+') '; // included 0 for users with no assigned role
             }
 
             let inLocIdQuery = '';
@@ -2052,6 +2052,7 @@ export class UsersRoute extends BaseRoute {
                         user['mobility_impaired_details'] = [];
                     }
                 }
+
                 try {
                     const fileData = await fileModel.getByUserIdAndType(userId, 'profile');
                     fileData[0].url = await new Utils().getAWSSignedURL(`${fileData[0].directory}/${fileData[0].file_name}`);
