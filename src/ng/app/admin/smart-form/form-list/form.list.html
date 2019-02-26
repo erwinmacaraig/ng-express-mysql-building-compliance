@@ -17,11 +17,12 @@
                     <th>Compliance Activity</th>
                     <th>Form User Type </th>
                     <th>Date Created</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr *ngIf="items.length == 0">
-                    <td colspan="4" class="center">
+                    <td colspan="5" class="center">
                         No record found
                     </td>
                 </tr>
@@ -38,8 +39,37 @@
                     <td>
                         {{item.date_created_formatted}}
                     </td>
+                    <td>
+                        <select id="fb-actions_{{item['smart_form_id']}}" (change)="performActionPerFB($event, item['smart_form_id'])">
+                            <option value="-1"  selected>Actions</option>
+                            <option value="fb-preview">View Form</option>
+                            <option value="fb-edit">Edit Form</option>
+                            <option value="fb-delete">Delete Form</option>
+                        </select>
+                    </td>
                 </tr>
             </tbody>
         </table>
+    </div>
+</div>
+<!-- Modals -->
+<div id="modalConfirm" class="modal">
+    <div class="modal-content">  
+        <h4>Confirm delete form</h4>
+        <p>Are you sure you want to delete this form?</p>
+    </div>
+    <div class="modal-footer">
+        <a class="modal-action modal-close waves-effect waves-gray btn-flat">Cancel</a>
+        <a (click)="deleteSmartForm()" class="modal-action modal-close waves-effect waves-red blue btn-flat">Confirm</a>
+    </div>
+</div>
+
+<div id="modalMessages" class="modal">
+    <div class="modal-content">  
+        <h4>{{modalHeader}}</h4>
+        <p>{{modalMessage}}</p>
+    </div>
+    <div class="modal-footer">
+        <a class="modal-action modal-close waves-effect waves-gray btn-flat">Close</a>           
     </div>
 </div>

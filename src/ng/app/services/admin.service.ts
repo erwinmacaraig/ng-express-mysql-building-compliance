@@ -294,8 +294,14 @@ export class AdminService {
   }
 
   submitSmartForm(formData={}){
-    return this.http.post( this.baseUrl+'/admin/submit-smart-form', formData);
+    return this.http.post( this.baseUrl + '/admin/submit-smart-form', formData);
   }
 
-  
+  performActionInSmartForm(action = '', smartFormId = 0) {
+    return this.http.post(this.baseUrl + '/admin/user-smart-form-action/', {
+      a: action,
+      smid: smartFormId
+    });
+  }
+
 }
