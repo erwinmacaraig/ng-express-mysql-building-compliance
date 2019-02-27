@@ -622,9 +622,4 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
            console.log(response);
          });
     }
-
-    test() {
-        console.log('I was called.');
-    }
-
 }
