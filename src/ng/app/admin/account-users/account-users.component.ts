@@ -178,6 +178,9 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 ulLocations.html('');
                 $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
                     this.assignLocationRoleData.formLocValid = true;
+                    setTimeout(() => {
+                        $('#locationSelector')[0].click();
+                    }, 200);
                 });
 
                 console.log( this.assignLocationRoleData.selectedLocationData );
@@ -619,7 +622,4 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
            console.log(response);
          });
     }
-
-
-
 }
