@@ -51,7 +51,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   validTillDate = '';
   FSAStatus: boolean =  false;
   showLoadingForSignedURL: boolean = true;
-  
+  public evacDiagramOverall = {};
   sublocations: Array<object> = [];
   httpEmitter: Subscription;
   httpEvent: any;
@@ -170,6 +170,14 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
       this.complianceSublocations.push(response.location);
       }
     });
+
+    this.complianceService.getSublocationsEvacDiagrams({
+      location_id : this.locationId,
+      get_related_location : false
+  }, (responseSubs) => {
+      this.evacDiagramOverall = responseSubs.data;
+      console.log(this.evacDiagramOverall);
+  });
 
     this.complianceService.getPaperAttendanceFileUpload(this.locationId, this.accountId, this.accountResponsibilityId).subscribe((response) => {
       this.paperAttendanceRecord = response['attendance_record'];
