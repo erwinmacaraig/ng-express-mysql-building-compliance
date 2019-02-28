@@ -103,7 +103,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 	};
 
     nameDisplay = '';
-
+    public evacDiagramOverall;
 	public tenants;
 	latestComplianceData = <any>[];
 	public totalPercentage;
@@ -403,6 +403,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
                 get_related_location : (this.isFRP == true) ? false : (this.isTRP == true) ? true : false 
             }, (responseSubs) => {
                 this.evacDiagramSublocations = responseSubs.data.sublocations;
+                this.evacDiagramOverall = responseSubs.data;
+                console.log(this.evacDiagramOverall);
             });
 
             this.complianceService.getPaperAttendanceFileUpload(this.locationID, this.userData['accountId'], this.accountResponsibilityId).subscribe((response) => {
