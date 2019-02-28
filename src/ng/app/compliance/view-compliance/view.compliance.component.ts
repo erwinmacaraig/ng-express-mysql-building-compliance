@@ -333,7 +333,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             account_id : this.userData.accountId,
             get_related_only : (this.isFRP) ? false : (this.isTRP) ? true : false
         }, (response) => {
-            console.log(response);
             if (response.sublocations.length > 0) {
               this.complianceSublocations = response.sublocations;
             } else {
@@ -404,7 +403,6 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
             }, (responseSubs) => {
                 this.evacDiagramSublocations = responseSubs.data.sublocations;
                 this.evacDiagramOverall = responseSubs.data;
-                console.log(this.evacDiagramOverall);
             });
 
             this.complianceService.getPaperAttendanceFileUpload(this.locationID, this.userData['accountId'], this.accountResponsibilityId).subscribe((response) => {

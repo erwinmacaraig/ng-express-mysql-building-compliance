@@ -74,9 +74,9 @@
                                 <div *ngIf="evacDiagramOverall.validity_status == 'invalid'" class="image alarm"></div>
                                 <div *ngIf="evacDiagramOverall.validity_status == 'valid'" class="image check"></div>
 
-                                <div *ngIf="evacDiagramOverall.validity_status == 'none-exist'" class="text">No Digram Exists</div>
-                                <div *ngIf="evacDiagramOverall.validity_status == 'invalid'" class="text">Non-compliant</div>
-                                <div *ngIf="evacDiagramOverall.validity_status == 'valid'" class="text"> Compliant </div>                                            
+                                <div class="text">
+                                        <a>View Details</a>                                       
+                                </div>
                                 <div class="arrow"></div>
                         </td>
                         <!-- End of Evac Diagrams -->

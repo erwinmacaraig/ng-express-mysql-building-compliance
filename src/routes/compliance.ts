@@ -1130,6 +1130,7 @@ const request = require('request');
                     }else if(tempPercetage > 0){
                         comp['validity_status'] = 'invalid';
                     }
+               
                 break;
 
                 case 8:
@@ -1425,11 +1426,12 @@ const request = require('request');
                     }
                 }
             }
-
+            /* THIS CODE IS BUGGY, NEED TO STUDY FURTHER 
             if(comp.compliance_status == 1){
                 comp['validity_status'] = 'valid';
                 comp['valid'] = 1;
             }
+            */
 
             comp['percentage_number'] = parseInt(comp['percentage'].replace('%', '').trim());
         }
@@ -1453,7 +1455,7 @@ const request = require('request');
         }
 
         this.response['epcCommitteeOnHQ'] = epcCommitteeOnHQ;
-
+        
         if(getEpcData){
             let epcModel = new EpcMinutesMeeting(),
                 epcWhere = [],
@@ -1488,8 +1490,8 @@ const request = require('request');
                 comp['activity_done_in_building_management'] = true;
             }
         }
-
-        for(let comp of compliances){
+        
+        for(let comp of compliances) {
             let tempPoints = comp.points;
             if( rates[ comp.compliance_kpis_id ] ){
                 if(epcCommitteeOnHQ && rates[comp.compliance_kpis_id]['epc_headoffice_points'] > 0 ){
@@ -1515,7 +1517,6 @@ const request = require('request');
 
             comp['points'] = tempPoints;
         }
-
         this.response['emrolesOnThisLocation'] = emrolesOnThisLocation;
         this.response['rates'] = rates;
         this.response.status = true;
