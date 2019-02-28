@@ -1754,7 +1754,8 @@ const request = require('request');
                 sublocations : [],
                 total_diagrams : 0,
                 total_valid_diagrams : 0,
-                percentage : '0%'
+                percentage : '0%',
+                validity_status: ''
             }, message : ''
         },
         locationModel = new Location(),
@@ -1807,7 +1808,7 @@ const request = require('request');
             for(let sub of sublocations){
                 sub['evac_diagrams'].reverse();
             }
-
+            const subLocationValidDiagramCtr = [];
             for(let sub of sublocations){
                 for(let diag of sub['evac_diagrams']){
                     total_diagrams++;
@@ -1816,17 +1817,31 @@ const request = require('request');
                     if ( validTillMoment.diff(today, 'days') > 0 ) {
                         valids++;
                         diag['valid'] = true;
+                        if (subLocationValidDiagramCtr.indexOf(sub['location_id']) == -1) {
+                            subLocationValidDiagramCtr.push(sub['location_id']);
+                        }
                     }
                     diag['timestamp_formatted'] = (moment(diag.timestamp_formatted).isValid()) ? moment(diag.timestamp_formatted).format('DD/MM/YYYY') : '00/00/0000';
+                    diag['timestamp_formatted'] = diag.date_of_activity_formatted;
                 }
             }
 
             if(total_diagrams > 0){
-                response.data.percentage = Math.round( ( valids / total_diagrams ) * 100) + '%' ;
+                // response.data.percentage = Math.round( ( valids / total_diagrams ) * 100) + '%' ;
+                response.data.percentage = Math.round( ( subLocationValidDiagramCtr.length / sublocations.length ) * 100) + '%' ;
+            }
+            if ( Math.round(subLocationValidDiagramCtr.length / sublocations.length) == 1) {
+                response.data.validity_status = 'valid';
+            } else if (total_diagrams > 0) {
+                response.data.validity_status = 'invalid';
+            } else {
+                response.data.validity_status = 'none-exist';
             }
 
+            
             response.data.total_diagrams = total_diagrams;
             response.data.total_valid_diagrams = valids;
+            
         }catch(e){}
 
         response.data['percentage_number'] = parseInt(response.data.percentage.replace('%', '').trim());
