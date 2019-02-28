@@ -40,10 +40,10 @@
                             <div class="image {{k.icon_class}}" [ngStyle]="{'background-color': k.background_color}"  ></div>
                             <span>{{k.name}}</span>
                         </td>
-                        <td class="with-icon" *ngIf="!k.compliance">
+                        <td *ngIf="!k.compliance">
                             <div class="image expired"></div>
                         </td>
-                        <td class="with-icon" *ngIf="k.compliance">
+                        <td *ngIf="k.compliance && k.compliance_kpis_id != 5" class="with-icon">
                             <div *ngIf="k.compliance.validity_status == 'none-exist' && k.compliance_kpis_id != 13" class="image expired"></div>
                             <div *ngIf="k.compliance.validity_status == 'invalid' && k.compliance_kpis_id != 13" class="image alarm"></div>
                             <div *ngIf="k.compliance.validity_status == 'valid' && k.compliance_kpis_id != 13" class="image check"></div>
@@ -60,15 +60,26 @@
                             </div>
 
                             <div class="text"  *ngIf="k.type == 'percent'">
-                                <a *ngIf="k.compliance_kpis_id == 5 || k.compliance_kpis_id == 6 || k.compliance_kpis_id == 8 || k.compliance_kpis_id == 9 || k.compliance_kpis_id == 12" (click)="showDiagramDetails()">
+                                <a *ngIf="k.compliance_kpis_id == 5 || k.compliance_kpis_id == 6 || k.compliance_kpis_id == 8 || k.compliance_kpis_id == 9 || k.compliance_kpis_id == 12">
                                     View Details
                                 </a>
-                                <!-- <span *ngIf="k.compliance_kpis_id != 5 && k.compliance_kpis_id != 13">{{k.compliance.total_personnel_trained.total_passed}} / {{k.compliance.total_personnel}}</span>
-                                                                <span *ngIf="k.compliance_kpis_id == 5 && k.compliance_kpis_id != 13"> {{k.compliance.total_valid_diagrams}} / {{k.compliance.total_diagrams}} </span> -->
+                               
                             </div>
 
                             <div class="arrow"></div>
                         </td>
+                        <!-- Evac Diagrams -->
+                        <td *ngIf="k.compliance && k.compliance_kpis_id == 5" class="with-icon">
+                                <div *ngIf="evacDiagramOverall.validity_status == 'none-exist'" class="image expired"></div>
+                                <div *ngIf="evacDiagramOverall.validity_status == 'invalid'" class="image alarm"></div>
+                                <div *ngIf="evacDiagramOverall.validity_status == 'valid'" class="image check"></div>
+
+                                <div *ngIf="evacDiagramOverall.validity_status == 'none-exist'" class="text">No Digram Exists</div>
+                                <div *ngIf="evacDiagramOverall.validity_status == 'invalid'" class="text">Non-compliant</div>
+                                <div *ngIf="evacDiagramOverall.validity_status == 'valid'" class="text"> Compliant </div>                                            
+                                <div class="arrow"></div>
+                        </td>
+                        <!-- End of Evac Diagrams -->
                     </tr>
                 </tbody>
             </table>
