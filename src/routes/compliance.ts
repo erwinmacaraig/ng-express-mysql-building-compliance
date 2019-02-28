@@ -1843,6 +1843,7 @@ const request = require('request');
             response.data.total_diagrams = total_diagrams;
             response.data.total_valid_diagrams = valids;
             
+            
         }catch(e){}
 
         response.data['percentage_number'] = parseInt(response.data.percentage.replace('%', '').trim());

@@ -1398,28 +1398,38 @@ export class UsersRoute extends BaseRoute {
             }
         }
         response.data['users'] = [];
-        
+        let people = [];
+        let tempUsers = [];
         if (!locationId && !queryAccountRoles) {
-            // console.log('Here at locationId ' + locationId + ' and queryAccountRoles = ' +  queryAccountRoles, modelQueries);
-            let tempUsers = [];
-            tempUsers = await userModel.query(modelQueries);                        
+            // console.log('Here at locationId ' + locationId + ' and queryAccountRoles = ' +  queryAccountRoles, modelQueries);            
+            tempUsers = await userModel.query(modelQueries);                                   
             for (let u of tempUsers) {
                 let parentId = parseInt(u['parent_id'], 10);
                 let subId = parseInt(u['location_id'], 10);
                 
-                if (idsOfBuildingsForFRP.indexOf(parentId) != -1) {
-                    response.data['users'].push(u);
-                } else if (idsOfBuildingsForFRP.indexOf(u['location_id']) != -1 && parentId == -1) {
-                    response.data['users'].push(u);
-                }
-                if (idsOfLocationsForTRP.indexOf(subId) != -1 && u['account_id'] == accountId) {                    
-                    response.data['users'].push(u);
+                if (people.indexOf(u['user_id']) === -1) {
+                    people.push(u['user_id']);
+                    if (idsOfBuildingsForFRP.indexOf(parentId) != -1) {
+                        response.data['users'].push(u);
+                    } else if (idsOfBuildingsForFRP.indexOf(u['location_id']) != -1 && parentId == -1) {
+                        response.data['users'].push(u);
+                    }
+                    if (idsOfLocationsForTRP.indexOf(subId) != -1 && u['account_id'] == accountId) {                    
+                        response.data['users'].push(u);
+                    }
                 }
 
             }           
 
         } else {
-             response.data['users'] = await userModel.query(modelQueries);
+            tempUsers= await userModel.query(modelQueries);
+            for (let u of tempUsers) { 
+                if (people.indexOf(u['user_id']) === -1) {
+                    response.data['users'].push(u);
+                    people.push(u['user_id']);
+                }
+            }
+            // response.data['users'] = await userModel.query(modelQueries);
         }         
 
         // response.data['users'] = await userModel.query(modelQueries);

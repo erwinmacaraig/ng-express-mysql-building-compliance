@@ -687,7 +687,9 @@ export class User extends BaseClass {
                 }
 
                 let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
-                // console.log('========= ', sql_load, " =========");
+                /*if(!queries.select.count) {
+                    console.log('========= ', sql_load, " =========");
+                }*/
                 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
