@@ -922,8 +922,7 @@ const request = require('request');
         whereDocs.push(['compliance_documents.building_id IN (' + docsLocIds.join(',') + ')' ]);
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
         whereDocs.push(['compliance_documents.account_id = '+accountID+' ']);
-        docs = await complianceDocsModel.getWhere(whereDocs);
-        
+        docs = await complianceDocsModel.getWhere(whereDocs);        
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
                 d2 = moment(b.date_of_activity);
@@ -935,8 +934,6 @@ const request = require('request');
                 return 0;
             }
         });
-        
-
         this.response['docs'] = docs;
 
         for(let d of docs){
@@ -1018,6 +1015,14 @@ const request = require('request');
             const totalFailedArr = [];
 
             switch (comp['compliance_kpis_id']) {
+                case 3:
+                    // need to override the measurement type for FSA (its either you have it or you dont)
+                    if (comp['compliance_status'] == 1) {
+                        comp['validity_status'] = 'valid'
+                    } else {
+                        comp['validity_status'] = 'none-exist'
+                    }
+                break;
                 case 6:
                     // Warden Training
                     if (defs['em_roles']['WARDEN'] in emrolesOnThisLocation) {
@@ -1437,7 +1442,8 @@ const request = require('request');
 
             comp['percentage_number'] = parseInt(comp['percentage'].replace('%', '').trim());
         }
-
+        // end of for loop
+        
         try{
             userLocationData = await locAccUserModel.getByLocationIdAndUserId(locationID, userId);
             if(role == 2 && loc.location_id == locationID && (userLocationData[0]['parent_id'] == -1 || userLocationData[0]['is_building'] == 1 ) ){
