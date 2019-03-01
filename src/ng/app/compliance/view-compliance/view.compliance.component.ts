@@ -66,6 +66,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     showLoadingForSignedURL:boolean = true;
 	previewTemplate = 1;
     accountResponsibilityId;
+    subjectedLevelLocationIndex = -1;
 	selectedCompliance = {
 		compliance : {
 			note : null,
@@ -608,6 +609,22 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         });
     }
 
+    downloadEvacDiagram(urlFilePath, filename) {
+        this.complianceService.downloadComplianceFile(urlFilePath, encodeURIComponent(filename)).subscribe((data) => {
+            const blob = new Blob([data.body], {type: data.headers.get('Content-Type')});
+            FileSaver.saveAs(blob, filename);            
+          },
+          (error) => {
+            // this.alertService.error('No file(s) available for download');
+            $('#modalfilenotfound').modal('open');
+            console.log('There was an error', error);
+            const message = `Compliance Section - Download error for location_id = ${this.locationID} and kpi file ${filename}`;
+            this.adminService.sendEmailToDev(message).subscribe((response) => {
+              console.log(response);
+            });
+          });
+    }
+
     assignAccessToTRP(e, compliance) {
         this.selectedCompliance = compliance;
         const temp = this.selectedCompliance.compliance.docs[0].viewable_by_trp;
@@ -631,6 +648,11 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
           $('#modalWardenList').modal('open');
           console.log(this.tenants);
         });
+    }
+
+    public viewDiagramList(i = -1) {
+        this.subjectedLevelLocationIndex = i;
+        $('#modalEvacDiagramList').modal('open');
     }
 
     public viewEmUsers(locationId, type){
