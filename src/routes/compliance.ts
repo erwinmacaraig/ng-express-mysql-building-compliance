@@ -1833,7 +1833,7 @@ const request = require('request');
                 // response.data.percentage = Math.round( ( valids / total_diagrams ) * 100) + '%' ;
                 response.data.percentage = Math.round( ( subLocationValidDiagramCtr.length / sublocations.length ) * 100) + '%' ;
             }
-            if ( subLocationValidDiagramCtr.length == sublocations.length) {
+            if (Math.round( ( subLocationValidDiagramCtr.length / sublocations.length ) * 100) == 100) {
                 response.data.validity_status = 'valid';
             } else if (total_diagrams > 0) {
                 response.data.validity_status = 'invalid';
