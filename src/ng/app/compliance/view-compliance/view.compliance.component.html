@@ -951,7 +951,7 @@
                 <tr *ngIf="evacDiagramSublocations.length == 0">
                     <td class="center" colspan="5"> No sublocations </td>
                 </tr>
-                <tr *ngFor="let loc of evacDiagramSublocations">
+                <tr *ngFor="let loc of evacDiagramSublocations; let i = index;">
                     <td class="with-icon">
                         <div class="image expired" *ngIf="!loc.evac_diagrams[0]"></div>
                         <div class="image" *ngIf="loc.evac_diagrams[0]">
@@ -976,7 +976,8 @@
 						<span *ngIf="loc.evac_diagrams.length > 0">{{loc.evac_diagrams.length}}</span>
                     </td>
 					<td style="padding: 2px;" class="center">
-						<a *ngIf="loc.evac_diagrams[0]" class=" "  href="{{loc.evac_diagrams[0]['urlPath']}}" target="_blank"><img src="/assets/images/download_ico_blue.png"></a>
+						<!--<a *ngIf="loc.evac_diagrams[0]" class=" "  href="{{loc.evac_diagrams[0]['urlPath']}}" target="_blank"><img src="/assets/images/download_ico_blue.png"></a>-->
+						<a *ngIf="loc.evac_diagrams[0]" (click)="viewDiagramList(i)"><img src="/assets/images/download_ico_blue.png"></a>
                     </td>
                 </tr>
 			</tbody>
@@ -1481,6 +1482,33 @@
     
     
 
+</div>
+
+<div id="modalEvacDiagramList" class="modal">
+	<div class="modal-content">
+		<h5 class="center">Download file for {{ evacDiagramSublocations[subjectedLevelLocationIndex]?.name }}</h5>
+		<!--<span>{{evacDiagramSublocations[subjectedLevelLocationIndex] | json }}</span>-->
+		<table class="striped table">
+			<thead>
+				<tr>
+					<th>Diagram</th>
+					<th>Action</th>
+				</tr>
+			</thead>
+			<tbody>
+				
+				<tr *ngFor="let diagram of evacDiagramSublocations[subjectedLevelLocationIndex]?.evac_diagrams">
+					<td>{{ diagram['file_name'] }}</td>
+					<td><a  class=""  (click)="downloadEvacDiagram(diagram['urlPath'], diagram['file_name'])"><img src="/assets/images/download_ico_blue.png"></a></td>
+				</tr>
+				
+			</tbody>
+		</table>
+		<div class="modal-footer">
+			<!--<button  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Close</button>-->
+			<a class="modal-close waves-effect waves-green btn-flat">Close</a>
+		</div>
+	</div>
 </div>
 
 
