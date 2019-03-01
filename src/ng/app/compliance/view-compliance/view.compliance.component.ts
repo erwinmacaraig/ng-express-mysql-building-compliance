@@ -497,12 +497,19 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 	clickSelectComplianceFromList(compliance) {
         this.selectedCompliance = compliance;   
-        console.log(this.selectedCompliance);
+        
         this.complianceDocuments[compliance['compliance_kpis_id']] = [];
 
-        for (let d of compliance.compliance.docs) {
-            this.complianceDocuments[compliance['compliance_kpis_id']].push(d);
+        if (compliance['compliance_kpis_id'] != 5) {
+            for (let d of compliance.compliance.docs) {
+                this.complianceDocuments[compliance['compliance_kpis_id']].push(d);
+            }
+        } else {
+            this.selectedCompliance.compliance.docs = this.evacDiagramOverall['diagrams'];
+            this.complianceDocuments[compliance['compliance_kpis_id']] = this.evacDiagramOverall['diagrams'];
         }
+        console.log(this.selectedCompliance);
+
 
         // console.log(this.complianceDocuments);
         let attr = compliance.short_code,

@@ -1486,8 +1486,7 @@
 
 <div id="modalEvacDiagramList" class="modal">
 	<div class="modal-content">
-		<h5 class="center">Download file for {{ evacDiagramSublocations[subjectedLevelLocationIndex]?.name }}</h5>
-		<!--<span>{{evacDiagramSublocations[subjectedLevelLocationIndex] | json }}</span>-->
+		<h5 class="center">Download file for {{ evacDiagramSublocations[subjectedLevelLocationIndex]?.name }}</h5>		
 		<table class="striped table">
 			<thead>
 				<tr>
@@ -1495,17 +1494,14 @@
 					<th>Action</th>
 				</tr>
 			</thead>
-			<tbody>
-				
+			<tbody>				
 				<tr *ngFor="let diagram of evacDiagramSublocations[subjectedLevelLocationIndex]?.evac_diagrams">
 					<td>{{ diagram['file_name'] }}</td>
 					<td><a  class=""  (click)="downloadEvacDiagram(diagram['urlPath'], diagram['file_name'])"><img src="/assets/images/download_ico_blue.png"></a></td>
-				</tr>
-				
+				</tr>				
 			</tbody>
 		</table>
 		<div class="modal-footer">
-			<!--<button  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Close</button>-->
 			<a class="modal-close waves-effect waves-green btn-flat">Close</a>
 		</div>
 	</div>
