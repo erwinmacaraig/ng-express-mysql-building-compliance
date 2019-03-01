@@ -923,7 +923,7 @@ const request = require('request');
         whereDocs.push(['compliance_documents.document_type = "Primary" ']);
         whereDocs.push(['compliance_documents.account_id = '+accountID+' ']);
         docs = await complianceDocsModel.getWhere(whereDocs);
-        /*
+        
         docs = docs.sort((a, b) => {
             let d1 = moment(a.date_of_activity),
                 d2 = moment(b.date_of_activity);
@@ -935,7 +935,7 @@ const request = require('request');
                 return 0;
             }
         });
-        */
+        
 
         this.response['docs'] = docs;
 
