@@ -1006,8 +1006,7 @@ export class ReportsRoute extends BaseRoute {
             }
             
         }
-        console.log('after all if blocks', allUserIds);
-        // console.log(allUsers);
+        
         const trainingObj = {};
         for (const tr of EMUsersTraining) {
             if (tr['em_role_id'] in trainingObj ) {
@@ -1096,7 +1095,6 @@ export class ReportsRoute extends BaseRoute {
         response['certificates'] = certificates;
         const finalResult = [];
         
-        //for (const user of allUsers) {
         for (let i = 0; i < allUsers.length; i++) {
             let user = allUsers[i];
             for (const cert of certificates) {
@@ -1135,9 +1133,7 @@ export class ReportsRoute extends BaseRoute {
                         status:cert['status'],
                         certification_date_formatted: cert['certification_date_formatted']
                     };
-                    //console.log('==============',user);
-
-                    // console.log(objectHolderTemp);
+                   
                     finalResult.push(objectHolderTemp);
                     break;
                 }
