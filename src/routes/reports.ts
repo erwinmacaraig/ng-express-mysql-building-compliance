@@ -968,8 +968,8 @@ export class ReportsRoute extends BaseRoute {
             config['eco_only'] = req.body.eco_only;
         }
         const EMUsersTraining = await new TrainingRequirements().allEmRolesTrainings();
-        users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config);
-        const EMRoleIds = [];
+        users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config); 
+        const EMRoleIds = []; // console.log('line 972', users);
         for(let user of users){
             /*
             if(allUserIds.indexOf(user.user_id) == -1){
@@ -978,7 +978,10 @@ export class ReportsRoute extends BaseRoute {
             if(user.role_id == 1 || user.role_id == 2){ 
                 frpAndTrp.push(user);
             }
+            console.log(allUserIds);
+            console.log('user_id = ' + user.user_id);
             */
+            
             if(allUserIds.indexOf(user.user_id) == -1) {
                 if (frpAccountLocations.indexOf(user.parent_id) != -1) {
                     allUserIds.push(user.user_id);
@@ -991,6 +994,7 @@ export class ReportsRoute extends BaseRoute {
                 }
             } else if (allUserIds.indexOf(user.user_id) != -1  && EMRoleIds.indexOf(user['role_id']) == -1) {
                 allUsers.push(user);
+                EMRoleIds.push(user['role_id']);
             }
 
             if(user.role_id == 1 || user.role_id == 2) {
@@ -1000,17 +1004,20 @@ export class ReportsRoute extends BaseRoute {
                     frpAndTrp.push(user);
                 }
             }
+            
         }
-
+        console.log('after all if blocks', allUserIds);
         // console.log(allUsers);
         const trainingObj = {};
         for (const tr of EMUsersTraining) {
             if (tr['em_role_id'] in trainingObj ) {
-                (trainingObj[tr['em_role_id']]['training_requirement'] as Array<object>).push({
-                    training_requirement_name: tr['training_requirement_name'],
-                    training_requirement_id: tr['training_requirement_id'],
-                    num_months_valid: tr['num_months_valid']
-                });
+                if ('training_requirement' in trainingObj[tr['em_role_id']]) {
+                    (trainingObj[tr['em_role_id']]['training_requirement'] as Array<object>).push({
+                        training_requirement_name: tr['training_requirement_name'],
+                        training_requirement_id: tr['training_requirement_id'],
+                        num_months_valid: tr['num_months_valid']
+                    });
+                }                
             } else {
                 trainingObj[tr['em_role_id']] = {
                     em_role_id: tr['em_role_id'],
@@ -1025,30 +1032,42 @@ export class ReportsRoute extends BaseRoute {
         let tempUserHolder = [];
         for (let i = 0; i < allUsers.length; i++) {
             try {
-                if (trainingObj[allUsers[i]['role_id']]['training_requirement'].length > 1) {
+                if ( (trainingObj[allUsers[i]['role_id']]) && trainingObj[allUsers[i]['role_id']]['training_requirement'].length > 1) {
                     for (const r of trainingObj[allUsers[i]['role_id']]['training_requirement']) {
+                        /*
                         tempUserHolder.push({
                             ...allUsers[i],
                             ...r
                         })
+                        */
+                       allUsers[i] = {
+                           ...allUsers[i],
+                           ...r
+                       };
                     }
                 } else {
-                    allUsers[i]['training_requirement_name'] =
+                    if (trainingObj[allUsers[i]['role_id']]) {
+                        allUsers[i]['training_requirement_name'] =
                         trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['training_requirement_name'];
 
-                    allUsers[i]['training_requirement_id'] =
-                        trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['training_requirement_id'];
+                        allUsers[i]['training_requirement_id'] =
+                            trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['training_requirement_id'];
 
-                    allUsers[i]['num_months_valid'] = trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['num_months_valid'];
+                        allUsers[i]['num_months_valid'] = trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['num_months_valid'];
+                    }
+                    
 
                 }
             } catch (e) {
                 console.log('No training requirment for this user', e, allUsers[i]);
             }
         }
+        /*
         for (const u of tempUserHolder) {
             allUsers.push(u);
         }
+        */
+        
         tempUserHolder = [];
         // response['users'] = users;
         // response['allLocationIds'] = allLocationIds.join(',');
@@ -1076,9 +1095,13 @@ export class ReportsRoute extends BaseRoute {
 
         response['certificates'] = certificates;
         const finalResult = [];
-        for (const user of allUsers) {
+        
+        //for (const user of allUsers) {
+        for (let i = 0; i < allUsers.length; i++) {
+            let user = allUsers[i];
             for (const cert of certificates) {
                 if (user['user_id'] == cert['user_id'] && user['training_requirement_id'] == cert['training_requirement_id']) {
+                    tempUserHolder.push(i);
                     user['region'] = '';
                     user['building'] = '';
                     user['sublocation'] = '';
@@ -1118,6 +1141,20 @@ export class ReportsRoute extends BaseRoute {
                     finalResult.push(objectHolderTemp);
                     break;
                 }
+            }
+        }
+        
+        for (let i = 0; i < allUsers.length; i++) {
+            if (tempUserHolder.indexOf(i) == -1) {
+                if(allUsers[i].parent_is_building == 1) {
+                    allUsers[i]['building'] = allUsers[i].parent_location_name;
+                    allUsers[i]['sublocation'] = allUsers[i].name;
+                    allUsers[i]['region'] = allUsers[i].parent2_location_name;
+                } else if(allUsers[i].is_building == 1) {
+                    allUsers[i]['building'] = allUsers[i].name;
+                    allUsers[i]['region'] = allUsers[i].parent_location_name;
+                }
+                finalResult.push(allUsers[i]);
             }
         }
 
