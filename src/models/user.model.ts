@@ -1099,7 +1099,7 @@ export class User extends BaseClass {
                     ON users.account_id = location_account_user.account_id
                     INNER JOIN location_account_relation
                     ON location_account_relation.location_id = location_account_user.location_id
-                    WHERE location_account_user.location_id IN (${locationIds}) GROUP BY location_account_user.location_id`;
+                    WHERE location_account_user.location_id IN (${locationIds}) GROUP BY location_account_user.user_id`;
                 // console.log(innerSqlFrpTrp);
                 if(config['eco_only']){ innerSqlFrpTrp = ''; }
 
