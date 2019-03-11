@@ -1118,6 +1118,8 @@ export class UsersRoute extends BaseRoute {
         locations = <any> [], 
         queryAccountRoles = false;
 
+        console.log('location id is ' + locationId);
+
         selectedLocIds.push(0); // for users that has not been assigned a location
 
         const idsOfBuildingsForFRP = [];
@@ -1263,7 +1265,7 @@ export class UsersRoute extends BaseRoute {
 
             let inLocIdQuery = '';
             if(selectedLocIds.length > 0){
-                inLocIdQuery = 'AND location_id IN ('+selectedLocIds.join(',')+')';
+                inLocIdQuery = 'AND location_id IN (0, '+selectedLocIds.join(',')+')';
             }
 
             if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
@@ -1421,7 +1423,7 @@ export class UsersRoute extends BaseRoute {
 
             }           
 
-        } else {
+        } else  {
             tempUsers= await userModel.query(modelQueries);
             for (let u of tempUsers) { 
                 if (people.indexOf(u['user_id']) === -1) {
@@ -1430,7 +1432,82 @@ export class UsersRoute extends BaseRoute {
                 }
             }
             // response.data['users'] = await userModel.query(modelQueries);
-        }         
+        }
+        
+        if ( (emRoleIdSelected.indexOf(8) !== -1 &&  query.location_id == -1) || query.search) {
+            tempUsers = [];   
+            response.data['users'] = [];
+            let otherModelQueries = {
+                select : <any>{},
+                where : [],
+                orWhere : [],
+                joins : [],
+                limit : <any> 10,
+                order : 'users.first_name ASC',
+                group : false
+            };
+
+            otherModelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived', 'profile_completion'];
+            otherModelQueries.where.push('users.archived = '+archived);
+            
+            if(getPendings){
+                otherModelQueries.where.push('users.profile_completion = 0');
+            }
+
+            if(query.impaired){
+                if(query.impaired > -1){
+                    if(query.impaired == 1){
+                        otherModelQueries.where.push('users.mobility_impaired = 1');
+                    }else if(query.impaired == 0){
+                        otherModelQueries.where.push('users.mobility_impaired = 0');
+                    }
+                }
+            }
+
+            if(query.search){
+                otherModelQueries.orWhere.push(' AND users.user_id IN (SELECT user_id FROM users WHERE CONCAT(users.first_name, " ", users.last_name) LIKE "%'+query.search+'%" OR users.email LIKE "%'+query.search+'%" ) ');
+            }
+
+            if(getPendings){
+                otherModelQueries.where.push(' users.profile_completion = 0 ');
+            }
+            otherModelQueries.select['custom'] = [" 0 AS location_id,  0 as parent_id, IF(files.url IS NULL, '', files.url) as profile_pic, accounts.account_name "];
+
+            if(query.limit){
+                otherModelQueries.limit = query.limit;
+            }
+
+            if(query.offset){
+                otherModelQueries.limit = query.offset+','+otherModelQueries.limit;
+            }
+
+            otherModelQueries.where.push('users.evac_role = "Client"');
+            /*
+            if (people.length > 0) {
+                otherModelQueries.where.push(`users.user_id NOT IN (${people.join(', ')})`);
+            }
+            */
+            otherModelQueries.where.push(' users.user_id NOT IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id = 8  AND location_id IN ('+ selectedLocIds.join(',') +') ) ');
+            otherModelQueries.where.push('users.account_id = '+accountId);
+
+            otherModelQueries.joins.push(`
+                    LEFT JOIN file_user ON users.user_id = file_user.user_id
+                    LEFT JOIN files ON files.file_id = file_user.file_id
+                    INNER JOIN accounts ON users.account_id = accounts.account_id
+             `);
+             tempUsers = await userModel.query(otherModelQueries);  
+             for (let u of tempUsers) { 
+                if (people.indexOf(u['user_id']) === -1) {
+                    response.data['users'].push(u);
+                    people.push(u['user_id']);
+                }
+            } 
+            // console.log('=========================', tempUsers, '===========================');
+
+        }
+        
+        
+        
 
         // response.data['users'] = await userModel.query(modelQueries);
         

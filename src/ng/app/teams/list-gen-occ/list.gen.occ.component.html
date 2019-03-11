@@ -53,6 +53,7 @@
     <div class="col l3 m6 s12">
         <select class="location">
             <option value="0" selected>All Locations</option>
+            <option value="-1">Users with no assigned location</option>
             <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
         </select>
     </div>
@@ -65,7 +66,7 @@
     </div> -->
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
-			<option value="0" selected>Manage Action</option>
+            <option value="0" selected>Manage Action</option>            
             <option value="archive"  *ngIf="!showArchived">Archive selected</option>
 			<option value="archive" *ngIf="showArchived">Restore selected</option>
             <option value="invite-selected" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to selected</option>
@@ -139,11 +140,14 @@
 							</span>
 						</div>
 					</td>
-					<td>
+					<td *ngIf="warden.locations.length">
                         <span *ngIf="warden.trainings == 0" class="red-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
                         <span *ngIf="warden.trainings > 0 && warden.trainings < (warden.trids.length + warden.misc_trainings.length)" class="orange-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
                         <span *ngIf="warden.trainings == (warden.trids.length + warden.misc_trainings.length)" class="green-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
-					</td>
+                    </td>
+                    <td *ngIf="!warden.locations.length">
+                        &nbsp;
+                    </td>
 					<td>
 						{{warden['last_login']}}
 					</td>
