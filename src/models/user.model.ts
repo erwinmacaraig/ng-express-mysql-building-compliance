@@ -740,7 +740,6 @@ export class User extends BaseClass {
                 if(err){ 
                     throw err 
                 }
-                
                 let 
                 page = 0,
                 sql = 'SELECT user_id FROM users WHERE ', 
@@ -759,12 +758,17 @@ export class User extends BaseClass {
                     where += ` account_id = ${accountId} AND archived = 0 `;
                 }
 
-                if('count' in filter){
+                if('count' in filter) {
                     sql = `SELECT COUNT(user_id) as count FROM users WHERE `+where;
-                }else{
+                } 
+                else {
                     sql += where;
-                    sql += ` LIMIT ${page}, ${limit} `;
-                }                
+                    let limitClause = ` LIMIT ${page}, ${limit} `;
+                    if ('query' in filter && filter['query'].length > 0 && filter['query'] == 'all') {
+                        limitClause = '';
+                    }
+                    sql += limitClause;                    
+                }             
                 connection.query(sql, (error, results) => {
                     if (error) {
                         console.log('user.model.getSpliceUsers', error, sql);
