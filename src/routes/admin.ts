@@ -1777,10 +1777,45 @@ export class AdminRoute extends BaseRoute {
                 });
               }
             }
+          } else {
+            // get parent locations            
+            const locationArrayResults = (await new Location().getByInIds(req.body.sublocationIds) as Array<object>) ;
+            const locations = [];
+            const locationsArrObject = [];
+            const locationsObj = {};
+
+            for (let loc of locationArrayResults) {
+              let locId = loc['parent_id'];
+              if (loc['parent_id'] == -1) {
+                locId = loc['location_id'];
+              } 
+              
+              if (locations.indexOf(locId) == -1) {
+                locations.push(locId);
+                locationsObj[loc['location_id']] = {
+                  parent: locId,
+                  location: loc['location_id']
+                };
+              }
+            }
+            const  LARData = (await new LocationAccountRelation().getByWhereInLocationIds(req.body.sublocationIds)) as Array<object>;
+            for(const relation of LARData) {
+              try {
+                paperAttendaceForCompliance.create({
+                  paper_attendance_docs_id: attendance.ID(),
+                  account_id: req.body.id,
+                  location_id: locationsObj[relation['location_id']]['parent'],
+                  compliance_kpis_id: compliance_kpis_id,
+                  training_requirement_id: req.body.training,
+                  dtTraining: req.body.dtTraining,
+                  strOriginalfilename: filename,
+                  responsibility: relation['responsibility']
+                });
+              } catch(e) {
+                console.log('error creating paper attendance documents for compliance for tenant', relation, e);
+              }
+            }
           }
-          
-
-
         }
       });
     });

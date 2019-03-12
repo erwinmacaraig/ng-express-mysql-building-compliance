@@ -548,7 +548,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.dashboard.show();      
       const values = [];
       const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
-            
+      const locationsOfSelectedUsers = [];
+      
       for (const ctrl of formUserControls) {
         values.push({
           email: ctrl.get('email').value,
@@ -565,6 +566,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           location_account_user_id: ctrl.get('location_account_user_id').value,
           user_em_roles_relation_id: ctrl.get('user_em_roles_relation_id').value
         });
+        if (locationsOfSelectedUsers.indexOf(ctrl.get('sublocation_id').value) == -1) {
+          locationsOfSelectedUsers.push(ctrl.get('sublocation_id').value);
+        }
       }
   
       Object.keys(this.addedUserExceptions).forEach((key) => {        
@@ -581,6 +585,10 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           course_method: 'offline_by_evac',
           training_requirement_id: this.addedUserExceptions[key]['training_requirement_id']
         });
+        if (locationsOfSelectedUsers.indexOf(this.addedUserExceptions[key]['sublocation_id']) == -1)  {
+            locationsOfSelectedUsers.push(this.addedUserExceptions[key]['sublocation_id']);
+        }
+
       });
   
       this.genericSub.unsubscribe();
@@ -601,7 +609,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       paperAttandanceForm.append('training', this.courseTraining.value);
       paperAttandanceForm.append('id', this.smartSearchSelectionId.toString());
       paperAttandanceForm.append('type', this.smartSearchSelection);
-            
+      if (this.smartSearchSelection == 'account') {
+        paperAttandanceForm.append('sublocationIds', locationsOfSelectedUsers.join(','));
+      }      
       const req = new HttpRequest<FormData>('POST', `${this.baseUrl}/admin/upload/paper-attendance/`, paperAttandanceForm, {
         reportProgress: true
       });
