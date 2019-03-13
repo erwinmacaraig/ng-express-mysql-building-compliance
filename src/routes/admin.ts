@@ -1041,10 +1041,10 @@ export class AdminRoute extends BaseRoute {
       temp = [];
       const account = [];
       for (const acct of allAccounts) {
-        if (temp.indexOf(acct['account_id']) === -1) {
-          temp.push(acct['account_id']);
+        // if (temp.indexOf(acct['account_id']) === -1) {
+          // temp.push(acct['account_id']);
           account.push(acct);
-        }
+        //}
       }
 
       // const account = await new LocationAccountRelation().getByLocationId(allSublocations, true);
@@ -1729,7 +1729,7 @@ export class AdminRoute extends BaseRoute {
               });
               for (let record of dataArr) {
                 try {
-                  paperAttendaceForCompliance.create({
+                  new PaperAttendanceComplianceDocumentModel().create({
                     paper_attendance_docs_id: attendance.ID(),
                     account_id: record['account_id'],
                     location_id: record['location_id'],
@@ -1753,7 +1753,7 @@ export class AdminRoute extends BaseRoute {
                 });
                 if (dataArr.length == 1) {
                   try {
-                    paperAttendaceForCompliance.create({
+                    new PaperAttendanceComplianceDocumentModel().create({
                       paper_attendance_docs_id: attendance.ID(),
                       account_id: dataArr[0]['account_id'],
                       location_id: dataArr[0]['location_id'],
@@ -1777,10 +1777,53 @@ export class AdminRoute extends BaseRoute {
                 });
               }
             }
+          } else {
+            // get parent locations            
+            const locationArrayResults = (await new Location().getByInIds(req.body.sublocationIds) as Array<object>) ;
+            const locations = [];
+            const insertedParent = [];
+            const locationsObj = {};
+
+            for (let loc of locationArrayResults) {
+              let locId = loc['parent_id'];
+              if (loc['parent_id'] == -1) {
+                locId = loc['location_id'];
+              } 
+              
+              if (locations.indexOf(locId) == -1) {
+                locations.push(locId);
+                locationsObj[loc['location_id']] = {
+                  parent: locId,
+                  location: loc['location_id']
+                };
+              }
+            } console.log(locationsObj);
+            const  LARData = (await new LocationAccountRelation().getByWhereInLocationIds(req.body.sublocationIds)) as Array<object>; console.log(LARData);
+            for(const relation of LARData) {
+              let config = {};
+              if (insertedParent.indexOf(relation['location_id']) == -1) {                
+                insertedParent.push(relation['location_id']);
+                try {
+                  config = {
+                    paper_attendance_docs_id: attendance.ID(),
+                    account_id: req.body.id,
+                    location_id: locationsObj[relation['location_id']]['parent'],
+                    compliance_kpis_id: compliance_kpis_id,
+                    training_requirement_id: req.body.training,
+                    dtTraining: req.body.dtTraining,
+                    strOriginalfilename: filename,
+                    responsibility: relation['responsibility']
+                  };
+                  // console.log('INSERTTING CONFIG ', config);
+                  new PaperAttendanceComplianceDocumentModel().create(config);
+                } catch(e) {
+                  config = {};
+                  console.log('error creating paper attendance documents for compliance for tenant', relation, e);
+                }
+              }
+              
+            }
           }
-          
-
-
         }
       });
     });

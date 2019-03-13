@@ -189,45 +189,7 @@ export class Location extends BaseClass {
             });
         });
     }
-    /*
-    public getParentLocationByAccountId(accountId: Number){
-        return new Promise((resolve, reject) => {
-            const sql_load = `
-            SELECT * FROM locations
-            WHERE location_id IN (SELECT location_id FROM location_account_relation WHERE account_id = ?)
-            AND archived = 0 AND parent_id = -1
-            ORDER BY location_id ASC
-            `;
-            const param = [accountId];
-            
-            this.pool.getConnection((err, connection) => {
-                if (err) {                    
-                    throw new Error(err);
-                }
-
-                connection.query(sql_load, param, (error, results, fields) => {
-                    if (error) {
-                        return console.log(error);
-                    }
-                    if(!results.length){
-                        reject('Location not found');
-                    }else{
-
-                        for(let i in results){
-                            results[i]['sublocations'] = [];
-                        }
-
-                        this.dbData = results;
-                        resolve(this.dbData);
-                    }
-
-                });
-
-                connection.release();
-            });
-        });
-    }
-    */
+   
     public getManyByAccountId(accountId: Number, getChild: Boolean = false) {
         return new Promise((resolve, reject) => {
             const sql_load = `
