@@ -2713,7 +2713,8 @@ export class UsersRoute extends BaseRoute {
                         'action' : 'verify',
                         'id' : 0,
                         'id_type' : 'user_id',
-                        'verified' : 0
+                        'verified' : 0,
+                        'expiration_date': moment().add('1 day').format('YYYY-MM-DD HH:mm:ss')
                     },
                     tokenModel = new Token(),
                     emailLink = 'https://' + req.get('host'),

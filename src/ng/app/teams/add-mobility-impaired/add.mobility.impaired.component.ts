@@ -265,7 +265,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                             <li class="list-division" id="${loc.location_id}">
                                 <div class="name-radio-plus">
                                     <div class="input">
-                                        <input required type="radio" name="selectLocation" loc-name="${loc.location_name}" value="${loc.location_id}" id="check-${loc.location_id}">
+                                        <input required type="radio" name="selectLocation" loc-name="${loc.name}" value="${loc.location_id}" id="check-${loc.location_id}">
                                         <label for="check-${loc.location_id}">${loc.name}</label>
                                     </div>
                                 </div>
@@ -291,8 +291,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
                 <li class="list-division" id="${loc.location_id}">
                     <div class="name-radio-plus">
                         <div class="input">
-                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.location_name}" id="check-${loc.location_id}">
-                            <label for="check-${loc.location_id}">${loc.location_name}</label>
+                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
+                            <label for="check-${loc.location_id}">${loc.name}</label>
                         </div>
                     </div>
                     ${ul}
@@ -325,7 +325,8 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         event.preventDefault();
 
         if(this.formLocValid){
-            let selectedLocationId = $(form).find('input[type="radio"]:checked').val();
+            let selectedLocationId = $('#formLoc').find('input[type="radio"]:checked').val();
+
             let target = $('#check-'+selectedLocationId);
 
             this.selectedUser['account_location_id'] = selectedLocationId;
