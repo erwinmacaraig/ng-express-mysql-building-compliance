@@ -1729,7 +1729,7 @@ export class AdminRoute extends BaseRoute {
               });
               for (let record of dataArr) {
                 try {
-                  paperAttendaceForCompliance.create({
+                  new PaperAttendanceComplianceDocumentModel().create({
                     paper_attendance_docs_id: attendance.ID(),
                     account_id: record['account_id'],
                     location_id: record['location_id'],
@@ -1753,7 +1753,7 @@ export class AdminRoute extends BaseRoute {
                 });
                 if (dataArr.length == 1) {
                   try {
-                    paperAttendaceForCompliance.create({
+                    new PaperAttendanceComplianceDocumentModel().create({
                       paper_attendance_docs_id: attendance.ID(),
                       account_id: dataArr[0]['account_id'],
                       location_id: dataArr[0]['location_id'],
@@ -1781,7 +1781,7 @@ export class AdminRoute extends BaseRoute {
             // get parent locations            
             const locationArrayResults = (await new Location().getByInIds(req.body.sublocationIds) as Array<object>) ;
             const locations = [];
-            const locationsArrObject = [];
+            const insertedParent = [];
             const locationsObj = {};
 
             for (let loc of locationArrayResults) {
@@ -1797,11 +1797,12 @@ export class AdminRoute extends BaseRoute {
                   location: loc['location_id']
                 };
               }
-            }
-            const  LARData = (await new LocationAccountRelation().getByWhereInLocationIds(req.body.sublocationIds)) as Array<object>;
+            } console.log(locationsObj);
+            const  LARData = (await new LocationAccountRelation().getByWhereInLocationIds(req.body.sublocationIds)) as Array<object>; console.log(LARData);
             for(const relation of LARData) {
-              try {
-                paperAttendaceForCompliance.create({
+              let config = {};
+              if (insertedParent.indexOf(relation['location_id']) == -1) {
+                config = {
                   paper_attendance_docs_id: attendance.ID(),
                   account_id: req.body.id,
                   location_id: locationsObj[relation['location_id']]['parent'],
@@ -1810,10 +1811,17 @@ export class AdminRoute extends BaseRoute {
                   dtTraining: req.body.dtTraining,
                   strOriginalfilename: filename,
                   responsibility: relation['responsibility']
-                });
-              } catch(e) {
-                console.log('error creating paper attendance documents for compliance for tenant', relation, e);
+                };
+                insertedParent.push(relation['location_id']);
+                try {
+                  console.log('INSERTTING CONFIG ', config);
+                  new PaperAttendanceComplianceDocumentModel().create(config);
+                } catch(e) {
+                  config = {};
+                  console.log('error creating paper attendance documents for compliance for tenant', relation, e);
+                }
               }
+              
             }
           }
         }
