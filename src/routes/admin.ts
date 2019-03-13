@@ -1801,20 +1801,20 @@ export class AdminRoute extends BaseRoute {
             const  LARData = (await new LocationAccountRelation().getByWhereInLocationIds(req.body.sublocationIds)) as Array<object>; console.log(LARData);
             for(const relation of LARData) {
               let config = {};
-              if (insertedParent.indexOf(relation['location_id']) == -1) {
-                config = {
-                  paper_attendance_docs_id: attendance.ID(),
-                  account_id: req.body.id,
-                  location_id: locationsObj[relation['location_id']]['parent'],
-                  compliance_kpis_id: compliance_kpis_id,
-                  training_requirement_id: req.body.training,
-                  dtTraining: req.body.dtTraining,
-                  strOriginalfilename: filename,
-                  responsibility: relation['responsibility']
-                };
+              if (insertedParent.indexOf(relation['location_id']) == -1) {                
                 insertedParent.push(relation['location_id']);
                 try {
-                  console.log('INSERTTING CONFIG ', config);
+                  config = {
+                    paper_attendance_docs_id: attendance.ID(),
+                    account_id: req.body.id,
+                    location_id: locationsObj[relation['location_id']]['parent'],
+                    compliance_kpis_id: compliance_kpis_id,
+                    training_requirement_id: req.body.training,
+                    dtTraining: req.body.dtTraining,
+                    strOriginalfilename: filename,
+                    responsibility: relation['responsibility']
+                  };
+                  // console.log('INSERTTING CONFIG ', config);
                   new PaperAttendanceComplianceDocumentModel().create(config);
                 } catch(e) {
                   config = {};
