@@ -1041,10 +1041,10 @@ export class AdminRoute extends BaseRoute {
       temp = [];
       const account = [];
       for (const acct of allAccounts) {
-        if (temp.indexOf(acct['account_id']) === -1) {
-          temp.push(acct['account_id']);
+        // if (temp.indexOf(acct['account_id']) === -1) {
+          // temp.push(acct['account_id']);
           account.push(acct);
-        }
+        //}
       }
 
       // const account = await new LocationAccountRelation().getByLocationId(allSublocations, true);
