@@ -179,7 +179,7 @@
 			</div>
 		</div>
 
-		<form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)">
+		<form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)" id="formLoc">
 
 			<div class="list-region" >
 				<p *ngIf="locations.length == 0">No location found</p>

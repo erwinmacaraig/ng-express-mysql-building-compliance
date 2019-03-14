@@ -319,11 +319,12 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
                     ul += '<ul style="padding-left: 20px; max-height: 153px; overflow: auto;">';
                     for(let loc of locations){
                         let subUl = (loc.sublocations.length > 0) ? buildChildList(loc.sublocations) : '';
+                        
                         ul += `
                             <li class="list-division" id="${loc.location_id}">
                                 <div class="name-radio-plus">
                                     <div class="input">
-                                        <input required type="radio" name="selectLocation" loc-name="${loc.location_name}" value="${loc.location_id}" id="check-${loc.location_id}">
+                                        <input required type="radio" name="selectLocation" loc-name="${loc.name}" value="${loc.location_id}" id="check-${loc.location_id}">
                                         <label for="check-${loc.location_id}">${loc.name}</label>
                                     </div>
                                 </div>
@@ -349,8 +350,8 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
                 <li class="list-division" id="${loc.location_id}">
                     <div class="name-radio-plus">
                         <div class="input">
-                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.location_name}" id="check-${loc.location_id}">
-                            <label for="check-${loc.location_id}">${loc.location_name}</label>
+                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
+                            <label for="check-${loc.location_id}">${loc.name}</label>
                         </div>
                     </div>
                     ${ul}
@@ -376,29 +377,30 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
         this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
         this.buildLocationsListInModal();
         $('#modalLocations').modal('open');
+        // $('#modalPreloadedLocations').modal('open');
         this.formLocValid = false;
     }
 
     submitSelectLocationModal(form, event){
         event.preventDefault();
-
+        
         if(this.formLocValid){
-            let selectedLocationId = $(form).find('input[type="radio"]:checked').val();
+            let selectedLocationId = $('#formLoc').find('input[type="radio"]:checked').val();
+            
             let target = $('#check-'+selectedLocationId);
-
             this.selectedUser['account_location_id'] = selectedLocationId;
             if( parseInt(this.selectedUser['eco_role_id']) > 0){
                 this.selectedUser['eco_location_id'] = selectedLocationId;
             }
 
             this.selectedUser['location_name'] = target.attr('loc-name');
-
+            
             for (const u of this.addedUsers) {
                 if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
                     u.errors['invalid'] = `${u['email']} is invalid`;
                 }
             }
-
+            // console.log('The selected user ', this.selectedUser);
             // console.log(this.addedUsers);
             this.cancelLocationModal();
         }
@@ -465,7 +467,7 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
             let findRelatedName = (data) => {
                 let results = [];
                 for(let d of data){
-                    let name = d.location_name.trim().toLowerCase();
+                    let name = d.name.trim().toLowerCase();
                     name = name.replace(/[^a-zA-Z 0-9]/g, "");
                     if(name.indexOf(value) > -1){
                         d['sublocations'] = [];

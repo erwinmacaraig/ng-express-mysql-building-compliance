@@ -172,7 +172,7 @@ export class List extends BaseClass{
           return;
         }
         const accounts = {};
-        const sql_account_list = `
+        let sql_account_list = `
             SELECT
             accounts.account_id,
             accounts.account_name,
@@ -199,6 +199,35 @@ export class List extends BaseClass{
             location_account_user.location_id
           ORDER BY
             accounts.account_id DESC;`;
+
+          sql_account_list = `
+            SELECT
+            accounts.account_id,
+            accounts.account_name,
+            accounts.building_number,
+            accounts.billing_unit,
+            accounts.billing_street,
+            accounts.billing_city,
+            accounts.billing_state,
+            accounts.billing_postal_code,
+            accounts.billing_country,
+            accounts.epc_committee_on_hq,
+            accounts.online_training,
+            accounts.key_contact,
+            accounts.fsa_by_evac,
+            location_account_relation.location_id
+          FROM
+            location_account_relation
+          INNER JOIN
+            accounts
+          ON
+            accounts.account_id = location_account_relation.account_id
+          INNER JOIN locations ON locations.location_id =location_account_relation.location_id          
+          WHERE 1 = 1 ${accntIdStr}
+          GROUP BY
+          location_account_relation.location_id
+          ORDER BY
+            accounts.account_id DESC;`;            
         this.pool.getConnection((err, connection) => {
             if(err){
                 throw new Error(err);

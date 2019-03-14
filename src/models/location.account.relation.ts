@@ -53,6 +53,8 @@ export class LocationAccountRelation extends BaseClass {
                 ON location_account_relation.account_id = accounts.account_id
                 WHERE location_account_relation.location_id IN (${locationIdsString})`;
             }
+
+            sql_load += ` GROUP BY location_account_relation.responsibility`;
             const param = [];
             this.pool.getConnection((err, connection) => {
                 if (err) {
