@@ -1118,8 +1118,6 @@ export class UsersRoute extends BaseRoute {
         locations = <any> [], 
         queryAccountRoles = false;
 
-        console.log('location id is ' + locationId);
-
         selectedLocIds.push(0); // for users that has not been assigned a location
 
         const idsOfBuildingsForFRP = [];

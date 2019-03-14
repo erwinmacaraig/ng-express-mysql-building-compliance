@@ -52,7 +52,7 @@ export class LocationAccountRelation extends BaseClass {
                 INNER JOIN accounts
                 ON location_account_relation.account_id = accounts.account_id
                 WHERE location_account_relation.location_id IN (${locationIdsString})`;
-            } console.log(sql_load);
+            }
 
             sql_load += ` GROUP BY location_account_relation.responsibility`;
             const param = [];
