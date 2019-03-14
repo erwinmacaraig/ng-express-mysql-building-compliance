@@ -457,7 +457,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             let findRelatedName = (data) => {
                 let results = [];
                 for(let d of data){
-                    let name = d.location_name.trim().toLowerCase();
+                    let name = d.name.trim().toLowerCase();
                     name = name.replace(/[^a-zA-Z 0-9]/g, "");
                     if(name.indexOf(value) > -1){
                         d['sublocations'] = [];
