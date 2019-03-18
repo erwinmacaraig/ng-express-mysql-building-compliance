@@ -1432,7 +1432,7 @@ export class UsersRoute extends BaseRoute {
             // response.data['users'] = await userModel.query(modelQueries);
         }
         
-        if ( (emRoleIdSelected.indexOf(8) !== -1 &&  query.location_id == -1) || query.search) {
+        if ( (emRoleIdSelected.indexOf(8) !== -1 &&  query.location_id == -1) || (query.search && emRoleIdSelected.indexOf(8) !== -1 &&  query.location_id == -1) ) {
             tempUsers = [];   
             response.data['users'] = [];
             let otherModelQueries = {
