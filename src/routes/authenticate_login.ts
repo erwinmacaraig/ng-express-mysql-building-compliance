@@ -10,6 +10,7 @@ import { Utils } from '../models/utils.model';
 import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
 import { LocationAccountUser } from '../models/location.account.user';
+import { Account } from '../models/account.model';
 
 export class AuthenticateLoginRoute extends BaseRoute {
 
@@ -57,7 +58,8 @@ export class AuthenticateLoginRoute extends BaseRoute {
                 evac_role: userModel.get('evac_role'),
                 roles : [],
                 profilePic : '',
-                account_roles: {}
+                account_roles: {},
+                subscription: {}
             }
         };
         let roleOfAccountInLocationObj = {};
@@ -111,14 +113,11 @@ export class AuthenticateLoginRoute extends BaseRoute {
             console.log(' authenticate route, error getting in location account user data', e);
         }
 
-        /*
-        try{
-            let userRoles = await new UserRoleRelation().getByUserId(userModel.get('user_id'));
-            for (let role of userRoles){
-                response.data['roles'].push(role);
-            }
-        }catch(e){ }
-        */
+        try {
+            response.data.subscription = await Account.getAccountSubscription(userModel.get('account_id'));
+        } catch(e) {
+            console.log('Error in getting account subscriptions at authenticate login', e);
+        }
 
         
 

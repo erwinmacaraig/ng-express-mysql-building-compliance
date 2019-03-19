@@ -1,7 +1,8 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-import { Location } from './location.model';
-const dbconfig = require('../config/db');
+import { AccountSubscription } from './account.subscription.model';
+import { SubscriptionFeature } from './subscription.feature.model';
+import { AccountSubscriptionInterface } from '../interfaces/account.subscription.interface';
+
 const aws_credential = require('../config/aws-access-credentials.json');
 
 import * as Promise from 'promise';
@@ -124,6 +125,47 @@ export class Account extends BaseClass {
             
             
         });
+    }
+
+    public static getAccountSubscription(accountId=0): Promise<object> {
+        return new Promise((resolve, reject) => {
+            let subscription: AccountSubscriptionInterface = {
+                account_id: 0,
+                bulk_license_total: 0,
+                valid_till: '',
+                subscriptionType: 'free',
+                feature: []
+            };
+            new AccountSubscription().getAccountSubscription(accountId).then((data) => {
+                if (data.length == 0) {
+                    return new SubscriptionFeature().loadSubscriptionFeatures();
+                } else {
+                    for (let dref of data) {
+                        subscription.account_id = accountId;
+                        subscription.bulk_license_total = dref['bulk_license_total'];
+                        subscription.valid_till = dref['valid_till'];
+                        subscription.subscriptionType = dref['type'];
+                        subscription.feature.push(dref['feature']);
+                    }
+                    resolve(subscription);
+                    return;
+                }
+            }).then((freeData: Array<object>) => {
+                for (let dref of freeData) {
+                    subscription.account_id = accountId;
+                    subscription.subscriptionType = dref['subscription_type'];
+                    subscription.feature.push(dref['feature']);
+                }
+                resolve(subscription);
+                return;
+            }).catch((e) => {
+                console.log('There is a problem with getting account subscription, resolving to free subscription', e);
+                resolve(subscription);
+                return;
+            });
+
+        });
+
     }
 
     public getActive() {
