@@ -26,7 +26,7 @@ export class AuthGuard implements CanActivate {
                 return true;
             }
         }
-        window.location.href = 'https://portal.evacconnect.com/login';        
+        window.location.href = 'https://portal.evacconnect.com/login';
         return false;
     }
 }
