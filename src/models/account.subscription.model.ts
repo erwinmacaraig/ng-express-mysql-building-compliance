@@ -66,6 +66,7 @@ export class AccountSubscription extends BaseClass {
                 }
                 connection.query(sql_insert, param, (error, results) => {
                     if (error) {
+                        console.log(sql_insert, param, error);
                         throw new Error;
                     }
                     this.id = results.insertId;
