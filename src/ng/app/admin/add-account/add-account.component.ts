@@ -29,6 +29,7 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
 
   private accountFormValue: object = {
     account_name: null,
+    subscription_type: 'free',
     key_contact: null,
     new_account_type: null,
     billing_street: null,
@@ -49,6 +50,7 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
   ngOnInit() {
     this.newAccountForm = new FormGroup({
       account_name: new FormControl(this.accountFormValue['account_name'], Validators.required),
+      subscription_type: new FormControl(this.accountFormValue['subscription_type'], Validators.required),
       key_contact: new FormControl(this.accountFormValue['key_contact']),
       new_account_type: new FormControl(this.accountFormValue['new_account_type']),
       billing_street: new FormControl(this.accountFormValue['billing_street'], Validators.required),
@@ -120,6 +122,7 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
     this.accountId = 0;
     this.accountFormValue = {
       account_name: null,
+      subscription_type: 'free',
       key_contact: null,
       new_account_type: null,
       billing_street: null,

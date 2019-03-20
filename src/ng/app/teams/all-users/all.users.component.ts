@@ -112,6 +112,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
     isAdministrationsShow = false;
     showArchived = false;
+    subscriptionType = 'free';
 
 	constructor(
 		private userService : UserService,
@@ -124,7 +125,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         private locationService : LocationsService,
         private activatedRoute : ActivatedRoute
 		){
-		this.userData = this.authService.getUserData();
+        this.userData = this.authService.getUserData();
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
 
         for(let role of this.userData.roles){
             if(role.role_id == 1){
