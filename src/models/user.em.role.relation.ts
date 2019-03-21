@@ -768,6 +768,10 @@ export class UserEmRoleRelation extends BaseClass {
                       ON
                         accounts.account_id = users.account_id
                       INNER JOIN
+                        account_subscription
+                      ON
+                        users.account_id = account_subscription.account_id
+                      INNER JOIN
                         locations
                       ON
                         locations.location_id = user_em_roles_relation.location_id
@@ -777,10 +781,11 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
-
+                      AND
+                        account_subscription.type <> 'free'
                       GROUP BY user_em_roles_relation.user_id, em_roles.em_roles_id
                        `;
-
+        
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);

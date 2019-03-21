@@ -48,6 +48,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     accountId = 0;
 
     print:any;
+    subscriptionType = 'free';
 
     constructor (
         private router: Router,
@@ -61,7 +62,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         ) {
 
         this.userData = this.authService.getUserData();
-
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
     }
 
     getTeamReport(callBack, forExport?) {

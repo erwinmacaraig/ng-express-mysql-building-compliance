@@ -42,6 +42,7 @@ import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 import { RewardConfig } from '../models/reward.program.config.model';
 import { PaperAttendanceComplianceDocumentModel } from '../models/paper.attendance.compliance.document.model';
+import { AccountSubscription } from '../models/account.subscription.model';
 const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
 import * as PDFDocument from 'pdfkit';
@@ -546,6 +547,13 @@ export class AdminRoute extends BaseRoute {
           await account.create(req.body);
         }
         const dbData = await account.load();
+
+        new AccountSubscription().create({
+          account_id: dbData['account_id'],
+          type: req.body.subscription_type,
+          valid_till: moment().add(1, 'years').format('YYYY-MM-DD')
+        });
+
         return res.status(200).send({
           message: message,
           data: dbData
@@ -1242,8 +1250,12 @@ export class AdminRoute extends BaseRoute {
         new MiddlewareAuth().authenticate,
         async (req: AuthRequest, res: Response, next: NextFunction) => {
         const account = new Account(req.params.accountId);
+        const account_subscription = new AccountSubscription();
         try {
           const accntDbData = await account.load();
+          accntDbData['subscription'] = {};
+          const sub = await account_subscription.getAccountSubscription(req.params.accountId);
+          accntDbData['subscription'] = sub[0];
           return res.status(200).send({
             'message': 'Success',
             data: accntDbData

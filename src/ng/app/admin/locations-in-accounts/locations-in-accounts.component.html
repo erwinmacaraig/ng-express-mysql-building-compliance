@@ -33,7 +33,7 @@
   </div>
   -->
   <div class="col l3 m3 s12">
-    <button class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-account-location', accountId]">
+    <button [disabled]="locations.length >= 3 && accountSubscription['type'] == 'free'" class="btn orange waves-effect waves-light" [routerLink]="['/admin', 'add-account-location', accountId]">
       Add New Location
     </button> 
   </div>

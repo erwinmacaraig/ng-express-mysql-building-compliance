@@ -17,6 +17,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	public thisRouteUrl = '';
 	public oUserData = {};
 	public showTeamNav = true;
+	public subscriptionType = 'free';
 
 	constructor(
 		private router: Router,

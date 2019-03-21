@@ -119,6 +119,11 @@
 				</a>
 			</div>
 		</div>
+		<div class="col sm12">
+			<h6 *ngIf="subscriptionType=='free'" style="padding-left: 15px; font-size: 18px; color: #39a1ff;">Free Subscription</h6>
+			<h6 *ngIf="subscriptionType=='premium'" style="padding-left: 15px; font-size: 18px; color: #39a1ff;">Premium Subscription</h6>
+			<h6 *ngIf="subscriptionType=='ssc'" style="padding-left: 15px; font-size: 18px; color: #39a1ff;">Self Service Subscription</h6>
+		</div>
 
 		<div class="col sm12">
 			<ul class="links">

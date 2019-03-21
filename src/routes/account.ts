@@ -14,6 +14,7 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { List } from '../models/list.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { AccountSubscription } from '../models/account.subscription.model';
 const validator = require('validator');
 const cryptoJs = require('crypto-js');
 import * as moment from 'moment';
@@ -1118,13 +1119,12 @@ const RateLimiter = require('limiter').RateLimiter;
         userType = 'all';
         trp = await lauObj.TRPUsersForNotification(sublevels);
 				eco = await uemr.emUsersForNotification(sublevels);
-				frp = await new LocationAccountUser().getFRPinBuilding(config['building_id']);
-				// allUsers = trp.concat(eco);
+				frp = await new LocationAccountUser().FRPUsersForNotification(config['building_id']);
+			
 				allUsers = [...trp, ...eco, ...frp];
       } else if (config['user_type'] == 'frp') {
 				userType = 'frp';
-				allUsers = await new LocationAccountUser().getFRPinBuilding(config['building_id']);
-				// console.log(frp);
+				allUsers = await new LocationAccountUser().FRPUsersForNotification(config['building_id']);
 			}
     }catch(e){
       console.log(e);
@@ -1241,8 +1241,7 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-				to : [u['email']],				
-        cc: ['emacaraig@evacgroup.com.au'],
+				to : [u['email']],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
