@@ -34,16 +34,16 @@
                         <div class="col l4 m12 s12">
                             <div class="label-and-text">
                                 <label>Subscription Type</label>
-                                <p *ngIf="accountInfo.subscription.type == 'free'">
+                                <p *ngIf="accountInfo.subscription['type'] == 'free'">
                                     Free subscription
                                 </p>
-                                <p *ngIf="accountInfo.subscription.type == 'premium'">
+                                <p *ngIf="accountInfo.subscription['type'] == 'premium'">
                                     Premium Subscription
                                 </p>
-                                <p *ngIf="accountInfo.subscription.type == 'ssc'">
+                                <p *ngIf="accountInfo.subscription['type'] == 'ssc'">
                                     Self Service Compliance
                                 </p>
-                                <p *ngIf="accountInfo.subscription.type == 'el'">
+                                <p *ngIf="accountInfo.subscription['type'] == 'el'">
                                     Expert Level
                                 </p>
                             </div>
