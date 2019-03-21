@@ -304,4 +304,11 @@ export class AdminService {
     });
   }
 
+  loadActivitiesFromLookup() {
+    return this.http.get<{
+      message: string,
+      activities: object[]
+    }>(this.baseUrl + '/admin/refer-activity-lookup/');
+  }
+
 }

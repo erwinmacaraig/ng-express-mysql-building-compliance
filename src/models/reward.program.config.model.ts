@@ -578,8 +578,8 @@ export class RewardConfig extends BaseClass {
                         reward_program_config_id,
                         user_id,
                         activity,
-                        totalPoints    
-                    ) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE                        
+                        totalPoints
+                    ) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE
                         dtPointsEarned = NOW();
                     `;
                     connection.query(sql_insert, [program_config_id, userId, acitivity, totalPoints], (error, results) => {
@@ -601,9 +601,6 @@ export class RewardConfig extends BaseClass {
             }).catch((e) => {
                 console.log(e);
             });
-            
-
-
         });
 
     }
@@ -872,9 +869,26 @@ export class RewardConfig extends BaseClass {
                 connection.release();
             });
 
-        }); 
+        });
     }
 
+    public getActivityLookup() {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM reward_activity_lookup`;
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log('Cannot load reward activities look up table');
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                });
+            });
+        });
+    }
 
     private clearRecordOfCandidateWithZeroActivity(configId=0, userId=0) {
         return new Promise((resolve, reject) => {

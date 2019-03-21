@@ -2452,6 +2452,22 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/user-smart-form-action/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new AdminRoute().performActionOnSmartForm(req, res);
     });
+
+    router.get('/admin/refer-activity-lookup/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      const config = new RewardConfig();
+      config.getActivityLookup().then((activities) => {
+        res.status(200).send({
+          message: 'Success',
+          activities: activities
+        });
+      }).catch((e) => {
+        res.status(400).send({
+          message: 'Cannot retrieve activities from lookup table',
+          activities: []
+        });
+      });
+    });
+    
   // ===============
   }
 
