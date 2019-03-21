@@ -129,26 +129,32 @@ export class AccountSubscription extends BaseClass {
         });
     }
 
-    public getAccountSubscription(accountId=0, filter={}): Promise<Array<object>> {
+    public getAccountSubscription(accountId=0, include_features: boolean = false, filter={}): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            let sql = `SELECT
-                            account_subscription.*,
-                            subscription_feature.feature,
-                            subscription_feature.value
-                        FROM
-                            account_subscription
-                        INNER JOIN
-                            subscription_feature
-                        ON
-                            account_subscription.type = subscription_feature.subscription_type
-                        WHERE 
-                            account_subscription.account_id = ? AND account_subscription.enabled = 1`;
-            if ('validity' in filter) {
-                if (filter['validity'] == 'active') {
-                    sql += ` AND product_subscription.valid_till > CURDATE()`;
-                } else  {
-                    sql += ` AND product_subscription.valid_till < CURDATE()`;
-                }
+            let sql: string = '';
+
+            sql = `SELECT
+                        account_subscription.*
+                    FROM
+                        account_subscription
+                    WHERE 
+                        account_subscription.account_id = ?
+                    AND
+                        account_subscription.enabled = 1`;
+
+            if (include_features) {
+                sql = `SELECT
+                    account_subscription.*,
+                    subscription_feature.feature,
+                    subscription_feature.value
+                FROM
+                    account_subscription
+                INNER JOIN
+                    subscription_feature
+                ON
+                    account_subscription.type = subscription_feature.subscription_type
+                WHERE 
+                    account_subscription.account_id = ? AND account_subscription.enabled = 1`;
             }
             const param = [accountId];
             this.pool.getConnection((err, connection) => {
@@ -162,8 +168,49 @@ export class AccountSubscription extends BaseClass {
                     }
                     resolve(results);
                 });
+                connection.release();
             });
         });
-        
     }
+
+    public listAccountSubscriptions(filter = {}): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            let sql: string = '';
+            
+            sql = `SELECT * FROM account_subscription WHERE enabled = 1;`;
+            if ('type' in filter) {
+                switch(filter['type']) {
+                    case 'free':
+                        sql += ` AND account_subscription.type = 'free'`
+                    break;
+                    case 'premium':
+                        sql += ` AND account_subscription.type = 'premium'`
+                    break;
+                    default:
+                        sql += ` AND account_subscription.type <> 'free'`;
+                    break;
+                }
+            }
+            if ('account_id' in filter) {
+                sql += ` AND account_id = ${filter['account_id']}`;
+            }
+
+            this.pool.getConnection((err, connection) => {
+                if(err) {
+                    throw new Error(err);
+                }
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log(sql);
+                        throw new Error(sql);
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
+
+
 }
