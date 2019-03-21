@@ -1,7 +1,7 @@
 
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
-import {Router} from '@angular/router';
+import {Router, ActivatedRoute, ParamMap} from '@angular/router';
 import {Subscription} from 'rxjs/Subscription';
 import { AdminService } from './../../services/admin.service';
 @Component({
@@ -25,6 +25,7 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
   online_training: FormControl;
   fsa_by_evac: FormControl;
 
+  routeSub: Subscription;
   filteredAccounts = [];
 
   private accountFormValue: object = {
@@ -45,26 +46,58 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
   };
   public accountId = 0;
   public sub: Subscription;
-  constructor(private adminService: AdminService, private router: Router) {}
+  constructor(private adminService: AdminService, private router: Router, private route: ActivatedRoute) {}
 
   ngOnInit() {
-    this.newAccountForm = new FormGroup({
-      account_name: new FormControl(this.accountFormValue['account_name'], Validators.required),
-      subscription_type: new FormControl(this.accountFormValue['subscription_type'], Validators.required),
-      key_contact: new FormControl(this.accountFormValue['key_contact']),
-      new_account_type: new FormControl(this.accountFormValue['new_account_type']),
-      billing_street: new FormControl(this.accountFormValue['billing_street'], Validators.required),
-      billing_city: new FormControl(this.accountFormValue['billing_city'], Validators.required),
-      billing_state: new FormControl(this.accountFormValue['billing_state'], Validators.required),
-      billing_postal_code: new FormControl(this.accountFormValue['billing_postal_code']),
-      account_contact_num: new FormControl(this.accountFormValue['account_contact_num']),
-      account_email: new FormControl(this.accountFormValue['account_email']),
-      epc_committee_on_hq: new FormControl(this.accountFormValue['epc_committee_on_hq']),
-      online_training: new FormControl(this.accountFormValue['online_training']),
-      fsa_by_evac: new FormControl(this.accountFormValue['fsa_by_evac']),
+    this.routeSub = this.route.paramMap.subscribe((paramMap: ParamMap) => {
+      if (paramMap.has('acctId')) {
+        this.accountId = +paramMap.get('acctId');
+        this.sub = this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
+          if (response['message'] === 'Success') {
+            Object.keys(this.accountFormValue).forEach((key) => {
+              this.accountFormValue[key] = response['data'][key];
+            });
+            this.accountFormValue['subscription_type'] = response['data']['subscription']['type'];
+            console.log(this.accountFormValue);
+            this.newAccountForm = new FormGroup({
+              account_name: new FormControl(this.accountFormValue['account_name'], Validators.required),
+              subscription_type: new FormControl(this.accountFormValue['subscription_type'], Validators.required),
+              key_contact: new FormControl(this.accountFormValue['key_contact']),
+              new_account_type: new FormControl(this.accountFormValue['new_account_type']),
+              billing_street: new FormControl(this.accountFormValue['billing_street'], Validators.required),
+              billing_city: new FormControl(this.accountFormValue['billing_city'], Validators.required),
+              billing_state: new FormControl(this.accountFormValue['billing_state'], Validators.required),
+              billing_postal_code: new FormControl(this.accountFormValue['billing_postal_code']),
+              account_contact_num: new FormControl(this.accountFormValue['account_contact_num']),
+              account_email: new FormControl(this.accountFormValue['account_email']),
+              epc_committee_on_hq: new FormControl(this.accountFormValue['epc_committee_on_hq']),
+              online_training: new FormControl(this.accountFormValue['online_training']),
+              fsa_by_evac: new FormControl(this.accountFormValue['fsa_by_evac']),
+            });
+          }
+        });
+      }
+      this.newAccountForm = new FormGroup({
+        account_name: new FormControl(this.accountFormValue['account_name'], Validators.required),
+        subscription_type: new FormControl(this.accountFormValue['subscription_type'], Validators.required),
+        key_contact: new FormControl(this.accountFormValue['key_contact']),
+        new_account_type: new FormControl(this.accountFormValue['new_account_type']),
+        billing_street: new FormControl(this.accountFormValue['billing_street'], Validators.required),
+        billing_city: new FormControl(this.accountFormValue['billing_city'], Validators.required),
+        billing_state: new FormControl(this.accountFormValue['billing_state'], Validators.required),
+        billing_postal_code: new FormControl(this.accountFormValue['billing_postal_code']),
+        account_contact_num: new FormControl(this.accountFormValue['account_contact_num']),
+        account_email: new FormControl(this.accountFormValue['account_email']),
+        epc_committee_on_hq: new FormControl(this.accountFormValue['epc_committee_on_hq']),
+        online_training: new FormControl(this.accountFormValue['online_training']),
+        fsa_by_evac: new FormControl(this.accountFormValue['fsa_by_evac']),
+      });
     });
 
-    this.sub = this.getAccountChanges();
+  
+    
+
+    // this.sub = this.getAccountChanges();
   }
 
   getAccountChanges(): Subscription {
@@ -82,7 +115,8 @@ export class AdminAddAccountComponent implements OnInit, OnDestroy, AfterViewIni
   }
 
   ngOnDestroy() {
-    this.sub.unsubscribe();
+    // this.sub.unsubscribe();    
+    this.routeSub.unsubscribe();
   }
 
   ngAfterViewInit() {}

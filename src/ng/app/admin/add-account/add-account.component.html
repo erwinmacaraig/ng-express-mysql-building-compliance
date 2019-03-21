@@ -96,8 +96,8 @@
           </label>
         </div>
       </div>
-
-      <div class="col l12 m12 s12">
+     
+      <!--<div class="col l12 m12 s12">
         <h5>Contact Information</h5>
       </div>
       <div class="col l6 m6 s12">
@@ -116,7 +116,7 @@
               Email Address
             </label>
           </div>
-        </div>
+        </div> -->
 
       <div class="col l12 m12 s12">
         <h5>Settings</h5>
@@ -140,7 +140,9 @@
     <div class="row">
       <div class="col l12 m12 s12">
         <div class="pull right">
-          <button class="btn grey grey lighten-1 waves-effect waves-light" type="button" (click)="newAccountForm.reset()">Cancel</button>
+          <a *ngIf="accountId" style="padding-top: 3px;" class="btn grey grey lighten-1 waves-effect waves-light" [routerLink]="['/admin', 'locations-in-account', accountId]">Cancel</a>
+          <a *ngIf="!accountId" style="padding-top: 3px;" class="btn grey grey lighten-1 waves-effect waves-light" [routerLink]="['/admin', 'accounts']">Cancel</a>
+          <!--<button class="btn grey grey lighten-1 waves-effect waves-light" type="button" (click)="newAccountForm.reset()">Cancel</button>-->
           <button type="submit" class="btn orange waves-effect waves-light" style="margin-right: 10px;" [disabled]="!newAccountForm.valid">Submit</button>
         </div>
       </div>

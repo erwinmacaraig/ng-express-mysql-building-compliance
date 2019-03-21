@@ -1250,8 +1250,12 @@ export class AdminRoute extends BaseRoute {
         new MiddlewareAuth().authenticate,
         async (req: AuthRequest, res: Response, next: NextFunction) => {
         const account = new Account(req.params.accountId);
+        const account_subscription = new AccountSubscription();
         try {
           const accntDbData = await account.load();
+          accntDbData['subscription'] = {};
+          const sub = await account_subscription.getAccountSubscription(req.params.accountId);
+          accntDbData['subscription'] = sub[0];
           return res.status(200).send({
             'message': 'Success',
             data: accntDbData
