@@ -1,19 +1,18 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
 import { AdminService } from './../../services/admin.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
+import { Component, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
+
 import { NgForm } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router} from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
-import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import { ExportToCSV } from '../../services/export.to.csv';
+
 import { MessageService } from '../../services/messaging.service';
 
 declare var $: any;
@@ -21,7 +20,7 @@ declare var $: any;
   selector: 'app-add-mobility-impaired',
   templateUrl: './add.mobility.impaired.component.html',
   styleUrls: ['./add.mobility.impaired.component.css'],
-  providers : [DashboardPreloaderService, UserService, EncryptDecryptService, AdminService, ExportToCSV, MessageService]
+  providers : [DashboardPreloaderService, UserService, AdminService, MessageService]
 })
 export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
 	@ViewChild('addMobilityImpairedForm') addMobilityImpairedForm: NgForm;
@@ -91,10 +90,7 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         private dashboardPreloaderService : DashboardPreloaderService,
         private userService : UserService,
         private router : Router,
-        private actRoute : ActivatedRoute,
-        private encdecrypt : EncryptDecryptService,
         private adminService : AdminService,
-        private exportToCSV : ExportToCSV,
         private messageService: MessageService
         ) {
 

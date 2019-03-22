@@ -1,8 +1,5 @@
 import { Component, Input, OnInit, ViewEncapsulation, AfterViewInit, OnDestroy } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
+
 
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -30,9 +27,6 @@ export class BreadCrumbsComponent implements OnInit, AfterViewInit {
 
     ngOnInit(){
         this.msgsubs = this.messageService.getMessage().subscribe((data) => {
-
-            console.log('data', data);
-
             if(data.breadcrumbs){
                 this.list = [];
                 for(let i in data.breadcrumbs){

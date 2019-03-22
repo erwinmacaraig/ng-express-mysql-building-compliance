@@ -2,7 +2,7 @@ import { Component, OnInit, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router} from '@angular/router';
 
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
@@ -46,7 +46,6 @@ export class WardenLocationComponent implements OnInit, OnDestroy {
 		private preloaderService : DashboardPreloaderService,
 		private locationService : LocationsService,
 		private encryptDecrypt : EncryptDecryptService,
-		private activatedRoute: ActivatedRoute,
 		private router: Router,
 		private userService : UserService
 		){

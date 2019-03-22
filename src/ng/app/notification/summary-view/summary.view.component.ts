@@ -35,7 +35,7 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
         private accountService: AccountsDataProviderService) {}
     
     ngOnInit() {
-        this.route.params.subscribe((urlParams) => {
+        this.paramSub = this.route.params.subscribe((urlParams) => {
             this.encryptedToken = urlParams['token'];
             this.decryptedToken = this.cryptor.decryptUrlParam(urlParams['token']);
             // split string
@@ -85,7 +85,9 @@ export class SummaryViewComponent implements OnInit, OnDestroy, AfterViewInit {
 
     ngAfterViewInit() {}
 
-    ngOnDestroy() {}
+    ngOnDestroy() {
+        this.paramSub.unsubscribe();
+    }
 
     performAction(user: object = {}, action='') {
 

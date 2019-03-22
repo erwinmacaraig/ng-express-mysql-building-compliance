@@ -15,10 +15,11 @@ import { MessageService } from '../../services/messaging.service';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { AlertService } from '../../services/alert.service';
 import { AlertComponent } from '../../alert/alert.component';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subscription } from 'rxjs/Rx';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as FileSaver from 'file-saver';
 import { PaperAttendanceDocument } from '../../models/paper_attendance_document';
+
 declare var $: any;
 declare var moment: any;
 
@@ -188,6 +189,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     breadcrumbsData = [];
 
     accountData = <any> {};
+    paramSub: Subscription;
 
     constructor(
         private router : Router,
@@ -209,7 +211,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
         this.setDatePickerDefaultDate();
 
-        this.route.params.subscribe((params) => {
+        this.paramSub = this.route.params.subscribe((params) => {
             this.encryptedID = decodeURIComponent(params['encrypted']);
             this.locationID = this.encryptDecrypt.decrypt(this.encryptedID);
             for(let role of this.userData.roles){                
@@ -562,6 +564,7 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
 
 	ngOnDestroy() {
         this.msgSubs.unsubscribe();
+        this.paramSub.unsubscribe();
         window.onscroll = null;
     }
 

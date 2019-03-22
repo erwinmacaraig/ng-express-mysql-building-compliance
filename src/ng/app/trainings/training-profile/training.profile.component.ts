@@ -14,7 +14,7 @@ import * as enLocale from 'date-fns/locale/en';
 import { ComplianceService } from './../../services/compliance.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AdminService } from './../../services/admin.service';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subscription } from 'rxjs/Rx';
 
 declare var $: any;
 declare var Materialize: any;
@@ -99,7 +99,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
 
   isFrp = false;
   isTrp = false;
-
+  private paramSub: Subscription;
 	constructor(
     private auth: AuthService,
     private preloaderService: DashboardPreloaderService,
@@ -189,7 +189,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
 	}
 
   ngOnInit() {
-    this.route.params.subscribe((params) => {
+    this.paramSub = this.route.params.subscribe((params) => {
       this.encryptedID = params['encrypted'];
       this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
       this.loadProfile();
@@ -724,6 +724,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(){
+      this.paramSub.unsubscribe();
         $('.workspace.container').css('padding', '');
     }
 
