@@ -1118,8 +1118,6 @@ export class UsersRoute extends BaseRoute {
         locations = <any> [], 
         queryAccountRoles = false;
 
-        selectedLocIds.push(0); // for users that has not been assigned a location
-
         const idsOfBuildingsForFRP = [];
         const idsOfLocationsForTRP = [];
         try {
@@ -1177,12 +1175,22 @@ export class UsersRoute extends BaseRoute {
                 }
                  
             }
-
-
             
         } else {
             selectedLocIds = [];
-            
+            const assignedLocations = await new LocationAccountRelation().listAllLocationsOnAccount(accountId, {
+                userId: userID,
+                locationIdOnly: true
+            });
+
+            for (let loc of assignedLocations) {
+                if (loc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[loc['location_id']]['role_id'] == 1) {            
+                    idsOfBuildingsForFRP.push(loc['location_id']);
+                  } else {
+                    idsOfLocationsForTRP.push(loc['location_id']);  
+                  }
+            }
+            /*
             Object.keys(roleOfAccountInLocationObj).forEach((locId) => {                             
                 if (roleOfAccountInLocationObj[locId]['role_id'] == 2 ) {
                     idsOfLocationsForTRP.push(parseInt(locId, 10));
@@ -1190,6 +1198,7 @@ export class UsersRoute extends BaseRoute {
                     idsOfBuildingsForFRP.push(parseInt(locId, 10));
                 }
             });
+            */
             // console.log('idsOfLocationsForTRP ' + idsOfLocationsForTRP.join(', '));
             // console.log('idsOfBuildingsForFRP ' + idsOfBuildingsForFRP.join(', '));
             for (let loc of idsOfBuildingsForFRP) {
@@ -1258,12 +1267,12 @@ export class UsersRoute extends BaseRoute {
 
             let emRoleIdInQuery = '';
             if(getUsersByEmRoleId){
-                emRoleIdInQuery = ' AND em_role_id IN (0, '+emRoleIdSelected.join(',')+') '; // included 0 for users with no assigned role
+                emRoleIdInQuery = ' AND em_role_id IN ('+emRoleIdSelected.join(',')+') ';
             }
 
             let inLocIdQuery = '';
             if(selectedLocIds.length > 0){
-                inLocIdQuery = 'AND location_id IN (0, '+selectedLocIds.join(',')+')';
+                inLocIdQuery = 'AND location_id IN ('+selectedLocIds.join(',')+')';
             }
 
             if( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || ( queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1 ) ){
@@ -1432,7 +1441,7 @@ export class UsersRoute extends BaseRoute {
             // response.data['users'] = await userModel.query(modelQueries);
         }
         
-        //if ( (emRoleIdSelected.indexOf(8) !== -1 &&  query.location_id == -1) || (query.search && emRoleIdSelected.indexOf(8) !== -1 &&  query.location_id == -1) ) {
+       /*
         if ( (emRoleIdSelected.indexOf(8) !== -1 && query.search) ) {
             tempUsers = [];   
             // response.data['users'] = [];
@@ -1481,11 +1490,7 @@ export class UsersRoute extends BaseRoute {
             }
 
             otherModelQueries.where.push('users.evac_role = "Client"');
-            /*
-            if (people.length > 0) {
-                otherModelQueries.where.push(`users.user_id NOT IN (${people.join(', ')})`);
-            }
-            */
+            
             otherModelQueries.where.push(' users.user_id NOT IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id = 8  AND location_id IN ('+ selectedLocIds.join(',') +') ) ');
             otherModelQueries.where.push('users.account_id = '+accountId);
 
@@ -1504,17 +1509,10 @@ export class UsersRoute extends BaseRoute {
             // console.log('=========================', tempUsers, '===========================');
             response.data['users'] = (response.data['users'] as Array<object>).concat(tempUsers);
         }
-        
-        
-        
-
-        // response.data['users'] = await userModel.query(modelQueries);
-        
-
+        */
         const training_requirements = await new TrainingCertification().getRequiredTrainings(); 
         for(let user of response.data['users']){
-            userIds.push(user.user_id);
-            
+            userIds.push(user.user_id);         
             
             let lastLoginMoment = moment(user.last_login);
             if(lastLoginMoment.isValid()){
