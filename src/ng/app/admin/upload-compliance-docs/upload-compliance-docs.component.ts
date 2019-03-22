@@ -5,7 +5,7 @@ import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/commo
 import { PlatformLocation } from '@angular/common';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { DatepickerOptions } from 'ng2-datepicker';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router} from '@angular/router';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 
 import { AdminService } from './../../services/admin.service';

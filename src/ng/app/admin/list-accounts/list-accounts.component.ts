@@ -1,9 +1,6 @@
 
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
+import { Router } from '@angular/router';
 import { ViewChild, ElementRef } from '@angular/core';
 
 

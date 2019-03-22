@@ -495,6 +495,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(){
         this.searchModalLocationSubs.unsubscribe();
+        this.routeSub.unsubscribe();
     }
 
 }

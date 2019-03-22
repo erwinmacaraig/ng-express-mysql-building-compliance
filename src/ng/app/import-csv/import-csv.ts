@@ -5,7 +5,7 @@ import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, Element
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router} from '@angular/router';
 import { PersonDataProviderService } from './../services/person-data-provider.service';
 import { UserService } from '../services/users';
 import { Observable } from 'rxjs/Rx';
@@ -46,7 +46,6 @@ export class ImportCsvButtonComponent implements OnInit, OnDestroy {
         private locationService : LocationsService,
         private userService : UserService,
         private router : Router,
-        private actRoute : ActivatedRoute,
         private adminService : AdminService,
         private exportToCSV : ExportToCSV,
         private messageService: MessageService

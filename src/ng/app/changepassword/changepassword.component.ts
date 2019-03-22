@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewEncapsulation, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { NgForm } from '@angular/forms';
@@ -8,6 +8,7 @@ import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import { Subscription } from 'rxjs/Rx';
 
 declare var $: any;
 
@@ -18,7 +19,7 @@ declare var $: any;
   styleUrls: ['./changepassword.component.css'],
   providers: [ForgotPasswordService]
 })
-export class ChangepasswordComponent implements OnInit, AfterViewInit {
+export class ChangepasswordComponent implements OnInit, AfterViewInit, OnDestroy {
 
   	private baseUrl: String;
 	private options;
@@ -33,6 +34,7 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 	modalMessage = '';
 	modalshowCheckIcon = false;
 	modalshowCloseIcon = false;
+	paramSub: Subscription;
 
 	constructor(
 		private platformLocation: PlatformLocation,
@@ -47,7 +49,7 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 	}
 
 	ngOnInit() {
-		this.route.params.subscribe(params => {
+		this.paramSub =  this.route.params.subscribe(params => {
 			this.token = params.token;
             console.log(this.token);
 			this.fpService.getTokenData(this.token, (response) => {
@@ -119,6 +121,10 @@ export class ChangepasswordComponent implements OnInit, AfterViewInit {
 			}
 		}
 
+	}
+
+	ngOnDestroy() {
+		this.paramSub.unsubscribe();
 	}
 
 }

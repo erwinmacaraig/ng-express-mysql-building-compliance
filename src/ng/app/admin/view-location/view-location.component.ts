@@ -3,6 +3,8 @@ import { ActivatedRoute, Params, Router, NavigationEnd } from '@angular/router';
 
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { Subscription } from 'rxjs/Rx';
+
 declare var $: any;
 declare var moment: any;
 
@@ -49,6 +51,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
 
   activeLink = '';
   subRouter;
+  paramSub:Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -60,7 +63,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
 
   ngOnInit() {
     this.dashboard.show();
-    this.route.params.subscribe((params: Params) => {
+    this.paramSub =  this.route.params.subscribe((params: Params) => {
       this.locationId = +params['locationId'];
       this.location_details = {
         parent_id: 0,
@@ -162,7 +165,10 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
     $('.tabs').tabs();
   }
 
-  ngOnDestroy() {}
+  ngOnDestroy() {
+    this.paramSub.unsubscribe();
+    this.subRouter.unsubscribe();
+  }
 
 
 }
