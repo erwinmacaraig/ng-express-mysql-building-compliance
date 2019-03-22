@@ -31,6 +31,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 		});
 
 		this.oUserData = this.authService.getUserData();
+		this.subscriptionType = this.oUserData['subscription']['subscriptionType'];
 	}
 
 	ngOnInit(){
