@@ -4,6 +4,7 @@ import { NgForm } from '@angular/forms';
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
+import { Subscription } from 'rxjs/Rx';
 declare var $: any;
 declare var moment: any;
 declare var Materialize: any;
@@ -20,6 +21,7 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
 
     activeLink = 'rolesLocations';
     subRouter;
+    paramSub: Subscription;
 
     userData = <any> {
         account : {
@@ -43,11 +45,8 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
 
     ngOnInit() {
         this.dashboard.show();
-        this.route.params.subscribe((params: Params) => {
+        this.paramSub = this.route.params.subscribe((params: Params) => {
             this.userId = +params['userId'];
-
-            console.log('this.userId', this.userId);
-
             this.adminService.getUserInformation(this.userId).subscribe((response:any) => {
                 if(Object.keys(response.data.user).length > 0){
                     this.userData = response.data.user;
@@ -86,7 +85,7 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     ngOnDestroy() {
-
+        this.paramSub.unsubscribe();
     }
 
 

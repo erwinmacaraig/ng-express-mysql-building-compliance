@@ -16,7 +16,7 @@ declare var $: any;
   styleUrls: ['./add-user.component.css'],
   providers: [AdminService]
 })
-export class AddAccountUserComponent  implements OnInit, AfterViewInit {
+export class AddAccountUserComponent  implements OnInit, AfterViewInit, OnDestroy {
   accountId = 0;
   userForm: FormGroup;
   users;
@@ -77,6 +77,7 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
 
   ];
   private baseUrl: String;
+  private paramSub: Subscription;
 
   constructor(public http: HttpClient,
     private platformLocation: PlatformLocation,
@@ -89,7 +90,7 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
   }
 
   ngOnInit() {
-    this.route.params.subscribe((parameters) => {
+    this.paramSub = this.route.params.subscribe((parameters) => {
       this.accountId = parameters['accntId'];
       this.userForm = this.formBuilder.group({
         users: this.formBuilder.array([this.createFormItem()])
@@ -100,6 +101,10 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit {
         this.levels = response['data']['levels'];
       });
     });
+  }
+
+  ngOnDestroy() {
+    this.paramSub.unsubscribe();
   }
 
   ngAfterViewInit() {

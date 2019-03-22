@@ -12,7 +12,7 @@ import { CourseService } from '../../services/course';
 import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
 import { AdminService } from './../../services/admin.service';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subscription } from 'rxjs/Rx';
 
 declare var $: any;
 declare var Materialize: any;
@@ -91,6 +91,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
     searchModalLocationSubs;
 
     formLocValid = false;
+    paramSub: Subscription;
 
 	constructor(
 		private auth: AuthService,
@@ -118,11 +119,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             }
         }
 
-		this.route.params.subscribe((params) => {
+		this.paramSub = this.route.params.subscribe((params) => {
 			this.encryptedID = params['encrypted'];
 			this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
-
-
 			this.loadProfile();
 		});
 
@@ -746,6 +745,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(){
         this.searchModalLocationSubs.unsubscribe();
+        this.paramSub.unsubscribe();
     }
     emailThisCertificate(userId=0, certId=0) {
       this.userService.emailCertificate(userId, certId).subscribe(() => {

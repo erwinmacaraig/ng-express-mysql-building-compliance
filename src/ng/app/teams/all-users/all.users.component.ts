@@ -49,7 +49,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     ];
 
 	loadingTable = false;
-
+    private paramSub:Rx.Subscription;
 	pagination = {
 		pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
 	};
@@ -167,7 +167,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             this.filters = newFilters;
         }
 
-        this.activatedRoute.queryParams.subscribe((params) => {
+        this.paramSub =  this.activatedRoute.queryParams.subscribe((params) => {
             if(params['archived']){
                 this.showArchived = Boolean(params['archived']);
                 this.queries.archived = 1;
@@ -404,7 +404,9 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			});
 	}
 
-	ngOnDestroy(){}
+	ngOnDestroy(){
+        this.paramSub.unsubscribe();
+    }
 
 	generateRandomBGClass(){
 		let colors = ["red", "blue", "yellow", "orange", "green", "purple", "pink"];

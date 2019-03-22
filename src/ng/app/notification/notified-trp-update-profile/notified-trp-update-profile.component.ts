@@ -10,6 +10,7 @@ import { UserService } from '../../services/users';
 
 import 'rxjs/add/observable/forkJoin';
 import * as cryptoJs from 'crypto-js';
+import { Subscription } from "rxjs/Rx";
 
 @Component({
     selector: 'app-notified-trp-update-profile',
@@ -131,9 +132,11 @@ export class NotifiedTrpUpdateProfileComponent implements OnInit, AfterViewInit,
     private chosenLevelToModify;
     private locAcctUserId;
 
+    private paramSub: Subscription;
 
     @ViewChild('assignedLocation') assignedLocation: ElementRef;
     @ViewChild('newLevelNomination') newLevelNomination: ElementRef;
+
 
     constructor(private route: ActivatedRoute,
         private router: Router,
@@ -143,7 +146,7 @@ export class NotifiedTrpUpdateProfileComponent implements OnInit, AfterViewInit,
         private userService: UserService) {}
 
     ngOnInit() {
-        this.route.params.subscribe((params) => {
+        this.paramSub =  this.route.params.subscribe((params) => {
             this.oldToken = '/dashboard/update-notified-trp-profile/' + params['token'];
             const token = this.cryptor.decryptUrlParam(params['token']);
             this.encryptedToken = params['token'];
@@ -180,7 +183,9 @@ export class NotifiedTrpUpdateProfileComponent implements OnInit, AfterViewInit,
          
     }
 
-    ngOnDestroy () {}
+    ngOnDestroy () {
+        this.paramSub.unsubscribe();
+    }
 
     
     private getLocationData() {

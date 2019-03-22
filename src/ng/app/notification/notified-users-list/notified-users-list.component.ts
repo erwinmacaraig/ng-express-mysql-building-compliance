@@ -4,6 +4,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { AuthService } from '../../services/auth.service';
+import { Subscription } from 'rxjs/Rx';
 
 declare var $: any;
 
@@ -19,6 +20,8 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
     public notifiedUsers: Array<object> = [];
     public hasAccountRole = false;
     isAdmin = false;
+    private paramSub: Subscription;
+
     constructor(private route: ActivatedRoute,
         private auth: AuthService,
         private router: Router,
@@ -41,7 +44,7 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
             this.router.navigate(['/']);
         }
         */
-        this.route.params.subscribe((params) => {
+        this.paramSub =  this.route.params.subscribe((params) => {
             this.configId = this.cryptor.decrypt(params['config']);
             this.generateList();
         });
@@ -66,7 +69,9 @@ export class NotifiedUsersListComponent implements OnInit, AfterViewInit,  OnDes
     }
 
 
-    ngOnDestroy() {}
+    ngOnDestroy() {
+        this.paramSub.unsubscribe();
+    }
 
     private generateList() {
         this.dashboard.show();

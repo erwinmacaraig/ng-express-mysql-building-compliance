@@ -1,24 +1,11 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, EventEmitter, Output } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd, ActivatedRoute} from '@angular/router';
-import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
-import { SignupService } from '../../services/signup.service';
-import { LocationsService } from '../../services/locations';
-import { EncryptDecryptService } from '../../services/encrypt.decrypt';
-import { ProductService  } from '../../services/products.service';
-import { Observable, ReplaySubject, BehaviorSubject, Subscription } from 'rxjs/Rx';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/catch';
-
 import { DomSanitizer } from '@angular/platform-browser';
-
-import { MessageService } from '../../services/messaging.service';
-import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ComplianceService } from './../../services/compliance.service';
 
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 declare var user_course_relation: any;
@@ -26,13 +13,7 @@ declare var user_course_relation: any;
 @Component({
 	selector : 'app-mytraining-component',
 	templateUrl : './mytraining.component.html',
-	styleUrls : [ './mytraining.component.css' ],
-    providers : [
-      UserService,
-      EncryptDecryptService,
-      ProductService,
-      DashboardPreloaderService,
-      ComplianceService]
+	styleUrls : [ './mytraining.component.css' ]
 })
 export class MyTrainingsComponent implements OnInit, OnDestroy {
   toggle = false;
@@ -44,17 +25,8 @@ export class MyTrainingsComponent implements OnInit, OnDestroy {
 
   thisRouteUrl = '';
 
-  constructor(
-        private router: Router,
-        private route: ActivatedRoute,
-        private authService: AuthService,
-        private userService: UserService,
-        private locationService: LocationsService,
-        private signupServices: SignupService,
-        private productService: ProductService,
-        private encryptDecrypt: EncryptDecryptService,
-        private preloaderService: DashboardPreloaderService,
-        private messageService: MessageService,
+  constructor(       
+        private authService: AuthService,       
         private complianceService: ComplianceService,
         private platformLocation: PlatformLocation,
         private sanitizer: DomSanitizer

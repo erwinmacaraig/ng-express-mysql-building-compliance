@@ -25,6 +25,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
   private building_id = 0;
   public sublocations = [];
   private sub: Subscription;
+  private paramSub: Subscription;
   public isAccountRole = false;
 
   public primaryQuestionField: FormControl;
@@ -33,6 +34,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
   public newPersonAppointedName: FormControl;
   public newPersonAppointedEmail: FormControl;
   public newSublocationField: FormControl;
+
 
   constructor(private route: ActivatedRoute, private cryptor: EncryptDecryptService,
               private accountService: AccountsDataProviderService,
@@ -48,7 +50,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
     this.newPersonAppointedEmail = new FormControl(null, Validators.required);
     this.newSublocationField = new FormControl(null, Validators.required);
 
-    this.route.params.subscribe((params) => {
+    this.paramSub =  this.route.params.subscribe((params) => {
       this.token = this.cryptor.decryptUrlParam(params['token']);
       this.encryptedToken = params['token'];
       // split string
@@ -78,6 +80,7 @@ export class NotificationQueryComponent implements OnInit, AfterViewInit, OnDest
   ngAfterViewInit() {}
 
   ngOnDestroy() {
+    this.paramSub.unsubscribe();
     this.sub.unsubscribe();
   }
   confirmPrimaryQuestion() {
