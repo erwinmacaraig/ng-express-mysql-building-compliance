@@ -314,32 +314,6 @@ export class LocationAccountRelation extends BaseClass {
      */
     public listAllLocationsOnAccount(accountId = 0, filter = <any> {}): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
-        const resultSet = [];
-        let filterStr = '';
-        
-        if ('responsibility' in filter) {
-          if (filter['responsibility'] === defs['Tenant']) {
-            // filterStr += ` AND lar.responsibility = 'Tenant'`;
-            //filterStr += ` AND l.is_building = 0`;
-
-          }
-          if (filter['responsibility'] === defs['Manager']) {
-            // filterStr += ` AND lar.responsibility = 'Manager'`;
-            filter['is_building'] = 1;
-          }
-          if(filter['responsibility'] === 'both'){
-              //filterStr += ` AND lar.responsibility IN ('Manager', 'Tenant')`;
-          }
-        }
-        
-        if ('is_building' in filter) {
-          filterStr += ` AND is_building = ${filter['is_building']}`;
-        }
-
-        if('location_id' in filter){
-            filterStr += ` AND location_id = ${filter['location_id']}`;
-        }
-
         let offsetLimit = ``;
 
         if('limit' in filter){
@@ -351,7 +325,6 @@ export class LocationAccountRelation extends BaseClass {
         }
 
         let nameSearch = '';
-        // if('name' in filter && filter['name'].length > 0 && ('responsibility' in filter && filter['responsibility'] === defs['Tenant'])){
         if('name' in filter){
             nameSearch = (filter['name'].length > 0) ? ` AND l.name LIKE '%${filter['name']}%'` : '  ';
         }
@@ -372,12 +345,6 @@ export class LocationAccountRelation extends BaseClass {
         let sqlJoinLAU = '';
         if(!isPortfolio && filter['userId']){
             sqlJoinLAU = ' INNER JOIN location_account_user lau ON lau.location_id = l.location_id ';
-            //filterStr = ' AND lau.user_id = '+filter['userId'];
-            if ('responsibility' in filter) {
-                if(filter['responsibility'] == 1){
-                    // filterStr += ` AND true = (l.is_building = 1  OR l.parent_id = -1)`;
-                }
-            }
         }
 
         let archived = 0;
@@ -385,12 +352,9 @@ export class LocationAccountRelation extends BaseClass {
             archived = filter['archived'];
         }
 
-        // console.log(filter['userId']);
-
         let userIdQuery = '';
         if('userId' in filter){
             userIdQuery =  ` AND lau.user_id = ${filter['userId']} `;
-            // lau.user_id = ${filter['userId']}
         }
 
         if(accountId > 0){
@@ -412,7 +376,6 @@ export class LocationAccountRelation extends BaseClass {
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
             AND l.archived = ${archived}
         `;
-         
         this.pool.getConnection((err, connection) => {
             connection.query(sqlGetIds,  (error, idResults) => {
                 if(error) {
