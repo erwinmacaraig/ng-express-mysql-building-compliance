@@ -639,10 +639,12 @@ export class User extends BaseClass {
                     }
 
                 }
-
+                
                 if(queries.select.count){
                     selectQuery = ' COUNT(users.user_id) as count';
+                    selectQuery = ' users.user_id ';
                 }
+                
 
                 let whereQuery = '',
                     whereCount = 0;
@@ -686,16 +688,24 @@ export class User extends BaseClass {
                 }
 
                 let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
-                /*if(!queries.select.count) {
-                    console.log('========= ', sql_load, " =========");
-                }*/
+                
+                //if(queries.select.count) {
+                    // console.log('========= ', sql_load, " =========", "\r\n");
+                //}
                 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log(sql_load);
                         return console.log(error);
                     }
-                    resolve(results);
+                    if(queries.select.count) {
+                        resolve([{
+                            count: results.length
+                        }])
+                    } else {
+                        resolve(results);
+                    }
+                    
                 });
                 connection.release();
             });

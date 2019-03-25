@@ -1178,11 +1178,7 @@ export class UsersRoute extends BaseRoute {
             
         } else {
             selectedLocIds = [];
-            const assignedLocations = await new LocationAccountRelation().listAllLocationsOnAccount(accountId, {
-                userId: userID,
-                locationIdOnly: true
-            });
-
+            const assignedLocations = await new LocationAccountUser().getLocationsByUserIdAndAccountId(userID, accountId);
             for (let loc of assignedLocations) {
                 if (loc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[loc['location_id']]['role_id'] == 1) {            
                     idsOfBuildingsForFRP.push(loc['location_id']);
@@ -1409,6 +1405,7 @@ export class UsersRoute extends BaseRoute {
         response.data['users'] = [];
         let people = [];
         let tempUsers = [];
+        
         if (!locationId && !queryAccountRoles) {
             // console.log('Here at locationId ' + locationId + ' and queryAccountRoles = ' +  queryAccountRoles, modelQueries);            
             tempUsers = await userModel.query(modelQueries);                                   
@@ -1795,7 +1792,8 @@ export class UsersRoute extends BaseRoute {
                 select : { count : true },
                 where : modelQueries.where,
                 orWhere : modelQueries.orWhere,
-                joins : modelQueries.joins
+                joins : modelQueries.joins,
+                group: 'users.user_id'
             }),
             pagination = {
                 total : parseInt(countResponse[0]['count']),
