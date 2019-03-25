@@ -64,7 +64,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getLocationsByUserIdAndAccountId(userId, accntId){
+    public getLocationsByUserIdAndAccountId(userId, accntId): Promise<Array<object>>{
         return new Promise((resolve) => {
 
             let sql = `
@@ -85,8 +85,8 @@ export class LocationAccountUser extends BaseClass {
                   if (error) {
                       return console.log(error);
                   }
-                  this.dbData = results;
-                  resolve(this.dbData);
+                 
+                  resolve(results);
               });
                  
               connection.release();
