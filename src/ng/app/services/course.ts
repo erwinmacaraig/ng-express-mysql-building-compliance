@@ -80,4 +80,10 @@ export class CourseService {
         });
     }
 
+    logOutTrainingModule(userTrainingModuleRelationId=0) {
+        return this.http.post<{lesson_status: string}>(this.baseUrl +'/lms/logoutModule', {'relation': userTrainingModuleRelationId});
+    }
+
+
+
 }

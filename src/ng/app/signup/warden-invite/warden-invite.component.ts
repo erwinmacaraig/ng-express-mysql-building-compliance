@@ -3,7 +3,7 @@ import { HttpClient, HttpResponse, HttpErrorResponse } from '@angular/common/htt
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subscription } from 'rxjs/Rx';
 import { SignupService } from './../../services/signup.service';
 
 declare var $: any;
@@ -33,12 +33,14 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
     public parent_id;
     public sublocation_id;
 
+    private paramSub:Subscription;
+
     @ViewChild('formWardenProfile') formWardenProfile: NgForm;
 
     constructor(private router: Router, private signupService: SignupService,
         private route: ActivatedRoute,
         private http: HttpClient) {
-        this.route.params.subscribe( params => {
+        this.paramSub =  this.route.params.subscribe( params => {
             this.token = params['token'];
         });
     }
@@ -103,7 +105,9 @@ export class WardenInvitationFormComponent implements OnInit, OnDestroy, AfterVi
         this.modalSignUp.modal('open');
     }
 
-    ngOnDestroy() {}
+    ngOnDestroy() {
+        this.paramSub.unsubscribe();
+    }
 
     onCloseWardenProfileCompletion() {
         this.modalSignUp.modal('close');

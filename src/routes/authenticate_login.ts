@@ -54,6 +54,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
                 userId: userModel.get('user_id'),
                 name: userModel.get('first_name')+' '+userModel.get('last_name'),
                 email: userModel.get('email'),
+                account_has_online_training: 0,
                 accountId: userModel.get('account_id'),
                 evac_role: userModel.get('evac_role'),
                 roles : [],
@@ -67,6 +68,13 @@ export class AuthenticateLoginRoute extends BaseRoute {
         let fileModel = new Files(),
             fileData = <any> [],
             wardenRoles = [];
+
+        try {
+            let accountData = await new Account(userModel.get('account_id')).load();
+            response.data['account_has_online_training'] = accountData['online_training'];
+        } catch (e) {
+            response.data['account_has_online_training'] = 0;
+        }
 
         try{
             fileData = <any> await fileModel.getByUserIdAndType(userModel.get('user_id'), 'profile');
@@ -84,6 +92,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
             for(let role of wardenRoles){
                 response.data['roles'].push({
                     role_id : role['em_roles_id'],
+                    location_id: role['location_id'],
                     role_name : role['role_name'],
                     is_warden_role : role['is_warden_role']
                 });

@@ -4,6 +4,8 @@ import { NgForm } from '@angular/forms';
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
+import { Subscription } from 'rxjs/Rx';
+import { HttpErrorResponse } from '@angular/common/http';
 declare var $: any;
 declare var moment: any;
 declare var Materialize: any;
@@ -20,6 +22,7 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
 
     activeLink = 'rolesLocations';
     subRouter;
+    paramSub: Subscription;
 
     userData = <any> {
         account : {
@@ -43,21 +46,25 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
 
     ngOnInit() {
         this.dashboard.show();
-        this.route.params.subscribe((params: Params) => {
+        this.paramSub = this.route.params.subscribe((params: Params) => {
             this.userId = +params['userId'];
-
-            console.log('this.userId', this.userId);
-
             this.adminService.getUserInformation(this.userId).subscribe((response:any) => {
-                if(Object.keys(response.data.user).length > 0){
-                    this.userData = response.data.user;
-                    this.userData['account'] = response.data.account;                    
-                    this.trainings = response.data.trainings;
-                    this.accountLocationRoles = response.data.account_location_roles;
-                    this.emLocationRoles = response.data.em_location_roles;
-                    this.locationRoles = response.data.location_roles;
-
+                try {
+                    if(Object.keys(response.data.user).length > 0){
+                        this.userData = response.data.user;
+                        this.userData['account'] = response.data.account;                    
+                        this.trainings = response.data.trainings;
+                        this.accountLocationRoles = response.data.account_location_roles;
+                        this.emLocationRoles = response.data.em_location_roles;
+                        this.locationRoles = response.data.location_roles;
+    
+                    }
+                } catch (e) {
+                    console.log(e);
                 }
+                this.dashboard.hide();
+            }, (e:HttpErrorResponse) => {
+                console.log(e);
                 this.dashboard.hide();
             });
 
@@ -86,7 +93,7 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
     }
 
     ngOnDestroy() {
-
+        this.paramSub.unsubscribe();
     }
 
 

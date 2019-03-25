@@ -71,6 +71,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     mobile_contact_field: FormControl;
 
     showModalLoader = false;
+    private paramSub:Subscription;
 
     constructor(
         private route: ActivatedRoute,
@@ -110,7 +111,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     }
 
     ngOnInit() {
-      this.route.params.subscribe((params) => {
+      this.paramSub =  this.route.params.subscribe((params) => {
           const token = this.cryptor.decryptUrlParam(params['token']);
           this.encryptedToken = params['token'];
           const parts: Array<string> = token.split('_');
@@ -486,6 +487,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
     }
 
     ngOnDestroy() {
+        this.paramSub.unsubscribe();
     }
 
   generatePeepList() {

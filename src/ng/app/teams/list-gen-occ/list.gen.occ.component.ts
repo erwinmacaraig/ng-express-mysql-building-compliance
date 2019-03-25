@@ -110,6 +110,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
 
     showArchived = false;
     subscriptionType = 'free';
+    private paramSub: Rx.Subscription;
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -147,7 +148,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             },500);
         });
 
-        this.activatedRoute.queryParams.subscribe((params) => {
+        this.paramSub =  this.activatedRoute.queryParams.subscribe((params) => {
             if(params['archived']){
                 this.showArchived = Boolean(params['archived']);
                 this.queries.archived = 1;
@@ -713,5 +714,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngOnDestroy(){}
+    ngOnDestroy(){
+        this.paramSub.unsubscribe();
+    }
 }

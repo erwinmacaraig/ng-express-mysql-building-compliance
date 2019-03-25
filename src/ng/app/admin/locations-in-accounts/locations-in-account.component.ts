@@ -124,9 +124,8 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
     searchLocationInAccounts(event) {
         clearTimeout(this.typingTimeout);
-        
         this.typingTimeout = setTimeout(() => {
-            let searchKey = event.target.value;        
+            let searchKey = event.target.value;
             let temp = [];
             this.locations = [];
             if (searchKey) {
@@ -141,9 +140,9 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
             } else {
                 this.locations = [...this.originalLocations];
-            }        
+            }
         }, 500);
-        
+
     }
 
 }

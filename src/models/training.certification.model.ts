@@ -577,7 +577,7 @@ export class TrainingCertification extends BaseClass {
    * @returns
    * Return an array of required training ids
    */
-  public getTrainings(user_id: number = 0, training_requirements = []): Promise<Array<object>> {
+  public getTrainings(user_id: number = 0, training_requirements = []): Promise<Array<number>> {
     return new Promise((resolve, reject) => {
       if (training_requirements.length === 0) {
         resolve([]);
@@ -589,7 +589,7 @@ export class TrainingCertification extends BaseClass {
 
       const training_requirements_str = training_requirements.join(',');
       const sql = `SELECT
-                    certifications.*,
+                    certifications.*,                   
                     training_requirement.training_requirement_name
                 FROM
                   certifications
@@ -629,6 +629,45 @@ export class TrainingCertification extends BaseClass {
 
       
     });
-  } 
+  }
+  
+  getActiveCertificate(userId=0, trainingId=0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+
+      const sql = `SELECT
+                    certifications.*,
+                    DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date 
+                  FROM
+                    certifications
+                  INNER JOIN
+                       training_requirement
+                    ON
+                        training_requirement.training_requirement_id = certifications.training_requirement_id
+                    WHERE
+                        certifications.user_id = ?
+                    AND
+                      certifications.training_requirement_id = ?
+                    AND
+                      certifications.pass = 1
+                    AND
+                      DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()`;
+      const params = [userId, trainingId];
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log('training.certifications.model.getActiveCertificate', error, sql, params);
+            throw Error('Cannot query certifications for this user');
+          }      
+          resolve(results);
+        });
+        connection.release();
+      });
+
+    });
+  }
 
 }

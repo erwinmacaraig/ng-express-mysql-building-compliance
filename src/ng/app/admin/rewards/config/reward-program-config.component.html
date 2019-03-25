@@ -208,9 +208,15 @@
 
 
         <div class="row">
+            configForm.valid - {{configForm.valid}}
+            configForm.get('reward_items') - {{configForm.get('reward_items').length}}
+            configForm.get('activities') - {{configForm.get('activities').length}}
             <div class="col l6 m6 s6">
                 <button [routerLink]="['/admin', 'list-reward-configuration']" type="button" class="btn grey lighten-1 waves-light waves-effect">Cancel</button>
-                <button type="button" (click)="finalizeConfig()" class="btn orange waves-light waves-effect" [disabled]="!configForm.valid">Submit</button>
+                <button type="button"
+                    (click)="finalizeConfig()"
+                    class="btn orange waves-light waves-effect"
+                    [disabled]="!configForm.valid || configForm.get('reward_items').length == 0 || configForm.get('activities').length == 0">Submit</button>
             </div>
         </div>
 
