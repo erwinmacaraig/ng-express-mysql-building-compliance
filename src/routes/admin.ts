@@ -42,6 +42,7 @@ import {EmailSender} from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 import { RewardConfig } from '../models/reward.program.config.model';
 import { PaperAttendanceComplianceDocumentModel } from '../models/paper.attendance.compliance.document.model';
+
 const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
 import * as PDFDocument from 'pdfkit';
@@ -2440,6 +2441,22 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/user-smart-form-action/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new AdminRoute().performActionOnSmartForm(req, res);
     });
+
+    router.get('/admin/refer-activity-lookup/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      const config = new RewardConfig();
+      config.getActivityLookup().then((activities) => {
+        res.status(200).send({
+          message: 'Success',
+          activities: activities
+        });
+      }).catch((e) => {
+        res.status(400).send({
+          message: 'Cannot retrieve activities from lookup table',
+          activities: []
+        });
+      });
+    });
+
   // ===============
   }
 
@@ -3104,13 +3121,26 @@ export class AdminRoute extends BaseRoute {
       await rewardProgramConfigurator.deleteProgramBuildings();
       await rewardProgramConfigurator.deleteUsers();
     }
+    const activityLookupObj = {};
+    const activityLookupTable = await rewardProgramConfigurator.getActivityLookup();
+    for (const act of activityLookupTable) {
+      if (act['reward_activity_lookup_id'] in activityLookupObj) {
+        activityLookupObj[act['reward_activity_lookup_id']] = {
+          reward_activity_lookup_id: act['reward_activity_lookup_id'],
+          activity_name: act['activity_name'],
+          default_points: act['default_points']
+        };
+      }
+    }
+
     const activities = [];
     const rewards = [];
     let locations = [];
     const buildings = [];
-    for (let x = 0; x < req.body.activities.length; x++) {
+    for (let x = 0; x < req.body.activity_ids.length; x++) {
       activities.push({
-        activity: req.body.activities[x],
+        activity: req.body.activity_ids[x],
+        name: req.body.activities[x],
         points: req.body.activity_points[x]
       });
     }
@@ -3131,17 +3161,16 @@ export class AdminRoute extends BaseRoute {
       activities: activities,
       incentives:rewards
     };
-    
+
     await rewardProgramConfigurator.create(configData);
     let wardenUsersArr;
-    
-    if (req.body.selection_type == 'account') {      
+
+    if (req.body.selection_type == 'account') {
       for (let building of req.body.config_locations) {
         await rewardProgramConfigurator.insertRelatedBuildingConfig(building['location_id'], rewardProgramConfigurator.ID());
         buildings.push(building['location_id']);
       }
       const sublevels = await rewardProgramConfigurator.getBuildingSubLevels(buildings, req.body.selection_id);
-     
       locations = [...buildings, ...sublevels];
       // get all emergency users in this account
       const account = new Account(req.body.selection_id);
@@ -3163,9 +3192,28 @@ export class AdminRoute extends BaseRoute {
 
     }
 
+    // look for sign up
+
+
     for (let warden of wardenUsersArr) {
-      await rewardProgramConfigurator.setCandidateUserForReward(rewardProgramConfigurator.ID(), warden['user_id']);
-     }
+      for (let x = 0; x < req.body.activity_ids.length; x++) {
+        if (req.body.activity_ids[x] == 3) {
+          // if config has anniversary (reward_activity_lookup_id = 3)
+          await rewardProgramConfigurator.setCandidateUserForReward(rewardProgramConfigurator.ID(),
+            warden['user_id'],
+            3,
+            req.body.activity_points[x]
+          );
+        } else {
+          await rewardProgramConfigurator.setCandidateUserForReward(rewardProgramConfigurator.ID(),
+          warden['user_id'],
+          req.body.activity_ids[x]);
+        }
+
+      }
+      
+
+    }
 
 
     return res.status(200).send({

@@ -145,7 +145,7 @@ export class ViewWardenComponent implements OnInit, OnDestroy {
 		});
 	}
 
-	searchMemberEvent(event){
+	searchMemberEvent(event) {
 		let key = event.target.value,
 			temp = [];
 
