@@ -2835,10 +2835,8 @@ export class AdminRoute extends BaseRoute {
 
       const listModel = new List();
 
-
-      // locationsForManager = await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Manager']});
       locationsForManager = await listModel.listAllTaggedBuildingsOfAccount(req.params.accountId);
-      // console.log('LocationForManager',locationsForManager );
+     
       for (const location of locationsForManager) {
         buildingIds.push(location['location_id']);
       }
@@ -2859,12 +2857,7 @@ export class AdminRoute extends BaseRoute {
         locationsForManager = await locationObj.bulkLocationDetails(buildingIds);
       }
       levelLocations = await list.generateSublocationsForListing(buildingIds);
-      /*
-      console.log('======================= BUILDING IDS ======================== ');
-      console.log(buildingIds);
-      console.log('*********************** LEVEL LOCATIONS ***************************');
-      console.log(levelLocations);
-      */
+     
       // get locations for location_account_relation and merged it in buildingIds
       const locationsForTrpFromLAR =
         await locAccntRelObj.listAllLocationsOnAccount(req.params.accountId, {'responsibility': defs['Tenant']});
