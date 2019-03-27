@@ -50,6 +50,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
             status: 'Authentication Success',
             message: 'Successfully logged in',
             token: token,
+            expiresIn: signedInExpiry, 
             data: {
                 userId: userModel.get('user_id'),
                 name: userModel.get('first_name')+' '+userModel.get('last_name'),
