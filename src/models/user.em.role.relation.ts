@@ -51,15 +51,14 @@ export class UserEmRoleRelation extends BaseClass {
                       l.name as location_name,
                       l.name,
                       l.parent_id,
-                      l.location_id,
                       l.formatted_address,
                       l.google_place_id,
                       l.google_photo_url,
                       l.is_building,
                       l.admin_verified,
                       l.archived
-                    FROM em_roles er
-                    INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
+                    FROM user_em_roles_relation uer
+                    INNER JOIN em_roles er  ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
                     WHERE uer.user_id = ? AND l.archived = ${archived}`;
             const uid = [userId];
@@ -152,17 +151,19 @@ export class UserEmRoleRelation extends BaseClass {
         const em_roles = [];
         const user_ids = [];
         const location_ids = [];
+        const role_text = [];
         let whereClause = 'WHERE 1=1';
         if ('user_id' in filter) {
-          whereClause += ` AND user_id = ${filter['user_id']}`;
+          whereClause += ` AND user_em_roles_relation.user_id = ${filter['user_id']}`;
         }
         if ('location_id' in  filter) {
-          whereClause += ` AND location_id = ${filter['location_id']}`;
+          whereClause += ` AND user_em_roles_relation.location_id = ${filter['location_id']}`;
         }
         if ('distinct' in filter) {
-          whereClause += ` GROUP BY ${filter['distinct']}`;
+          whereClause += ` GROUP BY user_em_roles_relation.${filter['distinct']}`;
         }
-        const sql_get_roles = `SELECT em_role_id, location_id, user_id FROM user_em_roles_relation ${whereClause}`;
+        const sql_get_roles = `SELECT user_em_roles_relation.em_role_id, em_roles.role_name, user_em_roles_relation.location_id, user_em_roles_relation.user_id FROM user_em_roles_relation
+        INNER JOIN em_roles ON user_em_roles_relation.em_role_id = em_roles.em_roles_id ${whereClause}`;
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);
@@ -177,8 +178,9 @@ export class UserEmRoleRelation extends BaseClass {
                   em_roles.push(results[i]['em_role_id']);
                   user_ids.push(results[i]['user_id']);
                   location_ids.push(results[i]['location_id']);
+                  role_text.push(results[i]['role_name']);
                 }
-                resolve([em_roles, location_ids, user_ids]);
+                resolve([em_roles, location_ids, user_ids, role_text]);
               } else {
                 reject('Cannot get emergency roles');
               }
@@ -647,8 +649,8 @@ export class UserEmRoleRelation extends BaseClass {
                         console.log('sql_load', sql_load);
                         return console.log(error);
                     }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    
+                    resolve(results);
                 });
                 connection.release();
             });
@@ -768,6 +770,10 @@ export class UserEmRoleRelation extends BaseClass {
                       ON
                         accounts.account_id = users.account_id
                       INNER JOIN
+                        account_subscription
+                      ON
+                        users.account_id = account_subscription.account_id
+                      INNER JOIN
                         locations
                       ON
                         locations.location_id = user_em_roles_relation.location_id
@@ -777,10 +783,11 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
-
+                      AND
+                        account_subscription.type <> 'free'
                       GROUP BY user_em_roles_relation.user_id, em_roles.em_roles_id
                        `;
-
+        
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);

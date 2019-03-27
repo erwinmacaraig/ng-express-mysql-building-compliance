@@ -10,6 +10,7 @@ import { Utils } from '../models/utils.model';
 import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
 import { LocationAccountUser } from '../models/location.account.user';
+import { Account } from '../models/account.model';
 
 export class AuthenticateLoginRoute extends BaseRoute {
 
@@ -53,11 +54,13 @@ export class AuthenticateLoginRoute extends BaseRoute {
                 userId: userModel.get('user_id'),
                 name: userModel.get('first_name')+' '+userModel.get('last_name'),
                 email: userModel.get('email'),
+                account_has_online_training: 0,
                 accountId: userModel.get('account_id'),
                 evac_role: userModel.get('evac_role'),
                 roles : [],
                 profilePic : '',
-                account_roles: {}
+                account_roles: {},
+                subscription: {}
             }
         };
         let roleOfAccountInLocationObj = {};
@@ -65,6 +68,13 @@ export class AuthenticateLoginRoute extends BaseRoute {
         let fileModel = new Files(),
             fileData = <any> [],
             wardenRoles = [];
+
+        try {
+            let accountData = await new Account(userModel.get('account_id')).load();
+            response.data['account_has_online_training'] = accountData['online_training'];
+        } catch (e) {
+            response.data['account_has_online_training'] = 0;
+        }
 
         try{
             fileData = <any> await fileModel.getByUserIdAndType(userModel.get('user_id'), 'profile');
@@ -82,6 +92,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
             for(let role of wardenRoles){
                 response.data['roles'].push({
                     role_id : role['em_roles_id'],
+                    location_id: role['location_id'],
                     role_name : role['role_name'],
                     is_warden_role : role['is_warden_role']
                 });
@@ -111,14 +122,11 @@ export class AuthenticateLoginRoute extends BaseRoute {
             console.log(' authenticate route, error getting in location account user data', e);
         }
 
-        /*
-        try{
-            let userRoles = await new UserRoleRelation().getByUserId(userModel.get('user_id'));
-            for (let role of userRoles){
-                response.data['roles'].push(role);
-            }
-        }catch(e){ }
-        */
+        try {
+            response.data.subscription = await Account.getAccountSubscription(userModel.get('account_id'));
+        } catch(e) {
+            console.log('Error in getting account subscriptions at authenticate login', e);
+        }
 
         
 

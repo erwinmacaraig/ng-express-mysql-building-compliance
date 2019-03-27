@@ -8,17 +8,19 @@ import { Observable } from 'rxjs/Rx';
 import { FormControl, FormArray, FormGroup, Validators, FormBuilder } from '@angular/forms';
 import { LocationsService } from '../../services/locations';
 import { AlertService } from '../../services/alert.service';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
 @Component({
     selector: 'app-admin-add-location',
     templateUrl: './add-location.component.html',
     styleUrls: ['./add-location.component.css'],
-    providers: [AlertService]
+    providers: [AlertService, DashboardPreloaderService]
 })
 export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDestroy {
     accountId:number = 0;
     paramSub:Subscription;
     accountInfo = {};
+    public accntSubType = '';
     searchLocsSubs;
     searchText = "Searching...";
     searchedLocations = [];
@@ -35,6 +37,7 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     addLocationBldgFRPCtrl = false;
     frpBuildingLocationConfirmation:boolean = false;   
     
+    accountLocations = 0;
     continueToAddUser:boolean = false;
     occupiableLevelArr:Array<number>;
     @ViewChild('search')
@@ -48,17 +51,21 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         private activatedRoute: ActivatedRoute,
         private adminService: AdminService,
         private locationService: LocationsService,
-        private router: Router
-    ) {}
+        private router: Router,
+        private dashboard: DashboardPreloaderService,
+    ) { }
 
     ngOnInit() {
         
         this.paramSub = this.activatedRoute.params.subscribe((params) => {
-            this.accountId = params.accountId;            
+            this.accountId = params.accountId; 
+            // this.dashboard.show();           
             this.adminService.getAccountInfo(this.accountId).subscribe((response) => {
-                this.accountInfo = response['data'];                
-            });   
-
+                this.accountInfo = response['data'];
+                this.accntSubType  = this.accountInfo['subscription']['type'];
+                console.log(this.accountInfo);
+                // this.dashboard.hide();             
+            });
         });
         this.activatedRoute.queryParams.subscribe((query) => {
             console.log(query);
@@ -88,6 +95,19 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     ngAfterViewInit() {
+        this.adminService.taggedLocationsOnAccount(this.accountId, false).subscribe((response) => {
+            this.accountLocations = (response['data'] as Array<object>).length; 
+            if (this.accountLocations >=3 && this.accntSubType == 'free') {
+                this.dashboard.show();
+                setTimeout(() => {
+                    this.dashboard.hide();
+                    this.router.navigate(['/admin', 'locations-in-account', this.accountId]);
+                }, 800);
+                                
+            }               
+        }, (error) => {
+            console.log(error);
+        });
         $('.workspace.container').css({ 'overflow' : '', 'margin-bottom' : '10%' });
 
         this.searchLocsSubs = Observable.fromEvent(this.searchElementRef.nativeElement, 'keyup')
@@ -136,6 +156,15 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
     
     onChangeSublocation(e, locationId) {
         console.log('logging, ', e);
+        /*
+        if (this.accountInfo['subscription']['type'] == 'free') {
+            let remaining = 3 - this.accountLocations;
+            if (this.selectedSublevels.length >= remaining) {
+                this.addExistingLocToAccount();                
+            }
+        }
+        */
+
         if (e.target.checked) {
             this.selectedSublevels.push(locationId);
         } else {
@@ -377,8 +406,8 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
         console.log(this.addLocationBldgFRPCtrl);
     }
 
-    addLevel(fieldName) {        
-        let totalLevels = 0;
+    addLevel(fieldName) {   
+        let totalLevels = 0; 
         if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
             totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
         }
@@ -388,6 +417,65 @@ export class AddAccountLocationComponent implements OnInit, AfterViewInit, OnDes
             totalLevels += 1;
             this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
         }
+
+        /*
+        if (this.accountInfo['subscription']['type'] == 'free' && this.managingRole == 'TRP') { 
+            
+            let remaining = 3 - this.accountLocations;
+            console.log('remaining is ' + remaining);
+            if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
+                totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
+            }
+            if (totalLevels >= remaining) {        
+                     
+                this.newLocationFrmGroup.get(fieldName).setValue(remaining);
+            } else {
+                
+                totalLevels += 1;
+                console.log('in else total levels after increment = ' +  totalLevels);
+                this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
+            }
+
+        } else {
+            if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
+                totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
+            }
+            if (totalLevels >= 99) {
+                this.newLocationFrmGroup.get(fieldName).setValue('1');
+            } else {
+                totalLevels += 1;
+                this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
+            }
+        }
+        if (this.accountInfo['subscription']['type'] == 'free') {
+            if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
+                totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
+                console.log('total levels here = ' + totalLevels);
+            }
+            let remaining = 3 - this.accountLocations;
+            if (totalLevels >= remaining) {                
+                this.newLocationFrmGroup.get(fieldName).setValue(remaining);
+            } else {
+                totalLevels += 1;
+                this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
+            }
+        } else {
+            if (!isNaN(parseInt(this.newLocationFrmGroup.get(fieldName).value, 10))) {
+                totalLevels = parseInt(this.newLocationFrmGroup.get(fieldName).value, 10);
+            }
+            if (totalLevels >= 99) {
+                this.newLocationFrmGroup.get(fieldName).setValue('1');
+            } else {
+                totalLevels += 1;
+                this.newLocationFrmGroup.get(fieldName).setValue(totalLevels);
+            }
+        }
+
+        
+        */
+        
+        
+        
 
 
     }

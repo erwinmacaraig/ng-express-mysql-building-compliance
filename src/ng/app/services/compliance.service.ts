@@ -146,6 +146,16 @@ export class ComplianceService {
         });
     }
 
+    public loadUserTrainingModule(userTrainingModuleRelId=0) {
+        return this.http.post(this.baseUrl + '/lms/loadUserTrainingModule/', {
+            user_training_module_relation_id: userTrainingModuleRelId
+        });
+    }
+
+    public setUpUserTrainingModule(postData = {}) {
+        return this.http.post<{user_training_module_relation_id: number}>(this.baseUrl + '/lms/initLearningModule/', postData);
+    }
+
     public evacExerciseCompleted(formData){
         return this.http.post(this.baseUrl + '/compliance/evac-exercise-completed', formData);
     }
