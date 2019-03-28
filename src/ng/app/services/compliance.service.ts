@@ -8,6 +8,8 @@ import 'rxjs/add/operator/catch';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
 import { PaperAttendanceDocument } from '../models/paper_attendance_document';
+import { AuthService } from './auth.service';
+
 @Injectable()
 export class ComplianceService {
 
@@ -24,7 +26,8 @@ export class ComplianceService {
 		private platformLocation: PlatformLocation,
 		private route: ActivatedRoute,
 		private router: Router,
-		private encryptDecrypt : EncryptDecryptService
+        private encryptDecrypt : EncryptDecryptService,
+        private authService: AuthService
 		) {
 
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
@@ -82,9 +85,12 @@ export class ComplianceService {
 		this.http.post(this.baseUrl + '/compliance/locations-latest-compliance', param)
 			.subscribe(res => {
 				callBack(res);
-			}, err => {
-				callBack( JSON.parse(err.error) );
-			});
+			}, err => {                
+                if (err.error == 'Not Authenticated') {
+                    this.authService.logout();
+                }
+                callBack( JSON.parse(err.error) );
+            });
     }
 
     public getSublocationsEvacDiagrams(form, callBack){

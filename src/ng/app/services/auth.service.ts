@@ -28,7 +28,11 @@ export class AuthService {
   }
 
   public getUserData(){
-  	return (localStorage.getItem('userData') !== null) ? JSON.parse(localStorage.getItem('userData')) : {};
+    if (localStorage.getItem('userData') !== null) {
+      return JSON.parse(localStorage.getItem('userData'))
+    } else {
+      this.logout();
+    }
   }
 
   public removeUserData() {
