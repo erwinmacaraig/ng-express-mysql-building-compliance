@@ -4,48 +4,46 @@
 			<h5>User Profile</h5>
 
 			<div class="image-container">
-				<p class="initials"> <!-- *ngIf="userData['profilePic'].length == 0" -->
+				<p class="initials">
 					{{getInitials(userData['name'])}}
 				</p>
-				<img [src]="userData['profilePic']"> <!--  *ngIf="userData['profilePic'].length > 0" -->
+				<img [src]="userData['profilePic']">
 			</div>
 
-			<div class="badge-warden" > <!-- [ngClass]="viewData.badge_class" --></div>
+			<div class="badge-warden" ></div>
 
 			<div class="name-container ">
-				<h5 class="name blue-text">{{userData['name']}}</h5>
-				<!-- <p *ngIf="viewData['user']['last_login']">Last Login {{viewData['user']['last_login']}}</p> -->
+				<h5 class="name blue-text">{{userData['name']}}</h5>				
 			</div>
 		</div>
 	</div>
 	<div class="row">
 		<div class="col l12 m12 s12">
-			<div class="select-field">
-				<select id="selectLocation">
-					<option *ngFor="let loc of viewData.locations; let i = index;" [selected]="i == 0" value="{{loc.location_id}}">{{loc.parent_name}} {{loc.name}}</option>
-				</select>
+			<div class="field-padding">
+				<h5>Location</h5>
+				<span class="field-text" *ngFor="let loc of viewData.locations">{{loc.name}}</span>
+		</div> 
+		</div>
+
+		<div class="col l12 m12 s12">
+			<div class="field-padding">
+				<h5>Role</h5>
+				<span class="field-text" *ngFor="let role of viewData['role_texts']">{{role}}</span>
+			</div>
+		</div>
+
+		<div class="col l12 m12 s12" *ngIf="viewData.user.mobile_number.length > 0">
+			<div class="field-padding">
+					<h5>Contact Information</h5>
+					<span class="field-text">{{viewData.user.mobile_number}}</span>
 			</div>
 		</div>
 
 		<div class="col l12 m12 s12">
-			<div class="input-field">
-				<input id="role" type="text" readonly value="{{viewData.role_text}}">
-				<label for="role" class="active">
-					<span>Role</span>
-				</label>
-			</div>
-		</div>
+			<div class="field-padding">
+				<h5>Email Address</h5>
+				<span class="field-text">{{viewData.user.email}}</span>
 
-		<div class="col l12 m12 s12">
-			<div class="input-field">
-				<input id="contactInfo" type="text" value="{{viewData['user']['mobile_number']}}" readonly>
-				<label for="contactInfo" class="active">Contact Information</label>
-			</div>
-		</div>
-		<div class="col l12 m12 s12">
-			<div class="input-field">
-				<input id="emailAddress" type="text" value="{{viewData['user']['email']}}" readonly>
-				<label for="emailAddress" class="active">Email Address</label>
 			</div>
 		</div>
 	</div>
