@@ -52,6 +52,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
 
     locationLinkForFrp = false;
     isAdmin = false;
+    subscriptionType = 'free';
 
     constructor(
         private auth: AuthService,
@@ -60,6 +61,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
         private encryptDecrypt: EncryptDecryptService
         ) {
         this.userData = this.auth.getUserData();
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
         this.usersImageURL = 'assets/images/camera_upload_hover.png';
         const role = this.auth.getHighestRankRole();
         if(this.userData.evac_role == 'admin'){

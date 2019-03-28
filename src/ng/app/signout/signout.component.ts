@@ -12,6 +12,7 @@ export class SignoutComponent implements OnInit {
 	constructor(private auth: AuthService, private router: Router) { }
 
 	ngOnInit() {
+		/*
 		this.auth.removeToken();
 		this.auth.removeUserData();
 		localStorage.removeItem('showemailverification');
@@ -20,6 +21,9 @@ export class SignoutComponent implements OnInit {
 		localStorage.removeItem('archivedParentLocationsForListing');
  
 		setTimeout(()=>{ this.router.navigate(['/login']) }, 300);
+		*/
+		this.auth.logout();
+		
 	}
 
 }

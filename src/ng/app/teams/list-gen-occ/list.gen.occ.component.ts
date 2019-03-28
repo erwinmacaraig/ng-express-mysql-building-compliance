@@ -109,6 +109,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     };
 
     showArchived = false;
+    subscriptionType = 'free';
     private paramSub: Rx.Subscription;
     constructor(
         private authService : AuthService,
@@ -124,6 +125,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     ) {
 
         this.userData = this.authService.getUserData();
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
         for(let role of this.userData.roles){
             if(role.role_id == 1){
                 this.isFRP = true;

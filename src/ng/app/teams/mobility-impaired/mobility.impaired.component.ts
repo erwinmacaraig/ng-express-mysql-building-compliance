@@ -122,7 +122,6 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         private locationService : LocationsService
         ){
         this.userData = this.authService.getUserData();
-
         for(let role of this.userData.roles){
             if(role.role_id == 1){
                 this.isFRP = true;
@@ -218,18 +217,27 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
 
     ngOnInit(){
         this.dashboardService.show();
-        this.getListData(() => { 
-            if(this.pagination.pages > 0){
-                this.pagination.currentPage = 1;
-                this.pagination.prevPage = 1;
-            }
+        if (this.userData['subscription']['subscriptionType'] == 'free') {
+            setTimeout(() => {
+                this.dashboardService.hide();
+                this.router.navigate(['/teams', 'list-general-occupant']);
+            }, 5000);
+        } else {
+            this.getListData(() => { 
+                if(this.pagination.pages > 0){
+                    this.pagination.currentPage = 1;
+                    this.pagination.prevPage = 1;
+                }
+    
+                for(let i = 1; i<=this.pagination.pages; i++){
+                    this.pagination.selection.push({ 'number' : i });
+                }
+    
+                this.dashboardService.hide();
+            });
+        } 
 
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
-            }
-
-            this.dashboardService.hide();
-        });
+        
     }
 
     ngAfterViewInit(){
