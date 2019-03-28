@@ -64,7 +64,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public getLocationsByUserIdAndAccountId(userId, accntId){
+    public getLocationsByUserIdAndAccountId(userId, accntId): Promise<Array<object>>{
         return new Promise((resolve) => {
 
             let sql = `
@@ -85,8 +85,8 @@ export class LocationAccountUser extends BaseClass {
                   if (error) {
                       return console.log(error);
                   }
-                  this.dbData = results;
-                  resolve(this.dbData);
+                 
+                  resolve(results);
               });
                  
               connection.release();
@@ -890,6 +890,10 @@ export class LocationAccountUser extends BaseClass {
                       ON
                         accounts.account_id = users.account_id
                       INNER JOIN
+                        account_subscription
+                      ON
+                        users.account_id = account_subscription.account_id
+                      INNER JOIN
                         locations
                       ON
                         locations.location_id = location_account_user.location_id
@@ -897,8 +901,10 @@ export class LocationAccountUser extends BaseClass {
                         locations parent_location
                       ON
                         locations.parent_id = parent_location.location_id
-                      WHERE
+                    WHERE
                         location_account_user.location_id IN (${locationStr})
+                    AND
+                        account_subscription.type <> 'free'
                     AND
                       user_role_relation.role_id = 2`;
                       
@@ -953,6 +959,58 @@ export class LocationAccountUser extends BaseClass {
                     location_account_user.location_id = ?
                 AND
                     user_role_relation.role_id = 1
+                `;
+                connection.query(sql, [buildingId],(err, results) => {
+                    if (err) {
+                        console.log('location_account_user.getFRPinBuilding', err, sql);
+                        throw Error(err);                        
+                    }
+                    resolve(results);
+                });
+                connection.release();
+            });
+        });
+    }
+
+    public FRPUsersForNotification(buildingId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw Error(error);
+                }
+                const sql = `
+                SELECT
+                    users.user_id,
+                    users.first_name,
+                    users.last_name,
+                    users.email,
+                    accounts.account_name,
+                    location_account_user.location_id,
+                    'FRP' as role_name                   
+                FROM
+                    users
+                INNER JOIN
+                    location_account_user
+                ON
+                    users.user_id = location_account_user.user_id
+                INNER JOIN
+                    accounts
+                ON
+                  accounts.account_id = users.account_id
+                INNER JOIN
+                  account_subscription
+                ON
+                  users.account_id = account_subscription.account_id
+                INNER JOIN
+                    user_role_relation
+                ON
+                    users.user_id = user_role_relation.user_id                
+                WHERE
+                    location_account_user.location_id = ?
+                AND
+                    user_role_relation.role_id = 1
+                AND
+                    account_subscription.type <> 'free'
                 `;
                 connection.query(sql, [buildingId],(err, results) => {
                     if (err) {

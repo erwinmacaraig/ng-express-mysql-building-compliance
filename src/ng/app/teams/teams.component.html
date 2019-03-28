@@ -12,7 +12,7 @@
 			</a>
 		</li>
 
-		<li class="mobility purple-theme" [routerLink]="['/teams/mobility-impaired']">
+		<li class="mobility purple-theme" [routerLink]="['/teams/mobility-impaired']" *ngIf="subscriptionType != 'free'">
 			<a >
 				<div class="default"> </div>
 				<div class="hover"> </div>

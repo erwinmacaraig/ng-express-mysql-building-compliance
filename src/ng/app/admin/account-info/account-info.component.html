@@ -2,13 +2,11 @@
     <div class="col l12 m12 s12">    
         <app-alert></app-alert>    
         <h4 class="account-name inline-block">{{ accountInfo.account_name }}</h4>
-        <p class="inline-block edit-info-text">
-            <!--
-            <a href="#"  >
+        <p class="inline-block edit-info-text">            
+            <a [routerLink]="['/admin', 'edit-account', accountId]">
                 <img src="/assets/images/locations/editdetails_icon.png">
                 Edit Information
-            </a>
-            -->
+            </a>           
         </p>
     </div>
 </div>
@@ -32,16 +30,25 @@
                                 <p>{{accountInfo.account_name}}</p>
                             </div>
                         </div>
-                        <!--  
+                        
                         <div class="col l4 m12 s12">
                             <div class="label-and-text">
-                                <label>Key Contact</label>
-                                <p>
-                                    --
+                                <label>Subscription Type</label>
+                                <p *ngIf="accountInfo.subscription['type'] == 'free'">
+                                    Free subscription
+                                </p>
+                                <p *ngIf="accountInfo.subscription['type'] == 'premium'">
+                                    Premium Subscription
+                                </p>
+                                <p *ngIf="accountInfo.subscription['type'] == 'ssc'">
+                                    Self Service Compliance
+                                </p>
+                                <p *ngIf="accountInfo.subscription['type'] == 'el'">
+                                    Expert Level
                                 </p>
                             </div>
                         </div>
-
+                        <!--
                         <div class="col l4 m12 s12">
                             <div class="label-and-text">
                                 <label>Email</label>
@@ -70,52 +77,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- <div class="row">
-                        <div class="col l4 m12 s12">
-                            <div class="input-field">
-                                <input id="accountName" type="text" placeholder="Account Name" [ngModel]="accountInfo.account_name" ngModel readonly="readonly">
-                                <label for="accountName" class="active">
-                                  Account Name
-                                </label>
-                            </div>
-                        </div>
-                    
-                        <div class="col l4 m12 s12">
-                            <div class="input-field">
-                                <input id="keyContactName" type="text" placeholder="Key Contact Name" readonly="readonly">
-                                  <label for="keyContactName" class="active">
-                                      Key Contact
-                                  </label>
-                            </div>
-                        </div>
-                        
-                        <div class="col l4 m12 s12">
-                            <div class="input-field">
-                                  <input id="inpEmail" type="text" placeholder="email" readonly="readonly">
-                                  <label for="inpEmail" class="active">
-                                      Email
-                                  </label>
-                            </div>
-                        </div>
-                    
-                        <div class="col l12 m2 s12">
-                            <div class="input-field">
-                                <input id="billingAddress" type="text" placeholder="Billing Address" [ngModel]="account_billing" ngModel readonly="readonly">
-                                <label for="billingAddress" class="active">Billing Address</label>
-                            </div>
-                        </div>
-                    
-                        <div class="col l12 m12 s12">
-                            <div>Settings</div>
-                            <div class="checkbox">
-                                <input id="epc" type="checkbox" [(ngModel)]="accountInfo.epc_committee_on_hq"> <label for="epc">EPC Meeting at Head Office</label>
-                                <br>
-                                <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
-                            </div>
-                        </div>
-                    
-                    </div> -->
                 </div>
             </div>
         </div>
@@ -136,81 +97,8 @@
             <ul>
                 <li [routerLink]="['/admin', 'locations-in-account', accountId]" [ngClass]="{active:activeLink=='locations'}"> Locations </li>
                 <li [routerLink]="['/admin', 'users-in-accounts', accountId]" [ngClass]="{active:activeLink=='users'}"> Team </li>
-                <!-- <li>Subscriptions</li> -->
                 <li [routerLink]="['/admin', 'account-trainings', accountId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li>
             </ul>
         </div>
     </div>
 </div>
-
-
-<!--
-<div class="row">
-  <div class="col l2 m2 s12 left-part">
-    <div class="row">
-      <span>This is the left part</span>
-      <div class="col l12 m12 s12" style="margin-bottom: 40px;">
-        <div class="details-container left">
-          <div class="inline-block image-wrapper">
-            <div class="image-container">
-              <div class="image">
-                <img src="assets/images/locations/default_profile_location.png" alt="">
-              </div>
-            </div>
-          </div>
-      </div>
-
-
-
-
-
-    </div>
-  </div>
-  <div class="col l10 m10 s12 right-part">
-    <div class="row">
-      <div class="col l12 m12 s12">
-        <div class="input-field">
-          <input id="input_text" type="text" placeholder="Account Name"[(ngModel)]="accountInfo.account_name" ngModel>
-          <label for="input_text" class="active">
-            Account Name
-          </label>
-        </div>
-    </div>
-    <div class="row">
-      <div class="col l12 m12 s12">
-        <div class="input-field">
-          <input id="input_text" type="text" placeholder="Key Contact Name">
-            <label for="input_text" class="active">
-                Key Contact
-            </label>
-        </div>
-        <div class="input-field">
-          <input id="input_text" type="text" placeholder="Contact No.">
-            <label for="input_text" class="active">
-                Contact No.
-            </label>
-        </div>
-        <div class="input-field">
-          <input id="input_text" type="text" placeholder="email">
-          <label for="input_text" class="active">
-              Email
-          </label>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col l6 m6 s12">
-      <div class="input-field">
-          <input id="input_text" type="text" placeholder="Billing Address" [(ngModel)]="account_billing" ngModel>
-          <label for="input_text" class="active">Billing Address</label>
-      </div>
-  </div>
-</div>
-<div class="row">
-  <div class="col l12 m12 s12">
-    <div class="input-field">
-        <textarea></textarea>
-    </div>
-  </div>
-</div> -->

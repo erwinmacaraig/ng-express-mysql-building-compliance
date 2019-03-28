@@ -108,6 +108,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         parent_id : 0
     };
 
+    subscriptionType = 'free';
+
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -121,6 +123,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     ) {
 
         this.userData = this.authService.getUserData();
+        this.subscriptionType = this.userData['subscription']['subscription_type'];
         for(let role of this.userData.roles){
             if(role.role_id == 1){
                 this.isFRP = true;

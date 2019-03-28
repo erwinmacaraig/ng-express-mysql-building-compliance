@@ -58,13 +58,19 @@
             <option value="user-name-asc">User Name Ascending</option>
         </select>
     </div> -->
-	<div class="col l2 m6 s12">
+	<div class="col l2 m6 s12" *ngIf="subscriptionType != 'free'">
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
 			<option value="archive" >Archive selected</option>
             <option value="invite-selected" *ngIf="isOnlineTrainingAvailable">Send training invite to selected</option>
             <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable">Send training invite to all non-compliant</option>
             <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
+		</select>
+	</div>
+	<div class="col l2 m6 s12" *ngIf="subscriptionType == 'free'">
+		<select class="bulk-manage">
+			<option value="0" selected>Manage Action</option>
+			<option value="archive" >Archive selected</option>
 		</select>
 	</div>
 </div>

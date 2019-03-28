@@ -375,7 +375,7 @@ export class LocationAccountRelation extends BaseClass {
             ${userIdQuery} 
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
             AND l.archived = ${archived}
-        `;
+        `; 
         this.pool.getConnection((err, connection) => {
             connection.query(sqlGetIds,  (error, idResults) => {
                 if(error) {
