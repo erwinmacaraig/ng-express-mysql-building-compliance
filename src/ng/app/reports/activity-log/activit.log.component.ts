@@ -61,7 +61,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
 		) {
 
         this.userData = this.authService.getUserData();
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        
        
 	}
 
@@ -86,7 +86,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
                 }
                 this.activityLogs = response.data;
                 this.dashboardService.hide();
-
+                this.subscriptionType = this.userData['subscription']['subscriptionType'];
                 // this.generateReportDataForExport();
             });
 
@@ -99,6 +99,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         this.print = new PrintService({
             content : this.printContainer.nativeElement.outerHTML
         });
+        
     }
 
     generateReportDataForExport(){

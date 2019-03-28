@@ -62,7 +62,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         ) {
 
         this.userData = this.authService.getUserData();
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        
     }
 
     getTeamReport(callBack, forExport?) {
@@ -107,7 +107,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                 }
 
                 this.totalCountResult = response.pagination.total;
-
+                this.subscriptionType = this.userData['subscription']['subscriptionType'];
                 this.dashboardPreloader.hide();
 
                 // this.generateReportDataForExport();

@@ -54,7 +54,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 		) {
 
 		this.userData = this.authService.getUserData();
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
 			this.locationId = this.encryptDecrypt.decrypt( params.locationId );
 			this.getStatementOfComplianceReport();
@@ -62,7 +62,10 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 
 	}
 
-	ngOnInit(){ }
+	ngOnInit(){
+
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+    }
 
 	ngAfterViewInit(){ }
 

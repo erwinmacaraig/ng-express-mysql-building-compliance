@@ -60,8 +60,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
         private messageService: MessageService,
         private encryptDecrypt: EncryptDecryptService
         ) {
-        this.userData = this.auth.getUserData();
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        this.userData = this.auth.getUserData();        
         this.usersImageURL = 'assets/images/camera_upload_hover.png';
         const role = this.auth.getHighestRankRole();
         if(this.userData.evac_role == 'admin'){
@@ -82,6 +81,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
         this.username = this.userData['name'];
         this.usersInitial = this.getInitials(this.username);
         this.userRoles = this.userData['roles'];
