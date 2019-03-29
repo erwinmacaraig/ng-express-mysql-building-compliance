@@ -1101,15 +1101,17 @@ export class User extends BaseClass {
                 innerSqlFrpTrp = `
                     UNION
                     SELECT
-                    location_account_user.user_id,
+                    users.user_id,
                     IF(location_account_relation.responsibility='Manager', 1, 2) AS role_id,
                     IF(location_account_relation.responsibility='Manager', 'FRP', 'TRP') AS role_name,
                     location_account_user.location_id
-                    FROM location_account_user INNER JOIN users 
-                    ON users.account_id = location_account_user.account_id
+                    FROM users INNER JOIN location_account_user
+                    ON users.user_id = location_account_user.user_id
                     INNER JOIN location_account_relation
-                    ON location_account_relation.location_id = location_account_user.location_id
-                    WHERE location_account_user.location_id IN (${locationIds}) GROUP BY location_account_user.user_id`;
+                    ON location_account_relation.account_id = users.account_id
+                    WHERE location_account_user.location_id IN (${locationIds})
+                    GROUP BY location_account_user.location_account_user_id
+                    `;
                 // console.log(innerSqlFrpTrp);
                 if(config['eco_only']){ innerSqlFrpTrp = ''; }
 
@@ -1171,7 +1173,7 @@ export class User extends BaseClass {
                 ${limitSql}
                 `;
                 
-                //console.log(sql_load);
+                // console.log(sql_load);
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log(sql_load);
