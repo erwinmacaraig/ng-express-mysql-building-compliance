@@ -51,6 +51,10 @@
     padding: 40px;
 }
 
+.certificate-container {
+    padding: 0px 30px;
+}
+
 .box-container .box{
     padding: 20px;
     width: 270px;
@@ -275,7 +279,7 @@ div.total_modules_completed_text {
 
 .myskill-container{
     margin-bottom: 20px;
-    min-height: 200px;
+    /*min-height: 200px;*/
 }
 
 .myskill-container h5{
@@ -294,6 +298,10 @@ div.total_modules_completed_text {
     display: inline-block;
     background-size: 670%;
     margin-right: 10px;
+}
+
+.training-status-container {
+    margin: 35px 0px 0px 0px;
 }
 
 .training-status-container h5{
@@ -482,3 +490,67 @@ div.role-name {
     position: absolute;
     bottom: 10px;
   }
+
+  .mid-nav{
+    border-bottom: 1px solid #cacaca;
+    padding-left: 5px;
+    margin-bottom: 20px;  
+}
+
+.mid-nav ul{
+    margin: 0px;
+}
+
+.mid-nav ul li{
+    text-align: left;
+    border-bottom: 1px solid #cacaca;
+    display: inline-block;
+    margin-right: 30px;
+    padding: 15px 0px !important;
+    margin-bottom: -1px;
+    color: #383838;
+    font-size: 18px;
+    transition: 0.5s all;
+}
+
+.mid-nav ul li:hover{
+    border-bottom: 1px solid #39a1ff !important;
+    cursor: pointer;
+    color: #39a1ff !important;
+}
+
+.mid-nav ul li:focus{
+    outline: none;
+}
+
+.mid-nav ul li:hover{
+    cursor: pointer;
+}
+
+.mid-nav ul li.active{
+    color: #39a1ff !important;
+    border-bottom: 1px solid #39a1ff !important;
+}
+
+table thead tr th{
+	background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+	border: 1px solid #ddd;
+	font-size: 14px;
+}
+
+table tfoot td{
+	padding: 0px;
+}
+
+table tr td .text{
+    display: inline-block;
+}

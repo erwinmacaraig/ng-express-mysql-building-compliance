@@ -9,6 +9,10 @@ import * as moment from 'moment';
 import { Course } from '../models/course.model';
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { Scorm } from '../models/scorm.model';
+import { TrainingCertification } from '../models/training.certification.model';
+import { TrainingRequirements } from '../models/training.requirements';
+import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
+
 
 export class LMSRoute extends BaseRoute {
   constructor() {
@@ -35,6 +39,15 @@ export class LMSRoute extends BaseRoute {
       });
     });
 
+    router.post('/lms/initLearningModule/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+      new LMSRoute().initializeLearning(req, res, next);
+    });
+
+    router.post('/lms/loadUserTrainingModule/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+      new LMSRoute().loadUserTrainingModule(req, res, next);
+    });
+
+
     router.get('/lms/getParameter', (req: Request, res: Response, next: NextFunction) => {
       const scorm = new Scorm();
       scorm.getDataModelVal(req.query.relation, req.query.param).then((param) => {
@@ -47,39 +60,52 @@ export class LMSRoute extends BaseRoute {
       });
     });
 
-    router.post('/lms/setParameterValue/', (req: Request, res: Response, next: NextFunction) => {
+    router.post('/lms/setParameterValue/', async (req: Request, res: Response, next: NextFunction) => {
       const scorm = new Scorm();
-      scorm.setDataModelVal(req.body.relation, 'last_accessed', moment().format('YYYY-MM-DD HH:mm:ss')).then((data) => {
+      // console.log(req.body);
+      scorm.setDataModelVal(req.body.relation, 'last_accessed', moment().format('YYYY-MM-DD HH:mm:ss'));
+      scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value);
+      if (req.body.param == 'cmi.core.lesson_status' && (req.body.value == 'completed' || req.body.value == 'passed')) { 
+        const userToTrainingModuleRelation = new UserTrainingModuleRelation(req.body.relation);                
+        const userTrainingModuleData = await userToTrainingModuleRelation.load();
+        userTrainingModuleData['completed'] = 1;
+        userTrainingModuleData['dtCompleted'] = moment().format('YYYY-MM-DD');
+        await userToTrainingModuleRelation.create(userTrainingModuleData);
+        const trainingRqmtObj = new TrainingRequirements(userTrainingModuleData['training_requirement_id']);
+        scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
+        scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
+        /*check the completion of the whole training requirement */
+        const requirementModules = await trainingRqmtObj.getTrainingModulesForRequirement();
+        //********* DEBUG CODE ********* */
+        //console.log('requirementModules', requirementModules);
+        let completed = 0;
+        // retrieve user modules
+        const availableUserTrainingModules = await userToTrainingModuleRelation.trainingRequirementModuleStatuses(userTrainingModuleData['user_id'], userTrainingModuleData['training_requirement_id']); 
+        //********* DEBUG CODE ********* */
+        //console.log('availableUserTrainingModules', availableUserTrainingModules);
         
-      });
-      scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value).then((data) => {
-        // Scorm 1.1 and Scorm 1.2
-        // console.log(req.body);
-        if (req.body.param == 'cmi.core.lesson_status' && (req.body.value == 'completed' || req.body.value == 'passed')) {
-          const courseUserRelObj = new CourseUserRelation(req.body.relation);
-          courseUserRelObj.updateUserTrainingCourseCertificate().then((result) => {
-            console.log('Update certification');
-            scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
-            scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
-            return res.status(200).send({
-              'status': true
-            });
-          }).catch((e) => {
-            console.log(e);
-            return res.status(200).send({
-              'status': true
-            });
-          });
-
-        } else {
-          return res.status(200).send({
-            'status': true
+        // cross reference
+        for ( let mod of requirementModules ) {
+          for(let userModule of availableUserTrainingModules) {
+            if (mod['training_module_id'] == userModule['training_module_id'] && userModule['completed'] == 1) {
+              completed++;
+              break;
+            }
+          }
+        }
+        if (requirementModules.length == completed) {
+          const trainingCertObj = new TrainingCertification();
+          await trainingCertObj.checkAndUpdateTrainingCert({
+            'training_requirement_id': userTrainingModuleData['training_requirement_id'],
+            'user_id': userTrainingModuleData['user_id']
           });
         }
-      }).catch((e) => {
-        return res.status(400).send({
-          'status': false
-        });
+        
+        // console.log('TOTAL COMPLETED: ' + completed);
+        
+      }
+      return res.status(200).send({
+        'status': true
       });
     });
 
@@ -107,6 +133,19 @@ export class LMSRoute extends BaseRoute {
       });
     });
 
+    router.post('/lms/logoutModule', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response) => {
+      const scorm = new Scorm();
+      scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
+      const status = await scorm.getDataModelVal(req.body.relation,'cmi.core.lesson_status'); 
+      if (status == 'completed' || status == 'passed') {
+        scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
+      }
+      return res.status(200).send({
+        lesson_status: status
+      });
+
+    });
+
   } // end of create
 
   public async initializeLRS(req, res, next) {
@@ -125,5 +164,73 @@ export class LMSRoute extends BaseRoute {
     await scorm.init(relation);
     return courseData;
   } // end initializeLRS
+
+  public loadUserTrainingModule(req: AuthRequest, res: Response, next: NextFunction) {
+    const scorm = new Scorm();
+    scorm.initModule(req.body.user_training_module_relation_id)
+    .then((data) => {
+      return res.status(200).send({'message': 'Successful', 'status': data});
+    }).catch((e) => {
+      console.log('lms route method loadUserTrainingModule', e);
+      return res.status(200).send({'message': 'Fail', 'status': false});
+    });
+
+  }
+  
+  public async initializeLearning(req: AuthRequest, res: Response, next: NextFunction) {
+    const userTrainingModuleRelationObj = new UserTrainingModuleRelation();
+    const loginUserId = req.user.user_id;
+    const postedUserId = req.body.user_id;
+    const trainingReqId = req.body.tr_id;
+    const module_id = req.body.module_id;
+    let userTrainingModuleRelationId = 0;
+    const scorm = new Scorm();
+
+    if (loginUserId != postedUserId) {
+      res.status(400).send({
+        message: 'You are not allowed to load this module'
+      });
+    }
+    try {
+      await userTrainingModuleRelationObj.create({
+        training_requirement_id: trainingReqId,
+        user_id: loginUserId,
+        training_module_id: module_id
+      });
+      if (req.body.user_training_module_relation_id) {
+        userTrainingModuleRelationId = req.body.user_training_module_relation_id;
+      } else {
+        userTrainingModuleRelationId = await userTrainingModuleRelationObj.userTrainingModuleRelationId(loginUserId, trainingReqId, module_id);
+      } 
+      /*
+      return res.status(200).send({
+        message: 'Success',
+        user_training_module_relation_id:userTrainingModuleRelationId 
+      })
+      */
+      
+    } catch(e) {
+      console.log('lms route, calling initializeLearning method', e);
+      return res.status(400).send({
+        message: 'There was a problem retrieving user training module from the server'
+      });
+    }
+
+    try {
+      await scorm.initModule(userTrainingModuleRelationId);
+      return res.status(200).send({
+        message: 'Success',
+        user_training_module_relation_id: userTrainingModuleRelationId  
+      });
+    } catch(e) {
+      console.log('Cannot initialize learning record store at lms route initializeLearning', e);
+      return res.status(400).send({
+        message: 'Fail. Cannot initialize learning record store'        
+      });
+    }
+
+  }
+
+
 
 } // end of class

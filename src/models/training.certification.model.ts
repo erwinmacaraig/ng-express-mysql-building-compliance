@@ -718,4 +718,50 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
+  public userCertificates(userId=0, trid?): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      let trClause = '';
+      const params = [userId];
+      if (trid) {
+        trClause = ` AND certifications.training_requirement_id = ?`;
+        params.push(trid);
+      }
+      const sql = `SELECT
+                      certifications.certifications_id,
+                      certifications.training_requirement_id,
+                      certifications.course_method,
+                      IF (certifications.course_method='online_by_evac', 'Online Training', 'Face to Face Training') AS training_type,
+                      certifications.certification_date,
+                      training_requirement.training_requirement_name
+                  FROM 
+                    certifications
+                  INNER JOIN
+                    training_requirement
+                  ON
+                    certifications.training_requirement_id = training_requirement.training_requirement_id
+                  WHERE
+                    certifications.user_id = ?
+                  AND
+                    certifications.pass = 1
+                  ${trClause}
+                  ORDER BY certifications.certifications_id DESC`;
+      
+      
+      this.pool.getConnection((err, connection) => {
+        if (err) {
+          throw new Error(err);
+        }
+
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log('cannot execute userCertificates', sql, params);
+            throw new Error('cannot query certifications');
+          }
+          resolve(results);
+        });
+        connection.release();
+      });
+    });
+  }
+
 }

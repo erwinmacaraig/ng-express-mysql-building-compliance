@@ -352,7 +352,8 @@ export class UserService {
 			message: string,
 			userInfoTraining: Array<object>,
 			userInfoOtherTraining: Array<object>,
-			emRolesLocation: Array<object>
+			emRolesLocation: Array<object>,
+			certificates: Array<object>
 		}>(this.baseUrl + '/users/all-training-info', this.options);
 	}
 

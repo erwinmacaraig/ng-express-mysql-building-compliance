@@ -508,6 +508,7 @@ export class UsersRoute extends BaseRoute {
             user_id: userId,
             distinct: 'em_role_id' 
         });
+
         const myEmRoleIds = (emRolesInfoArr[0] as Array<number>);
 
         // get locations for em roles
@@ -567,7 +568,7 @@ export class UsersRoute extends BaseRoute {
 
 
 
-        
+        let certification = [];
         for (let em_role_id of myEmRoleIds) {
             userTrainingInfoObj = {
                 em_role_id: em_role_id,
@@ -595,6 +596,8 @@ export class UsersRoute extends BaseRoute {
                         expiry = '';
                     }
                 }
+                
+                
                 userTrainingInfoObj['training_requirement'].push({
                     ...tr,
                     expiry: expiry,
@@ -643,16 +646,19 @@ export class UsersRoute extends BaseRoute {
                 modules: mods_misc
             });
         }
+        // get certifications
+        const certObj = new TrainingCertification();                        
+        const certificates = await certObj.userCertificates(userId);
+        
         // cross reference if these misc modules were already completed
-
-
         // get completed modules
 
         res.status(200).send({
             message: 'Success',
             userInfoTraining: userTrainingInfoArr,
             userInfoOtherTraining: otherTrainings,
-            emRolesLocation: designatedEMRoleLocations 
+            emRolesLocation: designatedEMRoleLocations,
+            certificates: certificates
         });
                 
 

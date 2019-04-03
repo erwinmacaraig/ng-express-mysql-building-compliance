@@ -42,6 +42,8 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     public isWardenTrainingValid = 0;
     public isEnrolledInRewardProgram = false;
     public totalRewardPoints = 0;
+    public activeHistoryTab = false;
+    public certificates = [];
 
     public constructor(
         private dashboardService : DashboardPreloaderService,
@@ -51,7 +53,7 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
         private complianceService : ComplianceService,
         private adminService : AdminService,
         private authService : AuthService,
-        private sanitizer: DomSanitizer,
+        private sanitizer: DomSanitizer,        
         private platformLocation: PlatformLocation,
     ){
         this.baseUrl = (platformLocation as any).location.origin;
@@ -79,6 +81,8 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
                     this.emRolesLocations.push(loc);
                 }
             }
+
+            this.certificates = response.certificates;
 
             this.userInfoOtherTraining = response.userInfoOtherTraining['training_requirement'];
             for (let roles of this.userTrainingInfo) {
