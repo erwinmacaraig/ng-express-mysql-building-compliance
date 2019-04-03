@@ -575,7 +575,8 @@ export class UsersRoute extends BaseRoute {
                 role_name:  trainingReqmtObj[em_role_id.toString()]['role_name'],
                 training_requirement: [],
                 active_training: [],
-                role_training_status: 'non-compliant' // as of Feb 2, 2019 we assume that there is only one training requirement for a role
+                role_training_status: 'non-compliant', // as of Feb 2, 2019 we assume that there is only one training requirement for a role
+                expiry: '' // as of April 3, 2019, since we assume that there is only one training requirement for a role
             };
             let missingRequiredTrainingsIdArr = [];
             let status = 'non-compliant';
@@ -591,7 +592,8 @@ export class UsersRoute extends BaseRoute {
                 else {
                     try {
                         temp = await new TrainingCertification().getActiveCertificate(userId, tr['training_requirement_id']);
-                        expiry = temp[0]['expiry_date'];
+                        expiry = temp[0]['expiry_date']; // if there comes a time that one role will have more than one training requirement
+                        userTrainingInfoObj['expiry'] = expiry; // just assign it here
                     } catch(e) {
                         expiry = '';
                     }

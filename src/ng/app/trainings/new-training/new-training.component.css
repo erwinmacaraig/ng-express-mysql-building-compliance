@@ -102,7 +102,7 @@
     position: absolute;
     right: 20px;
     top: 20px;
-    width: 30px;
+    width: 31px;
     height: 30px;
 }
 
@@ -123,8 +123,13 @@
 }
 
 .locked .icon-right{
+    /*
     background-size: 2500%;
     background-position: 56% 86%;
+    */
+    background-image: url('/assets/images/expired_icon.png');
+    background-repeat: no-repeat;
+    background-size: cover;
 }
 
 .unlocked .icon-right{
@@ -310,7 +315,7 @@ div.total_modules_completed_text {
 }
 
 .training-status-container .role-list-container{
-    margin: 10px 0px;
+    margin: 25px 0px;
 }
 
 .reward-list-container .reward-icon {
@@ -384,13 +389,15 @@ div.role-name {
 }
 
 .compliant-container{
-    width: 150px;
+    width: 250px;
     display: inline-block;
+    margin: 8px 0px;
 }
 
 .redeem-container {
     width: 150px;
     display: inline-block;
+    margin: 5px 0px;
 }
 
 .compliant-container .image{
@@ -416,14 +423,17 @@ div.role-name {
     color: #1f9e25;
 }
 
+/*
 .compliant-container.non-compliant .text:after{
     content: 'Non-Compliant';
 }
+*/
 
+/*
 .compliant-container.compliant .text:after{
     content: 'Compliant';
 }
-
+*/
 .compliant-container.non-compliant .image{
     background-image: url('/assets/images/expired_icon.png');
     background-repeat: no-repeat;
