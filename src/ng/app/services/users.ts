@@ -353,7 +353,11 @@ export class UserService {
 			userInfoTraining: Array<object>,
 			userInfoOtherTraining: Array<object>,
 			emRolesLocation: Array<object>,
-			certificates: Array<object>
+			certificates: Array<object>,
+			myEmRoleIds: Array<object>,
+			overWriteNonWardenRoleTrainingModules: boolean,
+			isWardenRoleArray: Array<number>,
+			nonWardenRolesArray: Array<number>
 		}>(this.baseUrl + '/users/all-training-info', this.options);
 	}
 

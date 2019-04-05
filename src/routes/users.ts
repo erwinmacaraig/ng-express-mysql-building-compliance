@@ -621,7 +621,9 @@ export class UsersRoute extends BaseRoute {
                     userTrainingInfoObj['training_requirement'].push({
                         ...tr,
                         modules: [],
-                        status: status
+                        status: status,
+                        total_modules: (trainingRequirementModules[tr['training_requirement_id']]['modules'] as Array<object>).length, 
+                        total_completed_modules: 0
                     }); 
                 } else {
                     userTrainingInfoObj['training_requirement'].push({
@@ -631,6 +633,7 @@ export class UsersRoute extends BaseRoute {
                         status: status
                     });
                 }
+                
                 
                  
             }
@@ -713,13 +716,17 @@ export class UsersRoute extends BaseRoute {
                 }
             }
         }
-
+        
         res.status(200).send({
             message: 'Success',
             userInfoTraining: userTrainingInfoArr,
             userInfoOtherTraining: otherTrainings,
             emRolesLocation: designatedEMRoleLocations,
-            certificates: certificates
+            certificates: certificates,
+            myEmRoleIds: myEmRoleIds,
+            overWriteNonWardenRoleTrainingModules: overWriteNonWardenRoleTrainingModules,
+            isWardenRoleArray: isWardenRoleArray,
+            nonWardenRolesArray: nonWardenRolesArray
         });
                 
 

@@ -44,6 +44,11 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     public totalRewardPoints = 0;
     public activeHistoryTab = false;
     public certificates = [];
+    public overWriteNonWardenRoleTrainingModules;
+    public isWardenRoleArray = [];
+    public nonWardenRolesArray = [];
+    public myEmRoleIds = [];
+    public incorporatedTrainingText = '';
     public sub: Subscription;
     
     public constructor(
@@ -90,12 +95,17 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
             }
 
             this.certificates = response.certificates;
+            this.overWriteNonWardenRoleTrainingModules = response.overWriteNonWardenRoleTrainingModules;
+            this.isWardenRoleArray = response.isWardenRoleArray;
+            this.nonWardenRolesArray = response.nonWardenRolesArray;
+
             const moduleIds = [];
             this.userInfoOtherTraining = response.userInfoOtherTraining['training_requirement'];
             for (let roles of this.userTrainingInfo) {
                 roles['completed'] = 0;
                 roles['total_modules'] = 0;
                 roles['percent_status'] = 0;
+                roles['inc_text'] = '';
                 if ( (roles['em_role_id'] == 9 ||
                       roles['em_role_id'] == 10 ||
                       roles['em_role_id'] == 11 ||
@@ -103,9 +113,19 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
                       roles['em_role_id'] == 16 ||
                       roles['em_role_id'] == 18 ) && roles['role_training_status'] == 'compliant') {
                     this.isWardenTrainingValid = 1;
+                }
+                
+                if (this.overWriteNonWardenRoleTrainingModules && this.nonWardenRolesArray.indexOf(roles['em_role_id']) != -1) {
+                    roles['inc_text'] = `This training is incorported below`;
                 }                
-                for (let trainingRqmt of roles['training_requirement'] ) {
+                for (let trainingRqmt of roles['training_requirement'] ) {                    
                     roles['total_modules'] = (trainingRqmt['modules'] as Array<object>).length;
+                    if ('total_modules' in trainingRqmt) {
+                        roles['total_modules'] = trainingRqmt['total_modules'];
+                    }
+                    if ('total_completed_modules' in trainingRqmt) {
+                        roles['completed'] = trainingRqmt['total_completed_modules'];
+                    }
                     console.log('training requirement', trainingRqmt);
                     for (let trainingReqmtModules of trainingRqmt['modules']) {
 

@@ -11,6 +11,7 @@
                 -->
                 <div class="myskill-container">
                     <h5 style="color: #ff9800;">My Skills</h5>
+                    <span>Complete each training module to earn badge</span>
                     <div class="badges">
                         <ng-container *ngFor="let module of allTrainingModules">
                             <div *ngIf=" module['completed'] == 1"
@@ -124,81 +125,62 @@
                     </ul>
                 </div>
             </div>
-        </div>       
-        <div class="box-container" *ngIf="activeHistoryTab==false">
-            <div *ngFor="let module of allTrainingModules" class="module-container">
-                <div
-                    [ngClass]="{'box': true,
-                                'center': true,
-                                'check': module['completed'] == 1,                                
-                                'locked': module['disabled'] || !has_online_training || !module['completed']
-                            }"> <!-- 'unlocked': !module['completed'] && !module['disabled'] && has_online_training,-->
-                    <div class="icon-right"></div>
-    
-                    <div class="image-container">
-                        <div 
-                            [ngClass]="{ 'image': true,
-                                     'badge-1': module['logo'] == 'badge-1',
-                                     'badge-2': module['logo'] == 'badge-2',
-                                     'badge-3': module['logo'] == 'badge-3',
-                                     'badge-4': module['logo'] == 'badge-4',
-                                     'badge-5': module['logo'] == 'badge-5',
-                                     'badge-6': module['logo'] == 'badge-6'
-                                   }">
-                        </div>
-                    </div>
-                    <!--<p class="blue-text module">{{module['module_subname']}}</p>-->
-    
-                    <h4 class="center title title-padding">
-                        {{module['module_name']}}
-                    </h4>
-                    <div class="button-container" *ngIf="!module['disabled']">
-                        <button *ngIf="!module.hasOwnProperty('completed')" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn orange">Take Training</button>
-                        <button *ngIf="module.hasOwnProperty('completed') && module['completed'] == 0" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn orange">Continue Training</button>
-                        <button *ngIf="module['completed'] == 1" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn blue">Re-take Training</button>
-                    </div>
-                    <!--<p *ngIf="module['expiry']" class="blue-text bottom-text">Training expiration {{module['expiry'] | date: 'MM/dd/yy'}}</p>-->
-        
-                </div>
-            </div>
-            <div *ngFor="let module of allMiscModules" class="module-container">
-                <div
-                    [ngClass]="{'box': true,
-                                'center': true,
-                                'check': module['completed'] == 1,
-                                'unlocked': !module['completed'],
-                                'locked': module['disabled'] 
-                            }">
-                    <div class="icon-right"></div>
-    
-                    <div class="image-container">
-                        <div 
-                            [ngClass]="{ 'image': true,
-                                         'badge-1': module['logo'] == 'badge-1',
-                                         'badge-2': module['logo'] == 'badge-2',
-                                         'badge-3': module['logo'] == 'badge-3',
-                                         'badge-4': module['logo'] == 'badge-4',
-                                         'badge-5': module['logo'] == 'badge-5',
-                                         'badge-6': module['logo'] == 'badge-6'
-                                       }">
-                        </div>
-                    </div>
-                    <p class="blue-text module">{{module['module_subname']}}</p>
-    
-                    <h4 class="center title">
-                        {{module['module_name']}}
-                    </h4>
-                    <div class="button-container" *ngIf="!module['disabled']">
-                        <button type="button" (click)="loadTrainingModule(module)" class="btn orange">Take Training</button>
-                    </div>
-                    
-    
-                    <p *ngIf="module['expiry']" class="blue-text bottom-text">Training expiration {{module['expiry'] | date: 'MM/dd/yy'}}</p>
-        
-                </div>
-            </div>
-
         </div>
+        <div *ngIf="activeHistoryTab==false">
+            <div class="row" *ngFor="let roles of userTrainingInfo">
+                <div class="col l12 m12 s12">
+                    <div style="padding: 0% 2%;">
+                        <h5>{{roles['role_name']}}</h5>
+                        <h6 style="color:#39a1ff ;" *ngIf="roles['inc_text'].length > 0">{{roles['inc_text']}}</h6>
+                    </div>                    
+                </div>
+                <div class="col l12 m12 s12">                    
+                    <ng-container *ngFor="let trainingRqmt of roles['training_requirement']">
+                        <div class="box-container" *ngIf="trainingRqmt['modules'].length > 0">
+                            <ng-container *ngFor="let module of trainingRqmt['modules']">                            
+                                <div class="module-container">
+                                    <div
+                                        [ngClass]="{'box': true,
+                                                    'center': true,
+                                                    'check': module['completed'] == 1,                                
+                                                    'locked': module['disabled'] || !has_online_training || !module['completed']
+                                                }"> <!-- 'unlocked': !module['completed'] && !module['disabled'] && has_online_training,-->
+                                        <div class="icon-right"></div>
+                        
+                                        <div class="image-container">
+                                            <div 
+                                                [ngClass]="{ 'image': true,
+                                                            'badge-1': module['logo'] == 'badge-1',
+                                                            'badge-2': module['logo'] == 'badge-2',
+                                                            'badge-3': module['logo'] == 'badge-3',
+                                                            'badge-4': module['logo'] == 'badge-4',
+                                                            'badge-5': module['logo'] == 'badge-5',
+                                                            'badge-6': module['logo'] == 'badge-6'
+                                                        }">
+                                            </div>
+                                        </div>
+                                        <!--<p class="blue-text module">{{module['module_subname']}}</p>-->
+                        
+                                        <h4 class="center title title-padding">
+                                            {{module['module_name']}}
+                                        </h4>
+                                        <div class="button-container" *ngIf="!module['disabled']">
+                                            <button *ngIf="!module.hasOwnProperty('completed')" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn orange">Take Training</button>
+                                            <button *ngIf="module.hasOwnProperty('completed') && module['completed'] == 0" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn orange">Continue Training</button>
+                                            <button *ngIf="module['completed'] == 1" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn blue">Re-take Training</button>
+                                        </div>
+                                        <!--<p *ngIf="module['expiry']" class="blue-text bottom-text">Training expiration {{module['expiry'] | date: 'MM/dd/yy'}}</p>-->
+                            
+                                    </div>
+                                </div>                            
+                            </ng-container>
+                        </div>                            
+                    </ng-container>
+                </div>
+            </div>
+        </div>
+        
+        
         <div *ngIf="activeHistoryTab==true" class="certificate-container">
             <table class="table striped">
                 <thead>
