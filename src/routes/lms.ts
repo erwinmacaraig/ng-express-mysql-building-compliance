@@ -14,6 +14,7 @@ import { TrainingRequirements } from '../models/training.requirements';
 import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 
+
 export class LMSRoute extends BaseRoute {
   constructor() {
     super();
@@ -94,12 +95,43 @@ export class LMSRoute extends BaseRoute {
           }
         }
         if (requirementModules.length == completed) {
-          const trainingCertObj = new TrainingCertification();
+          let trainingCertObj = new TrainingCertification();
           await trainingCertObj.checkAndUpdateTrainingCert({
             'training_requirement_id': userTrainingModuleData['training_requirement_id'],
             'user_id': userTrainingModuleData['user_id']
+          });          
+          trainingCertObj = null;
+          let emroles = new UserEmRoleRelation();
+          const emRolesInfoArr = await emroles.getEmRolesFilterBy({
+              user_id: userTrainingModuleData['user_id'],
+              distinct: 'em_role_id' 
           });
+          const myEmRoleIds = (emRolesInfoArr[0] as Array<number>);
+          let gofr_trid = 0;
+          if (myEmRoleIds.indexOf(8) != -1) {
+            // Get training requirement for GOFR 
+            const data = await trainingRqmtObj.allEmRolesTrainings();
+            for (let dref of data) {
+              if (dref['em_role_id'] == 8) {
+                gofr_trid = dref['training_requirement_id'];
+                break;
+              }
+            }
+            trainingCertObj = new TrainingCertification();
+            await trainingCertObj.checkAndUpdateTrainingCert({
+              'training_requirement_id': gofr_trid,
+              'user_id': userTrainingModuleData['user_id']
+            });
+
+
+            }
+
         }
+
+       
+
+
+
         
         // console.log('TOTAL COMPLETED: ' + completed);
         
@@ -193,19 +225,6 @@ export class LMSRoute extends BaseRoute {
       });
     }
     // check user if he/she has both warden and gofr role
-    /*
-    const userEMRolesArr = await userEMRoleObj.getEmRolesByUserId(loginUserId, 0, true);
-    const trids = [];
-    if (userEMRolesArr.length > 1) {
-      const trainingReqmtArr = await new TrainingRequirements().allEmRolesTrainings();
-      for (let tr of trainingReqmtArr) {
-        for (let role of userEMRolesArr) {
-
-        }
-      }
-
-    }
-    */
 
     try {
       await userTrainingModuleRelationObj.create({

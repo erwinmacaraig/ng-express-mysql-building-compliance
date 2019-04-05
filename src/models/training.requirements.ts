@@ -42,7 +42,7 @@ export class TrainingRequirements extends BaseClass {
             for(let i in arrWhere){
                 if( count == 0 ){
                     sql += ' WHERE '+arrWhere[i];
-                }else{
+                } else{
                     sql += ' AND '+arrWhere[i];
                 }
 
