@@ -3,7 +3,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { AuthRequest } from '../interfaces/auth.interface';
 
-import * as fs from 'fs';
+
 import * as moment from 'moment';
 
 import { Course } from '../models/course.model';
@@ -12,7 +12,7 @@ import { Scorm } from '../models/scorm.model';
 import { TrainingCertification } from '../models/training.certification.model';
 import { TrainingRequirements } from '../models/training.requirements';
 import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
-
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 
 export class LMSRoute extends BaseRoute {
   constructor() {
@@ -135,7 +135,7 @@ export class LMSRoute extends BaseRoute {
 
     router.post('/lms/logoutModule', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response) => {
       const scorm = new Scorm();
-      scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
+      // scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
       const status = await scorm.getDataModelVal(req.body.relation,'cmi.core.lesson_status'); 
       if (status == 'completed' || status == 'passed') {
         scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
@@ -185,12 +185,28 @@ export class LMSRoute extends BaseRoute {
     const module_id = req.body.module_id;
     let userTrainingModuleRelationId = 0;
     const scorm = new Scorm();
+    const userEMRoleObj = new UserEmRoleRelation();
 
     if (loginUserId != postedUserId) {
       res.status(400).send({
         message: 'You are not allowed to load this module'
       });
     }
+    // check user if he/she has both warden and gofr role
+    /*
+    const userEMRolesArr = await userEMRoleObj.getEmRolesByUserId(loginUserId, 0, true);
+    const trids = [];
+    if (userEMRolesArr.length > 1) {
+      const trainingReqmtArr = await new TrainingRequirements().allEmRolesTrainings();
+      for (let tr of trainingReqmtArr) {
+        for (let role of userEMRolesArr) {
+
+        }
+      }
+
+    }
+    */
+
     try {
       await userTrainingModuleRelationObj.create({
         training_requirement_id: trainingReqId,

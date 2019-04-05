@@ -39,8 +39,9 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getEmRolesByUserId(userId, archived?): Promise<Array<object>> {
+    public getEmRolesByUserId(userId, archived?, group?): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
+        let groupClause = ` GROUP BY uer.em_role_id`;
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -50,17 +51,12 @@ export class UserEmRoleRelation extends BaseClass {
                       er.em_roles_id,
                       l.name as location_name,
                       l.name,
-                      l.parent_id,
-                      l.formatted_address,
-                      l.google_place_id,
-                      l.google_photo_url,
-                      l.is_building,
-                      l.admin_verified,
-                      l.archived
+                      l.parent_id,                      
+                      l.is_building
                     FROM user_em_roles_relation uer
                     INNER JOIN em_roles er  ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
-                    WHERE uer.user_id = ? AND l.archived = ${archived}`;
+                    WHERE uer.user_id = ? AND l.archived = ${archived} ${groupClause}`;
             const uid = [userId];
 
             this.pool.getConnection((err, connection) => {
@@ -127,7 +123,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getEmRoles() {
+    public getEmRoles(): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM em_roles`;
             this.pool.getConnection((err, connection) => {
@@ -137,9 +133,8 @@ export class UserEmRoleRelation extends BaseClass {
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         return console.log(error);
-                    }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    }                    
+                    resolve(results);
                 });
                 connection.release();
             });

@@ -249,7 +249,7 @@ export class TrainingRequirements extends BaseClass {
         }
         
         return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ?`;
+            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ? ORDER BY training_module.order`;
             this.pool.getConnection((err, connection) => {
                 if (err) {
                     throw new Error();
@@ -263,7 +263,6 @@ export class TrainingRequirements extends BaseClass {
                     resolve(results);
                 });
                 connection.release();
-
             });
         });
     }

@@ -473,7 +473,7 @@ export class UsersRoute extends BaseRoute {
         let userRoleModel;
         let userTrainingInfoArr = [];
         let requiredTrainingRequirementIdsArr = [];
-       
+        let overWriteNonWardenRoleTrainingModules = false;
         let trainingRequirementModules = {};
         let miscTrainings = [];
         let userTrainingInfoObj = {};
@@ -503,13 +503,30 @@ export class UsersRoute extends BaseRoute {
                 console.log(e, 'allTrainingInfo');
             }
         }
+        const isWardenRoleArray = [];
+        const nonWardenRolesArray = [];
+        const emergencyRolesArray = await emroles.getEmRoles();
+        for (let em of emergencyRolesArray) {
+            if (em['is_warden_role'] == 1) {
+                isWardenRoleArray.push(em['em_roles_id']);
+            } else {
+                nonWardenRolesArray.push(em['em_roles_id']);
+            }
+        }
+
 
         const emRolesInfoArr = await emroles.getEmRolesFilterBy({
             user_id: userId,
             distinct: 'em_role_id' 
         });
 
-        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>);
+        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); 
+
+        for (let em of myEmRoleIds) {
+            if (isWardenRoleArray.indexOf(em)  != -1) {
+                overWriteNonWardenRoleTrainingModules = true;
+            }
+        }
 
         // get locations for em roles
         const designatedEMRoleLocations = await emroles.getLocationsByUserIds(userId, (emRolesInfoArr[1] as Array<number>).join(','));
@@ -582,6 +599,7 @@ export class UsersRoute extends BaseRoute {
             let status = 'non-compliant';
             missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
             requiredTrainingRequirementIdsArr.push(trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
+            
             // although we assume one training requirement for a role, for scability and future requirements that is why I iterated 
             for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
                 status = 'compliant';
@@ -599,17 +617,29 @@ export class UsersRoute extends BaseRoute {
                     }
                 }
                 
+                if (nonWardenRolesArray.indexOf(em_role_id) != -1 && overWriteNonWardenRoleTrainingModules) {
+                    userTrainingInfoObj['training_requirement'].push({
+                        ...tr,
+                        modules: [],
+                        status: status
+                    }); 
+                } else {
+                    userTrainingInfoObj['training_requirement'].push({
+                        ...tr,
+                        expiry: expiry,
+                        modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
+                        status: status
+                    });
+                }
                 
-                userTrainingInfoObj['training_requirement'].push({
-                    ...tr,
-                    expiry: expiry,
-                    modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
-                    status: status
-                }); 
+                 
             }
             userTrainingInfoObj['role_training_status'] = status;
             userTrainingInfoArr.push(userTrainingInfoObj);
         }
+
+
+
 
         // load trainings not related to the role 
         miscTrainings = await new UserTrainingModuleRelation().listMiscTraining(userId, requiredTrainingRequirementIdsArr); 
@@ -654,6 +684,35 @@ export class UsersRoute extends BaseRoute {
         
         // cross reference if these misc modules were already completed
         // get completed modules
+
+        // cross reference completed modules against the pre-requisites
+        const completedModulesId = [];
+        for (let req of userTrainingInfoArr) {
+            for (let training of req['training_requirement']) {
+                for (let module of training['modules']) {
+                    if (module['completed']) {
+                        completedModulesId.push(module['module_id']); 
+                    }
+                }
+            }
+
+        }
+        
+
+        for (let req of userTrainingInfoArr) {
+            for (let training of req['training_requirement']) {
+                for (let module of training['modules']) {
+                    module['rq_satisfied'] = 0;
+                    if (module['pre_req'] == 0) {
+                        module['rq_satisfied'] = 1;
+                        continue;
+                    }
+                    if (completedModulesId.indexOf(module['pre_req']) != -1) {
+                        module['rq_satisfied'] = 1;
+                    }
+                }
+            }
+        }
 
         res.status(200).send({
             message: 'Success',

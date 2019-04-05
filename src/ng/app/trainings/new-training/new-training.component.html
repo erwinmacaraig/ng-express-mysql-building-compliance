@@ -130,10 +130,9 @@
                 <div
                     [ngClass]="{'box': true,
                                 'center': true,
-                                'check': module['completed'] == 1,
-                                'unlocked': !module['completed'] && !module['disabled'] && has_online_training,
-                                'locked': module['disabled'] || !has_online_training 
-                            }">
+                                'check': module['completed'] == 1,                                
+                                'locked': module['disabled'] || !has_online_training || !module['completed']
+                            }"> <!-- 'unlocked': !module['completed'] && !module['disabled'] && has_online_training,-->
                     <div class="icon-right"></div>
     
                     <div class="image-container">
@@ -148,14 +147,15 @@
                                    }">
                         </div>
                     </div>
-                    <p class="blue-text module">{{module['module_subname']}}</p>
+                    <!--<p class="blue-text module">{{module['module_subname']}}</p>-->
     
-                    <h4 class="center title">
+                    <h4 class="center title title-padding">
                         {{module['module_name']}}
                     </h4>
                     <div class="button-container" *ngIf="!module['disabled']">
-                        <button *ngIf="module['completed'] != 1" type="button" [disabled]="!has_online_training" (click)="loadTrainingModule(module)" class="btn orange">Re-take Training</button>
-                        <button *ngIf="module['completed'] == 1" type="button" [disabled]="!has_online_training" (click)="loadTrainingModule(module)" class="btn orange">Take Training</button>
+                        <button *ngIf="!module.hasOwnProperty('completed')" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn orange">Take Training</button>
+                        <button *ngIf="module.hasOwnProperty('completed') && module['completed'] == 0" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn orange">Continue Training</button>
+                        <button *ngIf="module['completed'] == 1" type="button" [disabled]="!has_online_training || module['rq_satisfied'] == 0" (click)="loadTrainingModule(module)" class="btn blue">Re-take Training</button>
                     </div>
                     <!--<p *ngIf="module['expiry']" class="blue-text bottom-text">Training expiration {{module['expiry'] | date: 'MM/dd/yy'}}</p>-->
         

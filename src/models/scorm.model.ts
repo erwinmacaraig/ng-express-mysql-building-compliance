@@ -209,7 +209,13 @@ export class Scorm extends BaseClass {
                     }
                     // console.log(sql_get);
                     // console.log(results);
-                    resolve(results[0]['parameter_value']);
+                    if (results.length) {
+                        resolve(results[0]['parameter_value']);
+                    } else {
+                        console.log(`cannot find parameter: ${param} with relation: ${relation}`);
+                        resolve();
+                    }
+                    
                 });
                 connection.release();
             });

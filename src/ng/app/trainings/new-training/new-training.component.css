@@ -58,7 +58,7 @@
 .box-container .box{
     padding: 20px;
     width: 270px;
-    height: 400px;
+    height: 370px;
     border-radius: 10px;
     margin: 20px;
     display: inline-block;
@@ -91,6 +91,10 @@
 
 .box-container .box  .title{
     font-size: 20px;
+}
+
+.title-padding {
+    padding: 20px 5px;
 }
 
 .box-container .box  .bottom-text{
@@ -423,11 +427,11 @@ div.role-name {
     color: #1f9e25;
 }
 
-/*
+
 .compliant-container.non-compliant .text:after{
     content: 'Non-Compliant';
 }
-*/
+
 
 /*
 .compliant-container.compliant .text:after{
@@ -503,7 +507,7 @@ div.role-name {
 
   .mid-nav{
     border-bottom: 1px solid #cacaca;
-    padding-left: 5px;
+    padding-left: 25px;
     margin-bottom: 20px;  
 }
 
