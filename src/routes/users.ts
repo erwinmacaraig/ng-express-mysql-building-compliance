@@ -560,8 +560,12 @@ export class UsersRoute extends BaseRoute {
                 trainingRequirementModules[tr['training_requirement_id']] = {                    
                     modules: []
                 };
-                const trModules = await new TrainingRequirements().getTrainingModulesForRequirement(tr['training_requirement_id']);
-
+                let trModules = [];
+                trModules = await new TrainingRequirements().getTrainingModulesForRequirement(tr['training_requirement_id'], req.user.account_id);
+                if (trModules.length == 0) {
+                    trModules = await new TrainingRequirements().getTrainingModulesForRequirement(tr['training_requirement_id'], 0);
+                }
+                
                 trainingRequirementModules[tr['training_requirement_id']]['modules'] = trModules;
             }
 
@@ -1473,18 +1477,27 @@ export class UsersRoute extends BaseRoute {
         } else {
             selectedLocIds = [];
             // const assignedLocations = await new LocationAccountUser().getLocationsByUserIdAndAccountId(userID, accountId);
-            const accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);
-            const accountRoles = [];
-            for (let role of accountRoleObjArr) {
-                accountRoles.push(role['role_id']);
-            }
-            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {
-                if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 2) {
-                    idsOfLocationsForTRP.push(parseInt(locId, 10));
-                } else if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 1) {
-                    idsOfBuildingsForFRP.push(parseInt(locId, 10));
+            let accountRoleObjArr = [];
+            let accountRoles = [];
+            try {
+                accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);            
+            
+                for (let role of accountRoleObjArr) {
+                    accountRoles.push(role['role_id']);
                 }
-            });
+                Object.keys(roleOfAccountInLocationObj).forEach((locId) => {
+                    if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 2) {
+                        idsOfLocationsForTRP.push(parseInt(locId, 10));
+                    } else if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 1) {
+                        idsOfBuildingsForFRP.push(parseInt(locId, 10));
+                    }
+                });
+            } catch (e) {
+                accountRoleObjArr = [];
+                accountRoles = [];
+                console.log(e);
+            }
+            
 
             /*
             for (let loc of assignedLocations) {

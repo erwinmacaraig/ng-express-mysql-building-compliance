@@ -241,7 +241,7 @@ export class TrainingRequirements extends BaseClass {
         });
     } 
 
-    public getTrainingModulesForRequirement(trainingRequirementId=0): Promise<Array<object>> {
+    public getTrainingModulesForRequirement(trainingRequirementId=0, accountId=0): Promise<Array<object>> {
         let trid = this.ID();
 
         if (trainingRequirementId) {
@@ -249,12 +249,12 @@ export class TrainingRequirements extends BaseClass {
         }
         
         return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ? ORDER BY training_module.order`;
+            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ? AND account_id = ? ORDER BY training_module.order`;
             this.pool.getConnection((err, connection) => {
                 if (err) {
                     throw new Error();
                 }
-                const params = [trid]; 
+                const params = [trid, accountId]; 
                 connection.query(sql, params, (error, results) => {
                     if (error) {
                         console.log('Cannot retrieve training modules for this requirement id', sql, params);
