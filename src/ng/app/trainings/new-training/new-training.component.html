@@ -83,12 +83,24 @@
                         </div>
                     </div>
                     
-                    <div class="progress-container">
+                    <div *ngIf="nonWardenRolesArray.indexOf(trainingInfo['em_role_id']) == -1 && overWriteNonWardenRoleTrainingModules == true" class="progress-container">
                         <!--<div class="progress" style="width: 50%;"></div> -->
-                        <div class="progress" [style.width.%] = "trainingInfo['role_training_status']=='compliant' ? 100 :  trainingInfo['percent_status']"></div>
+                        <div class="progress" [style.width.%]="trainingInfo['role_training_status']=='compliant' ? 100 :  trainingInfo['percent_status']"></div>
                     </div>
-                    <div *ngIf="trainingInfo['role_training_status']=='compliant'" class="total_modules_completed_text">{{trainingInfo['total_modules']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
-                    <div *ngIf="trainingInfo['role_training_status']=='non-compliant'" class="total_modules_completed_text">{{trainingInfo['completed']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
+                    <div *ngIf="nonWardenRolesArray.indexOf(trainingInfo['em_role_id']) != -1 && overWriteNonWardenRoleTrainingModules == false" class="progress-container">
+                        <div class="progress" [style.width.%]="trainingInfo['role_training_status']=='compliant' ? 100 :  trainingInfo['percent_status']"></div>
+                    </div>
+                    <ng-container *ngIf="nonWardenRolesArray.indexOf(trainingInfo['em_role_id']) == -1 && overWriteNonWardenRoleTrainingModules == true">
+                        <div *ngIf="trainingInfo['role_training_status']=='compliant'" class="total_modules_completed_text">{{trainingInfo['total_modules']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
+                        <div *ngIf="trainingInfo['role_training_status']=='non-compliant'" class="total_modules_completed_text">{{trainingInfo['completed']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
+                    </ng-container>
+                    <ng-container *ngIf="nonWardenRolesArray.indexOf(trainingInfo['em_role_id']) != -1 && overWriteNonWardenRoleTrainingModules == false">
+                        <div *ngIf="trainingInfo['role_training_status']=='compliant'" class="total_modules_completed_text">{{trainingInfo['total_modules']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
+                        <div *ngIf="trainingInfo['role_training_status']=='non-compliant'" class="total_modules_completed_text">{{trainingInfo['completed']}} of  {{trainingInfo['total_modules']}} training requirements complete</div>
+                    </ng-container> 
+                    
+                    
+                    
                     <!--
                     <div class="training-requirements">
                         <div class="icon"></div>

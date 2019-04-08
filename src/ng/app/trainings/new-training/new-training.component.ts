@@ -49,6 +49,9 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     public nonWardenRolesArray = [];
     public myEmRoleIds = [];
     public incorporatedTrainingText = '';
+    public displayProgressForNonWardenRole = false;
+    private hasWardenRole = false;
+    private hasNonWardenRole = false;
     public sub: Subscription;
     
     public constructor(
@@ -98,6 +101,7 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
             this.overWriteNonWardenRoleTrainingModules = response.overWriteNonWardenRoleTrainingModules;
             this.isWardenRoleArray = response.isWardenRoleArray;
             this.nonWardenRolesArray = response.nonWardenRolesArray;
+            this.myEmRoleIds = response.myEmRoleIds;
 
             const moduleIds = [];
             this.userInfoOtherTraining = response.userInfoOtherTraining['training_requirement'];
