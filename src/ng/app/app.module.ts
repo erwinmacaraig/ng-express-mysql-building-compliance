@@ -100,12 +100,14 @@ import { ProductsFavoritesComponent } from './shop/products.favorites/product.fa
 
 import { SafeHtmlPipe } from './pipes/safehtml';
 
+// TRAINING
 import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 import { TrainingProfile } from './trainings/training-profile/training.profile.component';
 import { NewTrainingComponent } from './trainings/new-training/new-training.component';
+import { TrainingCertificate } from './trainings/certificate/certificate.component';
 
 import { WardenBenchMarkingComponent } from './warden-benchmarking/warden-benchmarking.component';
 
@@ -246,6 +248,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     TrainingProfile,
     NewTrainingComponent,
     WardenBenchMarkingComponent,
+    TrainingCertificate,
 
     ReportsComponent,
     ChooseReportComponent,

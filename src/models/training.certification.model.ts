@@ -4,6 +4,7 @@ const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
 import * as moment from 'moment';
+import { reject } from 'q';
 
 export class TrainingCertification extends BaseClass {
 
@@ -764,4 +765,61 @@ export class TrainingCertification extends BaseClass {
     });
   }
 
+  public getCertificateDetailsForDownload(certId=0): Promise<Object> {
+    return new Promise((resolve, reject) => {
+      const params = [];
+      if (certId) {
+        params.push(certId);
+      } else {
+        params.push(this.id);
+      }
+      
+      const sql = `SELECT
+                    users.first_name,
+                    users.last_name,
+                    certifications.*,
+                    training_requirement.training_requirement_name,
+                    YEAR(certifications.certification_date) as control_year,
+                    MONTHNAME(certifications.certification_date) as control_month,
+                    DAY(certifications.certification_date) as control_day
+                  FROM
+                    certifications
+                  INNER JOIN
+                    users
+                  ON
+                    certifications.user_id = users.user_id
+                  INNER JOIN
+                    training_requirement
+                  ON
+                    certifications.training_requirement_id = training_requirement.training_requirement_id
+                  WHERE
+                    certifications.certifications_id = ?;`;
+      
+      this.pool.getConnection((err, connection) => {
+        if (err) {
+          throw new Error(err);
+        }
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log('cannot execute getCertificateDetailsForDownload', sql, params);
+            throw new Error('cannot query certifications');
+          }
+          if (results.length > 0) {
+            resolve({
+              name: `${results[0]['first_name']} ${results[0]['last_name']}`,
+              training: `${results[0]['training_requirement_name']}`,
+              certificate_no: `${results[0]['control_year']}-${results[0]['certifications_id']}`,
+              training_date: `${results[0]['control_day']} ${results[0]['control_month']} ${results[0]['control_year']}`
+            });
+
+          } else {
+            reject({});
+          }
+          
+        });
+        connection.release();
+      });
+
+    });
+  }
 }

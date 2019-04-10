@@ -56,7 +56,7 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     
     public constructor(
         private dashboardService : DashboardPreloaderService,
-        private encryptDecryptService : EncryptDecryptService,
+        private encryptor : EncryptDecryptService,
         private userService : UserService,
         private courseService : CourseService,
         private complianceService : ComplianceService,
@@ -97,7 +97,12 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
             }
 
-            this.certificates = response.certificates;
+            // this.certificates = response.certificates;
+            for (let cert of response.certificates) {
+                cert['encryptedCertId'] = this.encryptor.encrypt(cert['certifications_id']);
+                this.certificates.push(cert);
+            }
+            
             this.overWriteNonWardenRoleTrainingModules = response.overWriteNonWardenRoleTrainingModules;
             this.isWardenRoleArray = response.isWardenRoleArray;
             this.nonWardenRolesArray = response.nonWardenRolesArray;

@@ -92,6 +92,15 @@ export class CourseService {
         return this.http.post<{lesson_status: string}>(this.baseUrl +'/lms/logoutModule', {'relation': userTrainingModuleRelationId});
     }
 
+    getCertificationDetailsForPrinting(certId=0) {
+        return this.http.post<{
+            name: string,
+            training: string,
+            certificate_no: string,
+            training_date: string
+        }>(`${this.baseUrl}/users/certificate/`, {certId:certId});
+    }
+
 
 
 }

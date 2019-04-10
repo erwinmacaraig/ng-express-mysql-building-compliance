@@ -447,6 +447,27 @@ export class UsersRoute extends BaseRoute {
           new UsersRoute().computeRewardPoints(req, res);
       });
 
+      router.post('/users/certificate/', new MiddlewareAuth().authenticate, (req:AuthRequest, res: Response) => {
+          new UsersRoute().certificateDetails(req, res);
+      });
+
+    }
+
+
+
+    public async certificateDetails(req: AuthRequest, res:Response) {
+        const certId = req.body.certId;        
+       const trainingCert = new TrainingCertification(certId);
+       try {
+            const certDetails = await trainingCert.getCertificateDetailsForDownload();
+            return res.status(200).send(certDetails);
+       } catch(e) {           
+           return res.status(500).send({
+               message: 'No certification found'
+           });
+       }
+       
+
 
     }
 

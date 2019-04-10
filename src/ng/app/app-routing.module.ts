@@ -75,12 +75,14 @@ import { CartComponent } from './shop/cart.component/cart.component';
 import { PaymentComponent } from './shop/payment.component/payment.component';
 import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
+//TRAINING
 import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 import { TrainingProfile } from './trainings/training-profile/training.profile.component';
 import { NewTrainingComponent } from './trainings/new-training/new-training.component';
+import { TrainingCertificate } from './trainings/certificate/certificate.component';
 
 import { ReportsComponent } from './reports/reports.component';
 import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
@@ -237,9 +239,10 @@ const appRoutes: Routes = [
       { path : 'team-training', component : TeamTrainingComponent },
       { path : 'training-invite', component : TrainingInviteComponent },
       { path : 'my-training-profile/:encrypted', component: TrainingProfile },
-      { path : 'new-training', component : NewTrainingComponent }
+      { path : 'new-training', component : NewTrainingComponent },      
     ]
   },
+  { path: 'certificate/:certId', canActivate: [AuthGuard], component: TrainingCertificate },
   {
     path : 'reports', canActivate: [AuthGuard],  component : ReportsComponent,
     children : [

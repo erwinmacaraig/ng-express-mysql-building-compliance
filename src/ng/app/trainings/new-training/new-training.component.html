@@ -210,8 +210,13 @@
                         <td><span class="text"> {{cert['training_type']}} </span></td>
                         <td><span class="text"> </span></td>
                         <td><span class="text"> {{ cert['certification_date'] | date: 'MM/dd/yyyy' }} </span></td>
-                        <td> <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?c={{cert.certifications_id}}"
-                            target="_blank" class="">Download</a> </td>
+                        <td>
+                            <a [routerLink]="['/certificate', cert['encryptedCertId']]" target="_blank" class="">Download</a>
+                            <!--
+                                <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?c={{cert.certifications_id}}"
+                            target="_blank" class="">Download</a>
+                            --> 
+                        </td>
                     </tr>
                 </tbody>
             </table>
