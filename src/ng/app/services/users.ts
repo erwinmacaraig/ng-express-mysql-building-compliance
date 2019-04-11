@@ -358,7 +358,18 @@ export class UserService {
 
     computeUserRewardPoints(uid = 0) {
         return this.http.get<{message: string, total_points: number}>(this.baseUrl + '/users/get-reward-points/' + uid, this.options);
-    }
+	}
+	
+	verifyAsWarden(configId=0) {
+		const httpParams = new HttpParams().set('configId', configId.toString());
+		this.options['params'] = httpParams;
+		return this.http.get<{
+			message: string,
+			config: object,
+			token: object
+		}>(this.baseUrl+'/accounts/verify-as-warden', this.options);
+
+	}
 
 
 }

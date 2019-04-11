@@ -232,7 +232,7 @@ export class NotificationToken extends BaseClass {
     });
   }
 
-  public getByUserId(userId = 0): Promise<object> {
+  public getByUserId(userId = 0): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT *, IF(dtExpiration < NOW(), 'expired', 'active') as expiration_status FROM notification_token
         WHERE user_id = ?  `;
@@ -247,8 +247,8 @@ export class NotificationToken extends BaseClass {
             console.log('NotificationToken.loadByContraintKeys', error, sql_load);
             throw Error(error);
           }
-          this.dbData = results;
-          resolve(this.dbData);
+          
+          resolve(results);
         });
         connection.release();
 

@@ -253,6 +253,8 @@ const defs = require('../config/defs.json');
         }
       );
 
+      
+
 
    	}
 
@@ -1531,11 +1533,6 @@ const defs = require('../config/defs.json');
             }            
             
         }
-
-        
-        
-        
-        
 
         for(let loc of response.locations) {
             let

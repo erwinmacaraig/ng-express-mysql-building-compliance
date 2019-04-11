@@ -1399,18 +1399,22 @@ export class UsersRoute extends BaseRoute {
         } else {
             selectedLocIds = [];
             // const assignedLocations = await new LocationAccountUser().getLocationsByUserIdAndAccountId(userID, accountId);
-            const accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);
-            const accountRoles = [];
-            for (let role of accountRoleObjArr) {
-                accountRoles.push(role['role_id']);
-            }
-            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {
-                if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 2) {
-                    idsOfLocationsForTRP.push(parseInt(locId, 10));
-                } else if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 1) {
-                    idsOfBuildingsForFRP.push(parseInt(locId, 10));
+            try {
+                const accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);
+                const accountRoles = [];
+                for (let role of accountRoleObjArr) {
+                    accountRoles.push(role['role_id']);
                 }
-            });
+                Object.keys(roleOfAccountInLocationObj).forEach((locId) => {
+                    if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 2) {
+                        idsOfLocationsForTRP.push(parseInt(locId, 10));
+                    } else if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 1) {
+                        idsOfBuildingsForFRP.push(parseInt(locId, 10));
+                    }
+                });
+            } catch(e) {
+                console.log(e);
+            }
 
             /*
             for (let loc of assignedLocations) {
