@@ -332,7 +332,8 @@ export class TrainingCertification extends BaseClass {
           // there is no certification or certification is expired
           if (!results.length) {
             this.create(certData).then((data) => {
-              resolve(true);
+              //resolve(true);
+              resolve(this.id);
             }).catch((e) => {
               console.log('training.certification.model creating/updating certification failed');
               reject('training.certification.model creating/updating certification failed');
@@ -343,7 +344,8 @@ export class TrainingCertification extends BaseClass {
             certData['certifications_id'] = results[0]['certifications_id'];
             certData['certification_date'] = moment().format('YYYY-MM-DD');          
             this.create(certData).then((data) => {
-              resolve(true);
+              // resolve(true);
+              resolve(this.id);
             }).catch((e) => {
               console.log('training.certification.model creating/updating certification failed');
               reject('training.certification.model creating/updating certification failed');
@@ -733,13 +735,18 @@ export class TrainingCertification extends BaseClass {
                       certifications.course_method,
                       IF (certifications.course_method='online_by_evac', 'Online Training', 'Face to Face Training') AS training_type,
                       certifications.certification_date,
-                      training_requirement.training_requirement_name
+                      training_requirement.training_requirement_name,
+                      offline_training_to_certification_relation.location_name
                   FROM 
                     certifications
                   INNER JOIN
                     training_requirement
                   ON
                     certifications.training_requirement_id = training_requirement.training_requirement_id
+                  LEFT JOIN
+                  offline_training_to_certification_relation
+                  ON 
+                  offline_training_to_certification_relation.certifications_id = certifications.certifications_id
                   WHERE
                     certifications.user_id = ?
                   AND
@@ -820,6 +827,44 @@ export class TrainingCertification extends BaseClass {
         connection.release();
       });
 
+    });
+  }
+
+  public recordOfflineTraining(certData={}):Promise<any> {
+    return new Promise((resolve, reject) => {
+      const sql = `INSERT INTO offline_training_to_certification_relation (
+        certifications_id,
+        location_id,
+        building_id,
+        location_name
+      ) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+        location_id = ?,
+        building_id = ?,
+        location_name = ?
+      `;
+      const values = [
+        ('certifications_id' in certData) ? certData['certifications_id'] : 0,
+        ('location_id' in certData ) ? certData['location_id'] : 0,
+        ('building_id' in certData ) ? certData['building_id'] : 0,
+        ('location_name' in certData ) ? certData['location_name'] : '',
+        ('location_id' in certData ) ? certData['location_id'] : 0,
+        ('building_id' in certData ) ? certData['building_id'] : 0,
+        ('location_name' in certData ) ? certData['location_name'] : '',
+      ];
+
+      this.pool.getConnection((err, connection) => {
+        if (err) {
+          throw new Error(err);
+        } 
+        connection.query(sql, values, (error, results) => {
+          if (error) {
+            console.log('TrainingCertification.recordOfflineTraining', error, sql, values);
+            throw new Error('Cannot add new offline training location record');
+          }
+          resolve(true);
+        });
+        connection.release();
+      });
     });
   }
 }
