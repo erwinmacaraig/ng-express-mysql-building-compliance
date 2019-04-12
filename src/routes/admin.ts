@@ -735,6 +735,7 @@ export class AdminRoute extends BaseRoute {
     router.post('/admin/validate-training/', new MiddlewareAuth().authenticate,
     async(req: AuthRequest, res: Response, next: NextFunction) => {
       const users: Array<object> = JSON.parse(req.body.users);
+      console.log(users);
       const validUsers = [];
       const invalidUsers = [];
       const takenEmailAdress = [];
@@ -881,7 +882,8 @@ export class AdminRoute extends BaseRoute {
          }
        } else {
          try {
-          await new TrainingCertification().checkAndUpdateTrainingCert({
+           console.log('Here test code');
+          const certId = await new TrainingCertification().checkAndUpdateTrainingCert({
             'user_id': u['user_id'],
             'certification_date': u['certification_date'],
             'training_requirement_id': u['training_requirement_id'],
@@ -891,6 +893,37 @@ export class AdminRoute extends BaseRoute {
             'description': 'Training validated by user ' + req.user.user_id + ' on ' + moment().format('YYYY-MM-DD HH:mm:ss')
           });
           validUsers.push(u['email']);
+
+          if (u['course_method'] == 'offline_by_evac') {
+            // get location details 
+            let location;
+            let parent;
+            let locationName = '';
+            let locationID = 0;
+            let buildingID = 0;
+            try {
+              location = await new Location(u['location_id']).load();
+              locationID = location['location_id']; 
+              try {
+                parent = await new Location(location['parent_id']).load(); 
+                buildingID = parent['location_id'];
+                locationName = `${parent['name']}, ${location['name']}`;
+              } catch (e) {
+                locationName = `${location['name']}`;
+                console.log(e, 'No parent data for this location');
+              }
+            } catch (e) {
+              console.log(e, 'Cannot get location details for certifications');
+            }
+            
+            await new TrainingCertification().recordOfflineTraining({
+              certifications_id: certId,
+              location_id: u['location_id'],
+              building_id: buildingID,
+              location_name: locationName
+            });
+            
+          }
          } catch (e) {
            console.log(e, u);
            invalidUsers.push(u['email']);
@@ -905,16 +938,22 @@ export class AdminRoute extends BaseRoute {
            dbUserEmRoleDbData['em_role_id'] = u['role_id'];
            dbUserEmRoleDbData['location_id'] = u['location_id'];
            await userEmRoleRelObj.create(dbUserEmRoleDbData);
+         } else {
+            let userEmRoleRelObj = null;
+            userEmRoleRelObj = new UserEmRoleRelation();
+            // get user_em_roles_relation_id
+
+
          }
-         if (u['location_accout_user_id'] != null) {
+
+         if (u['location_account_user_id'] != null) {
            let locAcctUserObj = null;
            let locAcctUserDbData = {};
-           locAcctUserObj = new LocationAccountUser(u['location_accout_user_id']);
+           locAcctUserObj = new LocationAccountUser(u['location_account_user_id']);
            locAcctUserDbData = await locAcctUserObj.load();
            // For now we update the location
            locAcctUserDbData['location_id'] = u['location_id'];
            await locAcctUserObj.create(locAcctUserDbData);
-
          } 
        }
       }
