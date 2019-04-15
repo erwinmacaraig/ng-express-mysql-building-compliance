@@ -524,6 +524,15 @@ export class UsersRoute extends BaseRoute {
                 console.log(e, 'allTrainingInfo');
             }
         }
+
+        // get certifications
+        const certObj = new TrainingCertification();                        
+        const certificates = await certObj.userCertificates(userId);
+
+        //checks if account has online training
+        const account = await new Account(req.user.account_id).load();
+        
+
         const isWardenRoleArray = [];
         const nonWardenRolesArray = [];
         const emergencyRolesArray = await emroles.getEmRoles();
@@ -642,7 +651,7 @@ export class UsersRoute extends BaseRoute {
                     }
                 }
                 
-                if (nonWardenRolesArray.indexOf(em_role_id) != -1 && overWriteNonWardenRoleTrainingModules) {
+                if ( (nonWardenRolesArray.indexOf(em_role_id) != -1 && overWriteNonWardenRoleTrainingModules) || account['online_training'] == 0) {
                     userTrainingInfoObj['training_requirement'].push({
                         ...tr,
                         modules: [],
@@ -657,10 +666,7 @@ export class UsersRoute extends BaseRoute {
                         modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
                         status: status
                     });
-                }
-                
-                
-                 
+                }                 
             }
             userTrainingInfoObj['role_training_status'] = status;
             userTrainingInfoArr.push(userTrainingInfoObj);
@@ -706,9 +712,7 @@ export class UsersRoute extends BaseRoute {
                 modules: mods_misc
             });
         }
-        // get certifications
-        const certObj = new TrainingCertification();                        
-        const certificates = await certObj.userCertificates(userId);
+        
         
         // cross reference if these misc modules were already completed
         // get completed modules

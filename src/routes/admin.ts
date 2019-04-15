@@ -57,7 +57,7 @@ export class AdminRoute extends BaseRoute {
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-        to : ['jmanoharan@evacgroup.com.au'],
+        to : ['emacaraig@evacgroup.com.au'],
         cc: [],
         body : ` ${req.get('Host')} says: <pre>${message}</pre><br>Logged in user_id: ${req.user.user_id}<br>
         Logged in user name: ${req.user.email}`,
@@ -882,8 +882,7 @@ export class AdminRoute extends BaseRoute {
          }
        } else {
          try {
-           console.log('Here test code');
-          const certId = await new TrainingCertification().checkAndUpdateTrainingCert({
+           const certId = await new TrainingCertification().checkAndUpdateTrainingCert({
             'user_id': u['user_id'],
             'certification_date': u['certification_date'],
             'training_requirement_id': u['training_requirement_id'],
@@ -907,7 +906,7 @@ export class AdminRoute extends BaseRoute {
               try {
                 parent = await new Location(location['parent_id']).load(); 
                 buildingID = parent['location_id'];
-                locationName = `${parent['name']}, ${location['name']}`;
+                locationName = `${parent['name']}`;
               } catch (e) {
                 locationName = `${location['name']}`;
                 console.log(e, 'No parent data for this location');
@@ -1742,6 +1741,9 @@ export class AdminRoute extends BaseRoute {
             message: 'Upload Failed'
           });
         } else {
+          // DELETE uploaded file in the server
+          fs.unlink( __dirname + `/../public/temp/${filename}`, () => {});
+          
           // console.log(d);
           let compliance_kpis_id = 0;
           switch(parseInt(req.body.training, 10)) {
@@ -2061,6 +2063,7 @@ export class AdminRoute extends BaseRoute {
                             message: 'Upload Failed'
                         });
                     }
+                    fs.unlink( __dirname + `/../public/temp/${item['filename'].replace(/\s+/g, '-')}`, () => {});
                     const complianceDocObj = new ComplianceDocumentsModel();
                     await complianceDocObj.create({
                         account_id: account_id,
@@ -2222,8 +2225,6 @@ export class AdminRoute extends BaseRoute {
         compliances = [];
       const arrWhereCompliance = [];
 
-
-
       const complianceDocsUploader = multer({storage: multerConfig}).array('file', 100);
       let validityDuration;
       const kpisModels = await new ComplianceKpisModel().getAllKPIs();
@@ -2231,14 +2232,11 @@ export class AdminRoute extends BaseRoute {
       complianceDocsUploader(req, res, async (err) => {
         if (err) {
           console.log('This is the error', err);
-          return res.status(400).send({
+          return res.status(500).send({
             message: 'There was a problem uploading the file'
           });
         }
-
-        // console.log(Object.keys(req.body));
-        // console.log(req['files']);
-        // console.log(req.body);
+        
         account_role = 'Manager'; // to change
         account_id = req.body.account_id;
         building_id = req.body.building_id;
@@ -2283,6 +2281,8 @@ export class AdminRoute extends BaseRoute {
                 message: 'Upload Failed'
               });
             }
+            // remove the file here
+            fs.unlink( __dirname + `/../public/temp/${filename}`, () => {});
             // console.log(i, params);
             const complianceDocObj = new ComplianceDocumentsModel();
             await complianceDocObj.create({
