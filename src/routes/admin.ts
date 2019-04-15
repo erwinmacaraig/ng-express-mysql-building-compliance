@@ -496,7 +496,7 @@ export class AdminRoute extends BaseRoute {
             location_id: accountRole['location_id'],
             role_text: defs['notification_role_text'][accountRole['role_id']],
             notification_config_id: configurator.ID(),
-            dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD')
+            dtExpiration: moment().add(21, 'day').format('YYYY-MM-DD')
           });
           const emailData = {
             message : configurator.get('message').toString().replace(/(?:\r\n|\r|\n)/g, '<br>'),
@@ -2574,7 +2574,7 @@ export class AdminRoute extends BaseRoute {
               token: u['token'],
               action: 'view',
               verified: 0,
-              expiration_date: moment().add(2, 'day').format('YYYY-MM-DD HH:MM:ss'),
+              expiration_date: moment().add(21, 'day').format('YYYY-MM-DD HH:MM:ss'),
               id: u['location_id'],
               id_type: 'location_account_user.location_id'
             }).then(() => {             
@@ -3127,7 +3127,7 @@ export class AdminRoute extends BaseRoute {
         id_type: 'user_id',
         token: tkString,
         action: 'setup-invite-passwd',
-        expiration_date:  moment().add(1, 'day').format('YYYY-MM-DD')
+        expiration_date:  moment().add(21, 'day').format('YYYY-MM-DD')
       });
       const opts = {
         from : '',

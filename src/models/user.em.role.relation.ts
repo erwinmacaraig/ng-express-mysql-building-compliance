@@ -39,6 +39,38 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
+    public getByWhere(where={}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let whereClause = ' WHERE 1=1';
+        const params = [];
+        if ('user_id' in where) {
+          whereClause += ` AND user_id = ?`;
+          params.push(where['user_id']);
+        }
+        if ('em_role_id' in where) {
+          whereClause += ` AND em_role_id = ?`;
+          params.push(where['em_role_id']);
+        }
+        if ('location_id' in where) {
+          whereClause = ` AND location_id = ?`;
+          params.push(where['location_id']);
+        }
+        let sql = `SELECT * FROM user_em_roles_relation ${whereClause}`;
+        this.pool.getConnection((err, connection) => {
+          if (err) {
+            throw new Error(err);
+          } 
+          connection.query(sql, params, (error, results) => {
+            if (error) {
+              throw new Error(err);
+            } 
+            resolve(results);
+          });
+          connection.release();
+        });
+      });
+    }
+
     public getEmRolesByUserId(userId, archived?, group?): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
         let groupClause = ` GROUP BY uer.em_role_id`;
@@ -798,6 +830,8 @@ export class UserEmRoleRelation extends BaseClass {
         
       });
     }
+
+
 
 
 }
