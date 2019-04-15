@@ -34,8 +34,9 @@ export class Account extends BaseClass {
                     this.setID(results[0]['account_id']);
                     resolve(this.dbData);
                   }
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -62,8 +63,9 @@ export class Account extends BaseClass {
                             accountIds.push(r['account_id']);
                         }
                         resolve(accountIds);
+                        connection.release();
                     });
-                    connection.end();
+                    
                     return;
                 }
                 if ('count' in config) {
@@ -74,8 +76,9 @@ export class Account extends BaseClass {
                             throw Error('There was a problem getting the total number of account');
                         }
                         resolve(results[0]['total']);
+                        connection.release();
                     });
-                    connection.end();
+                    
                     return;
                 }
                 if ('query' in config) {
@@ -89,8 +92,9 @@ export class Account extends BaseClass {
                             accountIds.push(r['account_id']);
                         }
                         resolve(accountIds);
+                        connection.release();
                     });
-                    connection.end();
+                    
                     return;
                 }
                 if ('all' in config) {
@@ -103,8 +107,10 @@ export class Account extends BaseClass {
                         for (const r of results) {
                             accountIds.push(r['account_id']);
                         }
+                        resolve(accountIds);
+                        connection.release();
                     });
-                    connection.end();
+                    
                     return;
                 }
 
@@ -118,8 +124,9 @@ export class Account extends BaseClass {
                     } else {
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
             
@@ -181,8 +188,9 @@ export class Account extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -200,8 +208,9 @@ export class Account extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -225,8 +234,9 @@ export class Account extends BaseClass {
                     this.setID(results[0]['account_id']);
                     resolve(this.dbData);
                   }
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -250,8 +260,9 @@ export class Account extends BaseClass {
                     this.setID(results[0]['account_id']);
                     resolve(this.dbData);
                   }
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -279,8 +290,9 @@ export class Account extends BaseClass {
 
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -300,9 +312,9 @@ export class Account extends BaseClass {
 
                   this.dbData = results;
                   resolve(this.dbData);
-
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -358,9 +370,8 @@ export class Account extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
-                });
-
-                connection.release();
+                    connection.release();
+                });               
             });
         });
     }
@@ -438,8 +449,9 @@ export class Account extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['account_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -508,8 +520,9 @@ export class Account extends BaseClass {
                     } else {
                         reject(`No location found for this account ${this.ID()}`);
                     }
+                    connection.release();
                 });
-                connection.release();
+               
 
             });
         });
@@ -617,8 +630,9 @@ export class Account extends BaseClass {
 
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -697,9 +711,10 @@ export class Account extends BaseClass {
                         throw Error('Cannot generate the list of emergency roles');
                     }
                     resolve(results);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -768,9 +783,10 @@ export class Account extends BaseClass {
                         resultSet.push(r);
                     }
                     resolve(resultSet);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -835,10 +851,10 @@ export class Account extends BaseClass {
                         resultSet.push(results[index]);
                     });
                     resolve(resultSet);
-
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -902,9 +918,9 @@ export class Account extends BaseClass {
                         resultSet.push(results[index]);
                     });
                     resolve(resultSet);
-
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -923,9 +939,10 @@ export class Account extends BaseClass {
                         throw Error('Internal error. Cannot get account details');
                     }
                     resolve(results);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -957,9 +974,10 @@ export class Account extends BaseClass {
                     }
                     
                     resolve(results.length);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });  
         });
     }
