@@ -341,7 +341,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 			await notificationTokenObj.create({
         strToken: strToken,
-				dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD'),
+				dtExpiration: moment().add(21, 'day').format('YYYY-MM-DD'),
 				strStatus: 'Pending',
 				responded: 0,
 				dtResponded: '0000-00-00',
@@ -1201,7 +1201,7 @@ const RateLimiter = require('limiter').RateLimiter;
         location_id: u['location_id'],
         role_text: u['role_name'],
         notification_config_id: configurator.ID(),
-				dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD'),
+				dtExpiration: moment().add(21, 'day').format('YYYY-MM-DD'),
 				dtLastSent: moment().format('YYYY-MM-DD')
       });
 			notificationToken = null;
