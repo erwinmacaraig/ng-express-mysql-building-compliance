@@ -1,10 +1,6 @@
-
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-
 const dbconfig = require('../config/db');
 const defs = require('../config/defs.json');
-
 import * as Promise from 'promise';
 
 export class Location extends BaseClass {
@@ -44,9 +40,8 @@ export class Location extends BaseClass {
                         this.setID(results[0]['location_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -65,9 +60,8 @@ export class Location extends BaseClass {
                         return console.log(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -87,9 +81,8 @@ export class Location extends BaseClass {
                         return console.log(error);
                     }
                     resolve(results);
-                });
-
-                connection.release();
+                    connection.release();
+                });                
             });
         });
     }
@@ -115,9 +108,8 @@ export class Location extends BaseClass {
                         return console.log(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -136,11 +128,9 @@ export class Location extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
-
                     resolve( results[0]['count'] );
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -182,10 +172,8 @@ export class Location extends BaseClass {
 
                     this.dbData = results;
                     resolve(this.dbData);
-
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -228,10 +216,8 @@ export class Location extends BaseClass {
 
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-
-                connection.release();
-
             });
         });
     }
@@ -265,9 +251,10 @@ export class Location extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -300,9 +287,8 @@ export class Location extends BaseClass {
                         this.dbData = results;
                         resolve(this.dbData);
                     }
-                });
-
-                connection.release();
+                    connection.release();
+                });                
             });
         });
     }
@@ -354,9 +340,8 @@ export class Location extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
-                });
-
-                connection.release();
+                    connection.release();
+                });                
             });
 
         });
@@ -426,9 +411,8 @@ export class Location extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['location_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -486,9 +470,8 @@ export class Location extends BaseClass {
                         }
                     }
                     resolve(arrResults);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -510,9 +493,8 @@ export class Location extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -533,9 +515,8 @@ export class Location extends BaseClass {
                         return console.log(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -607,10 +588,8 @@ export class Location extends BaseClass {
                     } else {
                         resolve([]);
                     }
-
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -647,9 +626,8 @@ export class Location extends BaseClass {
                         }
                         resolve(locationIds);
                     }
-                });
-
-                connection.release();
+                    connection.release();
+                });                
             });
         });
     }
@@ -684,9 +662,8 @@ export class Location extends BaseClass {
                             ids : '0'
                         } ]);
                     }
-                });
-
-                connection.release();
+                    connection.release();
+                });                
             });
         });
     }
@@ -731,11 +708,9 @@ export class Location extends BaseClass {
                             console.log(sql);
                             throw new Error('Internal error. There was a problem processing your query');
                         }
-
                         resolve(results);
+                        connection.release();
                     });
-
-                    connection.release();
                 });
             });
         });
@@ -866,9 +841,8 @@ export class Location extends BaseClass {
                               resultModification(results);
                               resolve(location_em_roles);
                             }
+                            connection.release();
                         });
-
-                        connection.release();
                       });
                     });
                 }else{
@@ -896,21 +870,22 @@ export class Location extends BaseClass {
                             ORDER BY em_role_id
                             `;
 
-                    connection = db.createConnection(dbconfig);
-                    connection.query(sql, [], (error, results, fields) => {
-                    if (error) {
-                      console.log('location.model.getEMRolesForThisLocation', error, sql);
-                      throw new Error('There was an error getting the EM Roles for this location');
-                    }
-                    if (!results.length) {
-                        // console.log('There are no EM Roles for this location id - ' + location);
-                        reject(false);
-                    } else {
-                      resultModification(results);
-                      resolve(location_em_roles);
-                    }
-                    });
-                    connection.end();
+                    this.pool.getConnection((err, connection) => {
+                        connection.query(sql, [], (error, results, fields) => {
+                            if (error) {
+                              console.log('location.model.getEMRolesForThisLocation', error, sql);
+                              throw new Error('There was an error getting the EM Roles for this location');
+                            }
+                            if (!results.length) {
+                                // console.log('There are no EM Roles for this location id - ' + location);
+                                reject(false);
+                            } else {
+                              resultModification(results);
+                              resolve(location_em_roles);
+                            }
+                            connection.release();
+                        });
+                    });                    
                 }
             } else if(role_id === parseInt(defs['Tenant'], 10) ) {
                 
@@ -935,21 +910,23 @@ export class Location extends BaseClass {
                     AND users.archived = 0 ${accountClause}
                     ORDER BY em_role_id
                     `;
-              connection = db.createConnection(dbconfig);
-              connection.query(sql, [], (error, results) => {
-                if (error) {
-                  return console.log('location.model.getEMRolesForThisLocation', error, sql);
-                }
-                if (!results.length) {
-                  // console.log('There are no EM Roles for this location id - ' + location);
-                  reject(false);
-                } else {
 
-                  resultModification(results);
-                  resolve(location_em_roles);
-                }
-              });
-              connection.end();
+              this.pool.getConnection((err, connection) => {
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                      return console.log('location.model.getEMRolesForThisLocation', error, sql);
+                    }
+                    if (!results.length) {
+                      // console.log('There are no EM Roles for this location id - ' + location);
+                      reject(false);
+                    } else {
+    
+                      resultModification(results);
+                      resolve(location_em_roles);
+                    }
+                    connection.release();
+                  });
+              });              
             } else {
               resolve({});
             }
@@ -997,23 +974,24 @@ export class Location extends BaseClass {
           AND
             role_id = ?`;
 
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql, [role], (error, results) => {
-            if (error) {
-              console.log('location.model.getTRPOnLocation',error, sql);
-              throw Error('Cannot perform query');
-            }
-            if (!results.length) {
-              resolve([]);
-            } else {
-              for (let res of results) {
-                r.push(res);
-              }
-              resolve(r);
-            }
-          });
-          connection.end();
-        });
+        this.pool.getConnection((err, connection) => {
+            connection.query(sql, [role], (error, results) => {
+                if (error) {
+                  console.log('location.model.getTRPOnLocation',error, sql);
+                  throw Error('Cannot perform query');
+                }
+                if (!results.length) {
+                  resolve([]);
+                } else {
+                  for (let res of results) {
+                    r.push(res);
+                  }
+                  resolve(r);
+                }
+                connection.release();
+            });
+        });   
+     });
     }
 
     public getTenantAccounts(location = 0): Promise<Array<object>> {
@@ -1025,19 +1003,20 @@ export class Location extends BaseClass {
         }
         const sql_get_tenant_accounts = `
           SELECT * FROM location_account_relation WHERE location_id = ? AND responsibility = 'Tenant' GROUP BY account_id;
-        `;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get_tenant_accounts, [locId], (error, results) => {
-          if (error) {
-            console.log('location.model.getTenantAccouts', error, sql_get_tenant_accounts);
-            throw Error('Internal error: Cannot obtain tenant accounts on this location ' + locId);
-          }
-          for (let r of results) {
-            resultSet.push(r);
-          }
-          resolve(resultSet);
-        });
-        connection.end();
+        `;        
+        this.pool.getConnection((err, connection) => {
+            connection.query(sql_get_tenant_accounts, [locId], (error, results) => {
+                if (error) {
+                  console.log('location.model.getTenantAccouts', error, sql_get_tenant_accounts);
+                  throw Error('Internal error: Cannot obtain tenant accounts on this location ' + locId);
+                }
+                for (let r of results) {
+                  resultSet.push(r);
+                }
+                resolve(resultSet);
+                connection.release();
+              });
+        });        
       });
     }
 
@@ -1082,16 +1061,17 @@ export class Location extends BaseClass {
         if ('count' in filter) {
           sql_details = `SELECT COUNT(location_id) as count FROM locations WHERE location_id IN (${locationStr}) ${nameSearch} ${archivedStr} ${orderBy} `;
         }
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_details, [], (error, results) => {
-          if (error) {
-            console.log('location.model.bulkLocationDetails', error, sql_details);
-            throw Error('Cannot get locations');
-          }
-          resolve(results);
+        
+        this.pool.getConnection((err, connection) => {
+            connection.query(sql_details, [], (error, results) => {
+                if (error) {
+                    console.log('location.model.bulkLocationDetails', error, sql_details);
+                    throw Error('Cannot get locations');
+                }
+                resolve(results);
+                connection.release();
+            });
         });
-        connection.end();
-
       });
     }
 
@@ -1104,14 +1084,17 @@ export class Location extends BaseClass {
           sql_get = `SELECT * FROM locations WHERE name LIKE '%${name}%' AND parent_id = ${parentId} LIMIT 1;`;
         }
 
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql_get, [], (error, results) => {
-          if (error) {
-            console.log('location.model.getLocationDetailsUsingName', error, sql_get);
-            throw Error('Internal error. Cannot get location details');
-          }
-          resolve(results);
-        });
+        
+        this.pool.getConnection((err, connection) => {
+            connection.query(sql_get, [], (error, results) => {
+                if (error) {
+                  console.log('location.model.getLocationDetailsUsingName', error, sql_get);
+                  throw Error('Internal error. Cannot get location details');
+                }
+                resolve(results);
+                connection.release();
+            });
+        });        
       });
     }
 
@@ -1145,22 +1128,23 @@ export class Location extends BaseClass {
         LEFT JOIN locations as p4 ON p4.location_id = p3.parent_id
         LEFT JOIN locations as p5 ON p5.location_id = p4.parent_id
         WHERE locations.location_id = ? ORDER BY locations.location_id`;
-        const connection = db.createConnection(dbconfig);
-        connection.query(sql, [theLocation], (error, results) => {
-          if (error) {
-            console.log(`location.model.locationHierarchy`, error, sql);
-            throw Error('Cannot generate location hierarchy');
-          }
-          resolve(results);
-        });
+        
+        this.pool.getConnection((err, connection) => {
+            connection.query(sql, [theLocation], (error, results) => {
+                if (error) {
+                  console.log(`location.model.locationHierarchy`, error, sql);
+                  throw Error('Cannot generate location hierarchy');
+                }
+                resolve(results);
+                connection.release();
+              });
+        });        
       });
     }
 
     public getTheParentOrBuiling(id) {
         return new Promise((resolve, reject) => {
-            const
-            connection = db.createConnection(dbconfig),
-            locId = (id) ? id : this.ID(),
+            const locId = (id) ? id : this.ID(),
             sql = `
             SELECT
             *
@@ -1191,21 +1175,21 @@ export class Location extends BaseClass {
                 WHERE l.location_id = ${locId}
             )`;
 
-            connection.query(sql, (error, results) => {
-                if (error) {
-                    console.log('location.model.getTheParentORBuiling',error, sql);
-                    throw Error('Cannot perform query');
-                }
-
-                if(results.length > 0){
-                    resolve(results[0]);
-                }else{
-                    reject('location.model.getTheParentORBuiling no results found');
-                }
-
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql, (error, results) => {
+                    if (error) {
+                        console.log('location.model.getTheParentORBuiling',error, sql);
+                        throw Error('Cannot perform query');
+                    }
+    
+                    if(results.length > 0){
+                        resolve(results[0]);
+                    }else{
+                        reject('location.model.getTheParentORBuiling no results found');
+                    }
+                    connection.release();
+                });
             });
-
-            connection.end();
         });
     }
 
@@ -1242,15 +1226,17 @@ export class Location extends BaseClass {
             if(limit){
                 sql_search += ` LIMIT ${limit}`;
             }
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_search, [], (error, results) => {
-                if (error) {
-                    console.log('location.model.searchLocation', error, sql_search);
-                    throw Error('There was an error getting the location details');
-                }
-                resolve(results);
+            
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_search, [], (error, results) => {
+                    if (error) {
+                        console.log('location.model.searchLocation', error, sql_search);
+                        throw Error('There was an error getting the location details');
+                    }
+                    resolve(results);
+                    connection.release();
+                });
             });
-            connection.end();
         });
     }
 
@@ -1263,16 +1249,16 @@ export class Location extends BaseClass {
           const locationIds = locations.join(',');
           const sql_update = `UPDATE locations SET online_training = ?
                               WHERE location_id IN (${locationIds});`;
-          const connection = db.createConnection(dbconfig);
-          connection.query(sql_update, [online_training], (error, results) => {
-              if (error) {
-                console.log('location.model.toggleBulkOnlineTrainingAccess', error, sql_update);
-                throw Error('cannot update');
-              }
-              resolve(true);
+          this.pool.getConnection((err, connection) => {
+            connection.query(sql_update, [online_training], (error, results) => {
+                if (error) {
+                  console.log('location.model.toggleBulkOnlineTrainingAccess', error, sql_update);
+                  throw Error('cannot update');
+                }
+                resolve(true);
+                connection.release();
+            });
           });
-
-          connection.end();
         });
     }
 
@@ -1298,15 +1284,17 @@ export class Location extends BaseClass {
                 ${sqlAccount}
                 LIMIT 10
             `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_search, [], (error,  results) => {
-                if (error) {
-                    console.log('location.model.searchBuildings', error, sql_search);
-                    throw Error('There was an error searchBuildings');
-                }
-                resolve(results);
-            });
-            connection.end();
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_search, [], (error,  results) => {
+                    if (error) {
+                        console.log('location.model.searchBuildings', error, sql_search);
+                        throw Error('There was an error searchBuildings');
+                    }
+                    resolve(results);
+                    connection.release();
+                });
+            });           
+            
         });
     }
 
@@ -1325,15 +1313,16 @@ export class Location extends BaseClass {
                 ( l.name LIKE "%${key}%" OR l.formatted_address LIKE "%${key}%" OR p.name LIKE "%${key}%" OR IF(p.name IS NOT NULL OR TRIM(p.name) != '', CONCAT(p.name, ', ', l.name), l.name ) LIKE "%${key}%" )
                 LIMIT 10
             `;
-            const connection = db.createConnection(dbconfig);
-            connection.query(sql_search, [], (error, results) => {
-                if (error) {
-                    console.log('location.model.searchLevels', error, sql_search);
-                    throw Error('There was an error seasearchLevelsrchBuildings');
-                }
-                resolve(results);
+            this.pool.getConnection((err, connection) => {
+                connection.query(sql_search, [], (error, results) => {
+                    if (error) {
+                        console.log('location.model.searchLevels', error, sql_search);
+                        throw Error('There was an error seasearchLevelsrchBuildings');
+                    }
+                    resolve(results);
+                    connection.release();
+                });
             });
-            connection.end();
         });
     }
 
