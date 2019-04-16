@@ -22,13 +22,14 @@ export class AccountSubscription extends BaseClass {
                     }
                     if (!results.length) {
                         reject(`Subscription with id ${this.id} not found.`);
-                      } else {
+                    } else {
                         this.dbData = results[0];
                         this.setID(results[0]['account_subscription_id']);
                         resolve(this.dbData);
-                      }
+                    }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -72,10 +73,8 @@ export class AccountSubscription extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['account_subscription_id'] = results.insertId;
                     resolve(this.id);
-
+                    connection.release();
                 });
-                connection.release();
-
             });
         });
     }
@@ -110,8 +109,9 @@ export class AccountSubscription extends BaseClass {
                         throw new Error(error);
                     }
                     resolve(this.id);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -167,8 +167,9 @@ export class AccountSubscription extends BaseClass {
                         throw new Error(sql);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -205,8 +206,9 @@ export class AccountSubscription extends BaseClass {
                         throw new Error(sql);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }

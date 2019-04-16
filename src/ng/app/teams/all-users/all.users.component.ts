@@ -126,8 +126,6 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         private activatedRoute : ActivatedRoute
 		){
         this.userData = this.authService.getUserData();
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
-
         for(let role of this.userData.roles){
             if(role.role_id == 1){
                 this.isFRP = true;
@@ -266,7 +264,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-		
+		this.subscriptionType = this.userData['subscription']['subscriptionType'];
 	}
 
 	ngAfterViewInit(){

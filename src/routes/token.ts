@@ -3,20 +3,6 @@ import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
 import { Token } from '../models/token.model';
-
-import { AuthRequest } from '../interfaces/auth.interface';
-import { MiddlewareAuth } from '../middleware/authenticate.middleware';
-
-import { FileUploader } from '../models/upload-file';
-import { FileUser } from '../models/file.user.model';
-import { Files } from '../models/files.model';
-
-import * as moment from 'moment';
-import * as validator from 'validator';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as multer from 'multer';
-
 import { RegisterRoute } from './register';
 import { ForgotPasswordRequestRoute } from './forgot.password';
 import { UsersRoute } from './users';

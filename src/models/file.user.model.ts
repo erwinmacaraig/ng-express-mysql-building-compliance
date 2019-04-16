@@ -37,8 +37,9 @@ export class FileUser extends BaseClass {
                         this.setID(results[0]['file_user_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+               
             });
             
         });
@@ -64,8 +65,9 @@ export class FileUser extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['file_user_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
 
@@ -96,8 +98,9 @@ export class FileUser extends BaseClass {
                         throw new Error(err + ' ' + sql_update);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         }); // end Promise

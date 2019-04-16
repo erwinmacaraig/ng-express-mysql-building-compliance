@@ -6,18 +6,11 @@ import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { EmailSender } from '../models/email.sender';
 import { Token } from '../models/token.model';
 import { UserInvitation } from './../models/user.invitation.model';
-import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
-import { Location } from '../models/location.model';
-import { Account } from '../models/account.model';
 import { SecurityQuestions } from '../models/security-questions.model';
-import { SecurityAnswers } from '../models/security-answers.model';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { Utils } from '../models/utils.model';
 import { UserLocationValidation } from '../models/user-location-validation.model';
-
-import * as fs from 'fs';
-import * as path from 'path';
 import * as moment from 'moment';
 import * as jwt from 'jsonwebtoken';
 
@@ -171,15 +164,12 @@ const md5 = require('md5');
   public async verifyUserLocation(req: Request, res: Response, next: NextFunction) {
 
     const token = new Token();
-    const tokenData = await token.getByToken(req.params.token);
-    console.log(tokenData);
+    const tokenData = await token.getByToken(req.params.token);    
     if (!tokenData) {
       throw new Error('Invalid token');
     }
     const expirationDateMoment = moment(tokenData['expiration_date']);
     const currentDateMoment = moment();
-
-
     if(!currentDateMoment.isBefore(expirationDateMoment)) {
       throw new Error('Token already expired');
     }
@@ -491,7 +481,7 @@ const md5 = require('md5');
 
         let expDate = moment(),
             expDateFormat = '';
-        expDate.add(24, 'hours');
+        expDate.add(21, 'day');
         expDateFormat = expDate.format('YYYY-MM-DD HH-mm-ss');
 
         tokenModel.create({

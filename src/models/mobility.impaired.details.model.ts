@@ -1,7 +1,5 @@
-import * as db from 'mysql2';
-import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 
+import { BaseClass } from './base.model';
 import * as Promise from 'promise';
 export class MobilityImpairedModel extends BaseClass {
 
@@ -28,8 +26,9 @@ export class MobilityImpairedModel extends BaseClass {
           this.dbData = results[0];
           this.setID(results[0]['mobility_impaired_details_id']);
           resolve(this.dbData);
+          connection.release();
         });
-        connection.release();
+        
       });
 			
 		});
@@ -64,8 +63,9 @@ export class MobilityImpairedModel extends BaseClass {
           }
           this.dbData = results;
           resolve(this.dbData);
+          connection.release();
         });
-        connection.release();
+        
       });
 			
 		});
@@ -99,8 +99,9 @@ export class MobilityImpairedModel extends BaseClass {
             throw new Error(err);
           }
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });
 			
 
@@ -136,8 +137,9 @@ export class MobilityImpairedModel extends BaseClass {
           this.id = results.insertId;
           this.dbData['mobility_impaired_details_id'] = this.id;
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });
 
 			
@@ -204,9 +206,10 @@ export class MobilityImpairedModel extends BaseClass {
                   }
 
                   resolve(results);
+                  connection.release();
               });
 
-              connection.release();
+              
             });
             
         });
@@ -318,10 +321,8 @@ export class MobilityImpairedModel extends BaseClass {
             }
           }
           resolve(queryResultSet);
+          connection.release();
         });
-
-
-        connection.release();
       });
       
        /*

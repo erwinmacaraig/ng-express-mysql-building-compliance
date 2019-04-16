@@ -79,7 +79,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		) {
 
 		this.userData = this.authService.getUserData();
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
             this.locationId = this.encryptDecrypt.decrypt( params.locationId );
 
@@ -142,6 +142,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit() {
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
 	}
 
 	ngAfterViewInit(){

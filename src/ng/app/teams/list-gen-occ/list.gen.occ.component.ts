@@ -124,8 +124,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         private activatedRoute : ActivatedRoute
     ) {
 
-        this.userData = this.authService.getUserData();
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        this.userData = this.authService.getUserData();        
         for(let role of this.userData.roles){
             if(role.role_id == 1){
                 this.isFRP = true;
@@ -243,7 +242,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(){
-
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
         this.dashboardService.show();
         this.getListData(() => { 
             if(this.pagination.pages > 0){

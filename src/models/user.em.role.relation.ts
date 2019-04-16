@@ -1,7 +1,4 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
-
 import * as Promise from 'promise';
 
 export class UserEmRoleRelation extends BaseClass {
@@ -32,15 +29,50 @@ export class UserEmRoleRelation extends BaseClass {
                         this.setID(results[0]['user_em_roles_relation_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
     }
 
-    public getEmRolesByUserId(userId, archived?): Promise<Array<object>> {
+    public getByWhere(where={}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let whereClause = ' WHERE 1=1';
+        const params = [];
+        if ('user_id' in where) {
+          whereClause += ` AND user_id = ?`;
+          params.push(where['user_id']);
+        }
+        if ('em_role_id' in where) {
+          whereClause += ` AND em_role_id = ?`;
+          params.push(where['em_role_id']);
+        }
+        if ('location_id' in where) {
+          whereClause = ` AND location_id = ?`;
+          params.push(where['location_id']);
+        }
+        let sql = `SELECT * FROM user_em_roles_relation ${whereClause}`;
+        this.pool.getConnection((err, connection) => {
+          if (err) {
+            throw new Error(err);
+          } 
+          connection.query(sql, params, (error, results) => {
+            if (error) {
+              throw new Error(err);
+            } 
+            resolve(results);
+            connection.release();
+          });
+          
+        });
+      });
+    }
+
+    public getEmRolesByUserId(userId, archived?, group?): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
+        let groupClause = ` GROUP BY uer.em_role_id`;
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -50,17 +82,12 @@ export class UserEmRoleRelation extends BaseClass {
                       er.em_roles_id,
                       l.name as location_name,
                       l.name,
-                      l.parent_id,
-                      l.formatted_address,
-                      l.google_place_id,
-                      l.google_photo_url,
-                      l.is_building,
-                      l.admin_verified,
-                      l.archived
+                      l.parent_id,                      
+                      l.is_building
                     FROM user_em_roles_relation uer
                     INNER JOIN em_roles er  ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
-                    WHERE uer.user_id = ? AND l.archived = ${archived}`;
+                    WHERE uer.user_id = ? AND l.archived = ${archived} ${groupClause}`;
             const uid = [userId];
 
             this.pool.getConnection((err, connection) => {
@@ -77,9 +104,10 @@ export class UserEmRoleRelation extends BaseClass {
                     }else{                        
                         resolve(results);
                     }
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -120,14 +148,15 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
     }
 
-    public getEmRoles() {
+    public getEmRoles(): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM em_roles`;
             this.pool.getConnection((err, connection) => {
@@ -137,11 +166,11 @@ export class UserEmRoleRelation extends BaseClass {
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         return console.log(error);
-                    }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    }                    
+                    resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -184,8 +213,9 @@ export class UserEmRoleRelation extends BaseClass {
               } else {
                 reject('Cannot get emergency roles');
               }
+              connection.release();
             });
-            connection.release();
+            
         });
       });
     }
@@ -212,10 +242,9 @@ export class UserEmRoleRelation extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
             });
-            
         });
     }
 
@@ -237,8 +266,8 @@ export class UserEmRoleRelation extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
             });
             
         });
@@ -271,9 +300,9 @@ export class UserEmRoleRelation extends BaseClass {
                     } else {
                         resolve(true);
                     }
-
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -330,8 +359,9 @@ export class UserEmRoleRelation extends BaseClass {
                   'users': []
                 });
               }
+              connection.release();
             });
-            connection.release();
+            
         });
 
         
@@ -362,8 +392,9 @@ export class UserEmRoleRelation extends BaseClass {
 
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -414,8 +445,8 @@ export class UserEmRoleRelation extends BaseClass {
                         return console.log(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
             });
             
         });
@@ -451,10 +482,10 @@ export class UserEmRoleRelation extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
-                    // this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -488,8 +519,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -569,8 +601,9 @@ export class UserEmRoleRelation extends BaseClass {
                 }
                 resolve(r);
               }
+              connection.release();
             });
-            connection.release();
+            
         });
 
         
@@ -600,8 +633,9 @@ export class UserEmRoleRelation extends BaseClass {
                       return console.log(error);
                   }
                   resolve(results);
+                  connection.release();
               });
-              connection.release();
+              
           });
           
       });
@@ -650,8 +684,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
             
@@ -691,8 +726,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
             
@@ -725,8 +761,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -797,12 +834,11 @@ export class UserEmRoleRelation extends BaseClass {
                 throw Error(error);
               }
               resolve(results);
+              connection.release();
             });
-            connection.release();
+            
         });
         
       });
     }
-
-
 }

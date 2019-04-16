@@ -29,8 +29,9 @@ export class TrainingRequirements extends BaseClass {
                             reject('No training requirement found.');
                         }
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -42,7 +43,7 @@ export class TrainingRequirements extends BaseClass {
             for(let i in arrWhere){
                 if( count == 0 ){
                     sql += ' WHERE '+arrWhere[i];
-                }else{
+                } else{
                     sql += ' AND '+arrWhere[i];
                 }
 
@@ -58,8 +59,9 @@ export class TrainingRequirements extends BaseClass {
                         this.dbData = results;
                         resolve(results);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -89,8 +91,9 @@ export class TrainingRequirements extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['training_requirement_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -120,8 +123,9 @@ export class TrainingRequirements extends BaseClass {
                         throw new Error('Error inserting updating requirements.');
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -150,8 +154,9 @@ export class TrainingRequirements extends BaseClass {
                     throw Error('Cannot get requirements');
                 }
                 resolve(results);
+                connection.release();
             });
-            connection.release();
+            
         });
 
       });
@@ -193,8 +198,9 @@ export class TrainingRequirements extends BaseClass {
                     } else {
                         resolve(results);                        
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -234,14 +240,15 @@ export class TrainingRequirements extends BaseClass {
                         throw new Error(error);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
 
             });
         });
     } 
 
-    public getTrainingModulesForRequirement(trainingRequirementId=0): Promise<Array<object>> {
+    public getTrainingModulesForRequirement(trainingRequirementId=0, accountId=0): Promise<Array<object>> {
         let trid = this.ID();
 
         if (trainingRequirementId) {
@@ -249,21 +256,21 @@ export class TrainingRequirements extends BaseClass {
         }
         
         return new Promise((resolve, reject) => {
-            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ?`;
+            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ? AND account_id = ? ORDER BY training_module.order`;
             this.pool.getConnection((err, connection) => {
                 if (err) {
                     throw new Error();
                 }
-                const params = [trid]; 
+                const params = [trid, accountId]; 
                 connection.query(sql, params, (error, results) => {
                     if (error) {
                         console.log('Cannot retrieve training modules for this requirement id', sql, params);
                         throw new Error(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
-
+                
             });
         });
     }

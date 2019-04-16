@@ -25,8 +25,9 @@ export class UserTrainingModuleRelation extends BaseClass {
                     this.dbData = results[0];
                     this.setID(results[0]['user_training_module_relation_id']);
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
 
             });
         });
@@ -67,12 +68,13 @@ export class UserTrainingModuleRelation extends BaseClass {
                 connection.query(sql, params, (err, results) => {
                     if (err) {
                         console.log('Cannot insert user training module relations', sql, params);
-                    }
-                   
+                    }                   
                     resolve(true);
+                    connection.release();
                     return;
+                    
                 });
-                connection.release();
+                
 
             });
         });
@@ -111,8 +113,9 @@ export class UserTrainingModuleRelation extends BaseClass {
                         console.log('Cannot udpate user training module relations', sql, params);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+               
 
             });
         });
@@ -152,9 +155,9 @@ export class UserTrainingModuleRelation extends BaseClass {
                         console.log('Cannot retrieve user training modules from method trainingRequirementModuleStatuses', sql, params);
                     }
                     resolve(results);
-                    
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -191,9 +194,10 @@ export class UserTrainingModuleRelation extends BaseClass {
                     } else {
                         resolve(results[0]['user_training_module_relation_id']);
                     }
+                    connection.release();
                     
                 });
-                connection.release();
+                
             });
                         
         });
@@ -231,8 +235,9 @@ export class UserTrainingModuleRelation extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(results[0]);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -261,8 +266,59 @@ export class UserTrainingModuleRelation extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
+            });
+        });
+    }
+
+    public getMyTrainingModules(userId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM user_training_module_relation WHERE user_id = ?`;
+            const params = [userId];
+
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log(error, sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                    connection.release();
+                });
+            });
+        });
+    }
+
+    public resetMyTrainingModules(userId=0, trId=0): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const sqlUpdate = `UPDATE
+                user_training_module_relation
+            SET
+                completed = 0,
+                dtCompleted = NULL
+            WHERE
+                user_id = ?
+            AND
+                training_requirement_id = ?`;
+            
+            const params = [userId, trId];
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                connection.query(sqlUpdate, params, (error, results) => {
+                    if (error) {
+                        console.log(error, sqlUpdate, params);
+                        throw new Error(error);
+                    }
+                    resolve(true);
+                    connection.release();
+                });
             });
         });
     }

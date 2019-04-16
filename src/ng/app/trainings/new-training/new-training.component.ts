@@ -13,7 +13,7 @@ import { DatepickerOptions } from 'ng2-datepicker';
 import * as enLocale from 'date-fns/locale/en';
 import { ComplianceService } from './../../services/compliance.service';
 import { AdminService } from './../../services/admin.service';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subscription } from 'rxjs/Rx';
 import { DomSanitizer } from '@angular/platform-browser';
 
 
@@ -42,16 +42,27 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     public isWardenTrainingValid = 0;
     public isEnrolledInRewardProgram = false;
     public totalRewardPoints = 0;
-
+    public activeHistoryTab = false;
+    public certificates = [];
+    public overWriteNonWardenRoleTrainingModules;
+    public isWardenRoleArray = [];
+    public nonWardenRolesArray = [];
+    public myEmRoleIds = [];
+    public incorporatedTrainingText = '';
+    public displayProgressForNonWardenRole = false;
+    private hasWardenRole = false;
+    private hasNonWardenRole = false;
+    public sub: Subscription;
+    
     public constructor(
         private dashboardService : DashboardPreloaderService,
-        private encryptDecryptService : EncryptDecryptService,
+        private encryptor : EncryptDecryptService,
         private userService : UserService,
         private courseService : CourseService,
         private complianceService : ComplianceService,
         private adminService : AdminService,
         private authService : AuthService,
-        private sanitizer: DomSanitizer,
+        private sanitizer: DomSanitizer,        
         private platformLocation: PlatformLocation,
     ){
         this.baseUrl = (platformLocation as any).location.origin;
@@ -69,7 +80,13 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
             this.isEnrolledInRewardProgram = false;
             this.totalRewardPoints = 0;
         });
-        this.userService.userTrainingInfo(this.userData['userId']).subscribe((response) => {
+
+        this.getTrainingInfo();
+        
+    }
+
+    private getTrainingInfo() {
+        this.sub =  this.userService.userTrainingInfo(this.userData['userId']).subscribe((response) => {
             this.userTrainingInfo = response['userInfoTraining'];
             // unique locations
             let temp = [];
@@ -80,11 +97,24 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
                 }
             }
 
+            // this.certificates = response.certificates;
+            for (let cert of response.certificates) {
+                cert['encryptedCertId'] = this.encryptor.encrypt(cert['certifications_id']);
+                this.certificates.push(cert);
+            }
+            
+            this.overWriteNonWardenRoleTrainingModules = response.overWriteNonWardenRoleTrainingModules;
+            this.isWardenRoleArray = response.isWardenRoleArray;
+            this.nonWardenRolesArray = response.nonWardenRolesArray;
+            this.myEmRoleIds = response.myEmRoleIds;
+
+            const moduleIds = [];
             this.userInfoOtherTraining = response.userInfoOtherTraining['training_requirement'];
             for (let roles of this.userTrainingInfo) {
                 roles['completed'] = 0;
                 roles['total_modules'] = 0;
                 roles['percent_status'] = 0;
+                roles['inc_text'] = '';
                 if ( (roles['em_role_id'] == 9 ||
                       roles['em_role_id'] == 10 ||
                       roles['em_role_id'] == 11 ||
@@ -92,21 +122,38 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
                       roles['em_role_id'] == 16 ||
                       roles['em_role_id'] == 18 ) && roles['role_training_status'] == 'compliant') {
                     this.isWardenTrainingValid = 1;
+                }
+                
+                if (this.overWriteNonWardenRoleTrainingModules && this.nonWardenRolesArray.indexOf(roles['em_role_id']) != -1) {
+                    roles['inc_text'] = `This training is incorported below`;
                 }                
-                for (let trainingRqmt of roles['training_requirement'] ) {
+                for (let trainingRqmt of roles['training_requirement'] ) {                    
                     roles['total_modules'] = (trainingRqmt['modules'] as Array<object>).length;
+                    if ('total_modules' in trainingRqmt) {
+                        roles['total_modules'] = trainingRqmt['total_modules'];
+                    }
+                    if ('total_completed_modules' in trainingRqmt) {
+                        roles['completed'] = trainingRqmt['total_completed_modules'];
+                    }
                     console.log('training requirement', trainingRqmt);
                     for (let trainingReqmtModules of trainingRqmt['modules']) {
-                        
-                        this.allTrainingModules.push({
-                            ...trainingReqmtModules,
-                            expiry: trainingRqmt['expiry']
-                        });
-                        if (trainingReqmtModules['completed']) {
-                            roles['completed']++; 
-                        }
+
+                        if (moduleIds.indexOf(trainingReqmtModules['module_id']) == -1) {
+
+                            moduleIds.push(trainingReqmtModules['module_id']);
+                            this.allTrainingModules.push({
+                                ...trainingReqmtModules                                
+                            });                 
+
+                            if (trainingReqmtModules['completed']) {
+                                roles['completed']++; 
+                            }
+                        }                        
                     }
                     roles['percent_status'] =   (roles['completed'] / roles['total_modules']) * 100;
+                    if (isNaN(roles['percent_status'])) {
+                        roles['percent_status'] = 0;
+                    }
                 }
                 console.log(roles);                
             }
@@ -118,16 +165,14 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
                 for (let module of other['modules']) {
                     this.allMiscModules.push(module);
                 }
-            }
-            
-           console.log(this.userInfoOtherTraining);
-
-            
+            }            
+           console.log(this.userInfoOtherTraining);            
             this.dashboardService.hide();
         },(e: HttpErrorResponse) => {
             console.log(e);
             this.dashboardService.hide();
         });
+
     }
 
     public ngAfterViewInit(){
@@ -135,6 +180,7 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     public ngOnDestroy(){
+        this.sub.unsubscribe();
         user_training_module_relation = 0;
         this.isWardenTrainingValid = 0;
         this.formatted_launcher_url = '';
@@ -182,12 +228,25 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     onCloseTrainingModule() {        
+        
         this.formatted_launcher_url = '';
+        this.userTrainingInfo = [];
+        this.certificates = [];
+        this.emRolesLocations = [];
+        this.userInfoOtherTraining = [];
+        this.allMiscModules = [];
+        this.isWardenTrainingValid = 0;
+        this.allTrainingModules = [];
+
         this.courseService.logOutTrainingModule(user_training_module_relation).subscribe((response) => {
             user_training_module_relation = 0;
+            /*
             if(response.lesson_status == 'completed' || response.lesson_status == 'passed') {
                 window.location.reload();
             }
+            */
+           // user_training_module_relation = 0;
+           this.getTrainingInfo();
         });
     }
 

@@ -12,7 +12,7 @@ API.LMSFinish = function() {
 API.LMSGetValue =  function(parameter) {
     var result = 0;
     $.ajax({
-        url: 'http://localhost:3000/lms/getParameter/',
+        url: 'https://portal.evacconnect.com/lms/getParameter/',
         data: {
             "param": parameter,
             "relation": user_training_module_relation
@@ -36,7 +36,7 @@ API.LMSSetValue = function(element, value) {
     // console.log(element, value);
     $.ajax({
         type: "POST",
-        url: "http://localhost:3000/lms/setParameterValue/",
+        url: "https://portal.evacconnect.com/lms/setParameterValue/",
         data: {
            "param": element,
            "value": value,

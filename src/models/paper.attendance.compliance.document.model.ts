@@ -1,8 +1,5 @@
-
 import { BaseClass } from './base.model';
-
 import * as Promise from 'promise';
-
 
 export class PaperAttendanceComplianceDocumentModel extends BaseClass {
   constructor(id?: number) {
@@ -59,8 +56,9 @@ export class PaperAttendanceComplianceDocumentModel extends BaseClass {
           this.id = results.insertId;
           this.dbData['paper_attendance_compliance_docs_id'] = this.id;
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });      
     });
 
@@ -100,9 +98,10 @@ export class PaperAttendanceComplianceDocumentModel extends BaseClass {
             console.log('Cannot update record paper attendance compliance document model');
             throw Error(err);
           }
-          resolve(true);  
+          resolve(true);
+          connection.release();  
         });
-        connection.release();
+       
       });
     });
   }
@@ -124,8 +123,9 @@ export class PaperAttendanceComplianceDocumentModel extends BaseClass {
           this.dbData = results[0];
           this.setID(results[0]['paper_attendance_compliance_docs_id']);
           resolve(this.dbData);
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }
@@ -148,8 +148,9 @@ export class PaperAttendanceComplianceDocumentModel extends BaseClass {
           } else {
             resolve(0);
           }
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }
@@ -185,8 +186,9 @@ export class PaperAttendanceComplianceDocumentModel extends BaseClass {
             throw Error(error);
           }
           resolve(results);
+          connection.release();
         });
-        connection.release();
+       
       });
     });
   }
