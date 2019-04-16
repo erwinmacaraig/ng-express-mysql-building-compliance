@@ -1,7 +1,5 @@
-import * as db from 'mysql2';
-import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 
+import { BaseClass } from './base.model';
 import * as Promise from 'promise';
 
 export class Course extends BaseClass {
@@ -30,9 +28,10 @@ export class Course extends BaseClass {
               this.setID(results[0]['course_id']);
               resolve(this.dbData);
             }
+            connection.release();
           });
 
-          connection.release();
+          
       });
     });
   } // end load
@@ -63,8 +62,9 @@ export class Course extends BaseClass {
                       this.dbData = results;
                       resolve(results);
                   }
+                  connection.release();
               });
-              connection.release();
+              
           });
           
       });
@@ -92,8 +92,9 @@ export class Course extends BaseClass {
             this.id = results.insertId;
             this.dbData['course_id'] = this.id;
             resolve(true);
+            connection.release();
           });
-          connection.release();
+          
       });
       
     });
@@ -121,8 +122,9 @@ export class Course extends BaseClass {
               throw new Error('Cannot update course');
             }
             resolve(true);
+            connection.release();
           });
-          connection.release();
+          
       });
       
     });
