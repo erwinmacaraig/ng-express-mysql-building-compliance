@@ -29,8 +29,9 @@ export class TrainingRequirements extends BaseClass {
                             reject('No training requirement found.');
                         }
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -58,8 +59,9 @@ export class TrainingRequirements extends BaseClass {
                         this.dbData = results;
                         resolve(results);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -89,8 +91,9 @@ export class TrainingRequirements extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['training_requirement_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -120,8 +123,9 @@ export class TrainingRequirements extends BaseClass {
                         throw new Error('Error inserting updating requirements.');
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -150,8 +154,9 @@ export class TrainingRequirements extends BaseClass {
                     throw Error('Cannot get requirements');
                 }
                 resolve(results);
+                connection.release();
             });
-            connection.release();
+            
         });
 
       });
@@ -193,8 +198,9 @@ export class TrainingRequirements extends BaseClass {
                     } else {
                         resolve(results);                        
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -234,8 +240,9 @@ export class TrainingRequirements extends BaseClass {
                         throw new Error(error);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
 
             });
         });
@@ -261,8 +268,9 @@ export class TrainingRequirements extends BaseClass {
                         throw new Error(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }

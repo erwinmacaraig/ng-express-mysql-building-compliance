@@ -1,11 +1,6 @@
 
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
-
 import * as Promise from 'promise';
-
-
 
 export class NotificationToken extends BaseClass {
   constructor(id?: number) {
@@ -104,8 +99,9 @@ export class NotificationToken extends BaseClass {
           this.id = results.insertId;
           this.dbData['notification_token_id'] = this.id;
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
 
       });
 
@@ -166,9 +162,9 @@ export class NotificationToken extends BaseClass {
             throw Error(err);
           }
           resolve(true);
-
+          connection.release();
         });
-        connection.release();
+        
 
       });
       
@@ -192,8 +188,9 @@ export class NotificationToken extends BaseClass {
             this.setID(results[0]['notification_token_id']);          
           }        
           resolve(this.dbData);
+          connection.release();
         });
-        connection.release();
+        
 
       });
       
@@ -223,8 +220,9 @@ export class NotificationToken extends BaseClass {
           } else {
             resolve({});
           }
+          connection.release();
         });
-        connection.release();
+        
 
       });
       
@@ -249,8 +247,9 @@ export class NotificationToken extends BaseClass {
           }
           this.dbData = results;
           resolve(this.dbData);
+          connection.release();
         });
-        connection.release();
+        
 
       });
       
@@ -275,8 +274,9 @@ export class NotificationToken extends BaseClass {
             throw Error(error);
           }
           resolve(results);
+          connection.release();
         });
-        connection.release();
+        
 
       });
     });
@@ -328,9 +328,8 @@ export class NotificationToken extends BaseClass {
            throw Error(error);
          }
          resolve(results);
+         connection.release();
         });
-        connection.release();
-
       });
       
     });
@@ -393,8 +392,9 @@ export class NotificationToken extends BaseClass {
            throw Error(error);
          }
          resolve(results);
+         connection.release();
         });
-        connection.release();
+        
 
       });
       

@@ -33,9 +33,8 @@ export class LocationAccountUser extends BaseClass {
                         this.setID(results[0]['location_account_user_id']);
                         resolve(this.dbData);
                     }
-                });
-
-              connection.release();
+                    connection.release();
+                });              
             });
         });
     }
@@ -56,11 +55,9 @@ export class LocationAccountUser extends BaseClass {
                 } else {
                     resolve(true);
                 }
-              });
-                 
-              connection.release();
-            });
-            
+                connection.release();
+              });              
+            });            
         });
     }
 
@@ -87,9 +84,9 @@ export class LocationAccountUser extends BaseClass {
                   }
                  
                   resolve(results);
+                  connection.release();
               });
-                 
-              connection.release();
+              
             });
         });
     }
@@ -129,9 +126,10 @@ export class LocationAccountUser extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -151,9 +149,9 @@ export class LocationAccountUser extends BaseClass {
                       return console.log(error);
                   }
                   resolve(results);
-              });
-                 
-              connection.release();
+                  connection.release();
+              });                
+              
             });
         });
     }
@@ -213,9 +211,8 @@ export class LocationAccountUser extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
-              });
-                 
-              connection.release();
+                  connection.release();
+              });              
             });
         });
     }
@@ -240,9 +237,9 @@ export class LocationAccountUser extends BaseClass {
                       this.setID(results[0]['location_account_user_id']);
                       resolve(this.dbData);
                   }
-              });
-                 
-              connection.release();
+                  connection.release();
+              });                
+              
             });
         });
     }
@@ -267,9 +264,10 @@ export class LocationAccountUser extends BaseClass {
                       this.setID(results[0]['location_account_user_id']);
                       resolve(this.dbData);
                   }
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -289,9 +287,10 @@ export class LocationAccountUser extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -316,9 +315,10 @@ export class LocationAccountUser extends BaseClass {
                       this.dbData = results;
                       resolve(this.dbData);
                   }
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -367,9 +367,8 @@ export class LocationAccountUser extends BaseClass {
                     return console.log(error);
                   }
                   resolve(results);
-              });
-                 
-              connection.release();
+                  connection.release();
+              });              
             });
         });
     }
@@ -391,9 +390,10 @@ export class LocationAccountUser extends BaseClass {
 
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -423,9 +423,10 @@ export class LocationAccountUser extends BaseClass {
                       this.dbData = results;
                       resolve(this.dbData);
                   }
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -451,9 +452,10 @@ export class LocationAccountUser extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -478,9 +480,9 @@ export class LocationAccountUser extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
               });
-                 
-              connection.release();
+              
             });
 
         });
@@ -511,9 +513,10 @@ export class LocationAccountUser extends BaseClass {
                       this.dbData = results;
                       resolve(this.dbData);
                   }
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
 
         });
@@ -555,9 +558,10 @@ export class LocationAccountUser extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
             
         });
@@ -587,9 +591,10 @@ export class LocationAccountUser extends BaseClass {
                         return console.log(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -616,9 +621,10 @@ export class LocationAccountUser extends BaseClass {
                       throw new Error(err);
                   }
                   resolve(true);
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
 
         });
@@ -649,9 +655,10 @@ export class LocationAccountUser extends BaseClass {
                   this.id = results.insertId;
                   this.dbData['location_account_user_id'] = this.id;
                   resolve(true);
+                  connection.release();
               });
                  
-              connection.release();
+              
             });
         });
     }
@@ -683,9 +690,9 @@ export class LocationAccountUser extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
-
+                  connection.release();
               });
-              connection.release();
+              
             });
             
         });
@@ -753,8 +760,9 @@ export class LocationAccountUser extends BaseClass {
               // console.log(resultSetObj);
               resolve(resultSetObj);
             }
+            connection.release();
           });
-          connection.release();
+          
         });
          
       });
@@ -813,8 +821,8 @@ export class LocationAccountUser extends BaseClass {
                   }
                 }
                 resolve(sublocations);
-              });
-              connection.release();
+                connection.release();
+              });              
             });
             
           });
@@ -852,8 +860,9 @@ export class LocationAccountUser extends BaseClass {
                   foundLocations.push(r);
                 }
                 resolve(foundLocations);
+                connection.release();
               });
-              connection.release();
+              
           });
         });
     }
@@ -919,8 +928,9 @@ export class LocationAccountUser extends BaseClass {
                 throw Error(error);
               }
               resolve(results);
+              connection.release();
             });
-            connection.release();
+            
         });
         
       });
@@ -966,8 +976,9 @@ export class LocationAccountUser extends BaseClass {
                         throw Error(err);                        
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -1018,8 +1029,9 @@ export class LocationAccountUser extends BaseClass {
                         throw Error(err);                        
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -1077,8 +1089,9 @@ export class LocationAccountUser extends BaseClass {
                         throw Error(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
