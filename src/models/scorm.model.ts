@@ -1,6 +1,4 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 import * as moment from 'moment';
 import * as Promise from 'promise';
 
@@ -87,15 +85,20 @@ export class Scorm extends BaseClass {
                       (${relationId}, 'cmi.interactions.n.student_response', ''),
                       (${relationId}, 'cmi.interactions.n.result', 'neutral'),
                       (${relationId}, 'cmi.interactions.n.latency', '');`;
-                    const connection = db.createConnection(dbconfig);
-                    connection.query(sql_init, [], (error, results, fields) => {
-                        if (error) {
-                            console.log('scorm.model.init', error, sql_init);
-                            throw new Error('There is an error initializing data models');
+                    
+                    this.pool.getConnection((err, connection) => {
+                        if (err) {
+                            throw new Error(err);
                         }
-                        resolve(true);
+                        connection.query(sql_init, [], (error, results) => {
+                            if (error) {
+                                console.log('scorm.model.init', error, sql_init);
+                                throw new Error('There is an error initializing data models');
+                            }
+                            resolve(true);
+                            connection.release();
+                        });
                     });
-                    connection.end();
                 }
             });
         });
@@ -154,10 +157,10 @@ export class Scorm extends BaseClass {
                                 console.log('scorm model initModule', sql_init, error);
                                 throw new Error(error);
                             }
-                            console.log(results);
                             resolve(true);
+                            connection.release();
                         });
-                        connection.release();
+                        
                     });
                 }
            }).catch((error) => {
@@ -181,8 +184,9 @@ export class Scorm extends BaseClass {
                     } else {
                         resolve(true);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -215,9 +219,9 @@ export class Scorm extends BaseClass {
                         console.log(`cannot find parameter: ${param} with relation: ${relation}`);
                         resolve();
                     }
-                    
+                    connection.release(); 
                 });
-                connection.release();
+                
             });
             
         });
@@ -240,8 +244,8 @@ export class Scorm extends BaseClass {
                         throw new Error('Cannot set value with the given parameter ' + paramName + ' AND relation ' + relation);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
             });
             
         });
@@ -270,8 +274,9 @@ export class Scorm extends BaseClass {
                     } else {
                         resolve(true);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
