@@ -35,7 +35,8 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     'lead': '',
     'online_training': 0,
     'epc_committee_on_hq': 0,
-    'fsa_by_evac': 0
+    'fsa_by_evac': 0,
+    'subscription': {}
   };
   account_billing = '';
 

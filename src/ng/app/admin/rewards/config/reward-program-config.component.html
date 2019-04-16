@@ -85,58 +85,73 @@
             </div> 
         </div>
     </div>
-
-
-
-        
-
-
-
         <div class="row">
             <div class="col s6">
                 <div class="row">
                     <div class="col l6 m6 s12">
                         <h6>Activity</h6>
                     </div>
-                    <div class="col s12" formArrayName="activities">
-                        <div class="row filter-container" *ngFor="let activity of configForm.get('activities')['controls']; let i = index">
-                            <div class="col l12 m12 s12" >
-                                <div class="config-field">
-                                    <input type="text" [formControlName]="i">
-                                </div> 
-                            </div>
-                        </div>                       
-                    </div> 
+                    <div class="col s8">
+                        <select style="display: block;" id="programActivities" #programActivities>
+                            <option value="-1" selected>Please select activity here</option>
+                            <option *ngFor="let activity of activityTable; let i = index;" [value]="i">{{activity['activity_name']}}</option>                            
+                        </select>
+                    </div>
+                    <div class="col s4">
+                        <button style="width:100%" (click)="addNewActivity()" type="button" class="btn orange waves-light waves-effect">Add</button>
+                    </div>
                 </div>                
-            </div> 
-            <div class="col s6">
-                <div class="row">
-                    <div class="col l4 m2 s12">
-                        <h6>Equivalent Points</h6>
-                    </div>
-                    <div class="col s12" formArrayName="activity_points">
-                        <div class="row filter-container" *ngFor="let points of configForm.get('activity_points')['controls']; let i = index">
-                            <div class="col l4 m5 s12" >
-                                <div class="config-field">
-                                    <input type="text" [formControlName]="i">
-                                </div> 
-                            </div>
-                            <div *ngIf="i > 2" (click)="removeActivityItem(i)" style="line-height: 70px">
-                                <a>
-                                    <i class="small material-icons red-text">delete_forever</i>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
+            
+            <!--
             <div class="col s6">
                 <div class="row">
                     <div class="col l4 m2 s12">
                        <a (click)="addNewActivity()">+ Add New Activity</a> 
                     </div>
                 </div>
-            </div>
+            </div> -->
+        </div>
+
+        <div class="row">
+            <div class="col s6">
+                    <div class="row">
+                        <div class="col l4 m2 s12">
+                            <h6>Activity</h6>
+                        </div>
+                        <div class="col s12" formArrayName="activities">
+                            <div class="row filter-container" *ngFor="let activity of configForm.get('activities')['controls']; let i = index">
+                                <div class="col l12 m12 s12" >
+                                    <div class="config-field">
+                                        <input type="text" [formControlName]="i">
+                                    </div> 
+                                </div>
+                            </div>                       
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col s6">
+                    <div class="row">
+                        <div class="col l4 m2 s12">
+                            <h6>Equivalent Points</h6>
+                        </div>
+                        <div class="col s12" formArrayName="activity_points">
+                            <div class="row filter-container" *ngFor="let points of configForm.get('activity_points')['controls']; let i = index">
+                                <div class="col l4 m5 s12" >
+                                    <div class="config-field">
+                                        <input type="text" [formControlName]="i">
+                                    </div> 
+                                </div>
+                                <div *ngIf="i > 0" (click)="removeActivityItem(i)" style="line-height: 70px">
+                                    <a>
+                                        <i class="small material-icons red-text">delete_forever</i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
         </div>
             
         <div class="row">
@@ -193,9 +208,15 @@
 
 
         <div class="row">
+            configForm.valid - {{configForm.valid}}
+            configForm.get('reward_items') - {{configForm.get('reward_items').length}}
+            configForm.get('activities') - {{configForm.get('activities').length}}
             <div class="col l6 m6 s6">
                 <button [routerLink]="['/admin', 'list-reward-configuration']" type="button" class="btn grey lighten-1 waves-light waves-effect">Cancel</button>
-                <button type="button" (click)="finalizeConfig()" class="btn orange waves-light waves-effect" [disabled]="!configForm.valid">Submit</button>
+                <button type="button"
+                    (click)="finalizeConfig()"
+                    class="btn orange waves-light waves-effect"
+                    [disabled]="!configForm.valid || configForm.get('reward_items').length == 0 || configForm.get('activities').length == 0">Submit</button>
             </div>
         </div>
 

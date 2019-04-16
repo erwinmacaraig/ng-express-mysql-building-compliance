@@ -14,6 +14,7 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { List } from '../models/list.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
+import { AccountSubscription } from '../models/account.subscription.model';
 const validator = require('validator');
 const cryptoJs = require('crypto-js');
 import * as moment from 'moment';
@@ -146,6 +147,10 @@ const RateLimiter = require('limiter').RateLimiter;
 			new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
 				new AccountRoute().performActionOnSummaryList(req, res);
 			});
+
+		router.get('/accounts/verify-as-warden', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new AccountRoute().verifyIamWarden(req, res);
+		});
 
   }
 
@@ -340,7 +345,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 			await notificationTokenObj.create({
         strToken: strToken,
-				dtExpiration: moment().add(2, 'day').format('YYYY-MM-DD'),
+				dtExpiration: moment().add(20, 'day').format('YYYY-MM-DD'),
 				strStatus: 'Pending',
 				responded: 0,
 				dtResponded: '0000-00-00',
@@ -740,9 +745,9 @@ const RateLimiter = require('limiter').RateLimiter;
 
     trps = await locAccUser.getTrpByLocationIds(locIds.join(','));
     trps.push({
-      'first_name' : 'Jay',
-      'last_name' : 'Manoharan',
-      'email' : 'jmanoharan@evacgroup.com.au'
+      'first_name' : 'Erwin',
+      'last_name' : 'Macaraig',
+      'email' : 'emacaraig@evacgroup.com.au'
     });
 
     for(let tr of trps){
@@ -1007,7 +1012,7 @@ const RateLimiter = require('limiter').RateLimiter;
 				const opts = {
 					from : '',
 					fromName : 'EvacConnect',
-					to : ['jmanoharan@evacgroup.com.au'],				
+					to : ['rsantos.evacgroup.com.au'],				
 					cc: [],
 					body : new EmailSender().getEmailHTMLHeader() + `<br> ${userDbData['first_name']} ${userDbData['last_name']} of ${accountDbData['account_name']} <br>
 					says that he/she is <strong>STILL</strong> the FRP at ${locationDbData['name']}.` + 
@@ -1027,7 +1032,45 @@ const RateLimiter = require('limiter').RateLimiter;
       }
     }
 
-  }
+	}
+	
+	public async verifyIamWarden(req: AuthRequest, res:Response) {
+		const configId  = req.query.configId;
+		if(configId == 0) {
+			return res.status(500).send({
+				message: 'config id cannot be null/void/0'
+			});
+		}
+		const notificationTokenObj = new NotificationToken();
+		const notificationConfigObj = new NotificationConfiguration(configId);
+		const configData = await notificationConfigObj.load();
+		configData['responders'] += 1;
+		configData['user_responded'] =  `${configData['user_responded']},${req.user.user_id}`;
+		const tokenData = await notificationTokenObj.loadByContraintKeys(req.user.user_id, configId);
+		tokenData['strToken'] = null;
+		tokenData['responded'] = 1;
+		tokenData['completed'] = 1;
+		tokenData['strStatus'] = 'Validated';
+		tokenData['dtResponded'] = moment().format('YYYY-MM-DD');
+		tokenData['dtCompleted'] = moment().format('YYYY-MM-DD');
+		let message = 'Success';
+		try {
+			await notificationConfigObj.create(configData);
+			await notificationTokenObj.create(tokenData);
+		} catch(e) {
+			console.log(e);
+			message = e.toString();
+		}
+
+		return res.status(200).send({
+			message: message,
+			config: configData,
+			token: tokenData
+		});
+
+
+
+	}
 
 
 	
@@ -1118,13 +1161,12 @@ const RateLimiter = require('limiter').RateLimiter;
         userType = 'all';
         trp = await lauObj.TRPUsersForNotification(sublevels);
 				eco = await uemr.emUsersForNotification(sublevels);
-				frp = await new LocationAccountUser().getFRPinBuilding(config['building_id']);
-				// allUsers = trp.concat(eco);
+				frp = await new LocationAccountUser().FRPUsersForNotification(config['building_id']);
+			
 				allUsers = [...trp, ...eco, ...frp];
       } else if (config['user_type'] == 'frp') {
 				userType = 'frp';
-				allUsers = await new LocationAccountUser().getFRPinBuilding(config['building_id']);
-				// console.log(frp);
+				allUsers = await new LocationAccountUser().FRPUsersForNotification(config['building_id']);
 			}
     }catch(e){
       console.log(e);
@@ -1241,8 +1283,7 @@ const RateLimiter = require('limiter').RateLimiter;
       const opts = {
         from : '',
         fromName : 'EvacConnect',
-				to : [u['email']],				
-        cc: ['emacaraig@evacgroup.com.au'],
+				to : [u['email']],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'

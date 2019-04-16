@@ -775,7 +775,7 @@ export class ReportsRoute extends BaseRoute {
     }
 
     public async locationTrainings(req: AuthRequest, res: Response, toPdf?, toCsv?){
-        console.log(req.body);
+        //console.log(req.body);
       let
         response = {
             status : false, data : [], message : '',
@@ -817,9 +817,7 @@ export class ReportsRoute extends BaseRoute {
         } catch (e) {
             console.log('Getting the account role for a location error');
         }
-
-
-
+        let filterUserList = [];
 
         if(getAll || filterExceptLocation){
             training_id = false;
@@ -971,16 +969,6 @@ export class ReportsRoute extends BaseRoute {
         users = <any> await usersModel.getAllRolesInLocationIds(allLocationIds.join(','), config); 
         const EMRoleIds = []; // console.log('line 972', users);
         for(let user of users){
-            /*
-            if(allUserIds.indexOf(user.user_id) == -1){
-                allUserIds.push(user.user_id);
-            }
-            if(user.role_id == 1 || user.role_id == 2){ 
-                frpAndTrp.push(user);
-            }
-            console.log(allUserIds);
-            console.log('user_id = ' + user.user_id);
-            */
             
             if(allUserIds.indexOf(user.user_id) == -1) {
                 if (frpAccountLocations.indexOf(user.parent_id) != -1) {
@@ -1029,16 +1017,12 @@ export class ReportsRoute extends BaseRoute {
             }
         }
         let tempUserHolder = [];
+       
         for (let i = 0; i < allUsers.length; i++) {
             try {
                 if ( (trainingObj[allUsers[i]['role_id']]) && trainingObj[allUsers[i]['role_id']]['training_requirement'].length > 1) {
                     for (const r of trainingObj[allUsers[i]['role_id']]['training_requirement']) {
-                        /*
-                        tempUserHolder.push({
-                            ...allUsers[i],
-                            ...r
-                        })
-                        */
+                        
                        allUsers[i] = {
                            ...allUsers[i],
                            ...r
@@ -1046,6 +1030,7 @@ export class ReportsRoute extends BaseRoute {
                     }
                 } else {
                     if (trainingObj[allUsers[i]['role_id']]) {
+                        
                         allUsers[i]['training_requirement_name'] =
                         trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['training_requirement_name'];
 
@@ -1053,37 +1038,32 @@ export class ReportsRoute extends BaseRoute {
                             trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['training_requirement_id'];
 
                         allUsers[i]['num_months_valid'] = trainingObj[allUsers[i]['role_id']]['training_requirement'][0]['num_months_valid'];
+                        
                     }
-                    
-
                 }
+                
             } catch (e) {
                 console.log('No training requirment for this user', e, allUsers[i]);
             }
         }
-        /*
-        for (const u of tempUserHolder) {
-            allUsers.push(u);
-        }
-        */
         
+        // console.log(JSON.stringify(trainingObj));
+                
         tempUserHolder = [];
-        // response['users'] = users;
-        // response['allLocationIds'] = allLocationIds.join(',');
-        // console.log(allUsers);
-
+        
         let offsetLimit = (getAll || filterExceptLocation) ? false :  (limit == 0) ? false : offset+','+limit,
             courseMethod = (course_method == 'online' && !getAll && !filterExceptLocation) ? 
             'online_by_evac' : (course_method == 'offline' && !getAll && !filterExceptLocation) ? 'offline_by_evac' : '',
             trainCertModel = new TrainingCertification(),
             trainCertCountModel = new TrainingCertification(),
-            certificates = <any> await trainCertModel.getCertificatesByInUsersId(
+            /*certificates = <any> await trainCertModel.getCertificatesByInUsersId(
                 allUserIds.join(','),
                 offsetLimit,
                 false,
                 courseMethod,
                 compliant,
-                training_id ),
+                training_id ),*/
+             certificates = [],   
             certificatesCount = <any> await trainCertCountModel.getCertificatesByInUsersId(
                 allUserIds.join(','),
                 offsetLimit,
@@ -1092,12 +1072,67 @@ export class ReportsRoute extends BaseRoute {
                 compliant,
                 training_id );
 
+        if (compliant == 0) {            
+            const nonValidCert = await trainCertModel.listCertifications(
+                allUserIds,
+                offsetLimit,
+                false,
+                courseMethod,
+                0,
+                training_id
+            );
+
+            // cross check
+            const compliantListing = await trainCertModel.listCertifications(
+                allUserIds,
+                offsetLimit,
+                false,
+                courseMethod,
+                1,
+                training_id);
+            
+            for (let cert of nonValidCert) {
+                for (const com of compliantListing) {
+                    if (cert['user_id'] == com['user_id'] && cert['training_requirement_id'] == com['training_requirement_id']) {
+                        console.log(filterUserList);
+                        filterUserList.push({
+                            user_id: cert['user_id'],
+                            training_requirement_id: cert['training_requirement_id']
+                        });
+                        continue;
+                    } else {
+                        certificates.push(cert);
+                    }
+                }
+            }
+
+        } else {
+            certificates = await trainCertModel.listCertifications(
+                allUserIds,
+                offsetLimit,
+                false,
+                courseMethod,
+                compliant,
+                training_id
+            );
+        }   
+
+
         response['certificates'] = certificates;
         const finalResult = [];
-        
+        allUsersLoop:
         for (let i = 0; i < allUsers.length; i++) {
             let user = allUsers[i];
-            for (const cert of certificates) {
+            // ignore users with no training requirement
+            if ( !(allUsers[i]['role_id'] in trainingObj)) {
+                continue allUsersLoop;
+            }
+            for (const filterUser of filterUserList) {
+                if (filterUser['user_id'] == user['user_id'] && filterUser['training_requirement_id'] == user['training_requirement_id']) {                    
+                    continue allUsersLoop;
+                }
+            }
+            for (const cert of certificates) {                
                 if (user['user_id'] == cert['user_id'] && user['training_requirement_id'] == cert['training_requirement_id']) {
                     tempUserHolder.push(i);
                     user['region'] = '';
@@ -1136,11 +1171,21 @@ export class ReportsRoute extends BaseRoute {
                    
                     finalResult.push(objectHolderTemp);
                     break;
-                }
+                } 
             }
         }
-        
+        finalUsersLoop:
         for (let i = 0; i < allUsers.length; i++) {
+            for (const filterUser of filterUserList) {
+                if (filterUser['user_id'] == allUsers[i]['user_id'] && filterUser['training_requirement_id'] == allUsers[i]['training_requirement_id']) {                    
+                    console.log('HERE at finalUsersLoop');
+                    continue finalUsersLoop;
+                }
+            }
+            if ( !(allUsers[i]['role_id'] in trainingObj)) {
+                
+                continue finalUsersLoop;
+            }
             if (tempUserHolder.indexOf(i) == -1) {
                 if(allUsers[i].parent_is_building == 1) {
                     allUsers[i]['building'] = allUsers[i].parent_location_name;
@@ -1154,66 +1199,9 @@ export class ReportsRoute extends BaseRoute {
             }
         }
 
-        /*
-        for(let cert of certificates) {
-            for(let user of users) {
-                if(user.user_id == cert.user_id) {
-                    cert['first_name'] = user.first_name;
-                    cert['last_name'] = user.last_name;
-                    cert['email'] = user.email;
-                    cert['location_name'] = user.location_name;
-                    cert['account_name'] = user.account_name;
-                    cert['region'] = '';
-                    cert['building'] = '';
-                    cert['sublocation'] = '';
-
-                    if(user.parent_is_building == 1){
-                        cert['building'] = user.parent_location_name;
-                        cert['sublocation'] = user.name;
-                        cert['region'] = user.parent2_location_name;
-                    } else if(user.is_building == 1){
-                        cert['building'] = user.name;
-                        cert['region'] = user.parent_location_name;
-                    }
-
-                }
-            }
-
-            if(cert['certification_date'] != null){
-                cert['certification_date_formatted'] = moment(cert['certification_date']).format('DD/MM/YYYY');
-            }else{
-                cert['certification_date_formatted'] = '';
-            }
-
-            if(cert['training_requirement_name'] == null){
-                cert['training_requirement_name'] = '';
-            }
-
-            for(let ft of frpAndTrp){
-                if(ft.user_id == cert.user_id){
-                    if(cert.role_name == null){
-                        cert['role_name'] = ft.role_name;
-                    }
-                }
-            }
-        } */
-
+        
         response.pagination.total = (certificatesCount[0]) ? certificatesCount[0]['count'] : 0;
 
-        
-        /*
-        for(let cert of certificates){
-            let isIn = false;
-            for(let fin of finalResult){
-                if(cert.user_id == fin.user_id){
-                    isIn = true;
-                }
-            }
-            if(!isIn){
-                finalResult.push(cert);
-            }
-        }
-        */
         response.data = finalResult;
 
         if(response.pagination.total > limit){

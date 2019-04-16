@@ -6,16 +6,16 @@
     			<h5 class="left"> <span *ngIf="report.location.parent.name.length > 0">{{report.location.parent.name}}, </span>{{report.location.name}} </h5>
 
     			<div class="right right-buttons no-print" data-html2canvas-ignore *ngIf="i == 0">
-    				<a #aPdf (click)="pdfExport(aPdf, printContainer)">
+    				<a #aPdf (click)="pdfExport(aPdf, printContainer)" *ngIf="subscriptionType != 'free'">
     					<div class="text">Export to</div>
     					<div class="image pdf"></div>
     				</a>
     				
-    				<a (click)="csvExport()">
+    				<a (click)="csvExport()" *ngIf="subscriptionType != 'free'">
     					<div class="image excel"></div>
     				</a>
 
-    				<a  (click)="printResult(report, printContainer)">
+    				<a  (click)="printResult(report, printContainer)" *ngIf="subscriptionType != 'free'">
     					<div class="text">Print</div>
     					<div class="image print"></div>
     				</a>

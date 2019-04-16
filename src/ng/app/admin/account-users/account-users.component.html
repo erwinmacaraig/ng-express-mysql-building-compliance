@@ -117,11 +117,11 @@
                 <option value="profile">Update Profile</option>
                 <option value="credential">Update Credential</option>
                 <option value="set-passwd-invite">Send Invitation</option>
-                <option value="send-notification">Send Initiate Confirmation Process</option>
-                <option value="invite">Send Training Invitation</option>
+                <option *ngIf="sendInvitationData.account.subscription.type != 'free'" value="send-notification">Send Initiate Confirmation Process</option>
+                <option *ngIf="sendInvitationData.account.subscription.type != 'free'" value="invite">Send Training Invitation</option>
                 <!-- <option value="assign">Assign Trainings</option> -->
                 <option value="location-role">Assign Location & Role</option>
-                <option value="send-summary-link" *ngIf="user['allAccountRoles'].length > 0">Send Summary Notification Link</option>
+                <option value="send-summary-link" *ngIf="user['allAccountRoles'].length > 0 && sendInvitationData.account.subscription.type != 'free'">Send Summary Notification Link</option>
                 
               </select>
           </td>

@@ -423,7 +423,7 @@ export class List extends BaseClass{
                  FROM locations
                  INNER JOIN locations AS parent_location
                  ON locations.parent_id = parent_location.location_id
-                 WHERE locations.parent_id IN (${buildingLocationsStr})
+                 WHERE locations.parent_id IN (${buildingLocationsStr}) AND locations.archived = 0
                  ORDER BY locations.parent_id`;
         this.pool.getConnection((err, connection) => {
             if(err){
@@ -492,7 +492,7 @@ export class List extends BaseClass{
                      INNER JOIN user_em_roles_relation
                      ON locations.location_id = user_em_roles_relation.location_id
                      INNER JOIN users ON users.user_id = user_em_roles_relation.user_id
-                     WHERE users.account_id = ? AND locations.is_building = 0
+                     WHERE users.account_id = ? AND locations.is_building = 0 AND locations.archived = 0
                      ORDER BY locations.parent_id`;
         this.pool.getConnection((err, connection) => {
             if(err){
@@ -535,7 +535,7 @@ export class List extends BaseClass{
            FROM locations
            LEFT JOIN locations AS parent_location
            ON locations.parent_id = parent_location.location_id
-           WHERE locations.location_id IN (${locationIdStr})
+           WHERE locations.location_id IN (${locationIdStr}) AND locations.archived = 0
            ORDER BY locations.parent_id`;
 
         this.pool.getConnection((err, connection) => {
@@ -546,7 +546,7 @@ export class List extends BaseClass{
             if (error) {
               console.log('list.model.generateLocationDetailsForAddUsers', error, sql);
               throw Error('There was an error generating the list of sublocations');
-            }
+            } 
             for (const r of results) {
               if (r['parent_id'] === -1) {
                 if (r['location_id'] in theLocations) {

@@ -6,35 +6,42 @@
         <h5>Select managing role for this location</h5>          
     </div>
     <div class="col s12" [formGroup]="managingRoleGroup">
-        <input
-            id="managing_role_frp_chkb"
-            class="with-gap"
-            type="radio"
-            name="managingRoleControl"
-            formControlName="managingRoleControl"
-            value="FRP"
-            (change)="setLocationManagingRole($event, 'FRP')" />
-        <label for="managing_role_frp_chkb">FRP</label>
+        <div>
+            <input
+                id="managing_role_frp_chkb"
+                class="with-gap"
+                type="radio"
+                name="managingRoleControl"
+                formControlName="managingRoleControl"
+                value="FRP"
+                (change)="setLocationManagingRole($event, 'FRP')" />
+            <label for="managing_role_frp_chkb">FRP</label>
+        </div>        
         
-        <input
-            id="managing_role_trp_all_chkb"
-            class="with-gap"
-            type="radio"
-            name="managingRoleControl"
-            formControlName="managingRoleControl"
-            value="TRP All Levels"
-            (change)="setLocationManagingRole($event, 'TRP All Levels')" />
-        <label for="managing_role_trp_all_chkb">TRP Occupying all Levels</label>
+        <div>
+            <input 
+                id="managing_role_trp_all_chkb"
+                class="with-gap"
+                type="radio"
+                name="managingRoleControl"
+                formControlName="managingRoleControl"
+                value="TRP All Levels"
+                (change)="setLocationManagingRole($event, 'TRP All Levels')" />
+            <label for="managing_role_trp_all_chkb">TRP Occupying all Levels</label>
+        </div>
+
+        <div>
+            <input
+                id="managing_role_trp_sp_level_chkb"
+                class="with-gap"
+                type="radio"
+                name="managingRoleControl"
+                formControlName="managingRoleControl"
+                value="TRP"
+                (change)="setLocationManagingRole($event, 'TRP')" />
+            <label for="managing_role_trp_sp_level_chkb">TRP Occupying Specific Levels</label>
+        </div>
         
-        <input
-            id="managing_role_trp_sp_level_chkb"
-            class="with-gap"
-            type="radio"
-            name="managingRoleControl"
-            formControlName="managingRoleControl"
-            value="TRP"
-            (change)="setLocationManagingRole($event, 'TRP')" />
-        <label for="managing_role_trp_sp_level_chkb">TRP Occupying Specific Levels</label>
     </div><br>            
 </div>
 <div class="row filter-container" [hidden]="!showSearchLocation">
@@ -151,7 +158,7 @@
                                 <button type="button" class="btn-arrow-up waves-effect waves-light" (click)="addLevel('total_levels')"><i class="material-icons">arrow_drop_up</i></button>
                                 <button type="button" class="btn-arrow-down waves-effect waves-light"  (click)="subtractLevel('total_levels')"><i class="material-icons">arrow_drop_down</i></button>
                             </div>                            
-                    </div>        
+                    </div>         
                     <div class="col s12 m12 l12 inputs-button-container">  
                         <div class="inline-block">
                             <span>Occupiable Levels</span>
@@ -242,3 +249,5 @@
         </div>
     </div>
 </form>
+
+<div preloader></div>

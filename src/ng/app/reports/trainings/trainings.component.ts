@@ -65,6 +65,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     exportFetchMarker = {};
     print:any;
 
+    subscriptionType = 'free';
 	constructor(
 		private router : Router,
 		private activatedRoute : ActivatedRoute,
@@ -78,7 +79,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 		) {
 
 		this.userData = this.authService.getUserData();
-
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
             this.locationId = this.encryptDecrypt.decrypt( params.locationId );
 

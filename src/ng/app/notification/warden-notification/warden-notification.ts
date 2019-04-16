@@ -77,12 +77,16 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     validTrainings = <any> [];
     trainingItems = <any> [];
 
+    private getNotificationSub: Subscription;
+    private routeParamsSub: Subscription;
+    private verifyWardenSub: Subscription;
+    private routeSub: Subscription;
+
     constructor(
         private route: ActivatedRoute,
         private authService: AuthService,
         private cryptor: EncryptDecryptService,
-        private accountService: AccountsDataProviderService,
-        private elemRef : ElementRef,
+        private accountService: AccountsDataProviderService,        
         private userService: UserService,
         private preloader: DashboardPreloaderService,
         private personDataService: PersonDataProviderService,
@@ -98,11 +102,9 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.baseUrl = (platformLocation as any).location.origin;
         this.userData = this.authService.getUserData();
         this.encryptedUserId = this.cryptor.encrypt(this.userData['userId']);
-        console.log('this.userData', this.userData);
 
         this.accountService.getById(this.userData['accountId'], (response) => {
             this.accountData = response.data;
-            console.log('this.accountData', this.accountData);            
         });
     }
 
@@ -125,14 +127,17 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     getNotificationTokens(){
-        this.userService.getNotificationToken(this.userData['userId']).subscribe((tokens) => {
+        this.getNotificationSub = this.userService.getNotificationToken(this.userData['userId']).subscribe((tokens) => {
             this.notificationTokens = tokens;
-
+            console.log(tokens);
             for(let tok of this.notificationTokens){
                 if(tok.training_reminder == 1){
                     this.hasTrainingReminder = true;
                 }
             }
+            this.verifyWardenSub = this.userService.verifyAsWarden(tokens[0]['notification_config_id']).subscribe((response) => {
+                console.log(response);  
+            });
 
         });
     }
@@ -142,7 +147,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     }
 
     ngOnInit() {
-        this.route.queryParams.subscribe((query) => {
+        this.routeParamsSub =  this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
             let params = this.getQueryParams();
 
@@ -173,9 +178,31 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                             this.roleText = response.users_locations[i]['role_name'];
                         }
                     }
+
+                    if (this.locationData['is_building'] == 1) {
+                        this.buildingSelections.push({
+                            name: this.locationData['name'],
+                            sublocations: this.locationData['sublocations'] 
+                        });
+                    } else {
+                        this.buildingSelections.push({
+                            name: response.parent['name'],
+                            sublocations:[] 
+                        });
+                        
+                        for (let s of response.siblings) {
+                            if (s['location_id'] == this.locationData['location_id']) {
+                                continue;
+                            } else {
+                                (this.buildingSelections[0]['sublocations'] as Array<object>).push(s);
+                            }
+
+                        }
+                    }
+
+                    
                     
                 });
-
                 this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
                     for(let loc of response.data.locations){
                         if(loc.user_em_roles_relation_id){
@@ -239,16 +266,18 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
             this.peepDestQuery = '?userid='+this.userData['userId']+'&locationid='+this.routeQuery['locationid']+'&stillonlocation=yes&step=1';
         });
 
-        this.route.params.subscribe((params) => {
+        this.routeSub = this.route.params.subscribe((params) => {
             this.routeParam = params;
-
-
             console.log(this.routeParam);
         }); 
-
+        /*
         this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
             this.buildingSelections = response.locations;
         }, { sublocations:true });
+        */
+
+        
+
     }
 
     ngAfterViewInit() {
@@ -737,6 +766,19 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
 
         if(this.searchLocProfileSubs){
             this.searchLocProfileSubs.unsubscribe();
+        }
+
+        if (this.getNotificationSub) {
+            this.getNotificationSub.unsubscribe();
+        }
+        if(this.routeParamsSub) {
+            this.routeParamsSub.unsubscribe();
+        }
+        if (this.verifyWardenSub) {
+            this.verifyWardenSub.unsubscribe();
+        }
+        if (this.routeSub) {
+            this.routeSub.unsubscribe();
         }
     }
 

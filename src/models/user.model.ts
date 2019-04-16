@@ -639,10 +639,12 @@ export class User extends BaseClass {
                     }
 
                 }
-
+                
                 if(queries.select.count){
                     selectQuery = ' COUNT(users.user_id) as count';
+                    selectQuery = ' users.user_id ';
                 }
+                
 
                 let whereQuery = '',
                     whereCount = 0;
@@ -686,16 +688,24 @@ export class User extends BaseClass {
                 }
 
                 let sql_load = 'SELECT '+selectQuery+' FROM users '+joinsQuery+' '+whereQuery+' '+groupQuery+' '+orderQuery+' '+limitQuery;
-                /*if(!queries.select.count) {
-                    console.log('========= ', sql_load, " =========");
-                }*/
+                
+                //if(queries.select.count) {
+                    // console.log('========= ', sql_load, " =========", "\r\n");
+                //}
                 
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log(sql_load);
                         return console.log(error);
                     }
-                    resolve(results);
+                    if(queries.select.count) {
+                        resolve([{
+                            count: results.length
+                        }])
+                    } else {
+                        resolve(results);
+                    }
+                    
                 });
                 connection.release();
             });
@@ -1013,16 +1023,16 @@ export class User extends BaseClass {
                     throw new Error(err);
                 }
                 const sql_load = `
-                SELECT 
-                urr.role_id,
-                IF(urr.role_id = 1, 'FRP', 'TRP') as role
-                FROM user_role_relation urr WHERE urr.user_id = ${userId}
-                UNION
-                SELECT
-                emr.em_role_id as role_id,
-                em.role_name as role
-                FROM user_em_roles_relation emr INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id
-                WHERE emr.user_id = ${userId}
+                    SELECT 
+                    urr.role_id,
+                    IF(urr.role_id = 1, 'FRP', 'TRP') as role
+                    FROM user_role_relation urr WHERE urr.user_id = ${userId}
+                    UNION
+                    SELECT
+                    emr.em_role_id as role_id,
+                    em.role_name as role
+                    FROM user_em_roles_relation emr INNER JOIN em_roles em ON emr.em_role_id = em.em_roles_id
+                    WHERE emr.user_id = ${userId}
                 `;
 
                 connection.query(sql_load, (error, results, fields) => {
@@ -1042,12 +1052,12 @@ export class User extends BaseClass {
     public getAllRolesInLocationIds(locationIds = '', config = <any>{}){
 
         return new Promise((resolve, reject) => {
+            
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     console.log('Error gettting pool connection ' + err);
                     throw new Error(err);
                 }
-
                 let configFilter = '';
                 if ('searchKey' in config && config['searchKey'].length > 0) {
                     configFilter += `AND CONCAT(u.first_name, ' ', u.last_name) LIKE "%${config['searchKey']}%" `;
@@ -1055,9 +1065,6 @@ export class User extends BaseClass {
                 if('account_id' in config){
                     configFilter += ` AND u.account_id = ${config['account_id']} `;
                 }
-
-                // configFilter += ' GROUP BY userolelocation.role_id, userolelocation.location_id ';
-
                 if('order_account_name' in config){
                     configFilter += ` ORDER BY TRIM(a.account_name) ASC `;
                 }
@@ -1094,15 +1101,17 @@ export class User extends BaseClass {
                 innerSqlFrpTrp = `
                     UNION
                     SELECT
-                    location_account_user.user_id,
+                    users.user_id,
                     IF(location_account_relation.responsibility='Manager', 1, 2) AS role_id,
                     IF(location_account_relation.responsibility='Manager', 'FRP', 'TRP') AS role_name,
                     location_account_user.location_id
-                    FROM location_account_user INNER JOIN users 
-                    ON users.account_id = location_account_user.account_id
+                    FROM users INNER JOIN location_account_user
+                    ON users.user_id = location_account_user.user_id
                     INNER JOIN location_account_relation
-                    ON location_account_relation.location_id = location_account_user.location_id
-                    WHERE location_account_user.location_id IN (${locationIds}) GROUP BY location_account_user.user_id`;
+                    ON location_account_relation.account_id = users.account_id
+                    WHERE location_account_user.location_id IN (${locationIds})
+                    GROUP BY location_account_user.location_account_user_id
+                    `;
                 // console.log(innerSqlFrpTrp);
                 if(config['eco_only']){ innerSqlFrpTrp = ''; }
 
@@ -1163,6 +1172,7 @@ export class User extends BaseClass {
                 ${configFilter}
                 ${limitSql}
                 `;
+                
                 // console.log(sql_load);
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {

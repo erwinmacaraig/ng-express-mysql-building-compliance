@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -343,6 +343,33 @@ export class UserService {
 
     getEmRoles() {
         return this.http.get(this.baseUrl + '/users/emroles', this.options);
-    }
+	}
+
+	userTrainingInfo(userId=0) {
+		let httpParams: HttpParams = new HttpParams().set('userId', userId.toString());
+		this.options['params'] = httpParams;
+		return this.http.get<{
+			message: string,
+			userInfoTraining: Array<object>,
+			userInfoOtherTraining: Array<object>,
+			emRolesLocation: Array<object>
+		}>(this.baseUrl + '/users/all-training-info', this.options);
+	}
+
+    computeUserRewardPoints(uid = 0) {
+        return this.http.get<{message: string, total_points: number}>(this.baseUrl + '/users/get-reward-points/' + uid, this.options);
+	}
+	
+	verifyAsWarden(configId=0) {
+		const httpParams = new HttpParams().set('configId', configId.toString());
+		this.options['params'] = httpParams;
+		return this.http.get<{
+			message: string,
+			config: object,
+			token: object
+		}>(this.baseUrl+'/accounts/verify-as-warden', this.options);
+
+	}
+
 
 }
