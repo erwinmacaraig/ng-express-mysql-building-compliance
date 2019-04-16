@@ -1,10 +1,7 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
-
 import * as Promise from 'promise';
 import * as moment from 'moment';
-import { reject } from 'q';
+
 
 export class TrainingCertification extends BaseClass {
 
@@ -35,8 +32,9 @@ export class TrainingCertification extends BaseClass {
               reject('No record found.');
             }
           }
+          connection.release();
         });
-        connection.release();
+        
       });
       
     });
@@ -79,8 +77,9 @@ export class TrainingCertification extends BaseClass {
           this.id = results.insertId;
           this.dbData['certifications_id'] = this.id;
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }
@@ -121,8 +120,9 @@ export class TrainingCertification extends BaseClass {
             throw new Error('Cannot update certification record');
           }
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });
       
     });
@@ -242,8 +242,9 @@ export class TrainingCertification extends BaseClass {
             outcome['percentage'] = Math.round((trained / users.length) * 100).toFixed(0).toString() + '%';
           }
           resolve(outcome);
+          connection.release();
         });
-        connection.release();
+        
       });
       
     });
@@ -278,8 +279,9 @@ export class TrainingCertification extends BaseClass {
           }          
           
           resolve(results);
+          connection.release();
         });
-        connection.release();
+        
       });
       
 
@@ -351,8 +353,9 @@ export class TrainingCertification extends BaseClass {
               reject('training.certification.model creating/updating certification failed');
             });
           }
+          connection.release();
         });
-        connection.release();
+       
       });
       
 
@@ -442,9 +445,9 @@ export class TrainingCertification extends BaseClass {
 
           this.dbData = results;
           resolve(results);
-
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }
@@ -490,9 +493,9 @@ export class TrainingCertification extends BaseClass {
             }
             resolve(resultSet);
           }
-
+          connection.release();
         });
-        connection.release();
+        
       });
 
       
@@ -566,8 +569,9 @@ export class TrainingCertification extends BaseClass {
               }
               resolve(user_trainings);
             }
+            connection.release();
           });
-          connection.release();
+          
         });
         
       }
@@ -626,8 +630,9 @@ export class TrainingCertification extends BaseClass {
             }
           }
           resolve(missingTrainings);
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   } 
@@ -674,8 +679,9 @@ export class TrainingCertification extends BaseClass {
             throw Error('Cannot query list of certifications');
           }
           resolve(results);
+          connection.release();
         });
-        connection.release();
+        
       });
       
       
@@ -714,8 +720,9 @@ export class TrainingCertification extends BaseClass {
             throw Error('Cannot query certifications for this user');
           }      
           resolve(results);
+          connection.release();
         });
-        connection.release();
+        
       });
 
     });
@@ -766,8 +773,9 @@ export class TrainingCertification extends BaseClass {
             throw new Error('cannot query certifications');
           }
           resolve(results);
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }
@@ -822,9 +830,9 @@ export class TrainingCertification extends BaseClass {
           } else {
             reject({});
           }
-          
+          connection.release();
         });
-        connection.release();
+        
       });
 
     });
@@ -862,8 +870,9 @@ export class TrainingCertification extends BaseClass {
             throw new Error('Cannot add new offline training location record');
           }
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }

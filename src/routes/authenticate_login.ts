@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response, Router } from 'express';
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
+import { TrainingCertification } from '../models/training.certification.model';
+import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
 import { UserRoleRelation } from '../models/user.role.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { Files } from '../models/files.model';
@@ -101,6 +103,25 @@ export class AuthenticateLoginRoute extends BaseRoute {
         }catch(e){ }
 
         try {
+            const training = new TrainingCertification();
+            const myModules = await new UserTrainingModuleRelation().getMyTrainingModules(userModel.get('user_id'));
+            const trIds = [];
+            
+            for (let module of myModules) {
+                if (trIds.indexOf(module['training_requirement_id']) == -1) {
+                    trIds.push(module['training_requirement_id']);
+                    const activeTrainingCert = await training.getActiveCertificate(userModel.get('user_id'),module['training_requirement_id']);
+                    if (activeTrainingCert.length == 0) {
+                        await new UserTrainingModuleRelation().resetMyTrainingModules(userModel.get('user_id'), module['training_requirement_id']);
+                    }
+                }
+            }
+
+        } catch(e) {
+            console.log(`There was an error processing training modules`,e);
+        }
+
+        try {
             // determine if you are a building manager or tenant in these locations - response.locations
             roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(userModel.get('account_id'));
             // response.data['account_roles'] = { ...roleOfAccountInLocationObj };
@@ -162,6 +183,8 @@ export class AuthenticateLoginRoute extends BaseRoute {
                
             });
         }
+
+
         
         // set to 2 hours
         let signedInExpiry = 7200;

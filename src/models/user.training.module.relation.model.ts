@@ -272,4 +272,54 @@ export class UserTrainingModuleRelation extends BaseClass {
             });
         });
     }
+
+    public getMyTrainingModules(userId=0): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM user_training_module_relation WHERE user_id = ?`;
+            const params = [userId];
+
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log(error, sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                    connection.release();
+                });
+            });
+        });
+    }
+
+    public resetMyTrainingModules(userId=0, trId=0): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const sqlUpdate = `UPDATE
+                user_training_module_relation
+            SET
+                completed = 0,
+                dtCompleted = NULL
+            WHERE
+                user_id = ?
+            AND
+                training_requirement_id = ?`;
+            
+            const params = [userId, trId];
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                }
+                connection.query(sqlUpdate, params, (error, results) => {
+                    if (error) {
+                        console.log(error, sqlUpdate, params);
+                        throw new Error(error);
+                    }
+                    resolve(true);
+                    connection.release();
+                });
+            });
+        });
+    }
 }
