@@ -364,6 +364,34 @@
     </div>
 </div>
 
+<div id="modalMobilityHealty" class="modal">
+    <div class="modal-content center" [hidden]="!showModalLoader">
+        <div class="preloader-wrapper active">
+            <div class="spinner-layer spinner-red-only">
+                <div class="circle-clipper left">
+                    <div class="circle"></div>
+                </div><div class="gap-patch">
+                    <div class="circle"></div>
+                </div><div class="circle-clipper right">
+                    <div class="circle"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-content">
+        <h5>Confirm action</h5>
+
+        <h6>Remove {{selectedPeep.first_name}} {{selectedPeep.last_name}} from the PEEP list?</h6>
+
+    </div>
+
+    <div class="modal-footer" [hidden]="showModalLoader">
+        <a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+        <button type="submit" class="waves-effect waves-blue btn-flat" (click)="markUserAsHealthy()">Confirm</button>
+    </div>
+</div>
+
 <div id="modalSendInvitation" class="modal">
 
     <div class="modal-content center" [hidden]="!showModalLoader">

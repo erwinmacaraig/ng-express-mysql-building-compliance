@@ -53,9 +53,9 @@ export class Utils extends BaseClass {
               console.log(`user is ${user}`);
               console.log(results);
               resolve(results.length);
-
+              connection.release();
             });
-            connection.release();
+            
 
         });
         
@@ -110,8 +110,9 @@ export class Utils extends BaseClass {
               } else {
                 resolve(results);
               }
+              connection.release();
             });
-            connection.release();
+            
             
         });
 
@@ -173,8 +174,9 @@ export class Utils extends BaseClass {
               } else {
                 resolve(results);
               }
+              connection.release();
             });
-            connection.release();
+           
             
         });
 
@@ -266,8 +268,9 @@ export class Utils extends BaseClass {
                 }
                 console.log(results);
                 resolve(results[0]);
+                connection.release();
             });
-            connection.release();
+           
             
         });
           
@@ -311,8 +314,9 @@ export class Utils extends BaseClass {
                     reject(error);
                 }
                 resolve(true);
+                connection.release();
             });
-            connection.release();
+            
         });
 
       });
@@ -339,8 +343,9 @@ export class Utils extends BaseClass {
               } else {
                 resolve(results);
               }
+              connection.release();
             });
-            connection.release();
+            
         });
         
       });
@@ -441,8 +446,9 @@ export class Utils extends BaseClass {
                   resolve(`${results[0]['account_directory_name']}/${results[0]['location_directory_name']}`);
                 }
               }
+              connection.release();
             });
-            connection.release();
+           
         });
 
       });
@@ -516,9 +522,8 @@ export class Utils extends BaseClass {
                   // ${results[0]['file_name']}`);
                 }
               }
-            });
-
-            connection.release();
+              connection.release();
+            });            
         });
 
       });

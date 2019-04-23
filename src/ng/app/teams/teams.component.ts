@@ -17,6 +17,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	public thisRouteUrl = '';
 	public oUserData = {};
 	public showTeamNav = true;
+	public subscriptionType = 'free';
 
 	constructor(
 		private router: Router,
@@ -30,6 +31,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 		});
 
 		this.oUserData = this.authService.getUserData();
+		this.subscriptionType = this.oUserData['subscription']['subscriptionType'];
 	}
 
 	ngOnInit(){

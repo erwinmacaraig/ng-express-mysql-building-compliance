@@ -1,9 +1,7 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
-
 import * as Promise from 'promise';
 import * as moment from 'moment';
+
 
 export class TrainingCertification extends BaseClass {
 
@@ -34,8 +32,9 @@ export class TrainingCertification extends BaseClass {
               reject('No record found.');
             }
           }
+          connection.release();
         });
-        connection.release();
+        
       });
       
     });
@@ -78,8 +77,9 @@ export class TrainingCertification extends BaseClass {
           this.id = results.insertId;
           this.dbData['certifications_id'] = this.id;
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }
@@ -120,8 +120,9 @@ export class TrainingCertification extends BaseClass {
             throw new Error('Cannot update certification record');
           }
           resolve(true);
+          connection.release();
         });
-        connection.release();
+        
       });
       
     });
@@ -241,8 +242,9 @@ export class TrainingCertification extends BaseClass {
             outcome['percentage'] = Math.round((trained / users.length) * 100).toFixed(0).toString() + '%';
           }
           resolve(outcome);
+          connection.release();
         });
-        connection.release();
+        
       });
       
     });
@@ -277,8 +279,9 @@ export class TrainingCertification extends BaseClass {
           }          
           
           resolve(results);
+          connection.release();
         });
-        connection.release();
+        
       });
       
 
@@ -331,7 +334,8 @@ export class TrainingCertification extends BaseClass {
           // there is no certification or certification is expired
           if (!results.length) {
             this.create(certData).then((data) => {
-              resolve(true);
+              //resolve(true);
+              resolve(this.id);
             }).catch((e) => {
               console.log('training.certification.model creating/updating certification failed');
               reject('training.certification.model creating/updating certification failed');
@@ -342,14 +346,16 @@ export class TrainingCertification extends BaseClass {
             certData['certifications_id'] = results[0]['certifications_id'];
             certData['certification_date'] = moment().format('YYYY-MM-DD');          
             this.create(certData).then((data) => {
-              resolve(true);
+              // resolve(true);
+              resolve(this.id);
             }).catch((e) => {
               console.log('training.certification.model creating/updating certification failed');
               reject('training.certification.model creating/updating certification failed');
             });
           }
+          connection.release();
         });
-        connection.release();
+       
       });
       
 
@@ -439,9 +445,9 @@ export class TrainingCertification extends BaseClass {
 
           this.dbData = results;
           resolve(results);
-
+          connection.release();
         });
-        connection.release();
+        
       });
     });
   }
@@ -487,9 +493,9 @@ export class TrainingCertification extends BaseClass {
             }
             resolve(resultSet);
           }
-
+          connection.release();
         });
-        connection.release();
+        
       });
 
       
@@ -563,8 +569,9 @@ export class TrainingCertification extends BaseClass {
               }
               resolve(user_trainings);
             }
+            connection.release();
           });
-          connection.release();
+          
         });
         
       }
@@ -577,7 +584,7 @@ export class TrainingCertification extends BaseClass {
    * @returns
    * Return an array of required training ids
    */
-  public getTrainings(user_id: number = 0, training_requirements = []): Promise<Array<object>> {
+  public getTrainings(user_id: number = 0, training_requirements = []): Promise<Array<number>> {
     return new Promise((resolve, reject) => {
       if (training_requirements.length === 0) {
         resolve([]);
@@ -589,7 +596,7 @@ export class TrainingCertification extends BaseClass {
 
       const training_requirements_str = training_requirements.join(',');
       const sql = `SELECT
-                    certifications.*,
+                    certifications.*,                   
                     training_requirement.training_requirement_name
                 FROM
                   certifications
@@ -623,12 +630,250 @@ export class TrainingCertification extends BaseClass {
             }
           }
           resolve(missingTrainings);
+          connection.release();
         });
-        connection.release();
+        
       });
-
-      
     });
   } 
 
+  public listCertifications(userIds=[], limit?, count?, courseMethod?, pass?, trainingId?, orderBy?):Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      if (!userIds.length) {
+        resolve([]);
+        return;
+      }
+      const limitSql = (limit) ? ' LIMIT '+limit : '';
+      const courseMethodSql = (courseMethod) ? ` AND  certifications.course_method = '${courseMethod}'` : '';
+      let passSql = '',
+          trainingIdSql = (trainingId > 0) ? ` AND training_requirement.training_requirement_id = ${trainingId}` : '';
+
+      if(pass == 1){
+          passSql += '  AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW() ';
+      }else if(pass == 0){
+          passSql += ` AND certifications.pass = 1 AND DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) < NOW()`;
+      }
+
+      const userIdString = userIds.join(',');
+      const sql_listing = `
+                          SELECT
+                            certifications.*,
+                            DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date,
+                              IF ( certifications.certification_date IS NOT NULL,
+                                IF(DATE_ADD(certifications.certification_date,
+                                  INTERVAL training_requirement.num_months_valid MONTH) > NOW(), 'valid', 'expired'), 'not taken') as status
+                          FROM certifications
+                          INNER JOIN training_requirement ON training_requirement.training_requirement_id = certifications.training_requirement_id
+                          WHERE 
+                            user_id IN (${userIdString}) ${courseMethodSql} ${trainingIdSql} ${passSql}
+                          ORDER BY
+                            certifications.certifications_id DESC`;
+      // console.log(sql_listing);
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+          throw new Error(err);
+        }
+        connection.query(sql_listing, [], (error, results) => {
+          if (error) {
+            console.log(sql_listing);
+            throw Error('Cannot query list of certifications');
+          }
+          resolve(results);
+          connection.release();
+        });
+        
+      });
+      
+      
+    });
+  }
+  
+  getActiveCertificate(userId=0, trainingId=0): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+
+      const sql = `SELECT
+                    certifications.*,
+                    DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date 
+                  FROM
+                    certifications
+                  INNER JOIN
+                       training_requirement
+                    ON
+                        training_requirement.training_requirement_id = certifications.training_requirement_id
+                    WHERE
+                        certifications.user_id = ?
+                    AND
+                      certifications.training_requirement_id = ?
+                    AND
+                      certifications.pass = 1
+                    AND
+                      DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()`;
+      const params = [userId, trainingId];
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log('training.certifications.model.getActiveCertificate', error, sql, params);
+            throw Error('Cannot query certifications for this user');
+          }      
+          resolve(results);
+          connection.release();
+        });
+        
+      });
+
+    });
+  }
+
+  public userCertificates(userId=0, trid?): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      let trClause = '';
+      const params = [userId];
+      if (trid) {
+        trClause = ` AND certifications.training_requirement_id = ?`;
+        params.push(trid);
+      }
+      const sql = `SELECT
+                      certifications.certifications_id,
+                      certifications.training_requirement_id,
+                      certifications.course_method,
+                      IF (certifications.course_method='online_by_evac', 'Online Training', 'Face to Face Training') AS training_type,
+                      certifications.certification_date,
+                      training_requirement.training_requirement_name,
+                      offline_training_to_certification_relation.location_name
+                  FROM 
+                    certifications
+                  INNER JOIN
+                    training_requirement
+                  ON
+                    certifications.training_requirement_id = training_requirement.training_requirement_id
+                  LEFT JOIN
+                    offline_training_to_certification_relation
+                  ON 
+                    offline_training_to_certification_relation.certifications_id = certifications.certifications_id AND offline_training_to_certification_relation.course_method = certifications.course_method
+                  WHERE
+                    certifications.user_id = ?
+                  AND
+                    certifications.pass = 1
+                  ${trClause}
+                  ORDER BY certifications.certifications_id DESC`;
+      
+      
+      this.pool.getConnection((err, connection) => {
+        if (err) {
+          throw new Error(err);
+        }
+
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log('cannot execute userCertificates', sql, params);
+            throw new Error('cannot query certifications');
+          }
+          resolve(results);
+          connection.release();
+        });
+        
+      });
+    });
+  }
+
+  public getCertificateDetailsForDownload(certId=0): Promise<Object> {
+    return new Promise((resolve, reject) => {
+      const params = [];
+      if (certId) {
+        params.push(certId);
+      } else {
+        params.push(this.id);
+      }
+      
+      const sql = `SELECT
+                    users.first_name,
+                    users.last_name,
+                    certifications.*,
+                    training_requirement.training_requirement_name,
+                    YEAR(certifications.certification_date) as control_year,
+                    MONTHNAME(certifications.certification_date) as control_month,
+                    DAY(certifications.certification_date) as control_day
+                  FROM
+                    certifications
+                  INNER JOIN
+                    users
+                  ON
+                    certifications.user_id = users.user_id
+                  INNER JOIN
+                    training_requirement
+                  ON
+                    certifications.training_requirement_id = training_requirement.training_requirement_id
+                  WHERE
+                    certifications.certifications_id = ?;`;
+      
+      this.pool.getConnection((err, connection) => {
+        if (err) {
+          throw new Error(err);
+        }
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log('cannot execute getCertificateDetailsForDownload', sql, params);
+            throw new Error('cannot query certifications');
+          }
+          if (results.length > 0) {
+            resolve({
+              name: `${results[0]['first_name']} ${results[0]['last_name']}`,
+              training: `${results[0]['training_requirement_name']}`,
+              certificate_no: `${results[0]['control_year']}-${results[0]['certifications_id']}`,
+              training_date: `${results[0]['control_day']} ${results[0]['control_month']} ${results[0]['control_year']}`
+            });
+
+          } else {
+            reject({});
+          }
+          connection.release();
+        });
+        
+      });
+
+    });
+  }
+
+  public recordOfflineTraining(certData={}):Promise<any> {
+    return new Promise((resolve, reject) => {
+      const sql = `INSERT INTO offline_training_to_certification_relation (
+        certifications_id,
+        location_id,
+        building_id,
+        location_name
+      ) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE
+        location_id = ?,
+        building_id = ?,
+        location_name = ?
+      `;
+      const values = [
+        ('certifications_id' in certData) ? certData['certifications_id'] : 0,
+        ('location_id' in certData ) ? certData['location_id'] : 0,
+        ('building_id' in certData ) ? certData['building_id'] : 0,
+        ('location_name' in certData ) ? certData['location_name'] : '',
+        ('location_id' in certData ) ? certData['location_id'] : 0,
+        ('building_id' in certData ) ? certData['building_id'] : 0,
+        ('location_name' in certData ) ? certData['location_name'] : '',
+      ];
+
+      this.pool.getConnection((err, connection) => {
+        if (err) {
+          throw new Error(err);
+        } 
+        connection.query(sql, values, (error, results) => {
+          if (error) {
+            console.log('TrainingCertification.recordOfflineTraining', error, sql, values);
+            throw new Error('Cannot add new offline training location record');
+          }
+          resolve(true);
+          connection.release();
+        });
+        
+      });
+    });
+  }
 }

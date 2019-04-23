@@ -1,4 +1,5 @@
 {
+  "connectionLimit": 10,
   "host": "evac-prod-aws.cz6acz8q5poj.ap-southeast-2.rds.amazonaws.com",
   "user": "admin",
   "password": "myAllah1",

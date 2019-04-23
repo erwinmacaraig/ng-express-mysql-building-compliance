@@ -631,3 +631,10 @@ table tr td .image img{
 .modal.modal-sublocations .name-radio-plus .plus-minus input[type="checkbox"]+.sign{
     padding: 0px 5px;
 }
+.field-padding {
+    padding-bottom: 20px;
+}
+.field-text {
+    display: block;
+    font-size: 13px;
+}

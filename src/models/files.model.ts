@@ -38,8 +38,9 @@ export class Files extends BaseClass {
                         this.setID(results[0]['file_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -64,8 +65,9 @@ export class Files extends BaseClass {
                         this.dbData = results;
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -93,8 +95,9 @@ export class Files extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['file_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
 
@@ -129,8 +132,9 @@ export class Files extends BaseClass {
                         throw new Error(err + ' ' + sql_update);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         }); // end Promise

@@ -5,7 +5,7 @@
 
 .modal{
 	max-height: 100% !important;
-	overflow: visible;
+	overflow: auto;
 }
 
 .modal .modal-content {

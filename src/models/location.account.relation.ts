@@ -32,8 +32,9 @@ export class LocationAccountRelation extends BaseClass {
                     this.setID(results[0]['location_account_relation_id']);
                     resolve(this.dbData);
                   }
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -65,8 +66,9 @@ export class LocationAccountRelation extends BaseClass {
                     return console.log(error);
                   }
                   resolve(results);
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -86,8 +88,9 @@ export class LocationAccountRelation extends BaseClass {
                     throw Error('Internal Server Error');
                   }
                   resolve(results);
+                  connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -106,8 +109,9 @@ export class LocationAccountRelation extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -127,8 +131,9 @@ export class LocationAccountRelation extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -148,8 +153,9 @@ export class LocationAccountRelation extends BaseClass {
                   }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -165,11 +171,11 @@ export class LocationAccountRelation extends BaseClass {
                 connection.query(sql_load, param, (error, results, fields) => {
                   if (error) {
                     return console.log(error);
-                  }
-                  
+                  }                  
                   resolve(results);
+                  connection.release();
                 });
-                connection.release();
+                
             });            
         });
     }
@@ -204,8 +210,9 @@ export class LocationAccountRelation extends BaseClass {
               } else {
                 resolve(results);
               }
+              connection.release();
             });
-            connection.release();
+            
         });
         
       });
@@ -231,8 +238,9 @@ export class LocationAccountRelation extends BaseClass {
                   throw new Error(err);
                 }
                 resolve(true);
+                connection.release();
               });
-              connection.release();
+              
           });
         });
     }
@@ -261,8 +269,9 @@ export class LocationAccountRelation extends BaseClass {
                 this.id = results.insertId;
                 this.dbData['location_account_relation_id'] = this.id;
                 resolve(true);
+                connection.release();
               });
-              connection.release();
+              
           });
           
 
@@ -296,9 +305,9 @@ export class LocationAccountRelation extends BaseClass {
                     } else {
                         resolve(true);
                     }
-
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -375,7 +384,7 @@ export class LocationAccountRelation extends BaseClass {
             ${userIdQuery} 
             AND (l.is_building = 1 OR p1.is_building = 1 OR p2.is_building = 1 OR l.location_id IN ( SELECT parent_id FROM locations WHERE is_building = 1 ))
             AND l.archived = ${archived}
-        `;
+        `; 
         this.pool.getConnection((err, connection) => {
             connection.query(sqlGetIds,  (error, idResults) => {
                 if(error) {
@@ -509,9 +518,9 @@ export class LocationAccountRelation extends BaseClass {
                         }else{
                           resolve(bldgs);
                         }
-
+                        connection.release();
                       });
-                      connection.release();
+                      
                     });
                 }else{
                     if('count' in filter){
@@ -520,9 +529,10 @@ export class LocationAccountRelation extends BaseClass {
                         resolve([]);
                     }
                 }
+                connection.release();
             });
 
-            connection.release();
+            
         });
 
         
@@ -551,8 +561,9 @@ export class LocationAccountRelation extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -581,8 +592,9 @@ export class LocationAccountRelation extends BaseClass {
                   }
                   this.dbData = results;
                   resolve(this.dbData);
+                  connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -622,8 +634,9 @@ export class LocationAccountRelation extends BaseClass {
                     } else {
                         reject(results)
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -662,8 +675,9 @@ export class LocationAccountRelation extends BaseClass {
                     } else {
                         reject(results)
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }

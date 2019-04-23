@@ -73,7 +73,8 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
   fetchingWardenList = true;
   complianceDocuments: object = {    
     1: [],    
-    2: [],   
+    2: [],
+    3: [],   
     4: [],
     5: [],
     6: [],
@@ -472,6 +473,13 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
         console.log('Error Uploading', error);
         this.showModalUploadDocsLoader = false;
         this.dashboard.hide();
+
+        $('#modaluploadfailed').modal('open');
+        const message = `Upload error for location_id = ${this.locationId} and KPI file ${this.selectedKPI} in admin: ${error.toString()}`;      
+        this.adminService.sendEmailToDev(message).subscribe((response) => {
+          console.log(response);
+        });
+
       }
     );
   }

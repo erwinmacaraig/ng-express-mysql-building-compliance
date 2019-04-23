@@ -479,9 +479,11 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     thisInstance.selectedIndex = arr[0]['_index'];
                     let kpi = thisInstance.KPIS[thisInstance.selectedIndex],
                         kpiTxt = thisInstance.KPIStexts[ kpi.compliance_kpis_id ];
+                    if (kpiTxt) {
+                        thisInstance.complianceTextOne = kpiTxt.textOne;
+                        thisInstance.complianceTextTwo = kpiTxt.textTwo;
+                    }
                     
-                    thisInstance.complianceTextOne = kpiTxt.textOne;
-                    thisInstance.complianceTextTwo = kpiTxt.textTwo;
                 }
             }
         };

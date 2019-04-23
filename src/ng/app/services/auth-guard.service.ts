@@ -23,10 +23,13 @@ export class AuthGuard implements CanActivate {
     {
         if (this.authService.getToken() ) {
             if( ng2JWT.tokenNotExpired('currentUser') ){
-                return true;
+                return true;            
+            } else {
+                window.location.href='https://portal.evacconnect.com/login';
+                return false;
             }
         }
-        window.location.href = 'https://portal.evacconnect.com/login';        
+        window.location.href='https://portal.evacconnect.com/login';
         return false;
     }
 }

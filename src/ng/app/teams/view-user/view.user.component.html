@@ -20,51 +20,63 @@
 	</div>
 	<div class="row">
 		<div class="col l12 m12 s12">
+			<!--
 			<div class="select-field">
 				<select id="selectLocation">
-                    <option *ngFor="let loc of viewData.locations; let i = index;" [attr.index]="i" [selected]="i == 0" value="{{loc.location_id}}">{{loc.name}}</option>
+            <option *ngFor="let loc of viewData.locations; let i = index;" [attr.index]="i" [selected]="i == 0" value="{{loc.location_id}}">{{loc.name}}</option>
 				</select>
-			</div>
-			<!-- <h6 class="grey-text text-accent-4">Locations</h6> -->
-			<!-- <ul class="list">
-				<li *ngFor="let location of viewData.locations">
-					<span *ngIf="location.parent_data.name">{{location.parent_data.name}},</span>
-					{{location.name}}
-				</li>
-			</ul> -->
-			<!-- <div class="input-field">
-				<input  *ngIf="viewData.location.parent_data.name" id="location" type="text" value="{{viewData.location.parent_data.name}}, {{viewData.location.name}}" readonly>
-				<input  *ngIf="!viewData.location.parent_data.name" id="location" type="text" value="{{viewData.location.name}}" readonly>
-				<label for="location"> Location</label>
-			</div> -->
+			</div>			
+			-->
+			<div class="field-padding">
+					<h5>Location</h5>
+					<span class="field-text" *ngFor="let loc of viewData.locations">{{loc.name}}</span>
+			</div> 
+			
+			
 		</div>
 
 		<div class="col l12 m12 s12">
-			<!-- <h6 class="grey-text text-accent-4">ECO Roles</h6> -->
-			<!-- <ul class="list">
-				<li *ngFor="let eco_role of viewData.eco_roles">
-					{{eco_role.role_name}}
-				</li>
-			</ul> -->
+			<!--
 			<div class="input-field">
 				<input id="role" type="text" readonly value="{{viewData.role_text}}">
 				<label for="role">
 					<span>Role</span>
 				</label>
 			</div>
+			-->
+			<div class="field-padding">
+				<h5>Role</h5>
+				<span class="field-text" *ngFor="let role of viewData.role_texts">{{role}}</span>
+			</div>
+			
 		</div>
 
-		<div class="col l12 m12 s12">
-			<div class="input-field">
+		<div class="col l12 m12 s12" *ngIf="viewData.user.mobile_number.length > 0">
+				<div class="field-padding">
+						<h5>Contact Information</h5>
+						<span class="field-text">{{viewData.user.mobile_number}}</span>
+				</div>
+			
+			<!--
+				<div class="input-field">
 				<input id="contactInfo" type="text" value="{{viewData.user.mobile_number}}" readonly>
 				<label for="contactInfo">Contact Information</label>
 			</div>
+			-->
+			
 		</div>
 		<div class="col l12 m12 s12">
-			<div class="input-field">
+			<div class="field-padding">
+				<h5>Email Address</h5>
+				<span class="field-text">{{viewData.user.email}}</span>
+
+			</div>
+			
+
+			<!--<div class="input-field">
 				<input id="emailAddress" type="text" value="{{viewData.user.email}}" readonly>
 				<label for="emailAddress">Email Address</label>
-			</div>
+			</div> -->
 		</div>
 	</div>
 
@@ -78,11 +90,6 @@
 				<option value="location">Assign Location & Role</option>
 			</select>
 		</div>
-
-		<!-- <button class="btn orange waves-effect waves-light update-user" (click)="updateUserInfo()">
-			<div class="image inline-block"></div>
-			<div class="text inline-block">Update Profile</div>
-		</button> -->
 
 		<button class="btn orange waves-effect waves-light remove" *ngIf="showRemoveWardenButton" (click)="clickRemoveWarden()">
 			<div class="image inline-block"></div>
@@ -239,90 +246,7 @@
 </div>
 
 </div>
-<!--
-<div class="inline-block right-content">
-	<div class="row">
-		<div class="col s12 m12 l12">
-			<h5>Assigned Trainings</h5>
-		</div>
-		<div class="col s12 m12 l12">
 
-			<h4 *ngIf="viewData.trainings.length == 0">No assigned trainings</h4>
-
-			<div class="grid" id="gridContainer">
-
-				<div class="grid-item card no-buttons grey lighten-3" *ngFor="let tr of viewData.trainings">
-					<div class="top" >
-						<div class="image close inline-block" ></div>
-						<div class="text inline-block red-text">Not Compliance</div>
-					</div>
-
-					<div class="middle-image">
-						<div class="image red-image"></div>
-					</div>
-					<div class="middle-text">
-						{{tr.training_requirement_name}}
-						<p class="blue-text">
-						</p>
-					</div>
-
-					<div class="buttons">
-
-					</div>
-				</div>
-
-			</div>
-
-		</div>
-	</div>
-
-	<div class="row">
-		<div class="col s12 m12 l12">
-			<h5>Previous Trainings</h5>
-		</div>
-		<div class="col s12 m12 l12">
-
-			<h4 *ngIf="viewData.certificates.length == 0">No previous trainings record found</h4>
-
-			<div class="grid" id="gridContainer">
-
-				<div class="grid-item card grey lighten-3" *ngFor="let cert of viewData.certificates">
-					<div class="top" >
-						<div class="image inline-block" [ngClass]="{
-							'close' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
-							'check' : cert.status == 'valid' && cert.pass == 1
-						}"> </div>
-
-						<div class="text inline-block" [ngClass]="{
-							'red-text' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
-							'green-text' : cert.status == 'valid' && cert.pass == 1
-						}">
-							<span *ngIf="cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired'">Not Compliance</span>
-							<span *ngIf="cert.status == 'valid' && cert.pass == 1">Compliance</span>
-						</div>
-
-					<div class="middle-image">
-						<div class="image" [ngClass]="{
-							'red-image' : cert.status != 'valid' || cert.pass != 1 || cert.status == 'expired',
-							'green-image' : cert.status == 'valid' && cert.pass == 1
-						}"></div>
-					</div>
-					<div class="middle-text">
-						{{cert.training_requirement_name}}
-						<p class="blue-text"> {{cert.expiry_date_formatted}} </p>
-					</div>
-
-					<div class="buttons">
-
-						<button (click)="emailThisCertificate(cert.user_id, cert.certifications_id)" class="btn orange lighten-1 waves-effect waves-light">Email Certificate</button>
-					</div>
-				</div>
-
-			</div>
-
-		</div>
-	</div>
-</div> -->
 
 <div id="modalRemoveWarden" class="modal">
 	<div class="modal-content center" *ngIf="showModalRemoveWardenLoader">
@@ -449,10 +373,7 @@
 				</div>
 
 				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
-				<!-- <div class="col s12">
-					<label for="userEmail">Email</label>
-					<input type="text" id="userEmail" name="email" ngModel pattern="[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*" required>
-				</div> -->
+				
 			</div>
 
 			<div class="row button-container">
@@ -571,8 +492,7 @@
 						</td>
 						<td *ngIf="!loc.deleted">
 							<select name="role_id[{{i}}]" style="display: block;" (change)="onChangeSelectRole(loc, $event.currentTarget.value)" >
-                                <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
-								<!--<option value="1" [selected]="loc.role_id == 1" [disabled]="!isImFRP">Building Manager</option> -->
+                <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>								
 								<option *ngIf="isImFRP" value="1" [selected]="loc.role_id == 1">Building Manager</option>
 								<option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
 								<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.role_id == eco.em_roles_id ">
@@ -628,20 +548,3 @@
 
 </div>
 
-<!-- <div id="modalLocations" class="modal">
-	<div class="modal-content">
-
-
-		<div class="search-container" >
-			<div class="input-container">
-				<input type="text" placeholder="Search Level" #modalSearchLocation  >
-			</div>
-			<div class="icon-container">
-				<img src="assets/images/locations/search_icon.png" alt="">
-			</div>
-		</div>
-
-
-
-	</div>
-</div> -->

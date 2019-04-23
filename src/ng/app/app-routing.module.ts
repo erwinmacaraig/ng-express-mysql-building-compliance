@@ -75,11 +75,14 @@ import { CartComponent } from './shop/cart.component/cart.component';
 import { PaymentComponent } from './shop/payment.component/payment.component';
 import { ProductsFavoritesComponent } from './shop/products.favorites/product.favorites.component';
 
+//TRAINING
 import { TrainingsComponent } from './trainings/trainings.component';
 import { MyTrainingsComponent } from './trainings/my-training/mytraining.component';
 import { TeamTrainingComponent } from './trainings/team-training/team.training.component';
 import { TrainingInviteComponent } from './trainings/training-invite/training.invite.component';
 import { TrainingProfile } from './trainings/training-profile/training.profile.component';
+import { NewTrainingComponent } from './trainings/new-training/new-training.component';
+import { TrainingCertificate } from './trainings/certificate/certificate.component';
 
 import { ReportsComponent } from './reports/reports.component';
 import { ChooseReportComponent } from './reports/choose.report/choose.report.component';
@@ -125,10 +128,6 @@ import { AddAccountLocationComponent } from './admin/add-location/add-location.c
 import { RewardProgramConfigComponent } from './admin/rewards/config/reward-program-config.component';
 import { ListRewardConfigComponent } from './admin/rewards/list/list-reward-config.component';
 import { RedeemersComponent } from './admin/rewards/redeemers/redeemers.component';
-import { SmartFormComponent } from './admin/smart-form/smart-form-component';
-import { FormBuilderComponent } from './admin/smart-form/form-builder/form.builder';
-import { FormListComponent } from './admin/smart-form/form-list/form.list';
-import { FormRenderComponent } from './admin/smart-form/form-render/form.render';
 
 const appRoutes: Routes = [
   { path: 'login', component: LoginComponent},
@@ -235,9 +234,11 @@ const appRoutes: Routes = [
       { path : 'my-training', component : MyTrainingsComponent },
       { path : 'team-training', component : TeamTrainingComponent },
       { path : 'training-invite', component : TrainingInviteComponent },
-      { path : 'my-training-profile/:encrypted', component: TrainingProfile }
+      { path : 'my-training-profile/:encrypted', component: TrainingProfile },
+      { path : 'new-training', component : NewTrainingComponent },      
     ]
   },
+  { path: 'certificate/:certId', canActivate: [AuthGuard], component: TrainingCertificate },
   {
     path : 'reports', canActivate: [AuthGuard],  component : ReportsComponent,
     children : [
@@ -273,6 +274,7 @@ const appRoutes: Routes = [
       { path: 'teams-report/:location/:accountId', component : ReportsTeamsComponent },
       { path: 'reports', component : AdminReportsComponent },
       { path: 'new-account', component: AdminAddAccountComponent },
+      { path: 'edit-account/:acctId', component: AdminAddAccountComponent },
       { path: 'notification-list', component: NotificationListComponent },
       { path: 'notification-config', component: NotificationConfigurationComponent },
       { path: 'notified-users-list/:config', component: NotifiedUsersListComponent },
@@ -281,11 +283,7 @@ const appRoutes: Routes = [
       { path: 'edit-reward-program-configuration/:programConfig', component: RewardProgramConfigComponent },
       { path: 'list-reward-configuration', component: ListRewardConfigComponent },
       { path: 'reward-program-redeemers/:programConfig', component: RedeemersComponent },
-      { path: 'list-reward-configuration', component: ListRewardConfigComponent },
-      { path: 'smart-form', component : SmartFormComponent },
-      { path: 'smart-form-builder', component : FormBuilderComponent },
-      { path: 'smart-form-list', component : FormListComponent },
-      { path: 'smart-form-render', component : FormRenderComponent }
+      { path: 'list-reward-configuration', component: ListRewardConfigComponent }      
     ]
   },
 
