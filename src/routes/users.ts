@@ -26,6 +26,8 @@ import { MobilityImpairedModel } from '../models/mobility.impaired.details.model
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { NotificationUserSettingsModel } from '../models/notification.user.settings';
 import { NotificationToken } from '../models/notification_token.model';
+import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
+import { RewardConfig } from '../models/reward.program.config.model';
 
 import * as moment from 'moment';
 import * as validator from 'validator';
@@ -171,6 +173,10 @@ export class UsersRoute extends BaseRoute {
 
         router.post('/users/location-role-assignment', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
             new  UsersRoute().locationRoleAssignments(req, res, next);
+        });
+
+        router.get('/users/all-training-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
+            new UsersRoute().allTrainingInfo(req, res, next);
         });
 
 	    router.get('/users/get-tenants/:location_id', new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
@@ -435,7 +441,324 @@ export class UsersRoute extends BaseRoute {
         (req: AuthRequest, res: Response) => {
             new UsersRoute().userTrainingInfo(req, res);
         }
-      )
+      );
+
+      router.get('/users/get-reward-points/:uid', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new UsersRoute().computeRewardPoints(req, res);
+      });
+
+      router.post('/users/certificate/', new MiddlewareAuth().authenticate, (req:AuthRequest, res: Response) => {
+          new UsersRoute().certificateDetails(req, res);
+      });
+
+    }
+
+
+
+    public async certificateDetails(req: AuthRequest, res:Response) {
+        const certId = req.body.certId;        
+       const trainingCert = new TrainingCertification(certId);
+       try {
+            const certDetails = await trainingCert.getCertificateDetailsForDownload();
+            return res.status(200).send(certDetails);
+       } catch(e) {           
+           return res.status(500).send({
+               message: 'No certification found'
+           });
+       }
+       
+
+
+    }
+
+    public async computeRewardPoints(req: AuthRequest, res: Response) {
+        const rewardConfigurator = new RewardConfig();
+        const uid = req.params.uid;
+
+        // check first if the user is in the program
+        try {
+            await rewardConfigurator.isUserEnrolledInAnyProgram(uid);
+            const total = await rewardConfigurator.computeTotalUserRewardPoints(uid);
+            return res.status(200).send({
+                message: 'Success',
+                total_points: total
+            });
+        } catch (e) {
+            return res.status(400).send({
+                message: 'User not enrolled in any program'
+            });
+        }
+    }
+    public async allTrainingInfo(req: AuthRequest, res: Response, next: NextFunction) {
+        const userId = req.query.userId;
+        let userRoleModel;
+        let userTrainingInfoArr = [];
+        let requiredTrainingRequirementIdsArr = [];
+        let overWriteNonWardenRoleTrainingModules = false;
+        let trainingRequirementModules = {};
+        let miscTrainings = [];
+        let userTrainingInfoObj = {};
+        let temp;
+        let emroles = new UserEmRoleRelation(); 
+        let isFRP = false, isTRP = false;
+        if (req.user.user_id != userId || req.user.evac_role != 'admin') {
+            userRoleModel = new UserRoleRelation();
+            try{
+                let frptrpRoles = <any> await userRoleModel.getByUserId(userId);
+                for(let ftrole of frptrpRoles){
+                    if(ftrole.role_id == 1){
+                        isFRP = true;
+                    }
+                    if(ftrole.role_id == 2){
+                        isTRP = true;
+                    }
+                }
+
+                if (!isFRP && !isTRP && req.user.evac_role != 'admin') {
+                    res.status(200).send({
+                        message: 'You are prohibited to view training info of this user',
+                        userInfoTraining: []
+                    });
+                }
+            } catch(e){
+                console.log(e, 'allTrainingInfo');
+            }
+        }
+
+        // get certifications
+        const certObj = new TrainingCertification();                        
+        const certificates = await certObj.userCertificates(userId);
+
+        //checks if account has online training
+        const account = await new Account(req.user.account_id).load();
+        
+
+        const isWardenRoleArray = [];
+        const nonWardenRolesArray = [];
+        const emergencyRolesArray = await emroles.getEmRoles();
+        for (let em of emergencyRolesArray) {
+            if (em['is_warden_role'] == 1) {
+                isWardenRoleArray.push(em['em_roles_id']);
+            } else {
+                nonWardenRolesArray.push(em['em_roles_id']);
+            }
+        }
+
+
+        const emRolesInfoArr = await emroles.getEmRolesFilterBy({
+            user_id: userId,
+            distinct: 'em_role_id' 
+        });
+
+        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); 
+
+        for (let em of myEmRoleIds) {
+            if (isWardenRoleArray.indexOf(em)  != -1) {
+                overWriteNonWardenRoleTrainingModules = true;
+            }
+        }
+
+        // get locations for em roles
+        const designatedEMRoleLocations = await emroles.getLocationsByUserIds(userId, (emRolesInfoArr[1] as Array<number>).join(','));
+
+        const trainingReqmtArr = await new TrainingRequirements().allEmRolesTrainings();
+        const trainingReqmtObj = {};
+        temp = [];
+        for (let tr of trainingReqmtArr) {
+            if (tr['en_role_id'] in trainingReqmtObj) {
+                (trainingReqmtObj[tr['em_role_id']]['training_requirement_id']).push(tr['training_requirement_id']);
+                (trainingReqmtObj[tr['em_role_id']]['training_requirement_name']).push(tr['training_requirement_name']);
+                (trainingReqmtObj[tr['em_role_id']]['trainingRqmtArrObj']).push({
+                    training_requirement_id: tr['training_requirement_id'],
+                    training_requirement_name: tr['training_requirement_name']
+                });
+            } else {
+                trainingReqmtObj[tr['em_role_id']] = {
+                    em_role_id: tr['em_role_id'],
+                    role_name: tr['role_name'],
+                    trainingRqmtArrObj: [{
+                        training_requirement_id: tr['training_requirement_id'],
+                        training_requirement_name: tr['training_requirement_name']
+                    }],
+                    training_requirement_id: [tr['training_requirement_id']],
+                    training_requirement_name: [tr['training_requirement_name']]                    
+                }
+            }
+
+            if (temp.indexOf(tr['training_requirement_id']) == -1)  {
+                temp.push(tr['training_requirement_id']);
+                trainingRequirementModules[tr['training_requirement_id']] = {                    
+                    modules: []
+                };
+                let trModules = [];
+                trModules = await new TrainingRequirements().getTrainingModulesForRequirement(tr['training_requirement_id'], req.user.account_id);
+                if (trModules.length == 0) {
+                    trModules = await new TrainingRequirements().getTrainingModulesForRequirement(tr['training_requirement_id'], 0);
+                }
+                
+                trainingRequirementModules[tr['training_requirement_id']]['modules'] = trModules;
+            }
+
+        }
+        temp = null;
+        // cross reference to user_training_module_relation
+        Object.keys(trainingRequirementModules).forEach((tridKey) => {
+            for(let i = 0; i < trainingRequirementModules[tridKey]['modules'].length; i++) {                
+                new UserTrainingModuleRelation().getUserTrainingModule(parseInt(tridKey, 10), userId, trainingRequirementModules[tridKey]['modules'][i]['training_module_id'])
+                .then((userMod) => {
+                    trainingRequirementModules[tridKey]['modules'][i] = {
+                        ...trainingRequirementModules[tridKey]['modules'][i],
+                        ...userMod
+                    };
+                })
+                .catch((e) => {
+                    console.log('Cannot get user training module information at ', e);
+                });
+            }
+        });
+
+
+
+        let certification = [];
+        for (let em_role_id of myEmRoleIds) {
+            userTrainingInfoObj = {
+                em_role_id: em_role_id,
+                role_name:  trainingReqmtObj[em_role_id.toString()]['role_name'],
+                training_requirement: [],
+                active_training: [],
+                role_training_status: 'non-compliant', // as of Feb 2, 2019 we assume that there is only one training requirement for a role
+                expiry: '' // as of April 3, 2019, since we assume that there is only one training requirement for a role
+            };
+            let missingRequiredTrainingsIdArr = [];
+            let status = 'non-compliant';
+            missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
+            requiredTrainingRequirementIdsArr.push(trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
+            
+            // although we assume one training requirement for a role, for scability and future requirements that is why I iterated 
+            for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
+                status = 'compliant';
+                let expiry = '';
+                if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
+                    status = 'non-compliant';
+                }
+                else {
+                    try {
+                        temp = await new TrainingCertification().getActiveCertificate(userId, tr['training_requirement_id']);
+                        expiry = temp[0]['expiry_date']; // if there comes a time that one role will have more than one training requirement
+                        userTrainingInfoObj['expiry'] = expiry; // just assign it here
+                    } catch(e) {
+                        expiry = '';
+                    }
+                }
+                
+                if ( (nonWardenRolesArray.indexOf(em_role_id) != -1 && overWriteNonWardenRoleTrainingModules) || account['online_training'] == 0) {
+                    userTrainingInfoObj['training_requirement'].push({
+                        ...tr,
+                        modules: [],
+                        status: status,
+                        total_modules: (trainingRequirementModules[tr['training_requirement_id']]['modules'] as Array<object>).length, 
+                        total_completed_modules: 0
+                    }); 
+                } else {
+                    userTrainingInfoObj['training_requirement'].push({
+                        ...tr,
+                        expiry: expiry,
+                        modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
+                        status: status
+                    });
+                }                 
+            }
+            userTrainingInfoObj['role_training_status'] = status;
+            userTrainingInfoArr.push(userTrainingInfoObj);
+        }
+
+
+
+
+        // load trainings not related to the role 
+        miscTrainings = await new UserTrainingModuleRelation().listMiscTraining(userId, requiredTrainingRequirementIdsArr); 
+        let otherTrainings = {
+            training_requirement: []
+        };
+        for (let misc of miscTrainings) {
+            temp = [];
+            let expiry = '';
+            try {
+                temp = await new TrainingCertification().getActiveCertificate(userId, misc['training_requirement_id']);
+                expiry = temp[0]['expiry_date'];
+            } catch(e) {
+                expiry = '';
+            }
+            let mods_misc = await new TrainingRequirements().getTrainingModulesForRequirement(misc['training_requirement_id']);
+            
+            let userMiscModules;
+            for (let i = 0; i < mods_misc.length; i++) {
+                 userMiscModules = await new UserTrainingModuleRelation().getUserTrainingModule(
+                    parseInt(misc['training_requirement_id'], 10),
+                    userId,
+                    mods_misc[i]['training_module_id']
+                );
+                mods_misc[i] = {
+                                ...mods_misc[i],
+                                ...userMiscModules,
+                                expiry: expiry
+                            };
+            } 
+
+           
+            otherTrainings['training_requirement'].push({
+                training_requirement_id: misc['training_requirement_id'],
+                expiry: expiry,
+                modules: mods_misc
+            });
+        }
+        
+        
+        // cross reference if these misc modules were already completed
+        // get completed modules
+
+        // cross reference completed modules against the pre-requisites
+        const completedModulesId = [];
+        for (let req of userTrainingInfoArr) {
+            for (let training of req['training_requirement']) {
+                for (let module of training['modules']) {
+                    if (module['completed']) {
+                        completedModulesId.push(module['module_id']); 
+                    }
+                }
+            }
+
+        }
+        
+
+        for (let req of userTrainingInfoArr) {
+            for (let training of req['training_requirement']) {
+                for (let module of training['modules']) {
+                    module['rq_satisfied'] = 0;
+                    if (module['pre_req'] == 0) {
+                        module['rq_satisfied'] = 1;
+                        continue;
+                    }
+                    if (completedModulesId.indexOf(module['pre_req']) != -1) {
+                        module['rq_satisfied'] = 1;
+                    }
+                }
+            }
+        }
+        
+        res.status(200).send({
+            message: 'Success',
+            userInfoTraining: userTrainingInfoArr,
+            userInfoOtherTraining: otherTrainings,
+            emRolesLocation: designatedEMRoleLocations,
+            certificates: certificates,
+            myEmRoleIds: myEmRoleIds,
+            overWriteNonWardenRoleTrainingModules: overWriteNonWardenRoleTrainingModules,
+            isWardenRoleArray: isWardenRoleArray,
+            nonWardenRolesArray: nonWardenRolesArray
+        });
+                
+
 
     }
 
@@ -1179,18 +1502,27 @@ export class UsersRoute extends BaseRoute {
         } else {
             selectedLocIds = [];
             // const assignedLocations = await new LocationAccountUser().getLocationsByUserIdAndAccountId(userID, accountId);
-            const accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);
-            const accountRoles = [];
-            for (let role of accountRoleObjArr) {
-                accountRoles.push(role['role_id']);
-            }
-            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {
-                if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 2) {
-                    idsOfLocationsForTRP.push(parseInt(locId, 10));
-                } else if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 1) {
-                    idsOfBuildingsForFRP.push(parseInt(locId, 10));
+            let accountRoleObjArr = [];
+            let accountRoles = [];
+            try {
+                accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);            
+            
+                for (let role of accountRoleObjArr) {
+                    accountRoles.push(role['role_id']);
                 }
-            });
+                Object.keys(roleOfAccountInLocationObj).forEach((locId) => {
+                    if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 2) {
+                        idsOfLocationsForTRP.push(parseInt(locId, 10));
+                    } else if (accountRoles.indexOf(roleOfAccountInLocationObj[locId]['role_id']) != -1 && roleOfAccountInLocationObj[locId]['role_id'] == 1) {
+                        idsOfBuildingsForFRP.push(parseInt(locId, 10));
+                    }
+                });
+            } catch (e) {
+                accountRoleObjArr = [];
+                accountRoles = [];
+                console.log(e);
+            }
+            
 
             /*
             for (let loc of assignedLocations) {

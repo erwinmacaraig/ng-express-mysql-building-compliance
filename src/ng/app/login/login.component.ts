@@ -77,6 +77,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       status: string;
       message: string;
       token: string;
+      expiresIn: number;
       data: any;
     }
 
@@ -98,6 +99,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }).subscribe(data => {
       this.showSuccess = true;
       this.auth.setToken(data.token);
+      this.auth.setAuthTimer(data.expiresIn);
       this.auth.setUserData(data.data);
       this.router.navigate(['']);
     },

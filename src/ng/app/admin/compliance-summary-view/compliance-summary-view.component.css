@@ -749,16 +749,25 @@ a:hover{
 }
 
 .filenotfoundalert .material-icons{
-    margin-right: 10px;
+    margin-right: 5px;
+    vertical-align: text-bottom;
+    margin-top: 7px;
 }
 .filenotfoundalert.error{
     background-color: #c62828;
     color: #fff;
+    height: 40px;
+
 }
-#modalfilenotfound {
+#modalfilenotfound, #modaluploadfailed {
     max-height: 25% !important;
     overflow-y: hidden !important ;
 }
 #modalfilenotfound .modal-content {
     height: 205px !important;
 }
+
+#modaluploadfailed .modal-content {
+    height: 160px !important;
+}
+

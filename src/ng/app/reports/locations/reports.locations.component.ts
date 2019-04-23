@@ -15,7 +15,7 @@ declare var $ : any;
 export class ReportsLocationsComponent implements OnInit, OnDestroy {
 	
 	userData = {};
-
+	subscriptionType = 'free';
 	constructor(
 		private router : Router,
 		private authService : AuthService,
@@ -23,6 +23,7 @@ export class ReportsLocationsComponent implements OnInit, OnDestroy {
 		) {
 
 		this.userData = this.authService.getUserData();
+		this.subscriptionType = this.userData['subscription']['subscriptionType'];
 
 	}
 

@@ -1,7 +1,5 @@
-import * as db from 'mysql2';
-import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 
+import { BaseClass } from './base.model';
 import * as Promise from 'promise';
 export class ComplianceKpisModel extends BaseClass {
 
@@ -48,10 +46,10 @@ export class ComplianceKpisModel extends BaseClass {
                     } else {
                       resolve(results);
                     }
-
                 }
+                connection.release();
             });
-            connection.release();
+            
         });
         
     });
@@ -80,8 +78,9 @@ export class ComplianceKpisModel extends BaseClass {
                         this.setID(results[0]['compliance_kpis_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
             
@@ -115,8 +114,9 @@ export class ComplianceKpisModel extends BaseClass {
 
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
 

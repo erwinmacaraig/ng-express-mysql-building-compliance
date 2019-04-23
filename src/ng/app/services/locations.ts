@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
+import { AuthService } from './auth.service';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
@@ -14,7 +15,7 @@ export class LocationsService {
     private baseUrl: String;
     public dataStore: Object;
 
-    constructor(private http: HttpClient, platformLocation: PlatformLocation) {
+    constructor(private http: HttpClient, platformLocation: PlatformLocation, private authService: AuthService) {
         this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
         this.options = { headers : this.headers };
         this.baseUrl = (platformLocation as any).location.origin;
@@ -140,9 +141,13 @@ export class LocationsService {
         .subscribe(res => {
             callBack(res);
         }, err => {
+            console.log(JSON.parse(err.error));
+            if (err.error == 'Not Authenticated') {
+                this.authService.logout();
+            }
             callBack( JSON.parse(err.error) );
         }, () => {
-            console.log('Request done');
+            console.log('Request done - getting parent locations for listing paginated');
         });
     }
 

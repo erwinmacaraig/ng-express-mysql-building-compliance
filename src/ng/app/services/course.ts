@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { ResponseContentType } from '@angular/http';
 import { PlatformLocation } from '@angular/common';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class CourseService {
@@ -14,7 +15,8 @@ export class CourseService {
         private http: HttpClient,
         private platformLocation: PlatformLocation,
         private route: ActivatedRoute,
-        private router: Router
+        private router: Router,
+        private authService: AuthService
         ) {
 
         this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
@@ -67,7 +69,13 @@ export class CourseService {
     getAllEmRolesTrainings(callBack){
         this.http.get('/courses/get-all-em-trainings').subscribe((res) => {
             callBack(res);
-        });
+        }, err => {
+            console.log(JSON.parse(err.error));
+            if (err.error == 'Not Authenticated') {
+                this.authService.logout();
+            }
+            callBack( JSON.parse(err.error) );
+        } );
     }
 
     logOutTrainingCourse(relation=0) {
@@ -79,5 +87,20 @@ export class CourseService {
             callBack(response);
         });
     }
+
+    logOutTrainingModule(userTrainingModuleRelationId=0) {
+        return this.http.post<{lesson_status: string}>(this.baseUrl +'/lms/logoutModule', {'relation': userTrainingModuleRelationId});
+    }
+
+    getCertificationDetailsForPrinting(certId=0) {
+        return this.http.post<{
+            name: string,
+            training: string,
+            certificate_no: string,
+            training_date: string
+        }>(`${this.baseUrl}/users/certificate/`, {certId:certId});
+    }
+
+
 
 }

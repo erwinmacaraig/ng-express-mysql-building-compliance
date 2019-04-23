@@ -253,6 +253,8 @@ const defs = require('../config/defs.json');
         }
       );
 
+      
+
 
    	}
 
@@ -899,6 +901,12 @@ const defs = require('../config/defs.json');
 
     }
 
+  	private mergeObjects(obj1,obj2){
+	    var obj3 = {};
+	    for (var attrname in obj1) { obj3[attrname] = obj1[attrname]; }
+	    for (var attrname in obj2) { obj3[attrname] = obj2[attrname]; }
+	    return obj3;
+	}
 
 	private mergeToParent(data){
 
@@ -1526,11 +1534,6 @@ const defs = require('../config/defs.json');
             
         }
 
-        
-        
-        
-        
-
         for(let loc of response.locations) {
             let
                 locsIds = [],
@@ -1702,7 +1705,7 @@ const defs = require('../config/defs.json');
             response.locations = [];
         }
 
-        //let merged = this.mergeToParent(allLocations);
+        let merged = this.mergeToParent(allLocations);
 
         for(let all of allLocations){
             for(let i in response.locations){
@@ -2159,4 +2162,3 @@ const defs = require('../config/defs.json');
     }
 
 }
-

@@ -1,0 +1,570 @@
+.main{
+    width: 100vw;
+    min-height: calc(100vh - 94px);
+    display: table;
+}
+
+.left-nav{
+    width: 431px;
+    background-color: #f1f1f1;
+    padding: 20px;
+    height: 100%;
+    float: none !important;
+    display: table-cell;
+    vertical-align: top;
+}
+
+.right-container{
+    height: 100%;
+    float: none !important;
+    display: table-cell;
+    vertical-align: top;
+}
+
+.right-container .top{
+    height: 80px;
+    border-bottom: 1px solid #bbbbbb;
+    padding-left: 30px;
+}
+
+.right-container .top .title{
+    margin: 0px;
+    line-height: 80px;
+    font-size: 22px;
+}
+
+.right-container .right{
+    line-height: 80px;
+}
+
+.right-container .right ul{
+    margin: 0px;
+    font-size: 15px;
+}
+
+.right-container .right ul li{
+    display: inline-block;
+    padding: 0px 10px;
+}
+
+.box-container{
+    padding: 40px;
+}
+
+.certificate-container {
+    padding: 0px 30px;
+}
+
+.box-container .box{
+    padding: 20px;
+    width: 270px;
+    height: 370px;
+    border-radius: 10px;
+    margin: 20px;
+    display: inline-block;
+    background-color: #ececec;
+    position: relative;
+    box-shadow: 0px 5px 10px 0px #ddd;
+    vertical-align: top;
+}
+
+.box-container .box .image{
+    width: 135px;
+    height: 135px;
+    border-radius: 150px;
+    display: block;
+    margin: 15px auto;
+    /* border: 1px solid; */
+}
+
+.box .button-container .btn{
+    width: 100%;
+    padding: 10px;
+    font-size: 15px !important;
+    line-height: 20px;
+    height: 100% !important;
+}
+
+.box-container .box  .module{
+    font-size: 20px;
+}
+
+.box-container .box  .title{
+    font-size: 20px;
+}
+
+.title-padding {
+    padding: 20px 5px;
+}
+
+.box-container .box  .bottom-text{
+    font-size: 14px;
+    line-height: 16px;
+}
+
+.box-container .box .icon-right{
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    width: 31px;
+    height: 30px;
+}
+
+.box .icon-right,
+.image-container .image,
+.right-container .right ul li .image,
+.avatar-container .doll,
+.avatar-container .compliant-doll{
+    background-image: url('/assets/images/trainings/newtrainings.png');
+    background-repeat: no-repeat;
+}
+
+.bonus .icon-right{
+    background-size: 2616%;
+    background-position: 66.65% 86%;
+    background-color: #fff;
+    border-radius: 20px;
+}
+
+.locked .icon-right{
+    /*
+    background-size: 2500%;
+    background-position: 56% 86%;
+    */
+    background-image: url('/assets/images/expired_icon.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.unlocked .icon-right{
+    background-size: 2500%;
+    background-position: 45.8% 86%;
+}
+
+.check .icon-right{
+    background-size: 3000%;
+    background-position: 6.4% 59%;
+}
+
+.badge-1{
+    background-size: 699%;
+    background-position: 6.09% 17%;
+}
+
+.badge-2{
+    background-size: 699%;
+    background-position: 28.10% 16.8%;
+}
+
+.badge-3{
+    background-size: 699%;
+    background-position: 49.99% 16.89%;
+}
+
+.badge-4{
+    background-size: 699%;
+    background-position: 72.2% 16.89%;
+}
+
+.badge-5{
+    background-size: 699%;
+    background-position: 94.67% 16.89%;
+}
+
+.right-container .right ul li .image{
+    width: 25px;
+    height: 25px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-right: 5px;
+}
+
+.right-container .right ul li .star{
+    background-size: 2400%;
+    background-position: 14% 60.5%;
+}
+
+.right-container .right ul li .calendar{
+    background-size: 2700%;
+    background-position: 22% 59.5%;
+}
+
+.right-container .right ul li .gift{
+    background-size: 2700%;
+    background-position: 29% 58.9%;
+}
+
+.avatar-container{
+    margin-top: 20px;
+}
+
+.avatar-container .doll{
+    width: 76px;
+    height: 140px;
+    display: inline-block;
+    background-size: 1250%;
+    background-position: 93.45% 84.4%;
+    vertical-align: middle;
+}
+
+.avatar-container .compliant-doll {
+    width: 76px;
+    height: 155px;
+    display: inline-block;
+    background-size: 1250%;
+    background-position: 83.45% 82.4%;
+    vertical-align: middle;
+}
+.avatar-container .name-location-container{
+    display: inline-block;
+    vertical-align: middle;
+    width: 75%;
+    margin: 0px 0px 0px 15px;
+}
+
+.avatar-container .name-location-container .name{
+    font-size: 18px;
+    display: block;
+}
+
+.avatar-container .name-location-container .location-image{
+    display: inline-block;
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
+    background-image: url(/assets/images/trainings/newtrainings.png);
+    background-repeat: no-repeat;
+    background-size: 2800%;
+    background-position: 72.4% 63%;
+}
+
+div.total_modules_completed_text {
+    font-size: 14px;
+    margin: 5px 70px;
+    display:  inline-block;
+}
+
+.avatar-container .name-location-container .location-text{
+    font-size: 14px;
+    max-width: 250px;
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 16px;
+    color: #797979;
+}
+
+.level-skill{
+    margin: 20px 5px 0px 5px;
+    font-size: 14px;
+}
+
+.progress-container{
+    position: relative;
+    height: 12px;
+    margin-left: 70px;
+    background-color: #757575;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+.progress-container .progress{
+    width: 50%;
+    position: absolute;
+    left: 0px;
+    margin: 0px;
+    height: 100%;
+    border-radius: 0px;
+    background-color: #41aefd;
+}
+
+.spacer{
+    height: 20px;
+}
+
+.small-text{
+    font-size: 14px;
+    margin: 0px;
+}
+
+.myskill-container{
+    margin-bottom: 20px;
+    /*min-height: 200px;*/
+}
+
+.myskill-container h5{
+    font-size: 16px;
+}
+
+.myskill-container .badges{
+    padding: 5px 0px;
+}
+
+.myskill-container .badges .badge{
+    width: 40px;
+    height: 40px;
+    background-image: url(/assets/images/trainings/newtrainings.png);
+    background-repeat: no-repeat;
+    display: inline-block;
+    background-size: 670%;
+    margin-right: 10px;
+}
+
+.training-status-container {
+    margin: 35px 0px 0px 0px;
+}
+
+.training-status-container h5{
+    margin-bottom: 25px;
+    font-size: 18px;
+}
+
+.training-status-container .role-list-container{
+    margin: 25px 0px;
+}
+
+.reward-list-container .reward-icon {
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    vertical-align: middle;
+    margin-right: 10px;
+    background-image: url(/assets/images/trainings/skillandrewards.png);
+    background-repeat: no-repeat;
+    background-size: 336%;    
+}
+.reward-icon.reward-points {
+    background-position: 79.92% 51.5%;
+}
+
+.reward-list-container .reward-text {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.reward-text {
+    font-size: 18px;
+    width: 150px;
+    line-height: 15px;
+    margin-bottom: 5px;
+}
+
+.role-list-container .role-icon{
+    display: inline-block;
+    width: 60px;
+    height: 60px;
+    border-radius: 30px;
+    vertical-align: middle;
+    margin-right: 10px;
+    background-image: url(/assets/images/trainings/newtrainings.png);
+    background-repeat: no-repeat;
+    background-size: 1350%;
+}
+
+.reward-text .reward-points {
+    font-size: 18px;
+    color: blue;
+    padding-top: 7px;
+}
+
+
+.role-icon.general-occupant{
+    background-position: 44.92% 63.5%;
+}
+
+.role-icon.warden{
+    background-position: 56.12% 62.8%;
+}
+
+.role-list-container .role-text-compliant{
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.role-text-compliant{
+    font-size: 18px;
+    width: 150px;
+    line-height: 15px;
+    margin-bottom: 5px;
+}
+
+div.role-name {
+    width: 150px;
+}
+
+.compliant-container{
+    width: 250px;
+    display: inline-block;
+    margin: 8px 0px;
+}
+
+.redeem-container {
+    width: 150px;
+    display: inline-block;
+    margin: 5px 0px;
+}
+
+.compliant-container .image{
+    width: 20px;
+    height: 20px;
+    /*border: 1px solid;*/
+    border-radius: 10px;
+    display: inline-block;
+    vertical-align: middle; 
+}
+
+.compliant-container .text{
+    display: inline-block;
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+.compliant-container.non-compliant .text{
+    color: #f44336;
+}
+
+.compliant-container.compliant .text{
+    color: #1f9e25;
+}
+
+
+.compliant-container.non-compliant .text:after{
+    content: 'Non-Compliant';
+}
+
+
+/*
+.compliant-container.compliant .text:after{
+    content: 'Compliant';
+}
+*/
+.compliant-container.non-compliant .image{
+    background-image: url('/assets/images/expired_icon.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.compliant-container.compliant .image{
+    background-image: url(/assets/images/trainings/newtrainings.png);
+    background-repeat: no-repeat;
+    background-size: 3300%;
+    background-position: 6.5% 58.8%;
+}
+
+.training-requirements{
+    text-align: center;
+    margin: 15px 0px;  
+}
+
+.training-requirements .icon{
+    display: inline-block;
+    width: 20px;
+    height: 23px;
+    margin-right: 5px;
+    vertical-align: top;
+    background-image: url('/assets/images/trainings/newtrainings.png');
+    background-repeat: no-repeat;
+    background-size: 3700%;
+    background-position: 65.5% 62.7%;
+}
+
+.training-requirements .icon .general-occupant{
+    background-position: 44.9% 63.5%;
+}
+
+.training-requirements .text{
+    display: inline-block;
+    line-height: 14px;
+    text-align: left;
+    vertical-align: top;
+    font-size: 14px;
+}
+
+ div.module-container{ 
+     width: 310px;
+     position: relative;
+     display: inline-block; 
+}
+
+#training iframe {
+    height: 90%;
+    width: 97%;
+    position: absolute;
+  }
+  
+  #training{
+    top: 5% !important;
+    left: 0%;
+    width: 98vw;
+    height: 92vh;
+    max-height: 100vh;
+  }
+  
+  #training .modal-footer{
+    position: absolute;
+    bottom: 10px;
+  }
+
+  .mid-nav{
+    border-bottom: 1px solid #cacaca;
+    padding-left: 25px;
+    margin-bottom: 20px;  
+}
+
+.mid-nav ul{
+    margin: 0px;
+}
+
+.mid-nav ul li{
+    text-align: left;
+    border-bottom: 1px solid #cacaca;
+    display: inline-block;
+    margin-right: 30px;
+    padding: 15px 0px !important;
+    margin-bottom: -1px;
+    color: #383838;
+    font-size: 18px;
+    transition: 0.5s all;
+}
+
+.mid-nav ul li:hover{
+    border-bottom: 1px solid #39a1ff !important;
+    cursor: pointer;
+    color: #39a1ff !important;
+}
+
+.mid-nav ul li:focus{
+    outline: none;
+}
+
+.mid-nav ul li:hover{
+    cursor: pointer;
+}
+
+.mid-nav ul li.active{
+    color: #39a1ff !important;
+    border-bottom: 1px solid #39a1ff !important;
+}
+
+table thead tr th{
+	background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+	border: 1px solid #ddd;
+	font-size: 14px;
+}
+
+table tfoot td{
+	padding: 0px;
+}
+
+table tr td .text{
+    display: inline-block;
+}

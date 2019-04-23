@@ -10,6 +10,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { LocationsService } from '../../services/locations';
+import { MessageService } from './../../services/messaging.service';
 
 declare var $: any;
 
@@ -25,6 +26,7 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
     locations = [];
     isArchived = false;
     typingTimeout:any;
+    accountSubscription = {};
     private originalLocations = [];
     modalArchive = {
         loader : false,
@@ -37,7 +39,8 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
         private router: Router,
         public encryptDecrypt: EncryptDecryptService,
         public dashboard: DashboardPreloaderService,
-        private locationsService: LocationsService) {
+        private locationsService: LocationsService,
+        private msgSrv : MessageService) {
 
     }
 
@@ -53,6 +56,12 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
             this.isArchived = (query['archived']) ? query['archived'] : false;
             this.getLocations();
         });
+        this.msgSrv.getMessage().subscribe((message) => {            
+            if ('accountInfo' in message) {
+                this.accountSubscription = message['accountInfo']['subscription'];
+            }
+        });
+
     }
 
     getLocations(){
@@ -115,9 +124,8 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
     searchLocationInAccounts(event) {
         clearTimeout(this.typingTimeout);
-        
         this.typingTimeout = setTimeout(() => {
-            let searchKey = event.target.value;        
+            let searchKey = event.target.value;
             let temp = [];
             this.locations = [];
             if (searchKey) {
@@ -132,9 +140,9 @@ export class LocationsInAccountComponent implements OnInit, AfterViewInit {
 
             } else {
                 this.locations = [...this.originalLocations];
-            }        
+            }
         }, 500);
-        
+
     }
 
 }

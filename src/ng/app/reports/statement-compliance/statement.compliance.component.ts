@@ -41,6 +41,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
         '12' : 'AS 3745:2010 s.6.3 & s.6.5'
 
     };
+    subscriptionType = 'free';
 
 	constructor(
 		private activatedRoute : ActivatedRoute,
@@ -53,7 +54,7 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 		) {
 
 		this.userData = this.authService.getUserData();
-
+        
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
 			this.locationId = this.encryptDecrypt.decrypt( params.locationId );
 			this.getStatementOfComplianceReport();
@@ -61,7 +62,10 @@ export class ReportsLocationsStatementComplianceComponent implements OnInit, OnD
 
 	}
 
-	ngOnInit(){ }
+	ngOnInit(){
+
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+    }
 
 	ngAfterViewInit(){ }
 

@@ -108,6 +108,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         parent_id : 0
     };
 
+    subscriptionType = 'free';
+
     constructor(
         private authService : AuthService,
         private router : Router,
@@ -120,7 +122,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         private accountService : AccountsDataProviderService
     ) {
 
-        this.userData = this.authService.getUserData();
+        this.userData = this.authService.getUserData();        
         for(let role of this.userData.roles){
             if(role.role_id == 1){
                 this.isFRP = true;
@@ -209,8 +211,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(){
-
-        this.dashboardService.show();
+        this.subscriptionType = this.userData['subscription']['subscription_type'];
+        this.dashboardService.show();        
         this.getListData(() => { 
             if(this.pagination.pages > 0){
                 this.pagination.currentPage = 1;

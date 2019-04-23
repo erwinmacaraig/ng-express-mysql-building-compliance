@@ -1,6 +1,5 @@
-import * as db from 'mysql2';
+
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 import * as Promise from 'promise';
 import * as moment from 'moment';
 
@@ -53,8 +52,9 @@ export class NotificationUserSettingsModel extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['notification_user_settings_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -86,9 +86,9 @@ export class NotificationUserSettingsModel extends BaseClass {
                         throw Error(err);
                     }
                     resolve(true);
-
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -111,8 +111,9 @@ export class NotificationUserSettingsModel extends BaseClass {
                         this.setID(results[0]['notification_user_settings_id']);
                     }
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -131,8 +132,9 @@ export class NotificationUserSettingsModel extends BaseClass {
                         throw Error(error);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -152,12 +154,12 @@ export class NotificationUserSettingsModel extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
     }
-
 
 }
