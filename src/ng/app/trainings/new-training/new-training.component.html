@@ -209,9 +209,7 @@
                     <tr *ngFor="let cert of certificates">
                         <td><span class="text"> {{cert['training_requirement_name']}} </span></td>
                         <td><span class="text"> {{cert['training_type']}} </span></td>
-                        <td><span class="text" *ngIf="cert['course_method']=='offline_by_evac'; else online"> {{cert['location_name']}} </span>
-                        <span class="text" #online>&nbsp;</span>
-                        </td>
+                        <td><span class="text" *ngIf="cert['course_method']=='offline_by_evac'"> {{cert['location_name']}} </span></td>
                         <td><span class="text"> {{ cert['certification_date'] | date: 'MM/dd/yyyy' }} </span></td>
                         <td>
                             <a [routerLink]="['/certificate', cert['encryptedCertId']]" target="_blank" class="">Download</a>
