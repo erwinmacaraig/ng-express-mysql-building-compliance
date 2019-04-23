@@ -751,9 +751,9 @@ export class TrainingCertification extends BaseClass {
                   ON
                     certifications.training_requirement_id = training_requirement.training_requirement_id
                   LEFT JOIN
-                  offline_training_to_certification_relation
+                    offline_training_to_certification_relation
                   ON 
-                  offline_training_to_certification_relation.certifications_id = certifications.certifications_id
+                    offline_training_to_certification_relation.certifications_id = certifications.certifications_id AND offline_training_to_certification_relation.course_method = certifications.course_method
                   WHERE
                     certifications.user_id = ?
                   AND

@@ -304,7 +304,9 @@ export class UserTrainingModuleRelation extends BaseClass {
             WHERE
                 user_id = ?
             AND
-                training_requirement_id = ?`;
+                training_requirement_id = ?
+            AND 
+                DATE_ADD(dtLastAccessed, INTERVAL 1 MONTH) < NOW()`;
             
             const params = [userId, trId];
             this.pool.getConnection((err, connection) => {

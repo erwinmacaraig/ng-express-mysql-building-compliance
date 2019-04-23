@@ -2,6 +2,7 @@ DROP TABLE IF EXISTS offline_training_to_certification_relation;
 CREATE TABLE offline_training_to_certification_relation (
 	offline_training_to_certification_relation_id INT NOT NULL AUTO_INCREMENT,
 	certifications_id INT,
+    course_method VARCHAR(15) DEFAULT 'offline_by_evac',
     location_id INT DEFAULT 0,
     building_id INT DEFAULT 0,
     location_name VARCHAR(255) DEFAULT NULL,
