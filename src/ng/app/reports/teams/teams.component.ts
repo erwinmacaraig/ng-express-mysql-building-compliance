@@ -48,6 +48,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
     accountId = 0;
 
     print:any;
+    subscriptionType = 'free';
 
     constructor (
         private router: Router,
@@ -61,7 +62,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
         ) {
 
         this.userData = this.authService.getUserData();
-
+        
     }
 
     getTeamReport(callBack, forExport?) {
@@ -106,7 +107,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
                 }
 
                 this.totalCountResult = response.pagination.total;
-
+                this.subscriptionType = this.userData['subscription']['subscriptionType'];
                 this.dashboardPreloader.hide();
 
                 // this.generateReportDataForExport();

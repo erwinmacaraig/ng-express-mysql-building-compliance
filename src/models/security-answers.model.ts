@@ -29,8 +29,9 @@ export class SecurityAnswers extends BaseClass {
                         this.setID(results[0]['security_question_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -58,8 +59,9 @@ export class SecurityAnswers extends BaseClass {
                         this.setID(results[0]['security_answer_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -82,8 +84,9 @@ export class SecurityAnswers extends BaseClass {
                         this.setID(results[0]['security_answer_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -104,8 +107,9 @@ export class SecurityAnswers extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -127,8 +131,9 @@ export class SecurityAnswers extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['security_answer_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
             

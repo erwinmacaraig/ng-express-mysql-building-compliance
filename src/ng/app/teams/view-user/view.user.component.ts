@@ -43,11 +43,12 @@ export class ViewUserComponent implements OnInit, OnDestroy {
           mobile_number: '',
           email: ''
 		},
-		role_text : '',
-		eco_roles : [],
-		locations : [],
-		trainings : [],
-		certificates : [],
+    role_text : '',
+    eco_roles : [],
+    locations : [],
+    trainings : [],
+    certificates : [],
+    role_texts: [],
     badge_class : '',
     valid_trainings: [],
     required_trainings: []
@@ -178,8 +179,24 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         } else {
             this.viewData.eco_roles = response.data.eco_roles;
         }
+
+        let temp = [];
+        for (let loc of response.data.locations) {
+            if (temp.indexOf(loc['location_id']) == -1) {
+                this.viewData.locations.push(loc);
+                temp.push(loc['location_id']);
+            }
+        }
+        temp = [];
+        for (let loc of response.data.locations) {
+            if (temp.indexOf(loc['role_id']) == -1) {
+                this.viewData.role_texts.push(loc['role_name']);
+                temp.push(loc['role_id']);
+            }
+        }
+
         
-        this.viewData.locations = response.data.locations;
+        //this.viewData.locations = response.data.locations;
 
         let trainings = [];
         for(let tr of response.data.trainings){

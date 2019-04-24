@@ -1,9 +1,9 @@
-import * as db from 'mysql2';
+
 import { BaseClass } from './base.model';
 const dbconfig = require('../config/db');
 
 import * as Promise from 'promise';
-import * as moment from 'moment';
+
 
 export class TrainingRequirements extends BaseClass {
 
@@ -29,8 +29,9 @@ export class TrainingRequirements extends BaseClass {
                             reject('No training requirement found.');
                         }
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -42,7 +43,7 @@ export class TrainingRequirements extends BaseClass {
             for(let i in arrWhere){
                 if( count == 0 ){
                     sql += ' WHERE '+arrWhere[i];
-                }else{
+                } else{
                     sql += ' AND '+arrWhere[i];
                 }
 
@@ -58,8 +59,9 @@ export class TrainingRequirements extends BaseClass {
                         this.dbData = results;
                         resolve(results);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -89,8 +91,9 @@ export class TrainingRequirements extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['training_requirement_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });
@@ -120,8 +123,9 @@ export class TrainingRequirements extends BaseClass {
                         throw new Error('Error inserting updating requirements.');
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -150,8 +154,9 @@ export class TrainingRequirements extends BaseClass {
                     throw Error('Cannot get requirements');
                 }
                 resolve(results);
+                connection.release();
             });
-            connection.release();
+            
         });
 
       });
@@ -182,6 +187,7 @@ export class TrainingRequirements extends BaseClass {
                 FROM em_role_training_requirements emt
                 INNER JOIN em_roles em ON emt.em_role_id = em.em_roles_id
                 INNER JOIN training_requirement tr ON emt.training_requirement_id = tr.training_requirement_id
+                ORDER BY em.em_roles_id
             `;
             
 
@@ -192,14 +198,81 @@ export class TrainingRequirements extends BaseClass {
                     } else {
                         resolve(results);                        
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
     }
 
+    public addTrainingModule(trainingRequirementId=0, moduleData={}): Promise<boolean> {
+        let trid = this.ID();
 
+        if (trainingRequirementId) {
+            trid = trainingRequirementId;
+        }
+                
+        return new Promise((resolve, reject) => {
+            const sql = `INSERT INT training_module  (
+                            training_requirement_id,
+                            module_name,
+                            module_subname,
+                            module_launcher,
+                            module_skill_points,
+                            addedBy
+                        VALUES (?, ?, ?, ?, ?, ?);`;
+            const params = [
+                trid,
+                ('module_name' in moduleData) ?  moduleData['module_name'] : null,
+                ('module_subname' in moduleData) ? moduleData['module_subname'] : null,
+                ('module_launcher' in moduleData) ? moduleData['module_launcher'] : null,
+                ('module_skill_points' in moduleData) ? moduleData['module_skill_points'] : null,
+                ('addedBy' in moduleData) ? moduleData['addedBy'] : null
+            ];            
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error();
+                } 
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log('Cannot insert training module', sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(true);
+                    connection.release();
+                });
+                
 
+            });
+        });
+    } 
+
+    public getTrainingModulesForRequirement(trainingRequirementId=0, accountId=0): Promise<Array<object>> {
+        let trid = this.ID();
+
+        if (trainingRequirementId) {
+            trid = trainingRequirementId;
+        }
+        
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT * FROM training_module WHERE training_requirement_id = ? AND account_id = ? ORDER BY training_module.order`;
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error();
+                }
+                const params = [trid, accountId]; 
+                connection.query(sql, params, (error, results) => {
+                    if (error) {
+                        console.log('Cannot retrieve training modules for this requirement id', sql, params);
+                        throw new Error(error);
+                    }
+                    resolve(results);
+                    connection.release();
+                });
+                
+            });
+        });
+    }
 
 }

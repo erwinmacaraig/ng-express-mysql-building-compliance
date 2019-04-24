@@ -65,7 +65,7 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     print:any;
     isFRP = false;
     emRoles:any = [];
-
+    subscriptionType = 'free';
     constructor(
         private router : Router,
         private activatedRoute : ActivatedRoute,
@@ -80,7 +80,6 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
         ) {
 
         this.userData = this.authService.getUserData();
-
         this.routeSubs = this.activatedRoute.params.subscribe((params) => {
             this.locationId = this.encryptDecrypt.decrypt( params.locationId );
             this.arrLocationIds = this.locationId.toString().split('-');
@@ -155,6 +154,7 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
     }
 
     onFilterEvent(returnRole?){

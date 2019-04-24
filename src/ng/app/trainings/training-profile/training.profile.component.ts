@@ -42,13 +42,17 @@ export class TrainingProfile implements OnInit, OnDestroy {
       last_name: '',
       first_name: '',
       last_login : '',
-      mobility_impaired_details : {}
+      mobility_impaired_details : {},
+      mobility_impaired: 0,
+      mobile_number: '',
+      email: ''
     },
     role_text : '',
     eco_roles : [],
     locations : [],
     trainings : [],
     certificates : [],
+    role_texts: [],
     badge_class : '',
     valid_trainings: [],
     required_trainings: [],
@@ -147,19 +151,36 @@ export class TrainingProfile implements OnInit, OnDestroy {
       // console.log(this.viewData.all_trainings);
       this.viewData.locations = [];
       /* Filter out locations so locations will contain locations with EM Role */
+      /*
       for(let i = 0; i < response.data.locations.length; i++) {
         if (response.data.locations[i]['em_roles_id'] !== null) {
           this.viewData.locations.push(response.data.locations[i]);
         }
-        /*
+        
         if (response.data.locations[i]['training_requirement_name']) {
           for (let j = 0; j < response.data.locations[i]['training_requirement_name'].length; j++) {
             if (this.seenRequiredTrainings.indexOf(response.data.locations[i]['training_requirement_name'][i]) === -1) {
               this.seenRequiredTrainings.push(response.data.locations[i]['training_requirement_name'][i]);
             }
           }
-        } */
+        } 
       }
+      */
+     let temp = [];
+        for (let loc of response.data.locations) {
+            if (temp.indexOf(loc['location_id']) == -1) {
+                this.viewData.locations.push(loc);
+                temp.push(loc['location_id']);
+            }
+        }
+        temp = [];
+        this.viewData.role_texts = [];
+        for (let loc of response.data.locations) {
+            if (temp.indexOf(loc['role_id']) == -1) {
+                this.viewData.role_texts.push(loc['role_name']);
+                temp.push(loc['role_id']);
+            }
+        }
 
 
 

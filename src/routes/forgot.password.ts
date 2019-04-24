@@ -91,7 +91,7 @@ const md5 = require('md5');
 			userEmailCheck.getByEmail(reqBody.email).then(
 				async (userdata) => {
 					let currentDate = moment(),
-						expirationDate = currentDate.add(1, 'day'),
+						expirationDate = currentDate.add(21, 'day'),
 						expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss'),
 						saveData = {
 							id : userdata['user_id'],

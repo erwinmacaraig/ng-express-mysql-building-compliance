@@ -1,6 +1,6 @@
 
 var API = {};
-var user_course_relation;
+var user_training_module_relation;
 API.LMSInitialize = function(){
     return true;
 }
@@ -15,7 +15,7 @@ API.LMSGetValue =  function(parameter) {
         url: 'https://portal.evacconnect.com/lms/getParameter/',
         data: {
             "param": parameter,
-            "relation": user_course_relation
+            "relation": user_training_module_relation
         },
         error: function(e){
             console.log('Error', e);
@@ -40,7 +40,7 @@ API.LMSSetValue = function(element, value) {
         data: {
            "param": element,
            "value": value,
-           "relation": user_course_relation
+           "relation": user_training_module_relation
         },
         success: function(data) {
             // console.log("data setParameterValue is ", data);

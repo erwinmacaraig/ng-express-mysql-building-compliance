@@ -1,9 +1,5 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-import { Location } from './location.model';
-const dbconfig = require('../config/db');
 import * as moment from 'moment';
-
 import * as Promise from 'promise';
 export class AccountTrainingsModel extends BaseClass {
 
@@ -33,9 +29,8 @@ export class AccountTrainingsModel extends BaseClass {
                     this.setID(results[0]['account_training_id']);
                     resolve(this.dbData);
                   }
+                  connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -67,8 +62,9 @@ export class AccountTrainingsModel extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+               
             });
             
         });
@@ -107,8 +103,9 @@ export class AccountTrainingsModel extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['account_training_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
             
@@ -166,8 +163,9 @@ export class AccountTrainingsModel extends BaseClass {
 
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -199,8 +197,9 @@ export class AccountTrainingsModel extends BaseClass {
                 throw Error('Unable to assign training to user');
               }
               resolve(true);
+              connection.release();
             });
-            connection.release();
+            
         });
 
         
@@ -253,8 +252,9 @@ export class AccountTrainingsModel extends BaseClass {
                 throw Error('Cannot assign training to roles');
               }
               resolve(true);
+              connection.release();
             });
-            connection.release();
+            
         });
 
         
@@ -289,8 +289,9 @@ export class AccountTrainingsModel extends BaseClass {
               } else {
                 reject('Training record exists');
               }
+              connection.release();
             });
-            connection.release();
+            
         });
 
         
@@ -316,8 +317,9 @@ export class AccountTrainingsModel extends BaseClass {
                 throw Error('Cannot set up training');
               }
               resolve(true);
+              connection.release();
             });
-            connection.release();
+            
         });
         
         

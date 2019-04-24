@@ -1,6 +1,6 @@
-import * as db from 'mysql2';
+
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
+
 
 import * as Promise from 'promise';
 const aws_credential = require('../config/aws-access-credentials.json');
@@ -34,9 +34,10 @@ export class ComplianceDocumentsModel extends BaseClass {
                         this.setID(results[0]['compliance_documents_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
 
         });
@@ -131,9 +132,10 @@ export class ComplianceDocumentsModel extends BaseClass {
 
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
 
         });
@@ -173,9 +175,10 @@ export class ComplianceDocumentsModel extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -211,9 +214,10 @@ export class ComplianceDocumentsModel extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }

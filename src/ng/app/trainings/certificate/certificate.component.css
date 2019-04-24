@@ -1,0 +1,7 @@
+
+@media print and (-webkit-min-device-pixel-ratio: 0) {
+    p.tt {
+        color: #fff;
+        -webkit-print-color-adjust: exact;
+    }
+}
