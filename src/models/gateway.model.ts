@@ -1,8 +1,4 @@
-import * as db from 'mysql2';
-
-const dbconfig = require('../config/db');
 import * as Promise from 'promise';
-
 import { BaseClass } from './base.model';
 
 export class Gateway extends BaseClass {
@@ -43,8 +39,9 @@ export class Gateway extends BaseClass {
                     } else {
                         resolve(results[0]);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
         });

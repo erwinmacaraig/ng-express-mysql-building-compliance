@@ -177,11 +177,11 @@ export class FileUploader {
             } else {
               console.log('Success');
               resolve(true);
-              /*
-              fs.unlink(filePath, function(e){
+              
+              fs.unlink(dirPath, function(e){
                 console.log('Cannot delete file.', e);
               });
-              */
+              
             }
           });
         });

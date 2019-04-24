@@ -1,7 +1,5 @@
-import * as db from 'mysql2';
-import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 
+import { BaseClass } from './base.model';
 import * as Promise from 'promise';
 export class EpcMinutesMeeting extends BaseClass {
 
@@ -32,8 +30,9 @@ export class EpcMinutesMeeting extends BaseClass {
                         this.setID(results[0]['epc_meeting_minutes_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -66,8 +65,9 @@ export class EpcMinutesMeeting extends BaseClass {
                     }
                     this.dbData = results
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
 
@@ -98,8 +98,9 @@ export class EpcMinutesMeeting extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
             
@@ -132,8 +133,9 @@ export class EpcMinutesMeeting extends BaseClass {
                     }
                     this.id = results.insertId;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
             

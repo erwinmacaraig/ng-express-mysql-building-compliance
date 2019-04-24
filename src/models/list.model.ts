@@ -88,8 +88,9 @@ export class List extends BaseClass{
                 throw Error('Cannot generate list for the account');
               }
               resolve(results);
+              connection.release();
             });
-            connection.release();
+            
         });
         
       });
@@ -155,8 +156,9 @@ export class List extends BaseClass{
                 throw Error('Cannot generate list for the account');
               }
               resolve(results);
+              connection.release();
             });
-            connection.release();
+           
         });
         
       });
@@ -284,8 +286,9 @@ export class List extends BaseClass{
                 }
               }
               resolve(accounts);
+              connection.release();
             });
-            connection.release();
+            
         });
         
       });
@@ -382,8 +385,9 @@ export class List extends BaseClass{
               }
             }
             resolve(accounts);
+            connection.release();
           });
-          connection.release();
+          
         });
       });
     }
@@ -469,8 +473,9 @@ export class List extends BaseClass{
                 resultObject: sublocations,
                 resultLocationIds: locationIds
               });
+              connection.release();
             });
-            connection.release();
+            
 
         });
 
@@ -504,9 +509,10 @@ export class List extends BaseClass{
               throw Error('cannot generate list');
             }
             resolve(results);
+            connection.release();
           });
 
-          connection.release();
+          
         });
 
       });
@@ -602,8 +608,9 @@ export class List extends BaseClass{
               resultSet.push(theLocations[parent]);
             });
             resolve(resultSet);
+            connection.release();
           });
-          connection.release();
+          
         });
       });
     }
@@ -658,8 +665,9 @@ export class List extends BaseClass{
               }
               // console.log(results);
               resolve(results);
+              connection.release();
             });
-            connection.release();
+            
 
         });
       });
@@ -736,9 +744,10 @@ export class List extends BaseClass{
                       throw Error('There was an error in listAllTaggedBuildingsOfAccount');
                   }
 
-                  resolve(results); 
+                  resolve(results);
+                  connection.release();
               });
-              connection.release();
+              
             });
         });
     }

@@ -1,9 +1,6 @@
-import * as db from 'mysql2';
+
 import { BaseClass } from './base.model';
 import { UtilsSync } from './util.sync';
-
-const dbconfig = require('../config/db');
-
 import * as Promise from 'promise';
 import * as validator from 'validator';
 import * as md5 from 'md5';
@@ -28,18 +25,19 @@ export class User extends BaseClass {
                     const decoded = jwt.verify(parts[1], process.env.KEY);
                     const sql_load = 'SELECT * FROM users WHERE user_id = ? AND token = ?';
                     const val = [decoded.user, decoded.user_db_token];
-                    const connection = db.createConnection(dbconfig);
-                    connection.query(sql_load, val, (error, results, fields) => {
-                        if (error) {
-                            throw error;
-                        }
-                        if (!results.length) {
-                            reject('No user found');
-                        } else {
-                            resolve(results[0]);
-                        }
-                    });
-                    connection.end();
+                    new User().pool.getConnection((err, connection) => {
+                        connection.query(sql_load, val, (error, results, fields) => {
+                            if (error) {
+                                throw error;
+                            }
+                            if (!results.length) {
+                                reject('No user found');
+                            } else {
+                                resolve(results[0]);
+                            }
+                            connection.release();
+                        });
+                    });                    
                 } catch (e) {
                     return reject('Not Authenticated');
                 }
@@ -68,8 +66,9 @@ export class User extends BaseClass {
                         this.setID(results[0]['user_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -95,8 +94,9 @@ export class User extends BaseClass {
                         this.setID(results[0]['user_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -122,8 +122,9 @@ export class User extends BaseClass {
                         this.setID(results[0]['user_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -172,8 +173,9 @@ export class User extends BaseClass {
                         this.setID(user.user_id);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -247,8 +249,9 @@ export class User extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['user_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+               
             });
         });
     }
@@ -316,29 +319,22 @@ export class User extends BaseClass {
                         throw new Error(err + ' ' + sql_update);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         }); // end Promise
     }
 
     public create(createData) {
         return new Promise((resolve, reject) => {
-            this.pool.getConnection((err, connection) => {
-                if(err){ 
-                    throw err 
-                }
-
-                for (let key in createData ) {
-                    this.dbData[key] = createData[key];
-                }
-                if ('user_id' in createData) {
-                    this.id = createData.user_id;
-                }
-                resolve(this.write());
-
-                connection.release();
-            });
+            for (let key in createData ) {
+                this.dbData[key] = createData[key];
+            }
+            if ('user_id' in createData) {
+                this.id = createData.user_id;
+            }
+            resolve(this.write());
         });
     }
 
@@ -361,9 +357,8 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -386,9 +381,8 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-
-                connection.release();
             });
         });
     }
@@ -413,8 +407,9 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -436,8 +431,9 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+               
             });
         });
     }
@@ -523,9 +519,10 @@ export class User extends BaseClass {
                     } else {
                         reject('There are no certifications for this user');
                     }
+                    connection.release();
                 });
                 
-                connection.release();
+                
             });
         });
     }
@@ -581,11 +578,9 @@ export class User extends BaseClass {
                     } else {
                         resolve([]);
                     }
-                });
-                connection.release();
-            });
-
-            
+                    connection.release();
+                });                
+            });            
         });
     }
 
@@ -599,8 +594,9 @@ export class User extends BaseClass {
                 const sql = ` SELECT * FROM users WHERE user_id NOT IN (SELECT id FROM token WHERE id_type = 'user_id' AND verified = 0) `;
                 connection.query(sql,  (error, results, fields) => {
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -705,9 +701,9 @@ export class User extends BaseClass {
                     } else {
                         resolve(results);
                     }
-                    
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -737,8 +733,9 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -792,10 +789,10 @@ export class User extends BaseClass {
                         }
                         resolve(resultSet);
                     }
-
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -838,8 +835,8 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
-                });
-                connection.release();
+                    connection.release();
+                });                
             });
         });
     }
@@ -882,8 +879,9 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -933,8 +931,9 @@ export class User extends BaseClass {
                         throw Error(error.toString());
                     }
                     resolve(JSON.parse(JSON.stringify(results)));
+                    connection.release();
                 });
-                connection.release();
+                
             });         
 
         });
@@ -1009,8 +1008,9 @@ export class User extends BaseClass {
                         return console.log(error);
                     }                    
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -1100,16 +1100,19 @@ export class User extends BaseClass {
                 `;
                 innerSqlFrpTrp = `
                     UNION
+                    
                     SELECT
-                    location_account_user.user_id,
+                    users.user_id,
                     IF(location_account_relation.responsibility='Manager', 1, 2) AS role_id,
                     IF(location_account_relation.responsibility='Manager', 'FRP', 'TRP') AS role_name,
                     location_account_user.location_id
-                    FROM location_account_user INNER JOIN users 
-                    ON users.account_id = location_account_user.account_id
+                    FROM users INNER JOIN location_account_user
+                    ON users.user_id = location_account_user.user_id
                     INNER JOIN location_account_relation
-                    ON location_account_relation.location_id = location_account_user.location_id
-                    WHERE location_account_user.location_id IN (${locationIds}) GROUP BY location_account_user.user_id`;
+                    ON location_account_relation.account_id = users.account_id
+                    WHERE location_account_user.location_id IN (${locationIds})
+                    GROUP BY location_account_user.location_account_user_id
+                    `;
                 // console.log(innerSqlFrpTrp);
                 if(config['eco_only']){ innerSqlFrpTrp = ''; }
 
@@ -1171,7 +1174,7 @@ export class User extends BaseClass {
                 ${limitSql}
                 `;
                 
-                //console.log(sql_load);
+                // console.log(sql_load);
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         console.log(sql_load);
@@ -1179,8 +1182,9 @@ export class User extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
 
             });
 
@@ -1228,9 +1232,9 @@ export class User extends BaseClass {
                         return console.log(error);
                     }                
                     resolve(results);
-
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -1289,9 +1293,8 @@ export class User extends BaseClass {
                         return console.log(error);
                     }                
                     resolve(results);
-
-                });
-                connection.release();
+                    connection.release();
+                });                
             });
         });
     }

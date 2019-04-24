@@ -1,7 +1,4 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
-
 import * as Promise from 'promise';
 
 export class UserEmRoleRelation extends BaseClass {
@@ -32,15 +29,50 @@ export class UserEmRoleRelation extends BaseClass {
                         this.setID(results[0]['user_em_roles_relation_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
     }
 
-    public getEmRolesByUserId(userId, archived?): Promise<Array<object>> {
+    public getByWhere(where={}): Promise<Array<object>> {
+      return new Promise((resolve, reject) => {
+        let whereClause = ' WHERE 1=1';
+        const params = [];
+        if ('user_id' in where) {
+          whereClause += ` AND user_id = ?`;
+          params.push(where['user_id']);
+        }
+        if ('em_role_id' in where) {
+          whereClause += ` AND em_role_id = ?`;
+          params.push(where['em_role_id']);
+        }
+        if ('location_id' in where) {
+          whereClause = ` AND location_id = ?`;
+          params.push(where['location_id']);
+        }
+        let sql = `SELECT * FROM user_em_roles_relation ${whereClause}`;
+        this.pool.getConnection((err, connection) => {
+          if (err) {
+            throw new Error(err);
+          } 
+          connection.query(sql, params, (error, results) => {
+            if (error) {
+              throw new Error(err);
+            } 
+            resolve(results);
+            connection.release();
+          });
+          
+        });
+      });
+    }
+
+    public getEmRolesByUserId(userId, archived?, group?): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
+        let groupClause = ` GROUP BY uer.em_role_id`;
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -50,18 +82,12 @@ export class UserEmRoleRelation extends BaseClass {
                       er.em_roles_id,
                       l.name as location_name,
                       l.name,
-                      l.parent_id,
-                      l.location_id,
-                      l.formatted_address,
-                      l.google_place_id,
-                      l.google_photo_url,
-                      l.is_building,
-                      l.admin_verified,
-                      l.archived
-                    FROM em_roles er
-                    INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
+                      l.parent_id,                      
+                      l.is_building
+                    FROM user_em_roles_relation uer
+                    INNER JOIN em_roles er  ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
-                    WHERE uer.user_id = ? AND l.archived = ${archived}`;
+                    WHERE uer.user_id = ? AND l.archived = ${archived} ${groupClause}`;
             const uid = [userId];
 
             this.pool.getConnection((err, connection) => {
@@ -78,9 +104,10 @@ export class UserEmRoleRelation extends BaseClass {
                     }else{                        
                         resolve(results);
                     }
+                    connection.release();
                 });
 
-                connection.release();
+                
             });
         });
     }
@@ -121,14 +148,15 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
     }
 
-    public getEmRoles() {
+    public getEmRoles(): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM em_roles`;
             this.pool.getConnection((err, connection) => {
@@ -138,11 +166,11 @@ export class UserEmRoleRelation extends BaseClass {
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         return console.log(error);
-                    }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    }                    
+                    resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
         });
     }
@@ -152,17 +180,19 @@ export class UserEmRoleRelation extends BaseClass {
         const em_roles = [];
         const user_ids = [];
         const location_ids = [];
+        const role_text = [];
         let whereClause = 'WHERE 1=1';
         if ('user_id' in filter) {
-          whereClause += ` AND user_id = ${filter['user_id']}`;
+          whereClause += ` AND user_em_roles_relation.user_id = ${filter['user_id']}`;
         }
         if ('location_id' in  filter) {
-          whereClause += ` AND location_id = ${filter['location_id']}`;
+          whereClause += ` AND user_em_roles_relation.location_id = ${filter['location_id']}`;
         }
         if ('distinct' in filter) {
-          whereClause += ` GROUP BY ${filter['distinct']}`;
+          whereClause += ` GROUP BY user_em_roles_relation.${filter['distinct']}`;
         }
-        const sql_get_roles = `SELECT em_role_id, location_id, user_id FROM user_em_roles_relation ${whereClause}`;
+        const sql_get_roles = `SELECT user_em_roles_relation.em_role_id, em_roles.role_name, user_em_roles_relation.location_id, user_em_roles_relation.user_id FROM user_em_roles_relation
+        INNER JOIN em_roles ON user_em_roles_relation.em_role_id = em_roles.em_roles_id ${whereClause}`;
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);
@@ -177,13 +207,15 @@ export class UserEmRoleRelation extends BaseClass {
                   em_roles.push(results[i]['em_role_id']);
                   user_ids.push(results[i]['user_id']);
                   location_ids.push(results[i]['location_id']);
+                  role_text.push(results[i]['role_name']);
                 }
-                resolve([em_roles, location_ids, user_ids]);
+                resolve([em_roles, location_ids, user_ids, role_text]);
               } else {
                 reject('Cannot get emergency roles');
               }
+              connection.release();
             });
-            connection.release();
+            
         });
       });
     }
@@ -210,10 +242,9 @@ export class UserEmRoleRelation extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
             });
-            
         });
     }
 
@@ -235,8 +266,8 @@ export class UserEmRoleRelation extends BaseClass {
                         throw new Error(err);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
             });
             
         });
@@ -269,9 +300,9 @@ export class UserEmRoleRelation extends BaseClass {
                     } else {
                         resolve(true);
                     }
-
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -328,8 +359,9 @@ export class UserEmRoleRelation extends BaseClass {
                   'users': []
                 });
               }
+              connection.release();
             });
-            connection.release();
+            
         });
 
         
@@ -360,8 +392,9 @@ export class UserEmRoleRelation extends BaseClass {
 
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -412,8 +445,8 @@ export class UserEmRoleRelation extends BaseClass {
                         return console.log(error);
                     }
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
             });
             
         });
@@ -449,10 +482,10 @@ export class UserEmRoleRelation extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
-                    // this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -486,8 +519,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -567,8 +601,9 @@ export class UserEmRoleRelation extends BaseClass {
                 }
                 resolve(r);
               }
+              connection.release();
             });
-            connection.release();
+            
         });
 
         
@@ -598,8 +633,9 @@ export class UserEmRoleRelation extends BaseClass {
                       return console.log(error);
                   }
                   resolve(results);
+                  connection.release();
               });
-              connection.release();
+              
           });
           
       });
@@ -646,10 +682,11 @@ export class UserEmRoleRelation extends BaseClass {
                         console.log('sql_load', sql_load);
                         return console.log(error);
                     }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    
+                    resolve(results);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
             
@@ -689,8 +726,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
 
             
@@ -723,8 +761,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     this.dbData = results;
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -767,6 +806,10 @@ export class UserEmRoleRelation extends BaseClass {
                       ON
                         accounts.account_id = users.account_id
                       INNER JOIN
+                        account_subscription
+                      ON
+                        users.account_id = account_subscription.account_id
+                      INNER JOIN
                         locations
                       ON
                         locations.location_id = user_em_roles_relation.location_id
@@ -776,10 +819,11 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
-
+                      AND
+                        account_subscription.type <> 'free'
                       GROUP BY user_em_roles_relation.user_id, em_roles.em_roles_id
                        `;
-
+        
         this.pool.getConnection((err, connection) => {
             if (err) {                    
                 throw new Error(err);
@@ -790,12 +834,11 @@ export class UserEmRoleRelation extends BaseClass {
                 throw Error(error);
               }
               resolve(results);
+              connection.release();
             });
-            connection.release();
+            
         });
         
       });
     }
-
-
 }

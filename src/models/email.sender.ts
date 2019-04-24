@@ -1,6 +1,5 @@
 const AWS = require('aws-sdk');
 const AWSCredential = require('../config/aws-access-credentials.json');
-const path = require('path');
 const mime = require('mime-types');
 const defs = require('../config/defs.json');
 import * as fs from 'fs';
@@ -87,13 +86,11 @@ export class EmailSender {
     public async send(success, error){
         var
         email = this.buildEmail(),
-        params = {
-            // RawMessage: { Data: new Buffer(email) },
-            Destination: {              
-               ToAddresses: this.options['to'],
-              //ToAddresses : ['jmanoharan@evacgroup.com.au'],
-              CcAddresses: this.options['cc'],
-              BccAddresses: [`jayo'connor@evacgroup.com.au`, 'emacaraig@evacgroup.com.au']
+        params = {            
+            Destination: {
+                ToAddresses: this.options['to'],              
+                CcAddresses: this.options['cc'],
+                BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'mmanclark@evacgroup.com.au']
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {

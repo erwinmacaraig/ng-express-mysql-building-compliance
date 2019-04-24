@@ -54,7 +54,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
     exportDataRatings = [];
     exportDataComplianceRating = '';
     exportFetchMarker = {};
-
+    subscriptionType = 'free';
 	constructor(
 		private router : Router,
 		private activatedRoute : ActivatedRoute,
@@ -66,8 +66,7 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
         private exportToCSV : ExportToCSV
 		) {
 
-		this.userData = this.authService.getUserData();
-
+		this.userData = this.authService.getUserData();        
 		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
 			this.locationId = this.encryptDecrypt.decrypt( params.locationId );
 			this.getComplianceSummaryReport((response) => {
@@ -86,7 +85,9 @@ export class ReportsLocationsSummaryOfComplianceComponent implements OnInit, OnD
 
 	}
 
-	ngOnInit(){	}
+	ngOnInit(){	
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+    }
 
 	ngAfterViewInit(){
         this.dashboardPreloader.show();

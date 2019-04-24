@@ -1,6 +1,4 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 import * as moment from 'moment';
 import * as Promise from 'promise';
 
@@ -87,19 +85,89 @@ export class Scorm extends BaseClass {
                       (${relationId}, 'cmi.interactions.n.student_response', ''),
                       (${relationId}, 'cmi.interactions.n.result', 'neutral'),
                       (${relationId}, 'cmi.interactions.n.latency', '');`;
-                    const connection = db.createConnection(dbconfig);
-                    connection.query(sql_init, [], (error, results, fields) => {
-                        if (error) {
-                            console.log('scorm.model.init', error, sql_init);
-                            throw new Error('There is an error initializing data models');
+                    
+                    this.pool.getConnection((err, connection) => {
+                        if (err) {
+                            throw new Error(err);
                         }
-                        console.log(results);
-                        resolve(true);
+                        connection.query(sql_init, [], (error, results) => {
+                            if (error) {
+                                console.log('scorm.model.init', error, sql_init);
+                                throw new Error('There is an error initializing data models');
+                            }
+                            resolve(true);
+                            connection.release();
+                        });
                     });
-                    connection.end();
                 }
             });
         });
+    }
+
+    public initModule(userTrainingModuleRelationId = 0) {
+        return new Promise((resolve, reject) => {
+           this.checkUserTrainingModuleRelation(userTrainingModuleRelationId).then((exists: boolean) => {
+                if (exists) {
+                    resolve(true);
+                } else {
+                    const sql_init = `INSERT INTO scorm_training_rel (user_training_module_relation_id, parameter_name, parameter_value)
+                    VALUES
+                      (${userTrainingModuleRelationId}, 'last_accessed', ${moment().format('YYYY-MM-DD')}),                                          
+                      (${userTrainingModuleRelationId}, 'cmi.core.lesson_location', ''),                      
+                      (${userTrainingModuleRelationId}, 'cmi.core.lesson_status', 'not attempted'),                      
+                      (${userTrainingModuleRelationId}, 'cmi.core.score.raw', 0),
+                      (${userTrainingModuleRelationId}, 'cmi.core.score.max', 0),
+                      (${userTrainingModuleRelationId}, 'cmi.core.score.min', 0),
+                      (${userTrainingModuleRelationId}, 'cmi.core.total_time', '0000:00:00.00'),
+                      (${userTrainingModuleRelationId}, 'cmi.core.lesson_mode', 'normal'),
+                      (${userTrainingModuleRelationId}, 'cmi.core.exit', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.core.session_time', '0000:00:00.00'),
+                      (${userTrainingModuleRelationId}, 'cmi.suspend_data', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.launch_data', ''),                      
+                      (${userTrainingModuleRelationId}, 'cmi.objectives._children', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.objectives.n.id', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.objectives.n.score._children', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.objectives.n.score.raw', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.objectives.n.score.max', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.objectives.n.score.min', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.student_data.mastery_score', 0),
+                      (${userTrainingModuleRelationId}, 'cmi.student_data.max_time_allowed', '0000:00:00.00'),
+                      (${userTrainingModuleRelationId}, 'cmi.student_data.time_limit_action', 'exit.message'),
+                      (${userTrainingModuleRelationId}, 'cmi.student_preference._children', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.student_preference.language',''),
+                      (${userTrainingModuleRelationId}, 'cmi.student_preference.speed', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.student_preference.text', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions._count', 0),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.id', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.objectives._count', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.objectives.n.id', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.time', '0000:00:00.00'),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.type', 'choice'),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.weighting', 0),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.student_response', ''),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.result', 'neutral'),
+                      (${userTrainingModuleRelationId}, 'cmi.interactions.n.latency', '');`;
+
+                    this.pool.getConnection((err, connection) => {
+                        if (err) {
+                            throw new Error(err);
+                        }
+                        connection.query(sql_init, [], (error, results) => {
+                            if (error) {
+                                console.log('scorm model initModule', sql_init, error);
+                                throw new Error(error);
+                            }
+                            resolve(true);
+                            connection.release();
+                        });
+                        
+                    });
+                }
+           }).catch((error) => {
+               throw new Error(error);
+           }); 
+        });
+
     }
 
     private checkRelationExist(relationId: number = 0){
@@ -116,8 +184,9 @@ export class Scorm extends BaseClass {
                     } else {
                         resolve(true);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
             });
             
         });
@@ -125,16 +194,16 @@ export class Scorm extends BaseClass {
 
     public getDataModelVal(relation: number = 0, param: string = ''): Promise<string> {
         return new Promise((resolve, reject) => {
-            console.log(`relation is ${relation}`);
-            console.log(`parameter is ${param}`);
+            // console.log(`relation is ${relation}`);
+            // console.log(`parameter is ${param}`);
             const sql_get = `SELECT
                               parameter_value
                             FROM
-                              scorm
+                              scorm_training_rel
                             WHERE
                               parameter_name = ?
                             AND
-                              course_user_relation_id = ?
+                              user_training_module_relation_id = ?
                             LIMIT 1`;
             this.pool.getConnection((err, connection) => {
                 connection.query(sql_get, [param, relation], (error, results, fields) => {
@@ -142,10 +211,17 @@ export class Scorm extends BaseClass {
                         console.log('scorm.model.getDataModelVal', error);
                         throw new Error('Cannot get data model value with the given parameter ' + param + ' AND relation ' + relation);
                     }
-                    console.log(results);
-                    resolve(results[0]['parameter_value']);
+                    // console.log(sql_get);
+                    // console.log(results);
+                    if (results.length) {
+                        resolve(results[0]['parameter_value']);
+                    } else {
+                        console.log(`cannot find parameter: ${param} with relation: ${relation}`);
+                        resolve();
+                    }
+                    connection.release(); 
                 });
-                connection.release();
+                
             });
             
         });
@@ -154,13 +230,13 @@ export class Scorm extends BaseClass {
     public setDataModelVal(relation: number = 0, paramName: string = '', paramVal: string = null): Promise<boolean> {
         return new Promise((resolve, reject) => {
             const sql_set = `UPDATE
-                              scorm
+                              scorm_training_rel
                             SET
                               parameter_value = ?
                             WHERE
                               parameter_name = ?
                             AND
-                              course_user_relation_id = ?`;
+                              user_training_module_relation_id = ?`;
             this.pool.getConnection((err, connection) => {
                 connection.query(sql_set, [paramVal, paramName, relation], (error, results, fields) => {
                     if (error) {
@@ -168,12 +244,41 @@ export class Scorm extends BaseClass {
                         throw new Error('Cannot set value with the given parameter ' + paramName + ' AND relation ' + relation);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+            });
+            
+        });
+    }
+
+    private checkUserTrainingModuleRelation(userTrainingModuleRelationId: number = 0) {
+        return new Promise((resolve, reject) => {
+            const sql_check = `SELECT
+                                user_training_module_relation_id
+                            FROM
+                                scorm_training_rel
+                            WHERE
+                                user_training_module_relation_id = ?
+                            LIMIT 1`;
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error(err);
+                } 
+                connection.query(sql_check, [userTrainingModuleRelationId], (error, results) => {
+                    if (error) {
+                        console.log('scorm.model.checkUserTrainingModuleRelation', error, sql_check, userTrainingModuleRelationId);
+                        throw new Error('cannot check relation');
+                    }
+                    if (!results.length) {
+                        resolve(false);
+                    } else {
+                        resolve(true);
+                    }
+                    connection.release();
+                });
+                
             });
             
         });
     }
 }
-
-

@@ -48,6 +48,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
     exportData = [];
 
     print:any;
+    subscriptionType = 'free';
 
 	constructor(
 		private router : ActivatedRoute,
@@ -59,8 +60,9 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         private exportToCSV : ExportToCSV
 		) {
 
-		this.userData = this.authService.getUserData();
-        console.log(this.router);
+        this.userData = this.authService.getUserData();
+        
+       
 	}
 
 	ngOnInit(){
@@ -84,7 +86,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
                 }
                 this.activityLogs = response.data;
                 this.dashboardService.hide();
-
+                this.subscriptionType = this.userData['subscription']['subscriptionType'];
                 // this.generateReportDataForExport();
             });
 
@@ -97,6 +99,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         this.print = new PrintService({
             content : this.printContainer.nativeElement.outerHTML
         });
+        
     }
 
     generateReportDataForExport(){
