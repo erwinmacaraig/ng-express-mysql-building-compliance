@@ -5,5 +5,5 @@
 
 export const environment = {
   production: false,
-  backendUrl: 'http://localhost:3000'
+  backendUrl: 'http://ec2-13-55-82-238.ap-southeast-2.compute.amazonaws.com'
 };

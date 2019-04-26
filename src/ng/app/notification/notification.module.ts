@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
 
 import { AppRoutingModule } from '../app-routing.module';
 
@@ -34,6 +35,7 @@ import { NotifiedTRPTrainingsComponent } from './notified-trp-training/notified-
     imports: [
         CommonModule,
         ReactiveFormsModule,
+        NgMultiSelectDropDownModule.forRoot(),
         FormsModule,
         AppRoutingModule,
     ]

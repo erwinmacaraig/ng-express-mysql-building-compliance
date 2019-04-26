@@ -50,7 +50,7 @@ export class UserEmRoleRelation extends BaseClass {
           params.push(where['em_role_id']);
         }
         if ('location_id' in where) {
-          whereClause = ` AND location_id = ?`;
+          whereClause += ` AND location_id = ?`;
           params.push(where['location_id']);
         }
         let sql = `SELECT * FROM user_em_roles_relation ${whereClause}`;
@@ -60,9 +60,14 @@ export class UserEmRoleRelation extends BaseClass {
           } 
           connection.query(sql, params, (error, results) => {
             if (error) {
-              throw new Error(err);
-            } 
-            resolve(results);
+              console.log(sql, params);
+              throw new Error(error);
+            }
+            if (results.length > 0) {
+              resolve(results);
+            } else {
+              reject('No record can be found');
+            }
             connection.release();
           });
           

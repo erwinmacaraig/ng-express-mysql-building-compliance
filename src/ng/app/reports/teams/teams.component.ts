@@ -6,9 +6,7 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ReportService } from '../../services/report.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ExportToCSV } from '../../services/export.to.csv';
-import html2canvas from 'html2canvas';
-// import * as jsPDF from 'jspdf';
-import * as moment from 'moment';
+import { environment } from '../../../environments/environment';
 import { PrintService } from '../../services/print.service';
 
 declare var $: any;
@@ -243,7 +241,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     pdfExport(printContainer){
         let a = document.createElement("a");
-        a.href = location.origin+"/reports/pdf-team/"+this.locationIdDecrypted+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        a.href = environment.backendUrl + "/reports/pdf-team/"+this.locationIdDecrypted+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -254,7 +252,7 @@ export class ReportsTeamsComponent implements OnInit, OnDestroy {
 
     csvExport(){
         let a = document.createElement("a");
-        a.href = location.origin+"/reports/csv-team/"+this.locationIdDecrypted+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
+        a.href = environment.backendUrl + "/reports/csv-team/"+this.locationIdDecrypted+"/"+this.totalCountResult+"/"+this.userData["accountId"]+"/"+this.userData["userId"];
         a.target = "_blank";
         document.body.appendChild(a);
 

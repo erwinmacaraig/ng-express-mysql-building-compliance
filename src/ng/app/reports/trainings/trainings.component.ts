@@ -9,9 +9,7 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { CourseService } from '../../services/course';
 import { ExportToCSV } from '../../services/export.to.csv';
 import { Observable } from 'rxjs/Rx';
-import html2canvas from 'html2canvas';
-// import * as jsPDF from 'jspdf';
-import * as moment from 'moment';
+import { environment } from '../../../environments/environment';
 import { PrintService } from '../../services/print.service';
 
 declare var $: any;
@@ -319,8 +317,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         trainingId = this.queries.training_id,
         method = this.queries.course_method,
         search = (this.searchMember.nativeElement.value.trim().length == 0) ? ' ' : this.searchMember.nativeElement.value;
-
-        a.href = location.origin+"/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
+        
+        a.href = environment.backendUrl + "/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -337,7 +335,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         method = this.queries.course_method,
         search = (this.searchMember.nativeElement.value.trim().length == 0) ? ' ' : this.searchMember.nativeElement.value;
 
-        a.href = location.origin+"/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
+        a.href = environment.backendUrl + "/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
         a.target = "_blank";
         document.body.appendChild(a);
 

@@ -3,6 +3,7 @@ import { Component, AfterViewInit, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../../environments/environment';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { DatepickerOptions } from 'ng2-datepicker';
 import { Router} from '@angular/router';
@@ -70,7 +71,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         public dashboard: DashboardPreloaderService,
         private alertService: AlertService)
     {
-        this.baseUrl = (platformLocation as any).location.origin;
+        this.baseUrl = environment.backendUrl;
         this.setDatePickerDefaultDate();
     }
 

@@ -17,6 +17,8 @@ import { LocationsService  } from '../../services/locations';
 import {  UserService } from '../../services/users';
 import { PaperAttendanceDocument } from '../../models/paper_attendance_document';
 import { MessageService } from './../../services/messaging.service';
+import { environment } from '../../../environments/environment';
+
 declare var $: any;
 declare var moment: any;
 import * as FileSaver from 'file-saver';
@@ -104,7 +106,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
     private locationService: LocationsService,
     private messageService: MessageService) {
 
-      this.baseUrl = (platformLocation as any).location.origin;
+      this.baseUrl = environment.backendUrl;
     }
 
   ngOnInit() {

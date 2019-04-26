@@ -257,7 +257,7 @@ const RateLimiter = require('limiter').RateLimiter;
     let stringUserData = JSON.stringify(loginResponse.data);
 		stringUserData = stringUserData.replace(/\'/gi, '');
 		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${lid}_${bid}_${rid}_${aid}`, 'NifLed').toString();
-		const redirectUrl = 'https://' + req.get('host') + '/dashboard/notification-summary-view/' + encodeURIComponent(cipherText);
+		const redirectUrl = 'http://' + req.get('host') + '/dashboard/notification-summary-view/' + encodeURIComponent(cipherText);
     const script = `
                 <h4>Redirecting...</h4>
                 <script>
@@ -333,8 +333,8 @@ const RateLimiter = require('limiter').RateLimiter;
         users_fullname : this.toTitleCase(userDbData['first_name']+' '+ userDbData['last_name']),
         account_name : accountDbData['account_name'],
         location_name : locTextEmail,
-        yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+        yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
         role : notificationTokenDbData['role_text']
 			};			
 			const email = new EmailSender(opts);			
@@ -847,7 +847,7 @@ const RateLimiter = require('limiter').RateLimiter;
 		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
 		
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
-      const redirectUrl = 'https://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
+      const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
     } else if (tokenDbData['role_text'] == 'FRP') {
 			await tokenObj.create({
@@ -903,7 +903,7 @@ const RateLimiter = require('limiter').RateLimiter;
   		}
 
 			
-      const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+      const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
 			await loginAction(redirectUrl);
 			
 
@@ -941,8 +941,10 @@ const RateLimiter = require('limiter').RateLimiter;
     const loginAction = async (redirectUrl) => {
       const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
       let stringUserData = JSON.stringify(loginResponse.data);
-      stringUserData = stringUserData.replace(/\'/gi, '');
-
+			stringUserData = stringUserData.replace(/\'/gi, '');
+			console.log('\r\n');
+			console.log('redirectUrl = ' + redirectUrl);
+			console.log('\r\n');
       const script = `
           <h4>Redirecting...</h4>
           <script>
@@ -951,9 +953,12 @@ const RateLimiter = require('limiter').RateLimiter;
 
             setTimeout(function(){
               window.location.replace("${redirectUrl}")
-            }, 1000);
+            }, 2500);
           </script>
-      `;
+			`;
+			console.log(" ");
+			console.log(script);
+			console.log(" ");
       res.status(200).send(script);
     };
 
@@ -972,7 +977,8 @@ const RateLimiter = require('limiter').RateLimiter;
     const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
         
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
-      const redirectUrl = 'https://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
+			// const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
+			const redirectUrl = 'http://localhost:4200/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
     }else{
       try{
@@ -1002,7 +1008,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 			
       if (hasFrpTrpRole && tokenDbData['role_text'] != 'FRP') {
-        const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
+        const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
         await loginAction(redirectUrl);
       } else if (tokenDbData['role_text'] == 'FRP') {
 				const accountDbData = await new Account(userDbData['account_id']).load();
@@ -1265,8 +1271,8 @@ const RateLimiter = require('limiter').RateLimiter;
         users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
         account_name : u['account_name'],
         location_name : locTextEmail,
-        yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-        no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+        yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+        no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
         role : emailRole
       },
       emailType = 'warden-confirmation';
@@ -1846,7 +1852,7 @@ const RateLimiter = require('limiter').RateLimiter;
 
 		let email = new EmailSender(opts),
 			emailBody = email.getEmailHTMLHeader(),
-			link = 'https://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
+			link = 'http://' + req.get('host') +'/custom-resolver?role_id='+inviData.role_id+'&invitation_code_id='+inviData.invitation_code_id+'&code='+inviData.code;
 
 		emailBody += '<h3 style="text-transform:capitalize;">Hi '+this.capitalizeFirstLetter(inviData.first_name)+' '+this.capitalizeFirstLetter(inviData.last_name)+'</h3> <br/>';
 		emailBody += '<h4> '+this.capitalizeFirstLetter(creatorData.first_name)+' '+this.capitalizeFirstLetter(creatorData.last_name)+' sents you an invitation code. </h4> <br/>';

@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../environments/environment';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../services/auth.service';
 import { Router, NavigationEnd  } from '@angular/router';
@@ -35,7 +36,7 @@ export class DashboardComponent implements OnInit {
     private signupServices: SignupService,
     private userService: UserService
     ) {
-    this.baseUrl = (platform as any).location.origin;
+    this.baseUrl = environment.backendUrl;
     this.subscribeAndCheckUserHasAccountToSetup(router);
     this.userData = this.auth.getUserData();
   }

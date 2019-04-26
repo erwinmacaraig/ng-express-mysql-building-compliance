@@ -12,7 +12,7 @@ import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { HttpParams, HttpClient } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-
+import { environment } from '../../../environments/environment';
 declare var $: any;
 declare var Materialize: any;
 declare var moment: any;
@@ -92,7 +92,7 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
         this.personDataService.buildECORole().subscribe((ecoroles) => {
             this.ecoRoles = ecoroles;
         });
-        this.baseUrl = (platformLocation as any).location.origin;
+        this.baseUrl = environment.backendUrl;
     }
 
     generateRandomChars(length){

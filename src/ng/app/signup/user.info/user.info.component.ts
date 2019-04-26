@@ -3,6 +3,7 @@ import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../../environments/environment';
 import { Observable } from 'rxjs/Rx';
 import { BlacklistedEmails } from '../../models/blacklisted-emails';
 import 'rxjs/add/operator/map';
@@ -70,7 +71,7 @@ export class SignupUserInfoComponent implements OnInit, AfterViewInit, OnDestroy
     ) {
         this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
         this.options = { headers : this.headers };
-        this.baseUrl = (platformLocation as any).location.origin;
+        this.baseUrl = environment.backendUrl;
 
         this.roleId = this.activatedRoute.snapshot.queryParams['role_id'];
         this.selectAccountType = this.roleId;

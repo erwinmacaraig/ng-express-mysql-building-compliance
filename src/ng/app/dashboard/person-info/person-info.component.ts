@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { PersonInfoResolver } from '../../services/person-info.resolver';
 import { Observable } from 'rxjs/Observable';
+import { environment } from '../../../environments/environment';
 import { Person } from '../../models/person.model';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { ViewChild } from '@angular/core';
@@ -37,7 +38,7 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
               private messageService: MessageService,
               private authService: AuthService) {
 
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;
     this.preloaderService.show();
   }
 

@@ -12,6 +12,7 @@ import { LocationsService } from '../../services/locations';
 import { AdminService } from '../../services/admin.service';
 import { HttpParams, HttpClient } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 declare var $: any;
 declare var Materialize: any;
@@ -92,7 +93,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
         this.personDataService.buildECORole().subscribe((ecoroles) => {
             this.ecoRoles = ecoroles;
         });
-        this.baseUrl = (platformLocation as any).location.origin;
+        this.baseUrl = environment.backendUrl;
 
     }
 
