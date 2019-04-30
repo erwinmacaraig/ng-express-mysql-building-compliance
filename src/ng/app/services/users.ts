@@ -20,6 +20,10 @@ export class UserService {
 	this.baseUrl = environment.backendUrl;
 	}
 
+	requestLocationUpdate(postBody={}){
+		return this.http.post(this.baseUrl + '/eco-user/request-update-location', postBody);
+	}
+
 	checkUserIsAdmin(userId, callBack){
 		this.http.get(this.baseUrl+"/users/is-admin/"+userId)
 		.subscribe(res => {

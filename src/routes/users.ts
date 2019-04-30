@@ -3405,7 +3405,7 @@ export class UsersRoute extends BaseRoute {
 		let response = {
 			status : true, data : {
 				user : {},
-				eco_role : {},
+				eco_role : [],
 				location : {},
 				team : <any>[]
 			}, message : ''
@@ -3419,10 +3419,10 @@ export class UsersRoute extends BaseRoute {
 		locationModel = new Location();
 
 		try {
-			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id']);
-			for(let i in emRoles){
+			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id'], 0, false);            
+            for(let i in emRoles){
 				if(emRoles[i]['em_roles_id'] == roleId){
-					response.data.eco_role = emRoles[i];
+					response.data.eco_role.push( emRoles[i]);
 				}
 			}
 

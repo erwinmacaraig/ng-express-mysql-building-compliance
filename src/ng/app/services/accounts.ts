@@ -159,4 +159,11 @@ export class AccountsDataProviderService {
 		return this.http.post(`${this.baseUrl}/accounts/perform-notification-summ-action`, reqBody);
 	}
 
+	getTaggedLocation(account_id=0) {
+		return this.http.get<{
+			buildings: Array<object>,
+			locations: Array<object>
+		}>(this.baseUrl + '/accounts/location-listing/', this.options)
+	}
+
 }

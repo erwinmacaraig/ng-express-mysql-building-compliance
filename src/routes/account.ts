@@ -152,6 +152,10 @@ const RateLimiter = require('limiter').RateLimiter;
 			new AccountRoute().verifyIamWarden(req, res);
 		});
 
+		router.get('/accounts/location-listing/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new AccountRoute().getLocationListing(req, res);
+		});
+
   }
 
 	/**
@@ -162,6 +166,47 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
+	}
+
+	public async getLocationListing(req: AuthRequest, res: Response) {
+
+		const locationAccountRelation = new LocationAccountRelation();
+		
+		const buildings = [];
+		const buildingObjArr = [];
+		const locations = [];
+		const locationObj:{ [i:number]: {} } = {};
+		try {
+			const allLocations = await locationAccountRelation.getTaggedLocationsOfAccount(req.user.account_id);
+			for (let loc of allLocations) {
+				if (loc['is_building'] == 1 && buildings.indexOf(loc['location_id']) == -1) {
+					buildings.push(loc['location_id']);
+					buildingObjArr.push(loc);				
+				} else if (loc['parent_id'] != -1) {
+					if (loc['parent_id'] in locationObj) {
+						locationObj[loc['parent_id']]['sublocation'].push(loc);
+					} else {
+						locationObj[loc['parent_id']] = {
+							name: loc['parent_name'],
+							sublocation: [loc] 
+						};
+					}
+				}
+			}
+			Object.keys(locationObj).forEach(key => {
+				locations.push(locationObj[key]);
+			});
+			return res.status(200).send({
+				buildings: buildingObjArr,
+				locations: locations
+			});
+		} catch (e) {
+			console.log(e);
+			return res.status(500).send({
+				message: 'No tagged location'
+			});
+		}
+
 	}
 	public async generateUserListOfNotifiedUsers(req: AuthRequest, res: Response) {
 		const buildingId = req.body.building;

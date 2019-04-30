@@ -1,6 +1,4 @@
-import * as db from 'mysql2';
 import { BaseClass } from './base.model';
-const dbconfig = require('../config/db');
 import * as moment from 'moment';
 import * as Promise from 'promise';
 
@@ -36,8 +34,9 @@ export class UserRequest extends BaseClass {
                         this.setID(results[0]['user_requests_id']);
                         resolve(this.dbData);
                     }
+                    connection.release();
                 });
-                connection.release();
+                
                 
             });
 
@@ -76,8 +75,9 @@ export class UserRequest extends BaseClass {
                     }
                     this.dbData = results
                     resolve(this.dbData);
+                    connection.release();
                 });
-                connection.release();
+                
 
             });
         });
@@ -86,22 +86,22 @@ export class UserRequest extends BaseClass {
 
     public dbInsert() {
         return new Promise((resolve, reject) => {
-            const sql_insert = "INSERT INTO user_requests (user_id, requested_role_id, location_id, approver_id, status, date_created, date_responded, viewed) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+            const sql_insert = "INSERT INTO user_requests (user_id, requested_role_id, location_id, approver_id, status, date_created, date_responded, viewed, provided_info, remarks) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
             const param = [
-            ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
-            ('requested_role_id' in this.dbData) ? this.dbData['requested_role_id'] : 0,
-            ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
-            ('approver_id' in this.dbData) ? this.dbData['approver_id'] : 0,
-            ('status' in this.dbData) ? this.dbData['status'] : 0,
-            ('date_created' in this.dbData) ? this.dbData['date_created'] : moment().format('YYYY-MM-DD HH:mm:ss'),
-            ('date_responded' in this.dbData) ? this.dbData['date_responded'] : null,
-            ('viewed' in this.dbData) ? this.dbData['viewed'] : 0
+                ('user_id' in this.dbData) ? this.dbData['user_id'] : 0,
+                ('requested_role_id' in this.dbData) ? this.dbData['requested_role_id'] : 0,
+                ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
+                ('approver_id' in this.dbData) ? this.dbData['approver_id'] : 0,
+                ('status' in this.dbData) ? this.dbData['status'] : 0,
+                ('date_created' in this.dbData) ? this.dbData['date_created'] : moment().format('YYYY-MM-DD HH:mm:ss'),
+                ('date_responded' in this.dbData) ? this.dbData['date_responded'] : null,
+                ('viewed' in this.dbData) ? this.dbData['viewed'] : 0,
+                ('provided_info' in this.dbData) ? this.dbData['provided_info'] : '',
+                ('remarks' in this.dbData) ? this.dbData['remarks'] : ''
             ];
             this.pool.getConnection((err, connection) => {
-
                 if(err){
-                    throw new Error(err);
-                    
+                    throw new Error(err);                    
                 }
                 connection.query(sql_insert, param, (err, results, fields) => {
                     if (err) {
@@ -110,12 +110,9 @@ export class UserRequest extends BaseClass {
                     this.id = results.insertId;
                     this.dbData['user_requests_id'] = this.id;
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
-
             });
-            
-
         });
     }
 
@@ -129,7 +126,9 @@ export class UserRequest extends BaseClass {
             status = ?,
             date_created = ?,
             date_responded = ?,
-            viewed = ?
+            viewed = ?,
+            provided_info = ?,
+            remarks = ?
             WHERE user_requests_id = ?
             `;
             const param = [
@@ -141,6 +140,8 @@ export class UserRequest extends BaseClass {
             ('date_created' in this.dbData) ? this.dbData['date_created'] : moment().format('YYYY-MM-DD HH:mm:ss'),
             ('date_responded' in this.dbData) ? this.dbData['date_responded'] : null,
             ('viewed' in this.dbData) ? this.dbData['viewed'] : 0,
+            ('provided_info' in this.dbData) ? this.dbData['provided_info'] : '',
+            ('remarks' in this.dbData) ? this.dbData['remarks'] : '',
             this.ID() ? this.ID() : 0
             ];
             this.pool.getConnection((err, connection) => {
@@ -154,8 +155,9 @@ export class UserRequest extends BaseClass {
                         throw new Error(err + ' ' + sql_update);
                     }
                     resolve(true);
+                    connection.release();
                 });
-                connection.release();
+                
 
             });
             
