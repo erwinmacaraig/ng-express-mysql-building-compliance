@@ -31,6 +31,8 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 		location : [],
 		eco_role : []
 	};
+	public confirmationHeader='';
+	public confirmationMessage='';
 	private myEmRoles = [];
 	showModalRequestWardenLoader = false;
 	approvers = [];
@@ -130,14 +132,9 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	ngAfterViewInit(){
 
-		
-		console.log(this.locationListing);
-
 		$('.modal').modal({
 			dismissible: false
 		});
-
-		// $('select').material_select();
 
 		this.preloaderService.show();
 		this.sortByEvent();
@@ -255,8 +252,6 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	showUpdateLocForm() {
 		this.locationListing.forEach(item => console.log(item.nativeElement.innerHTML));
-
-
 		$('#modal-request-location-update').modal('open');
 	}
 
@@ -278,10 +273,20 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 
 		this.userService.requestLocationUpdate(postBody).subscribe((response) => {
 			this.resetUpdateSelection();
+			this.confirmationHeader = 'Success';
+			this.confirmationMessage = 'Location request change sent successfully.';
 			$('#modal-request-location-update').modal('close');
+			setTimeout(() => {
+				$('#modal-confirmation').modal('open');
+			}, 500);
 		}, error => {
 			this.resetUpdateSelection();
+			this.confirmationHeader = 'Error';
+			this.confirmationMessage = 'There was an error processing your request. Try again later.';
 			$('#modal-request-location-update').modal('close');
+			setTimeout(() => {
+				$('#modal-confirmation').modal('open');
+			}, 500);
 		});
 		
 
