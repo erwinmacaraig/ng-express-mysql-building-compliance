@@ -32,7 +32,7 @@
 	<div class="bottom-buttons">
 		<button class="btn blue waves-effect waves-light request-change-loc" (click)="showUpdateLocForm()">
 					<div class="image inline-block"></div>
-					<div class="text inline-block">Request Location Update</div>
+					<div class="text inline-block">Location Update</div>
 		</button>
 
 		<button class="btn orange waves-effect waves-light remove" (click)="resignClicked()">
@@ -193,10 +193,6 @@
 												<input #llist type="checkbox" id="location-{{b['location_id']}}" [checked]="b['checked']">
 												<label for="location-{{b['location_id']}}">{{b['name']}}</label>
 										</p>
-									</div>
-									<div>
-										<h5>Please provide additional information</h5>
-										<textarea [(ngModel)]="info" style="height: 100px;"></textarea>
 									</div>
 						</div>
 						

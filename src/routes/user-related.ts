@@ -2,6 +2,7 @@ import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { UserRequest } from '../models/user.request.model';
 import { Account } from '../models/account.model';
 import { UserInvitation } from './../models/user.invitation.model';
@@ -155,6 +156,27 @@ export class UserRelatedRoute extends BaseRoute {
       } catch(e) {
         console.log(e);
       }      
+    }
+
+    try {
+      for (let l of oldLocation) {
+        let res = await new UserEmRoleRelation().getByWhere({
+            user_id: req.user.user_id,
+            em_role_id: user_role,
+            location_id: l
+        });
+        await new UserEmRoleRelation(res[0]['user_em_roles_relation_id']).delete();
+      }
+      for (let a of newLocation) {
+        await new UserEmRoleRelation().create({
+            user_id: req.user.user_id,
+            em_role_id: user_role,
+            location_id: a
+        });
+      }
+
+    } catch(e) {
+      console.log(e);
     }
 
     const opts = {

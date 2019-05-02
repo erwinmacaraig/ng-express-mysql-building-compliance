@@ -34,6 +34,7 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 	public confirmationHeader='';
 	public confirmationMessage='';
 	private myEmRoles = [];
+	private initRole = 0;
 	showModalRequestWardenLoader = false;
 	approvers = [];
 	showModalRequestWardenSuccess = false;
@@ -71,23 +72,37 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 	}
 
 	ngOnInit(){
+		this.preloaderService.show();
 		this.userIdEnc = this.encryptDecrypt.encrypt(this.userData.userId);
-		let roleId = 0;
-		const emergency_roles = [];
 		for(let i in this.userData['roles']){
 			if(this.userData['roles'][i]['is_warden_role']){
 				if( parseInt(this.userData['roles'][i]['role_id']) > 2 && parseInt(this.userData['roles'][i]['is_warden_role']) == 1){
-					roleId = this.userData['roles'][i]['role_id'];
+					this.initRole = this.userData['roles'][i]['role_id'];
 				}
 			}
 		}
+		this.accountService.getTaggedLocation().subscribe((response) => {
+			this.levels = response.locations;
+			this.buildings = response.buildings;
+			this.refreshLocationSelection();								
+		}, error => {
+			console.log(error);
+		});
+
+		this.getWardenDetails();
+
+	}
+
+	private getWardenDetails() {
+		const emergency_roles = [];
+		this.viewData.location = [];
+		this.viewData.eco_role = [];
+		this.role_location_table = {};
 		this.userService.getMyWardenTeam({
-			role_id : roleId
+			role_id : this.initRole
 		}, (response) => {
 			this.viewData.user = response.data.user;
-			this.viewData.team = response.data.team;
-			// this.viewData.location = response.data.location;
-			// this.viewData.eco_role = response.data.eco_role;
+			this.viewData.team = response.data.team;			
 			this.copyTeam = JSON.parse(JSON.stringify(response.data.team));
 			
 			for (let loc of response.data.myEmRoles) {
@@ -109,25 +124,11 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 					this.role_location_table[loc['em_roles_id']].push(loc['location_id']);
 				}
 			}
-			console.log(this.assignedLocs);
-			console.log(this.role_location_table);
-			this.accountService.getTaggedLocation().subscribe((response) => {
-				this.levels = response.locations;
-				this.buildings = response.buildings;
-				this.refreshLocationSelection();								
-			}, error => {
-				console.log(error);
-			});
-
 			this.preloaderService.hide();
 			setTimeout(() => {
 				// ('select').material_select();
 			},300);
 		});
-
-		
-
-
 	}
 
 	ngAfterViewInit(){
@@ -279,6 +280,8 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 			setTimeout(() => {
 				$('#modal-confirmation').modal('open');
 			}, 500);
+			this.preloaderService.show();
+			this.getWardenDetails();
 		}, error => {
 			this.resetUpdateSelection();
 			this.confirmationHeader = 'Error';
