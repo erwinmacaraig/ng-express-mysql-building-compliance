@@ -17,7 +17,6 @@ export class PersonDataProviderService {
   private options;
 
   constructor(private http: HttpClient,
-              private platformLocation: PlatformLocation,
               private auth: AuthService
             ) {    
 		this.baseUrl = environment.backendUrl;

@@ -3,6 +3,17 @@
         <div class="col l6 m12 s12">
             <h5 class="title">Personal Information</h5>
             <br>
+            <div class="row">
+                <div class="col l12 m12 s12">
+                    <div class="wrapper upload-photo">
+                        <a (click)="uploaderClick()" id="changePhotoLink">
+                            <div class="img-container"><img id="myAccountPhoto" alt="EvacConnect" [src]="filterUrl(usersImageURL)"> </div>
+                            <div class="label-container"><h6 class="custom-upload-photo-lbl">Upload Photo</h6></div>
+                        </a>
+                        <input type="file" name="my_photo" id="my_photo" class="file" #myPhoto (change)="onPhotoSelected()">
+                    </div>
+                </div>
+            </div>
 
             <div class="row">
 
@@ -56,7 +67,6 @@
                         <label for="input_text" class="active">Phone No</label>
                     </div>
                 </div>
-
                 <div class="col s12 m12 l12">
                     <div *ngIf="!f.valid" class="alert alert-warning">Invalid Form Data</div>
                 </div>

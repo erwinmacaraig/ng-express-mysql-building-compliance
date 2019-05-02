@@ -42,13 +42,16 @@ export class UserService {
 		});
 	}
 
-	uploadProfilePicture(formData, callBack){
+	uploadProfilePicture(formData){
+		/*
 		this.http.post(this.baseUrl+"/users/upload-profile-picture", formData)
 		.subscribe(res => {
 			callBack(res);
 		}, err => {
 			callBack( JSON.parse(err.error) );
 		});
+		*/
+		return this.http.post(this.baseUrl+"/users/upload-profile-picture", formData); 
 	}
 
 	checkUserVerified(userId, callBack){

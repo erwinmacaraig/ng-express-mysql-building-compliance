@@ -12,7 +12,10 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AdminService } from './../../services/admin.service';
 import { AlertService } from './../../services/alert.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+
 declare var moment: any;
+declare var $: any;
+
 @Component({
     selector: 'app-admin-compliance-doc-upload',
     templateUrl: './upload-compliance-docs.component.html',
