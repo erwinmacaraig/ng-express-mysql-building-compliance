@@ -1,10 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, NavigationStart, NavigationEnd } from '@angular/router';
+import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-
+import { Subscription } from 'rxjs/Subscription';
 
 declare var $: any;
 @Component({
@@ -18,10 +15,15 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	public oUserData = {};
 	public showTeamNav = true;
 	public subscriptionType = 'free';
+	public showConfirmationProcessBar = false;
+	public confirmationProcessStep = -1;
+	private myQueryRouteSub: Subscription;
+
 
 	constructor(
 		private router: Router,
-		private authService: AuthService
+		private authService: AuthService,
+		private route: ActivatedRoute
 	){
 		this.router.events.subscribe((event) => {
 			if(event instanceof NavigationEnd ){
@@ -35,6 +37,12 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
+		this.myQueryRouteSub = this.route.queryParams.filter(params => params.confirmation)
+		.subscribe(params => {
+			this.showConfirmationProcessBar = true;
+			this.confirmationProcessStep = 1;
+		});
+		
 
 	}
 

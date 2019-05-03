@@ -17,7 +17,6 @@ import { MessageService } from './services/messaging.service';
 import { LocationsService } from './services/locations';
 import { AlertService } from './services/alert.service';
 
-
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
@@ -26,6 +25,7 @@ import { ChangepasswordComponent } from './changepassword/changepassword.compone
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 import { AlertComponent } from './alert/alert.component';
+import { RoleConfirmComponent } from './confirmation/role-confirmed/role-confirmed.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
@@ -290,7 +290,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AddAccountLocationComponent,
     RewardProgramConfigComponent,
     ListRewardConfigComponent,
-    RedeemersComponent
+    RedeemersComponent,
+    RoleConfirmComponent
   ],
   imports: [
     BrowserModule,

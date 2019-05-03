@@ -9,6 +9,8 @@ import { PersonDataProviderService } from '../../services/person-data-provider.s
 import { AuthService } from '../../services/auth.service';
 import { ViewChild, QueryList } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { MessageService } from '../../services/messaging.service';
+import { Subscription } from 'rxjs/Subscription';
 
 declare var $: any;
 declare var Materialize: any;
@@ -22,6 +24,8 @@ declare var $: any;
   providers : [UserService, DashboardPreloaderService, PersonDataProviderService, AuthService, EncryptDecryptService, AccountsDataProviderService]
 })
 export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
+
+	private msgSub:Subscription;
 
 	viewData = {
 		team : [],
@@ -55,7 +59,8 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 	public levels = [];
 	public buildings = [];
 	showModalResignLoader = false;
-    userIdEnc = '';
+	userIdEnc = '';
+	
 	constructor(
 		private auth: AuthService,
 		private userService: UserService,
@@ -63,7 +68,8 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 		private preloaderService: DashboardPreloaderService,
 		private personService : PersonDataProviderService,
         private encryptDecrypt : EncryptDecryptService,
-		private router : Router
+		private router : Router,
+		private messageService: MessageService;
 		){
 		this.userData = this.auth.getUserData();
         
@@ -282,6 +288,7 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 			}, 500);
 			this.preloaderService.show();
 			this.getWardenDetails();
+			this.messageService.sendMessage({location_updated: true});
 		}, error => {
 			this.resetUpdateSelection();
 			this.confirmationHeader = 'Error';
@@ -290,6 +297,7 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 			setTimeout(() => {
 				$('#modal-confirmation').modal('open');
 			}, 500);
+			this.messageService.sendMessage({location_updated: true});
 		});
 		
 

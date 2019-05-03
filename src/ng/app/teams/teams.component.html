@@ -1,5 +1,5 @@
-<app-navbar></app-navbar>
-<div class="teams-navigation" *ngIf="showTeamNav">
+<app-navbar *ngIf="!showConfirmationProcessBar"></app-navbar>
+<app-role-confirmation [step]="confirmationProcessStep" *ngIf="showConfirmationProcessBar"></app-role-confirmation><div class="teams-navigation" *ngIf="showTeamNav">
 	<ul>
 
 		<li class="wardens pink-theme  " [routerLink]="['/teams/list-wardens']">

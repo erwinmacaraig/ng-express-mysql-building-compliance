@@ -1,0 +1,53 @@
+.main-confirmation-header {    
+    height: 40px;
+    background-color: #000000;
+    text-align: center;
+}
+
+.header-text {
+    font-family: 'Open Sans', 'sans-serif' !important;
+    display: inline-block;
+    padding: 9px 0px;
+    color: #fff;
+}
+
+.navbar-fixed-control-text {
+    display: inline-block;
+    padding: 0px 30px;
+}
+
+.navbar-fixed-control-buttons {
+    display: inline-block;
+}
+
+.no-label-btn {
+    color: #64b5f6;
+}
+
+.navbar-fixed {
+  font-family: 'Open Sans', 'sans-serif' !important;
+  height: 65px !important;
+  -webkit-transition: background-color .3s;
+  transition: background-color .3s;
+  font-size: 1rem;
+  background-color: #505050;
+  color: #fff;
+  display: block;
+  line-height: 56px;
+}
+
+.modal-content-message {
+    text-align: center;
+}
+
+.modal {
+    width: 40% !important;
+}
+
+.modal-content-message h5 {
+    color: #64b5f6;
+}
+
+.modal .modal-footer {
+    text-align: center !important;
+}

@@ -3,11 +3,12 @@ import { PersonInfoResolver } from '../../services/person-info.resolver';
 import { Observable } from 'rxjs/Observable';
 import { environment } from '../../../environments/environment';
 import { Person } from '../../models/person.model';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute} from '@angular/router';
 import { ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+
 
 import { MessageService } from '../../services/messaging.service';
 import { AuthService } from '../../services/auth.service';
@@ -25,6 +26,8 @@ declare var $: any;
 export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('f') personInfoForm: NgForm;
   @ViewChild('myPhoto') myPhoto: ElementRef;
+  
+
   public person;
   public accountTypes;
   editCtrl = false;
@@ -36,7 +39,8 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
   public hasUserImage: boolean = false;
   private userId = 0;
   private mySub: Subscription;
-  
+  private myRouteQuerysub: Subscription;
+
   constructor(private route: ActivatedRoute,
               private http: HttpClient,
               private preloaderService: DashboardPreloaderService,
@@ -44,16 +48,18 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
               private authService: AuthService,
               private userService: UserService) {
 
-    this.baseUrl = environment.backendUrl;
+    this.baseUrl = environment.backendUrl;    
     this.preloaderService.show();
   }
 
   ngOnInit() {
-      this.userId = this.authService.userDataItem('userId');      
-        if(this.authService.userDataItem('profilePic').length > 5){
-            this.usersImageURL = this.authService.userDataItem('profilePic');
-            this.hasUserImage = true;
-        }
+      this.userId = this.authService.userDataItem('userId'); 
+      
+      
+      if(this.authService.userDataItem('profilePic').length > 5){
+          this.usersImageURL = this.authService.userDataItem('profilePic');
+          this.hasUserImage = true;
+      }
 
       this.route.data.subscribe(data => {
          this.person = new Person(data.personInfo.first_name,
@@ -74,9 +80,14 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
     ); // end of subscribe
 
     this.mySub = this.messageService.getMessage().subscribe((message) => {
+      console.log(message);
       if (message.profilePic) {
         this.hasUserImage = true;
         this.usersImageURL = message.profilePic;
+      }
+      if (message.edit_person_info) {
+        console.log('here at person info with ' + message.edit_person_info);
+        this.editCtrl = message.edit_person_info;
       }
     });
 
