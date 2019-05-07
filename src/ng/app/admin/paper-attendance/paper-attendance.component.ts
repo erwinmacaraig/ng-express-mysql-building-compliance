@@ -7,6 +7,7 @@ import { AdminService } from './../../services/admin.service';
 import { Router } from '@angular/router';
 import { PlatformLocation } from '@angular/common';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { environment } from '../../../environments/environment';
 
 declare var moment: any;
 @Component({
@@ -47,7 +48,7 @@ export class PaperAttendanceComponent implements OnInit, AfterViewInit, OnDestro
     public router: Router,
     public dashboard: DashboardPreloaderService,
     private platformLocation: PlatformLocation) {
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;
   }
 
   ngOnInit() {

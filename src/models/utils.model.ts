@@ -36,6 +36,48 @@ export class Utils extends BaseClass {
 
     }
 
+    public setUserRequest(requestData={}) {
+      return new Promise((resolve, reject) => {
+        const sql = `INSERT INTO user_requests (
+          user_id,
+          requested_role_id,
+          location_id,
+          approver_id,
+          status,
+          date_responded,
+          provided_info,
+          remarks
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+
+        const params = [
+          ('user_id' in requestData) ? requestData['user_id'] : 0,
+          ('requested_role_id' in requestData) ? requestData['requested_role_id'] : 0,
+          ('location_id' in requestData) ? requestData['location_id'] : 0,
+          ('approver_id' in requestData) ? requestData['approver_id'] : 0,
+          ('status' in requestData) ? requestData['status'] : null,
+          ('date_responded' in requestData) ? requestData['date_responded'] : null,
+          ('provided_info' in requestData) ? requestData['provided_info'] : null,
+          ('remarks' in requestData) ? requestData['remarks'] : null,
+        ];
+
+        this.pool.getConnection((err, connection) => {
+          if (err) {
+            throw new Error(err);
+          }
+          connection.query(sql, params, (error, results) => {
+            if (error) {
+              console.log(sql, params, error);
+              throw new Error(error);
+            }
+            resolve(results.lastInsertId);
+            connection.release();
+          });
+        });
+      });
+    }
+
+
+
     public checkUserValidInALocation(user: number) {
       return new Promise((resolve, reject) => {
         const sql_check = `SELECT * FROM user_location_validation WHERE user_id = ? AND status = 'VERIFIED'`;

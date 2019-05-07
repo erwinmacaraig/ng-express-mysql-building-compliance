@@ -1,9 +1,8 @@
 import { LocationsService } from './../../services/locations';
 import { AuthService } from './../../services/auth.service';
 import { AdminService } from './../../services/admin.service';
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
+import { Component, OnInit, OnDestroy, AfterViewInit, ElementRef, ViewChild } from '@angular/core';
+
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';

@@ -50,7 +50,7 @@ export class UserEmRoleRelation extends BaseClass {
           params.push(where['em_role_id']);
         }
         if ('location_id' in where) {
-          whereClause = ` AND location_id = ?`;
+          whereClause += ` AND location_id = ?`;
           params.push(where['location_id']);
         }
         let sql = `SELECT * FROM user_em_roles_relation ${whereClause}`;
@@ -60,9 +60,14 @@ export class UserEmRoleRelation extends BaseClass {
           } 
           connection.query(sql, params, (error, results) => {
             if (error) {
-              throw new Error(err);
-            } 
-            resolve(results);
+              console.log(sql, params);
+              throw new Error(error);
+            }
+            if (results.length > 0) {
+              resolve(results);
+            } else {
+              reject('No record can be found');
+            }
             connection.release();
           });
           
@@ -70,9 +75,12 @@ export class UserEmRoleRelation extends BaseClass {
       });
     }
 
-    public getEmRolesByUserId(userId, archived?, group?): Promise<Array<object>> {
+    public getEmRolesByUserId(userId, archived?, group=true): Promise<Array<object>> {
         archived = (archived) ? archived : 0;
         let groupClause = ` GROUP BY uer.em_role_id`;
+        if (group == false) {
+          groupClause = '';
+        }
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -81,15 +89,16 @@ export class UserEmRoleRelation extends BaseClass {
                       uer.location_id,
                       er.em_roles_id,
                       l.name as location_name,
+                      p.name as parent_name,
                       l.name,
                       l.parent_id,                      
                       l.is_building
                     FROM user_em_roles_relation uer
                     INNER JOIN em_roles er  ON er.em_roles_id = uer.em_role_id
-                    LEFT JOIN locations l ON l.location_id = uer.location_id
+                    INNER JOIN locations l ON l.location_id = uer.location_id
+                    LEFT JOIN locations p ON l.parent_id = p.location_id
                     WHERE uer.user_id = ? AND l.archived = ${archived} ${groupClause}`;
             const uid = [userId];
-
             this.pool.getConnection((err, connection) => {
                 if (err) {                    
                     throw new Error(err);

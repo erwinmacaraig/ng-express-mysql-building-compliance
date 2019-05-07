@@ -1,17 +1,19 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ElementRef, OnDestroy } from '@angular/core';
 import { PersonInfoResolver } from '../../services/person-info.resolver';
 import { Observable } from 'rxjs/Observable';
+import { environment } from '../../../environments/environment';
 import { Person } from '../../models/person.model';
-import { ActivatedRoute, ParamMap } from '@angular/router';
+import { ActivatedRoute} from '@angular/router';
 import { ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { AccountTypes } from '../../models/account.types';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+
 
 import { MessageService } from '../../services/messaging.service';
 import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/users';
+import { Subscription } from 'rxjs/Subscription';
 
 declare var $: any;
 
@@ -19,10 +21,13 @@ declare var $: any;
   selector: 'app-person-info',
   templateUrl: './person-info.component.html',
   styleUrls: ['./person-info.component.css'],
-  providers: [DashboardPreloaderService]
+  providers: [DashboardPreloaderService, UserService]
 })
-export class PersonInfoComponent implements OnInit, AfterViewInit {
+export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('f') personInfoForm: NgForm;
+  @ViewChild('myPhoto') myPhoto: ElementRef;
+  
+
   public person;
   public accountTypes;
   editCtrl = false;
@@ -30,18 +35,32 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   public message;
   emailBlackListed = false;
   emailTaken = false;
+  public usersImageURL: String = 'assets/images/camera_upload_hover.png';
+  public hasUserImage: boolean = false;
+  private userId = 0;
+  private mySub: Subscription;
+  private myRouteQuerysub: Subscription;
+
   constructor(private route: ActivatedRoute,
               private http: HttpClient,
-              private platformLocation: PlatformLocation,
               private preloaderService: DashboardPreloaderService,
               private messageService: MessageService,
-              private authService: AuthService) {
+              private authService: AuthService,
+              private userService: UserService) {
 
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;    
     this.preloaderService.show();
   }
 
   ngOnInit() {
+      this.userId = this.authService.userDataItem('userId'); 
+      
+      
+      if(this.authService.userDataItem('profilePic').length > 5){
+          this.usersImageURL = this.authService.userDataItem('profilePic');
+          this.hasUserImage = true;
+      }
+
       this.route.data.subscribe(data => {
          this.person = new Person(data.personInfo.first_name,
           data.personInfo.last_name,
@@ -59,6 +78,19 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
         }
       }
     ); // end of subscribe
+
+    this.mySub = this.messageService.getMessage().subscribe((message) => {
+      console.log(message);
+      if (message.profilePic) {
+        this.hasUserImage = true;
+        this.usersImageURL = message.profilePic;
+      }
+      if (message.edit_person_info) {
+        console.log('here at person info with ' + message.edit_person_info);
+        this.editCtrl = message.edit_person_info;
+      }
+    });
+
   }
   onSumbitModifyPersonInfo(f: NgForm) {
     const header = new HttpHeaders({
@@ -88,6 +120,7 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
 
       // update local storage
       const userData = this.authService.getUserData();
+      
       userData['name'] = f.value.first_name + ' ' + f.value.last_name;
       this.authService.setUserData(userData);
 
@@ -118,12 +151,47 @@ export class PersonInfoComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    
     // $('select').prop('disabled', false).material_select();
     if (!$('.vertical-m').hasClass('fadeInRight')) {
       $('.vertical-m').addClass('fadeInRight animated');
     }
 
     this.preloaderService.hide();
+  }
+
+  filterUrl(url:String){
+    return url.replace('unsafe:', '').trim();
+  }
+
+  uploaderClick() {
+    this.myPhoto.nativeElement.click();
+  }
+
+  onPhotoSelected() {
+    this.preloaderService.show();
+    let
+        file = this.myPhoto.nativeElement.files[0],
+        formData = new FormData();
+        formData.append('user_id', this.userId.toString());
+        formData.append('file', file, file.name);
+        this.userService.uploadProfilePicture(formData).subscribe((response) => {
+          this.hasUserImage = true;
+          this.usersImageURL = response['data']['url'];          
+          // updpate localStorage
+          this.authService.setUserDataItem('profilePic', this.usersImageURL);
+          // send throughout the application
+          this.messageService.sendMessage({'profilePic': this.usersImageURL});
+
+          this.preloaderService.hide();
+        }, (error) => {
+          this.preloaderService.hide();
+        });
+
+  }
+
+  ngOnDestroy() {
+    this.mySub.unsubscribe();
   }
 
 

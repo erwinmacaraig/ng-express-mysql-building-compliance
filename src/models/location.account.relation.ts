@@ -1,8 +1,6 @@
 
 
 import { BaseClass } from './base.model';
-const defs = require('../config/defs.json');
-
 import * as Promise from 'promise';
 export class LocationAccountRelation extends BaseClass {
 
@@ -569,16 +567,16 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
-    public getTaggedLocationsOfAccount(accountId = 0){
+    public getTaggedLocationsOfAccount(accountId = 0): Promise<Array<object>>{
         return new Promise((resolve, reject) => {
             const sql_load = `
                 SELECT 
-                   l.*, 
+                   l.*,
+                   p.name as parent_name, 
                    IF(p.name IS NOT NULL, CONCAT(p.name,', ',l.name), l.name) as location_name
                 FROM location_account_relation lar
                 INNER JOIN locations l ON lar.location_id = l.location_id
                 LEFT JOIN locations p ON l.parent_id = p.location_id
-
                 WHERE lar.account_id = ? AND l.archived = 0
             `;
             const param = [accountId];
@@ -590,8 +588,12 @@ export class LocationAccountRelation extends BaseClass {
                   if (error) {
                     return console.log(error);
                   }
-                  this.dbData = results;
-                  resolve(this.dbData);
+                  if (results.length) {
+                    resolve(results);
+                  } else {
+                    reject('No tagged location');
+                  }  
+                  
                   connection.release();
                 });
                 

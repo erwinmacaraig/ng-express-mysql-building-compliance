@@ -6,9 +6,7 @@ import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ExportToCSV } from '../../services/export.to.csv';
-import html2canvas from 'html2canvas';
-// import * as jsPDF from 'jspdf';
-import * as moment from 'moment';
+import { environment } from '../../../environments/environment';
 import { PrintService } from '../../services/print.service';
 
 declare var $ : any;
@@ -233,8 +231,8 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         let a = document.createElement("a"),
         accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
         isAdmin = (this.userData.evac_role.toLowerCase() == 'admin') ? true : false;
-
-        a.href = location.origin+"/reports/pdf-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+isAdmin;
+        
+        a.href = environment.backendUrl + "/reports/pdf-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+isAdmin;
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -248,7 +246,7 @@ export class ReportsActivityLogComponent implements OnInit, OnDestroy {
         accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
         isAdmin = (this.userData.evac_role.toLowerCase() == 'admin') ? true : false;
 
-        a.href = location.origin+"/reports/csv-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+isAdmin;
+        a.href = environment.backendUrl + "/reports/csv-activity-report/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+isAdmin;
         a.target = "_blank";
         document.body.appendChild(a);
 

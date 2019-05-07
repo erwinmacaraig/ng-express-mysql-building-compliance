@@ -5,33 +5,36 @@
 			
 			<div class="image-container">
 				<!-- <div class="profile-warden"></div> -->
-				<p class="initials" *ngIf="viewData.user.profilePic.length > 0 === false">
+				<p class="initials" *ngIf="userData.profilePic.length > 0 === false">
 					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
 				</p>
-				<img *ngIf="viewData.user.profilePic.length > 0 === true" [src]="viewData.user.profilePic"  >
+				<img *ngIf="userData.profilePic.length > 0 === true" [src]="userData.profilePic">
 			</div>
 
 			<div class="badge-warden"></div>
 
 			<div class="name-container ">
 				<h5 class="name blue-text">
-					<span *ngIf="viewData.eco_role.role_name">{{viewData.eco_role.role_name}}</span>
-				</h5>
-				<!-- <p>Last Login 0 day</p> -->
+					<span *ngFor="let role of viewData.eco_role" style="display: block; padding-bottom: 10px;">{{role['role_name']}}</span>
+				</h5>				
 			</div>
 		</div>	
 	</div>
 	<div class="row">
 		<div class="col l12 m12 s12 location-div">
 			<small>Location</small>
-			<h5>
-				<span *ngIf="viewData.location.parent_location.name">{{viewData.location.parent_location.name}}, </span>
-				{{viewData.location.name}}
-			</h5>
+			<h6 *ngFor="let loc of viewData.location">
+				{{loc}}
+			</h6>
 		</div>
 	</div>
 
 	<div class="bottom-buttons">
+		<button class="btn blue waves-effect waves-light request-change-loc" (click)="showUpdateLocForm()">
+					<div class="image inline-block"></div>
+					<div class="text inline-block">Update Sub Location</div>
+		</button>
+
 		<button class="btn orange waves-effect waves-light remove" (click)="resignClicked()">
 			<div class="image inline-block"></div>
 			<div class="text inline-block">Resign as Warden</div>
@@ -163,6 +166,45 @@
   </form>
 </div>
 
+<div id="modal-request-location-update" class="modal">
+	
+			<div class="modal-content">
+					<h3>Please choose a new location for the role</h3>
+					<div>
+						<div>
+							<h5>Emergency Roles</h5>
+							<select [(ngModel)]="chosenRoleId" #roleSelection id="role-selection" style="display: block;" (change)="loadLocation($event)">
+									<option value="0" selected>Select Role</option>
+									<option *ngFor="let role of viewData.eco_role" [value]="role['em_roles_id']">{{role['role_name']}}</option>
+							</select>	
+							
+						</div>
+						<h5>Locations</h5>
+						<div style="padding-left: 20px;" *ngIf="chosenRoleId != 0">
+								<div *ngFor="let lvl of levels">
+										<h6>{{lvl.name}}</h6>
+										<p *ngFor="let s of lvl.sublocation">
+											<input #llist type="checkbox" id="location-{{s['location_id']}}" [checked]="s['checked']">
+											<label for="location-{{s['location_id']}}">{{s['name']}}</label>
+										</p> 				
+									</div>
+									<div>
+										<p *ngFor="let b of buildings">
+												<input #llist type="checkbox" id="location-{{b['location_id']}}" [checked]="b['checked']">
+												<label for="location-{{b['location_id']}}">{{b['name']}}</label>
+										</p>
+									</div>
+						</div>
+						
+					</div>
+					<div class="button-container right">
+							<button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close" (click)="resetUpdateSelection()"> Cancel </button>
+							<button class="btn orange waves-effect waves-light" (click)="requestLocationUpdate()" [disabled]="chosenRoleId==0"> Submit </button>
+					</div>
+			</div>
+	
+</div>
+
 <div id="modalResign" class="modal">
 	<div class="modal-content center" *ngIf="showModalResignLoader">
 		<div class="preloader-wrapper active">
@@ -187,4 +229,14 @@
 	    <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
 	    <button class="btn orange waves-effect waves-light" (click)="resignConfirmClicked()"> Yes </button>
   	</div>
+</div>
+
+<div id="modal-confirmation" class="modal">
+		<div class="modal-content">
+		<h5>{{confirmationHeader}}</h5>
+		<h6>{{confirmationMessage}}</h6>		
+	</div>
+	<div class="modal-footer">
+		<a class="modal-close waves-effect waves-green btn-flat">OK</a>
+	</div>
 </div>

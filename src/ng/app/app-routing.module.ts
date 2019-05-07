@@ -7,6 +7,7 @@ import { SignupComponent } from './signup/signup.component';
 import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { StayAndGoComponent } from './dashboard/stay-go/stay_go.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
@@ -164,7 +165,8 @@ const appRoutes: Routes = [
       { path: 'warden-notification', component : WardenNotificationComponent },
       { path: 'notification-summary-view/:token', component: SummaryViewComponent },
       { path: 'update-notified-trp-profile/:token', component: NotifiedTrpUpdateProfileComponent},
-      { path: 'trainings-for-notified-trp/:token', component: NotifiedTRPTrainingsComponent }
+      { path: 'trainings-for-notified-trp/:token', component: NotifiedTRPTrainingsComponent },
+      { path: 'stay-and-go', component: StayAndGoComponent }
     ]
   },
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },

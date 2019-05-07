@@ -27,6 +27,12 @@ export class AuthService {
   	localStorage.setItem('userData', JSON.stringify(data));
   }
 
+  public setUserDataItem(item, value) {
+    const dataItems = this.getUserData();
+    dataItems[item] = value;
+    this.setUserData(dataItems);
+  }
+
   public getUserData(){
     if (localStorage.getItem('userData') !== null) {
       return JSON.parse(localStorage.getItem('userData'))

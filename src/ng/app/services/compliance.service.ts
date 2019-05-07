@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams} from '@angular/common/http';
 import { ResponseContentType } from '@angular/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../environments/environment';
 import { Observable, BehaviorSubject } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -32,7 +33,8 @@ export class ComplianceService {
 
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
+		
+		this.baseUrl = environment.backendUrl;
 
 		this.router.events.subscribe((routes) => {
 			if(routes instanceof NavigationEnd){

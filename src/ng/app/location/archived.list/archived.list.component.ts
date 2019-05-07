@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitter } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import {environment } from '../../../environments/environment';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LocationsService } from '../../services/locations';
@@ -59,7 +60,7 @@ export class ArchivedLocationListComponent implements OnInit, OnDestroy {
 	    private router: Router,
 	    private elemRef : ElementRef
 	) {
-		this.baseUrl = (platformLocation as any).location.origin;
+		this.baseUrl = environment.backendUrl;
 		this.options = { headers : this.headers };
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.userData = this.auth.getUserData();

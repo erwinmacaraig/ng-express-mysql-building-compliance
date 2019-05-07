@@ -1,11 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
+import { environment } from '../../environments/environment';
 import { AuthService } from '../services/auth.service';
-import { Router, NavigationEnd  } from '@angular/router';
+import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 import { SignupService } from '../services/signup.service';
 import { UserService } from '../services/users';
+import { Subscription } from 'rxjs/Subscription';
 
 declare var $: any;
 
@@ -21,21 +20,24 @@ export class DashboardComponent implements OnInit {
 	public userRoles;
 	showEmailVerification = false;
 	showResponse = false;
-	responseMessage = '';
+  responseMessage = '';
+  public confirmationProcessStep = 0;
 
+  public showConfirmationProcessBar = false;
 	routerSubs;
   isFRP = false;
   isTRP = false;
 
+  queryParamSub: Subscription;
   constructor(
-    private http: HttpClient,
-    private platform: PlatformLocation,
+    
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private signupServices: SignupService,
     private userService: UserService
     ) {
-    this.baseUrl = (platform as any).location.origin;
+    this.baseUrl = environment.backendUrl;
     this.subscribeAndCheckUserHasAccountToSetup(router);
     this.userData = this.auth.getUserData();
   }
@@ -94,6 +96,19 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.queryParamSub = this.route.queryParamMap
+    .subscribe(params => {
+      if (params.has('confirmation')){
+        this.showConfirmationProcessBar = true;
+        this.auth.setUserDataItem('confirmation_process', true);
+      }
+      if (params.has('step')) {
+        this.confirmationProcessStep = +params.get('step');
+      }       
+      
+    });
+
+
     this.userService.checkUserVerified( this.userData['userId'] , (response) => {
       if(response.status === false && response.message == 'not verified'){
         localStorage.setItem('showemailverification', 'true');

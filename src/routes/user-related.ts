@@ -2,11 +2,14 @@ import { NextFunction, Request, Response, Router } from 'express';
 
 import { BaseRoute } from './route';
 import { User } from '../models/user.model';
+import { UserEmRoleRelation } from '../models/user.em.role.relation';
+import { UserRequest } from '../models/user.request.model';
 import { Account } from '../models/account.model';
 import { UserInvitation } from './../models/user.invitation.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { Utils } from '../models/utils.model';
+import { UtilsSync } from '../models/util.sync';
 import * as validator from 'validator';
 import { EmailSender } from '../models/email.sender';
 import { BlacklistedEmails } from '../models/blacklisted-emails';
@@ -15,6 +18,9 @@ import { Location } from '../models/location.model';
 import { Token } from '../models/token.model';
 import { UserLocationValidation } from '../models/user-location-validation.model';
 import * as moment from 'moment';
+const defs = require('../config/defs.json');
+
+
 export class UserRelatedRoute extends BaseRoute {
   public static create(router: Router) {
     router.get('/person-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
@@ -59,9 +65,185 @@ export class UserRelatedRoute extends BaseRoute {
     router.get('/location/user-verification', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new UserRelatedRoute().checkUserVerifiedInLocation(req, res);
     } );
+
+
+    router.post('/eco-user/request-update-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().requestLocationUpdate(req, res);
+    });
+
+    router.get('/mail-info-graphic', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().mailInfoGraphic(req, res);
+    });
   }
 
 
+  public mailInfoGraphic(req: AuthRequest, res:Response) {
+    const emailData = {
+      users_fullname: `${req.user.first_name} ${req.user.last_name}`
+    };
+
+    let emailType= 'stay_go_info';
+
+    const opts = {
+      from: '',
+      fromName: 'EvacConnect',
+      to: [`${req.user.email}`],
+      cc: [],
+      body : '',
+      attachments: [],
+      subject : 'EvacConnect Email Notification'
+    };
+
+    const email = new EmailSender(opts);
+    email.sendFormattedEmail(emailType, emailData, res, 
+      (data) =>{
+        console.log(data);
+        
+        return res.status(200).send({
+          message: 'Sent'
+        });
+      },
+      (err) => {
+        console.log('Error', err);
+        return res.status(200).send({
+          message: 'Failed'
+        });
+      }
+    );
+      
+
+  }
+
+
+  public async requestLocationUpdate(req: AuthRequest, res: Response) {
+    const util = new Utils();
+    let requestData = {
+      user_id: 0,
+      requested_role_id: 0,
+      location_id: 0,
+      provided_info: '',
+      remarks: ''
+    };
+
+    const user_role = req.body.em_role_id;
+    const oldLocation = JSON.parse(req.body.oldLocation);
+    const newLocation = JSON.parse(req.body.newLocation);
+    const info = req.body.info;
+    
+    
+    let oldLocationRecord = [];
+    let newLocationRecord = [];
+    for (let oLoc of oldLocation) {
+      const rec = await new Location(oLoc).load();
+      oldLocationRecord.push(rec);
+    }
+
+    for (let nLoc of newLocation) {
+      const rec = await new Location(nLoc).load();
+      newLocationRecord.push(rec);
+    }
+
+    oldLocationRecord = await new UtilsSync().getRootParent(oldLocationRecord);
+    newLocationRecord = await new UtilsSync().getRootParent(newLocationRecord);
+   
+    const oldLocationStrArr = [];
+    for (let oLoc of oldLocationRecord) {
+      if (oLoc['root_parent_loc_id'] == oLoc['location_id']) {
+        oldLocationStrArr.push(oLoc['name']);
+      } else {
+        oldLocationStrArr.push(`${oLoc['name']}, ${oLoc['root_parent_name']}`);
+      }
+    }
+
+    const newLocationStrArr = [];
+    for (let nLoc of newLocationRecord) {
+      if (nLoc['root_parent_loc_id'] == nLoc['location_id']) {
+        newLocationStrArr.push(nLoc['name']);
+      } else {
+        newLocationStrArr.push(`${nLoc['name']}, ${nLoc['root_parent_name']}`);
+      }
+    }
+
+    let remarks =`
+    ${req.user.first_name} ${req.user.last_name} (${req.user.email}) is requesting for a location update.
+    Emergency Role: ${defs['roles'][user_role]}
+    From location: 
+    ${oldLocationStrArr.join('\r\n')}
+
+    To location: 
+    ${newLocationStrArr.join('\r\n')}
+    
+    Additional Info: 
+    ${info}
+    `;
+
+
+    for (let nLoc of newLocation) { 
+      requestData = {
+        user_id: 0,
+        requested_role_id: 0,
+        location_id: 0,
+        provided_info: '',
+        remarks: ''
+      }
+
+      requestData['user_id'] = req.user.user_id;
+      requestData['requested_role_id'] = user_role;
+      requestData['location_id'] = nLoc;
+      requestData['provided_info'] = info;
+      requestData['remarks'] = remarks;
+      
+      try {
+        await new UserRequest().create(requestData);
+      } catch(e) {
+        console.log(e);
+      }      
+    }
+
+    try {
+      for (let l of oldLocation) {
+        let res = await new UserEmRoleRelation().getByWhere({
+            user_id: req.user.user_id,
+            em_role_id: user_role,
+            location_id: l
+        });
+        await new UserEmRoleRelation(res[0]['user_em_roles_relation_id']).delete();
+      }
+      for (let a of newLocation) {
+        await new UserEmRoleRelation().create({
+            user_id: req.user.user_id,
+            em_role_id: user_role,
+            location_id: a
+        });
+      }
+
+    } catch(e) {
+      console.log(e);
+    }
+
+    const opts = {
+      from : '',
+      fromName : 'EvacConnect',
+      to : ['emacaraig@evacgroup.com.au', 'rsantos.evacgroup.com.au'],
+      cc: [],
+      body : `<pre> ${remarks} </pre>`,
+      attachments: [],
+      subject : 'EvacConnect Location Update Notification'
+    };
+    const email = new EmailSender(opts);
+    email.send(
+      (data) => {
+          console.log('Email sent successfully');					
+      },
+      (err) => console.log(err)
+    );
+
+    
+    return res.status(200).send({
+      message: 'Test'
+    });
+
+  }
   public checkUserVerifiedInLocation(req: AuthRequest, res: Response) {
     const utils = new Utils();
     utils.checkUserValidInALocation(req.user.user_id).then((data) => {

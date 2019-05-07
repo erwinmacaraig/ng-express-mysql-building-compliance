@@ -3,7 +3,7 @@ import { PlatformLocation } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ComplianceService } from './../../services/compliance.service';
-
+import { environment } from '../../../environments/environment';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
@@ -33,7 +33,7 @@ export class MyTrainingsComponent implements OnInit, OnDestroy {
   ) {
 
     this.userData = this.authService.getUserData();
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;
   }
 
   ngOnInit() {

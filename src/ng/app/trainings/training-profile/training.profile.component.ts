@@ -15,7 +15,7 @@ import { ComplianceService } from './../../services/compliance.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { AdminService } from './../../services/admin.service';
 import { Observable, Subscription } from 'rxjs/Rx';
-
+import { environment } from '../../../environments/environment';
 declare var $: any;
 declare var Materialize: any;
 declare var moment: any;
@@ -120,7 +120,7 @@ export class TrainingProfile implements OnInit, OnDestroy {
     private adminService: AdminService
   ) {
 
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;
 		this.datepickerModel = new Date();
     this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 

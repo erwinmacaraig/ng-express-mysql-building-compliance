@@ -3,6 +3,7 @@ import { Component, AfterViewInit, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../../environments/environment';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { DatepickerOptions } from 'ng2-datepicker';
 import { Router} from '@angular/router';
@@ -11,7 +12,10 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { AdminService } from './../../services/admin.service';
 import { AlertService } from './../../services/alert.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+
 declare var moment: any;
+declare var $: any;
+
 @Component({
     selector: 'app-admin-compliance-doc-upload',
     templateUrl: './upload-compliance-docs.component.html',
@@ -70,7 +74,7 @@ export class UploadComplianceDocComponent implements OnInit, AfterViewInit {
         public dashboard: DashboardPreloaderService,
         private alertService: AlertService)
     {
-        this.baseUrl = (platformLocation as any).location.origin;
+        this.baseUrl = environment.backendUrl;
         this.setDatePickerDefaultDate();
     }
 

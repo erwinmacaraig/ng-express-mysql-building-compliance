@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../environments/environment';
 import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -36,7 +37,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private signupService: SignupService,
     private platformLocation: PlatformLocation,
     private router: Router) {
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;
   }
 
   ngOnInit() {

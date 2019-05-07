@@ -13,6 +13,7 @@ import { TrainingCertification } from '../models/training.certification.model';
 import { TrainingRequirements } from '../models/training.requirements';
 import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
+import { User } from '../models/user.model';
 
 
 export class LMSRoute extends BaseRoute {
@@ -64,6 +65,7 @@ export class LMSRoute extends BaseRoute {
     router.post('/lms/setParameterValue/', async (req: Request, res: Response, next: NextFunction) => {
       const scorm = new Scorm();
       // console.log(req.body);
+      let course_completed = 0;
       scorm.setDataModelVal(req.body.relation, 'last_accessed', moment().format('YYYY-MM-DD HH:mm:ss'));
       scorm.setDataModelVal(req.body.relation, req.body.param, req.body.value);
       if (req.body.param == 'cmi.core.lesson_status' && (req.body.value == 'completed' || req.body.value == 'passed')) { 
@@ -76,7 +78,11 @@ export class LMSRoute extends BaseRoute {
         scorm.setDataModelVal(req.body.relation, 'cmi.core.exit', 'logout');
         scorm.setDataModelVal(req.body.relation, 'cmi.suspend_data', '');
         /*check the completion of the whole training requirement */
-        const requirementModules = await trainingRqmtObj.getTrainingModulesForRequirement();
+        const user = await new User(userTrainingModuleData['user_id']).load();
+        let requirementModules = await trainingRqmtObj.getTrainingModulesForRequirement(userTrainingModuleData['training_requirement_id'], user['account_id']);
+        if (requirementModules.length == 0) {
+          requirementModules = await trainingRqmtObj.getTrainingModulesForRequirement(userTrainingModuleData['training_requirement_id'], 0);
+        }        
         //********* DEBUG CODE ********* */
         //console.log('requirementModules', requirementModules);
         let completed = 0;
@@ -122,22 +128,15 @@ export class LMSRoute extends BaseRoute {
               'training_requirement_id': gofr_trid,
               'user_id': userTrainingModuleData['user_id']
             });
-
-
-            }
+          }
 
         }
-
-       
-
-
-
-        
-        // console.log('TOTAL COMPLETED: ' + completed);
-        
+        //console.log('TOTAL COMPLETED: ' + completed);
+        course_completed = completed;
       }
       return res.status(200).send({
-        'status': true
+        'status': true,
+        'course_completed': course_completed
       });
     });
 

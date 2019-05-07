@@ -1,5 +1,6 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 
+declare var $: any;
 @Component({
   selector: 'app-signup-select-role',
   templateUrl: './select.role.component.html',

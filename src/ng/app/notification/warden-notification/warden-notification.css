@@ -350,3 +350,27 @@
   position: absolute;
   bottom: 10px;
 }
+
+:host::ng-deep ng-multiselect-dropdown .multiselect-dropdown > .dropdown-btn{
+    font-size: 18px;
+    border: 1px solid #f2f2f2 !important;
+    height: 55px !important;
+    
+}
+
+.multiselect-dropdown > .dropdown-btn {
+    border: 1px solid #f2f2f2 !important;
+    height: 55px;
+    
+}
+
+:host /deep/ .multiselect-dropdown .dropdown-btn { 
+    font-size: 18px;
+    border: 1px solid #f2f2f2 !important;
+    height: 55px !important;
+    margin: 10px 0px;
+}
+
+:host /deep/ .multiselect-dropdown .dropdown-btn .dropdown-down {
+    top: 15px !important;
+}

@@ -1,7 +1,4 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ViewEncapsulation, EventEmitter, Output } from '@angular/core';
-import { HttpClient, HttpRequest, HttpResponse, HttpHeaders, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute} from '@angular/router';
 import { UserService } from '../services/users';
 import { AuthService } from '../services/auth.service';
@@ -9,9 +6,10 @@ import { SignupService } from '../services/signup.service';
 import { LocationsService } from '../services/locations';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
 import { ProductService  } from '../services/products.service';
-import { Observable, ReplaySubject, BehaviorSubject, Subscription } from 'rxjs/Rx';
+import { Observable, Subscription } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+
 import { MessageService } from '../services/messaging.service';
 import { DashboardPreloaderService } from '../services/dashboard.preloader';
 
@@ -27,11 +25,14 @@ export class TrainingsComponent implements OnInit, OnDestroy{
 
   userData = {};
   routeSubs;
+  queryParamSub:Subscription;
 
   public isNormalUser = false;
+  public showConfirmationProcessBar = false;
   thisRouteUrl = '';
   user_id_encrypted;
-
+  confirmationProcessStep = 4;
+  
 	constructor(
     private router: Router,
     private route: ActivatedRoute,
@@ -55,6 +56,14 @@ export class TrainingsComponent implements OnInit, OnDestroy{
 	}
 
   ngOnInit() {
+
+    this.queryParamSub = this.route.queryParamMap
+    .subscribe(params => {
+      if (params.has('confirmation')){
+        this.showConfirmationProcessBar = true;
+      }
+    });
+
     for (let i = 0; i < this.userData['roles'].length; i++) {
       // to improve
       // 1 - FRP

@@ -10,41 +10,39 @@ import { User } from './../models/user.model';
 import { Token } from './../models/token.model';
 import { SmartFormModel } from './../models/smartform.model';
 import { SmartFormAnswersModel } from './../models/smartform.answers.model';
-
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { LocationAccountUser } from '../models/location.account.user';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { UtilsSync } from '../models/util.sync';
-import { FileUploader } from '../models/upload-file';
 import { ComplianceDocumentsModel } from '../models/compliance.documents.model';
 import { ComplianceModel } from '../models/compliance.model';
 import { ComplianceKpisModel } from '../models/comliance.kpis.model';
-import { CourseUserRelation } from '../models/course-user-relation.model';
-import * as moment from 'moment';
-import { UserRoleRelation } from '../models/user.role.relation.model';
-const md5 = require('md5');
-const defs = require('../config/defs.json');
-const validator = require('validator');
-const cryptoJs = require('crypto-js');
-import * as multer from 'multer';
-import * as fs from 'fs';
-
-import * as AWS from 'aws-sdk';
-import * as async from 'async';
 import { TrainingRequirements } from '../models/training.requirements';
 import { TrainingCertification } from '../models/training.certification.model';
 import { AccountTrainingsModel } from '../models/account.trainings';
 import { Course } from '../models/course.model';
 import { PaperAttendanceDocumentModel } from '../models/paper.attendance.doc.model';
-import {NotificationToken } from '../models/notification_token.model';
+import { NotificationToken } from '../models/notification_token.model';
 import { NotificationConfiguration } from '../models/notification_config.model';
-import {EmailSender} from '../models/email.sender';
+import { EmailSender } from '../models/email.sender';
 import { Utils } from '../models/utils.model';
 import { RewardConfig } from '../models/reward.program.config.model';
 import { PaperAttendanceComplianceDocumentModel } from '../models/paper.attendance.compliance.document.model';
+import { UserRoleRelation } from '../models/user.role.relation.model';
 import { AccountSubscription } from '../models/account.subscription.model';
+
+const md5 = require('md5');
+const defs = require('../config/defs.json');
+const validator = require('validator');
+const cryptoJs = require('crypto-js');
 const RateLimiter = require('limiter').RateLimiter;
 const AWSCredential = require('../config/aws-access-credentials.json');
+
+import * as moment from 'moment';
+import * as multer from 'multer';
+import * as fs from 'fs';
+import * as AWS from 'aws-sdk';
+import * as async from 'async';
 import * as PDFDocument from 'pdfkit';
 
 export class AdminRoute extends BaseRoute {

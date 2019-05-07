@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -9,13 +10,14 @@ import 'rxjs/add/operator/catch';
 export class AccountsDataProviderService {
 
 	private headers: Object;
-  	private options: Object;
+  private options: Object;
 	private baseUrl: String;
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    	this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
+    this.options = { headers : this.headers };
+		
+		this.baseUrl = environment.backendUrl;
 	}
 
 	getByUserId(user_id, callBack){
@@ -155,6 +157,13 @@ export class AccountsDataProviderService {
 	}
 	performNotificationSummaryAction(reqBody = {}) {
 		return this.http.post(`${this.baseUrl}/accounts/perform-notification-summ-action`, reqBody);
+	}
+
+	getTaggedLocation(account_id=0) {
+		return this.http.get<{
+			buildings: Array<object>,
+			locations: Array<object>
+		}>(this.baseUrl + '/accounts/location-listing/', this.options)
 	}
 
 }
