@@ -20,7 +20,8 @@ export class DashboardComponent implements OnInit {
 	public userRoles;
 	showEmailVerification = false;
 	showResponse = false;
-	responseMessage = '';
+  responseMessage = '';
+  public confirmationProcessStep = 0;
 
   public showConfirmationProcessBar = false;
 	routerSubs;
@@ -95,10 +96,16 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.queryParamSub = this.route.queryParams.filter(params => params.confirmation)
-    .subscribe(params => {      
-      this.showConfirmationProcessBar = true;
-      this.auth.setUserDataItem('confirmation_process', true);
+    this.queryParamSub = this.route.queryParamMap
+    .subscribe(params => {
+      if (params.has('confirmation')){
+        this.showConfirmationProcessBar = true;
+        this.auth.setUserDataItem('confirmation_process', true);
+      }
+      if (params.has('step')) {
+        this.confirmationProcessStep = +params.get('step');
+      }       
+      
     });
 
 

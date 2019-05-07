@@ -472,11 +472,12 @@ export class CourseRoute extends BaseRoute {
                 hasFrpTrpRole = true;
             }catch(e){}
 
+            // redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
             let
             stringUserData = JSON.stringify(loginResponse.data),
-            userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),
-            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/my-training-profile/'+userIdEnc,
-            redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
+            userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),            
+            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/new-training',
+            redirectUrlFRP = 'https://'+req.get('host') + '/trainings/new-training',
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
             stringUserData = stringUserData.replace(/\'/gi, '');
             let script = `

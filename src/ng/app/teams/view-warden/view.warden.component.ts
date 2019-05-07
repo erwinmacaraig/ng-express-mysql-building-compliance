@@ -111,25 +111,30 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 			this.viewData.team = response.data.team;			
 			this.copyTeam = JSON.parse(JSON.stringify(response.data.team));
 			
-			for (let loc of response.data.myEmRoles) {
-				let name = '';
-				if (loc.parent_name == null) {
-					 name = loc.name;
-				} else {
-					name = loc.parent_name + ', ' + loc.name;
-				}				
-				this.viewData.location.push(name);
-				if (emergency_roles.indexOf(loc['em_roles_id']) == -1) {					
-					this.viewData.eco_role.push({
-						em_roles_id: loc['em_roles_id'],
-						role_name: loc['role_name']  
-					});
-					emergency_roles.push(loc['em_roles_id']);
-					this.role_location_table[loc['em_roles_id']] = [loc['location_id']];
-				} else {
-					this.role_location_table[loc['em_roles_id']].push(loc['location_id']);
+			try {
+				for (let loc of response.data.myEmRoles) {
+					let name = '';
+					if (loc.parent_name == null) {
+						 name = loc.name;
+					} else {
+						name = loc.parent_name + ', ' + loc.name;
+					}				
+					this.viewData.location.push(name);
+					if (emergency_roles.indexOf(loc['em_roles_id']) == -1) {					
+						this.viewData.eco_role.push({
+							em_roles_id: loc['em_roles_id'],
+							role_name: loc['role_name']  
+						});
+						emergency_roles.push(loc['em_roles_id']);
+						this.role_location_table[loc['em_roles_id']] = [loc['location_id']];
+					} else {
+						this.role_location_table[loc['em_roles_id']].push(loc['location_id']);
+					}
 				}
+			} catch (e) {
+				console.log('This user has no emergency role.');
 			}
+			
 			this.preloaderService.hide();
 			setTimeout(() => {
 				// ('select').material_select();

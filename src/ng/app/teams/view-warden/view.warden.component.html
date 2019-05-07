@@ -5,10 +5,10 @@
 			
 			<div class="image-container">
 				<!-- <div class="profile-warden"></div> -->
-				<p class="initials" *ngIf="viewData.user.profilePic.length > 0 === false">
+				<p class="initials" *ngIf="userData.profilePic.length > 0 === false">
 					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
 				</p>
-				<img *ngIf="viewData.user.profilePic.length > 0 === true" [src]="viewData.user.profilePic"  >
+				<img *ngIf="userData.profilePic.length > 0 === true" [src]="userData.profilePic">
 			</div>
 
 			<div class="badge-warden"></div>
