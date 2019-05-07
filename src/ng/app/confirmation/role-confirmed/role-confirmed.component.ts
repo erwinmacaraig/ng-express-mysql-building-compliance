@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, AfterViewInit, Input } from "@angular/cor
 import { Subscription } from 'rxjs/Subscription';
 import { Router } from '@angular/router';
 import { MessageService } from '../../services/messaging.service';
+import { AuthService } from '../../services/auth.service';
 
 declare var $: any;
 
@@ -15,14 +16,18 @@ export class RoleConfirmComponent implements OnInit, OnDestroy, AfterViewInit {
     @Input() step:number = 0;
     public locationUpdateSub: Subscription;
     public showLocationCtrlButton = true;
+    public myName = '';
     constructor(
         private messageService: MessageService,
-        private router: Router
+        private router: Router,
+        private authService: AuthService
         ) {
 
     }
 
     ngOnInit() {
+
+        this.myName = this.authService.userDataItem('name');
 
         this.locationUpdateSub = this.messageService.getMessage().subscribe(message => {
             if (message.location_updated) {
