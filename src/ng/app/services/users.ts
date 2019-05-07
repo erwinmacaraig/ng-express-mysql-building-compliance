@@ -42,6 +42,10 @@ export class UserService {
 		});
 	}
 
+	sendInfoGraphic() {
+		return this.http.get<{message: string}>(this.baseUrl + '/mail-info-graphic', this.options);
+	}
+
 	uploadProfilePicture(formData){
 		/*
 		this.http.post(this.baseUrl+"/users/upload-profile-picture", formData)

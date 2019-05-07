@@ -69,7 +69,7 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 		private personService : PersonDataProviderService,
         private encryptDecrypt : EncryptDecryptService,
 		private router : Router,
-		private messageService: MessageService;
+		private messageService: MessageService,
 		){
 		this.userData = this.auth.getUserData();
         

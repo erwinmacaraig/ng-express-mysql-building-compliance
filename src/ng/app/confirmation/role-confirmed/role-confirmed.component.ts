@@ -56,8 +56,7 @@ export class RoleConfirmComponent implements OnInit, OnDestroy, AfterViewInit {
 
     }
 
-    sendEditMessage() {
-        
+    sendEditMessage() {        
         this.messageService.sendMessage({'edit_person_info': true});
     }
 

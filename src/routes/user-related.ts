@@ -70,6 +70,48 @@ export class UserRelatedRoute extends BaseRoute {
     router.post('/eco-user/request-update-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new UserRelatedRoute().requestLocationUpdate(req, res);
     });
+
+    router.get('/mail-info-graphic', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().mailInfoGraphic(req, res);
+    });
+  }
+
+
+  public mailInfoGraphic(req: AuthRequest, res:Response) {
+    const emailData = {
+      users_fullname: `${req.user.first_name} ${req.user.last_name}`
+    };
+
+    let emailType= 'stay_go_info';
+
+    const opts = {
+      from: '',
+      fromName: 'EvacConnect',
+      to: [`${req.user.email}`],
+      cc: [],
+      body : '',
+      attachments: [],
+      subject : 'EvacConnect Email Notification'
+    };
+
+    const email = new EmailSender(opts);
+    email.sendFormattedEmail(emailType, emailData, res, 
+      (data) =>{
+        console.log(data);
+        
+        return res.status(200).send({
+          message: 'Sent'
+        });
+      },
+      (err) => {
+        console.log('Error', err);
+        return res.status(200).send({
+          message: 'Failed'
+        });
+      }
+    );
+      
+
   }
 
 

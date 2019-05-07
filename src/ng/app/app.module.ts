@@ -24,6 +24,7 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { StayAndGoComponent } from './dashboard/stay-go/stay_go.component';
 import { AlertComponent } from './alert/alert.component';
 import { RoleConfirmComponent } from './confirmation/role-confirmed/role-confirmed.component';
 
@@ -291,7 +292,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     RewardProgramConfigComponent,
     ListRewardConfigComponent,
     RedeemersComponent,
-    RoleConfirmComponent
+    RoleConfirmComponent,
+    StayAndGoComponent
   ],
   imports: [
     BrowserModule,

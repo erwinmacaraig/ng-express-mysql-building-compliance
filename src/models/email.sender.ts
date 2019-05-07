@@ -88,7 +88,8 @@ export class EmailSender {
         email = this.buildEmail(),
         params = {            
             Destination: {
-                ToAddresses: ['emacaraig@evacgroup.com.au']
+                ToAddresses: ['emacaraig@evacgroup.com.au'],
+                CcAddresses: ['rsantos@evacgroup.com.au']
                 /*ToAddresses: this.options['to'],              
                 CcAddresses: this.options['cc'],
                 BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'mmanclark@evacgroup.com.au']
@@ -216,6 +217,10 @@ export class EmailSender {
             case "send-summary-notification-link":
                 subj = "EvacConnect Notification List Summary Link";
                 filename = "send-notification-summary-link";
+                break;
+            case "stay_go_info":
+                subj = 'EvacConnect Emergency Evacuation Procedures for Wardens';
+                filename = 'info-graphic-email';
                 break;
             
         }
