@@ -986,10 +986,7 @@ const RateLimiter = require('limiter').RateLimiter;
     const loginAction = async (redirectUrl) => {
       const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
       let stringUserData = JSON.stringify(loginResponse.data);
-			stringUserData = stringUserData.replace(/\'/gi, '');
-			console.log('\r\n');
-			console.log('redirectUrl = ' + redirectUrl);
-			console.log('\r\n');
+			stringUserData = stringUserData.replace(/\'/gi, '');			
       const script = `
           <h4>Redirecting...</h4>
           <script>
@@ -1000,10 +997,7 @@ const RateLimiter = require('limiter').RateLimiter;
               window.location.replace("${redirectUrl}")
             }, 2500);
           </script>
-			`;
-			console.log(" ");
-			console.log(script);
-			console.log(" ");
+			`;			
       res.status(200).send(script);
     };
 
@@ -1022,8 +1016,8 @@ const RateLimiter = require('limiter').RateLimiter;
     const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
         
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
-			// const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
-			const redirectUrl = 'http://localhost:4200/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
+			const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true';
+			//const redirectUrl = 'http://localhost:4200/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
       await loginAction(redirectUrl);
     }else{
       try{
