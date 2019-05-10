@@ -108,6 +108,7 @@ import { WardenNotificationComponent } from './notification/warden-notification/
 import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
 import { NotifiedTRPTrainingsComponent } from './notification/notified-trp-training/notified-trp-training.component';
 import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
+import { RoleResignedComponent } from './confirmation/role-resigned/role-resigned.component';
 
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
@@ -166,7 +167,8 @@ const appRoutes: Routes = [
       { path: 'notification-summary-view/:token', component: SummaryViewComponent },
       { path: 'update-notified-trp-profile/:token', component: NotifiedTrpUpdateProfileComponent},
       { path: 'trainings-for-notified-trp/:token', component: NotifiedTRPTrainingsComponent },
-      { path: 'stay-and-go', component: StayAndGoComponent }
+      { path: 'stay-and-go', component: StayAndGoComponent },
+      { path: 'role-resignation', component: RoleResignedComponent }
     ]
   },
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },

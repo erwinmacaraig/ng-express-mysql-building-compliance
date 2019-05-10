@@ -27,6 +27,7 @@ import { DashboardComponent } from './dashboard/dashboard.component';
 import { StayAndGoComponent } from './dashboard/stay-go/stay_go.component';
 import { AlertComponent } from './alert/alert.component';
 import { RoleConfirmComponent } from './confirmation/role-confirmed/role-confirmed.component';
+import { RoleResignedComponent } from './confirmation/role-resigned/role-resigned.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
@@ -293,6 +294,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     ListRewardConfigComponent,
     RedeemersComponent,
     RoleConfirmComponent,
+    RoleResignedComponent,
     StayAndGoComponent
   ],
   imports: [

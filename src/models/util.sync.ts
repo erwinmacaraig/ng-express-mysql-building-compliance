@@ -121,9 +121,9 @@ export class UtilsSync {
             fromName : 'EvacConnect',
             to : ['adelfin@evacgroup.com.au'],
             cc: ['emacaraig@evacgroup.com.au'],
-            body : '',
+            body: '',
             attachments: [],
-            subject : 'EvacConnect Email Notification'
+            subject: 'EvacConnect Email Notification'
           };
           const email = new EmailSender(opts);
           email.sendFormattedEmail(data['emailType'], emailData, res, 
