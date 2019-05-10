@@ -26,14 +26,16 @@ declare var $: any;
 export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	private msgSub:Subscription;
-
+	isWarden = false;
 	viewData = {
 		team : [],
 		user : {
 			profilePic : ''
 		},
 		location : [],
-		eco_role : []
+		sublocation: [],
+		eco_role : [],
+		display_role: []
 	};
 	public confirmationHeader='';
 	public confirmationMessage='';
@@ -79,6 +81,14 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 
 	ngOnInit(){
 		this.preloaderService.show();
+		const roles = this.auth.userDataItem('roles') as Array<object>;
+		for (let r of roles) {
+			if (r['is_warden_role']) {
+				this.isWarden = true;
+				break;
+			}
+		}
+
 		this.userIdEnc = this.encryptDecrypt.encrypt(this.userData.userId);
 		for(let i in this.userData['roles']){
 			if(this.userData['roles'][i]['is_warden_role']){
@@ -102,34 +112,85 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 	private getWardenDetails() {
 		const emergency_roles = [];
 		this.viewData.location = [];
+		this.viewData.sublocation = [];
 		this.viewData.eco_role = [];
+		this.viewData.display_role = [];
 		this.role_location_table = {};
+		const building = [];
+		const level = [];
+		const display_role_ids = [];
 		this.userService.getMyWardenTeam({
 			role_id : this.initRole
 		}, (response) => {
 			this.viewData.user = response.data.user;
-			this.viewData.team = response.data.team;			
+			if (this.isWarden) {
+				for (let member of response.data.team) {
+					if (member['is_warden_role']) {
+						this.viewData.team.push(member);
+					}
+				}
+			} else {
+				for (let member of response.data.team) {
+					if (member['is_warden_role'] == 0) {
+						this.viewData.team.push(member);
+					}
+				}
+			}
+
+
+			// this.viewData.team = response.data.team;			
 			this.copyTeam = JSON.parse(JSON.stringify(response.data.team));
 			
 			try {
-				for (let loc of response.data.myEmRoles) {
+				for (let loc of response.data.myEmRoles) {					
+					/*
 					let name = '';
+					
 					if (loc.parent_name == null) {
 						 name = loc.name;
+						 
 					} else {
 						name = loc.parent_name + ', ' + loc.name;
 					}				
 					this.viewData.location.push(name);
-					if (emergency_roles.indexOf(loc['em_roles_id']) == -1) {					
+					*/
+					
+					if (loc.parent_name != null && building.indexOf(loc.parent_id) == -1) {
+						building.push(loc.parent_id);
+						this.viewData.location.push(loc.parent_name);						
+					}
+					if (loc.parent_name == null && loc.is_building == 1 && building.indexOf(loc.location_id) == -1) {
+						building.push(loc.parent_id);
+						this.viewData.location.push(loc.parent_name);	
+					}
+					if (loc.is_building == 0 && level.indexOf(loc.location_id) == -1) {
+						level.push(loc.location_id)
+						this.viewData.sublocation.push(loc.name);
+					}
+					if (emergency_roles.indexOf(loc['em_roles_id']) == -1) {						
 						this.viewData.eco_role.push({
 							em_roles_id: loc['em_roles_id'],
 							role_name: loc['role_name']  
 						});
 						emergency_roles.push(loc['em_roles_id']);
-						this.role_location_table[loc['em_roles_id']] = [loc['location_id']];
-					} else {
+						this.role_location_table[loc['em_roles_id']] = [loc['location_id']];						
+					} else if (emergency_roles.indexOf(loc['em_roles_id']) != -1) {
 						this.role_location_table[loc['em_roles_id']].push(loc['location_id']);
 					}
+
+					if (this.isWarden) {
+						if (display_role_ids.indexOf(loc['em_roles_id']) == -1 && loc['is_warden_role'] == 1) {
+							this.viewData.display_role.push(loc['role_name']);													
+							display_role_ids.push(loc['em_roles_id']);												
+						} 
+					} else {
+						if (display_role_ids.indexOf(loc['em_roles_id']) == -1 && loc['is_warden_role'] == 0) {						
+							this.viewData.display_role.push(loc['role_name']);
+							display_role_ids.push(loc['em_roles_id']);
+													
+						}
+					}
+					
 				}
 			} catch (e) {
 				console.log('This user has no emergency role.');

@@ -2,7 +2,7 @@
 
 <div class="navbar-fixed" *ngIf="step == 0">
     <div class="navbar-fixed-control-text">
-        <span>Are the information below updated?</span>        
+        <span>Finish updating your profile?</span>        
     </div>
     <div class="navbar-fixed-control-buttons">
         <button class="btn orange waves-effect waves-light" [routerLink]="['/teams', 'view-warden']" [queryParams]="{confirmation: true}" type="button">Yes</button>
@@ -13,7 +13,7 @@
 <div class="navbar-fixed" *ngIf="step == 1">
     <div *ngIf="showLocationCtrlButton == true">
         <div class="navbar-fixed-control-text">
-            <span>Are you still located at the sublocation specified below?</span>        
+            <span>Are you still located at the Sub Location specified below?</span>        
         </div>
         <div class="navbar-fixed-control-buttons">
             <button class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'stay-and-go']" [queryParams]="{confirmation: true, step: 3}" type="button">Yes</button>
@@ -49,8 +49,8 @@
 <div id="modal-welcome-confirmation" class="modal">
     <div class="modal-content">
         <div class="modal-content-message">
-            <h5>Welcome back to EvacConnect,</h5>
-            <h4>{{myName}}</h4>
+            <h4>{{role}} Confirmation Process</h4>
+            <h5>Welcome back to EvacConnect, <br>{{myName}}</h5>
             <div style="padding: 15px 0px">
                 <p>Thank you for participating. We just need a little bit of your time to  keep you current.</p>
                 <p>

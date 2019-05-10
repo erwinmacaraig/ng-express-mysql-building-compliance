@@ -6,6 +6,7 @@ import { SignupService } from '../services/signup.service';
 import { UserService } from '../services/users';
 import { Subscription } from 'rxjs/Subscription';
 
+
 declare var $: any;
 
 @Component({
@@ -17,7 +18,8 @@ declare var $: any;
 export class DashboardComponent implements OnInit {
 	private baseUrl: String;
 	public userData: Object;
-	public userRoles;
+  public userRoles;
+  public emergencyRole = '';
 	showEmailVerification = false;
 	showResponse = false;
   responseMessage = '';
@@ -98,13 +100,18 @@ export class DashboardComponent implements OnInit {
   ngOnInit() {
     this.queryParamSub = this.route.queryParamMap
     .subscribe(params => {
+      console.log(params);
       if (params.has('confirmation')){
         this.showConfirmationProcessBar = true;
         this.auth.setUserDataItem('confirmation_process', true);
       }
       if (params.has('step')) {
         this.confirmationProcessStep = +params.get('step');
-      }       
+      }
+      if (params.has('r')) {
+        this.emergencyRole = decodeURIComponent(params.get('r'));
+        console.log('emergency role from url',  this.emergencyRole);
+      }
       
     });
 

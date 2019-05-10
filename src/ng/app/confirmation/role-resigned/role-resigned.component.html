@@ -5,7 +5,7 @@
     <div class="form-field-containter">
         <div class="form-field-item">
             <select class="form-field-item-selection" (change)="onSelectReason($event)" #reasons>
-                <option value="-1" disabled>Select your answer here.</option>
+                <option value="-1" disabled  selected>Select your answer here.</option>
                 <option *ngFor="let reason of reasonList; let i = index" value="{{i}}">{{reason}}</option>
             </select>
         </div>
@@ -19,7 +19,7 @@
                 </div>
                 <div class="form-field-item">
                     <select class="form-field-item-selection" [(ngModel)]="selectedSubIndex">
-                        <option value="-1" disabled>Search location level</option>
+                        <option value="-1" disabled selected>Search location level</option>
                         <option *ngFor="let sub of sublocations; let i = index;" value="{{i}}">{{sub['name']}}</option>
                     </select>
                 </div>                
@@ -32,7 +32,7 @@
             </ng-container>
 
             <ng-container *ngIf="selectedReasonIndex == 3">
-                <h6 class="resignation-color-heading-text">Would you be able to nominate a new warden?</h6>
+                <h6 class="resignation-color-heading-text">Would you be able to nominate a new {{emergencyRole}}?</h6>
                 <p>
                     <input type="radio" name="nomination" id="yes-nominate"><label class="label-style" for="yes-nominate">Yes, I can nominate</label>
                 </p> 

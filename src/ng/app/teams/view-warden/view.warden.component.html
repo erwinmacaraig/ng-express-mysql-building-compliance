@@ -14,34 +14,39 @@
 			<div class="badge-warden"></div>
 
 			<div class="name-container ">
-				<h5 class="name blue-text">
-					<span *ngFor="let role of viewData.eco_role" style="display: block; padding-bottom: 10px;">{{role['role_name']}}</span>
+				<h5 class="name">
+					<span *ngFor="let role of viewData.display_role" style="display: block; padding-bottom: 10px;">{{role}}</span>
 				</h5>				
 			</div>
 		</div>	
 	</div>
 	<div class="row">
-		<div class="col l12 m12 s12 location-div">
+		<div class="col l12 m12 s12 location-div" *ngIf="viewData.location.length > 0">
 			<small>Location</small>
 			<h6 *ngFor="let loc of viewData.location">
 				{{loc}}
 			</h6>
 		</div>
+
+		<div class="col l12 m12 s12 location-div" *ngIf="viewData.sublocation.length > 0">
+			<small>Sub Location</small>
+			<h6 *ngFor="let loc of viewData.sublocation">
+				{{loc}}
+			</h6>
+		</div>
+
 	</div>
 
 	<div class="bottom-buttons">
-		<button class="btn blue waves-effect waves-light request-change-loc" (click)="showUpdateLocForm()">
-					<div class="image inline-block"></div>
+		<button class="btn blue waves-effect waves-light request-change-loc" (click)="showUpdateLocForm()">					
 					<div class="text inline-block">Update Sub Location</div>
 		</button>
 
-		<button class="btn orange waves-effect waves-light remove" (click)="resignClicked()">
-			<div class="image inline-block"></div>
+		<button class="btn orange waves-effect waves-light remove" (click)="resignClicked()">			
 			<div class="text inline-block">Resign as Warden</div>
 		</button>
 
-		<button class="btn pink waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden' }">
-			<div class="image inline-block"></div>
+		<button class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden' }">			
 			<div class="text inline-block">Personal Emergency Evacuation Plan</div>
 		</button>
 	</div>

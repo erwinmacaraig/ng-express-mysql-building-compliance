@@ -1073,13 +1073,23 @@ const RateLimiter = require('limiter').RateLimiter;
       return res.redirect('/success-valiadation?verify-notified-user=0');
 		}	
 		
-
+		// update record
+		await tokenObj.create({
+			strToken: '',
+			strStatus: 'Validated',
+			responded: 1,
+			dtResponded: moment().format('YYYY-MM-DD'),
+			completed: 1,
+			dtCompleted: moment().format('YYYY-MM-DD')
+		});
+		
     const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
         
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
-			const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true';
+			const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text']);
 			//const redirectUrl = 'http://localhost:4200/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
-      await loginAction(redirectUrl);
+			
+			await loginAction(redirectUrl);
     }else{
       try{
         await userRole.getByUserId(uid);
@@ -1088,15 +1098,7 @@ const RateLimiter = require('limiter').RateLimiter;
         hasFrpTrpRole = false;
       }
 
-      // update record
-      await tokenObj.create({
-        strToken: '',
-        strStatus: 'Validated',
-        responded: 1,
-        dtResponded: moment().format('YYYY-MM-DD'),
-        completed: 1,
-        dtCompleted: moment().format('YYYY-MM-DD')
-      });
+      
 
   		const userResponded: Array<number> = configDBData['user_responded'].split(',');
   		if (userResponded.indexOf(uid) == -1) {
