@@ -4,21 +4,31 @@ import { ActivatedRoute } from '@angular/router';
 
 import { UserService } from '../../services/users';
 import { Subscription } from 'rxjs/Subscription';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+
+declare var $: any;
 
 @Component({
     selector: 'app-stay-go',
     templateUrl: './stay_go.component.html',
     styleUrls: ['./stay_go.component.css'],
-    providers: [UserService]
+    providers: [UserService, DashboardPreloaderService]
 })
 export class StayAndGoComponent implements OnInit, AfterViewInit, OnDestroy {
 
     private mySub:Subscription;
-    constructor(private route: ActivatedRoute, private userService: UserService) {
+    public emailSentHeading = 'Success!';
+    public emailSendingStat = 'Email sent successfully';
+    constructor(private route: ActivatedRoute, private userService: UserService, private preloader: DashboardPreloaderService) {
 
     }
     
     ngOnInit() {
+        $('.modal').modal({
+            dismissible: false,
+            endingTop: '25%',
+            opacity: 0.7
+        });
 
     }
 
@@ -33,10 +43,20 @@ export class StayAndGoComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     emailInfoGraphic() {
+        this.preloader.show();
         this.mySub = this.userService.sendInfoGraphic().subscribe((response) => {
-            console.log('Success');
+            this.preloader.hide();
+            setTimeout(() => {
+                $('#modal-email-confirmation').modal('open');
+            }, 300);
+            
         }, (error) => {
-            alert('Error sending email. Try again later.');
+            this.emailSentHeading = 'Fail!';
+            this.emailSendingStat = 'Error sending email. Try again later.';
+            this.preloader.hide();
+            setTimeout(() => {
+                $('#modal-email-confirmation').modal('open');
+            }, 300);
         });
     }
 

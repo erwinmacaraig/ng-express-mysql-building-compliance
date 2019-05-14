@@ -84,8 +84,7 @@ export class EmailSender {
     }
 
     public async send(success, error){
-        var
-        email = this.buildEmail(),
+        let email = this.buildEmail(),
         params = {            
             Destination: {
                 ToAddresses: ['emacaraig@evacgroup.com.au'],
@@ -108,7 +107,7 @@ export class EmailSender {
                 }
               }
             }
-        };
+        };        
         await this.ses.sendEmail(params, function(err, data) {
           if(err) {
               error(err);
@@ -222,6 +221,10 @@ export class EmailSender {
                 subj = 'EvacConnect Emergency Evacuation Procedures for Wardens';
                 filename = 'info-graphic-email';
                 break;
+            case "notification-response":
+                subj = 'EvacConnect Email Notification - User Response';
+                filename = 'user-confirmation-response';
+            break;
             
         }
 
@@ -232,6 +235,10 @@ export class EmailSender {
 
                 this.options['subject'] = subj;
                 this.options['body'] = htmlBody;
+
+                if (err) {
+                    console.log(err);
+                }
 
                 this.send(success,error);
             });

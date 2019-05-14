@@ -72,23 +72,25 @@
                 </div>
 
                 <div class="col s12 m12 l12 input-field" *ngIf="editCtrl">
-                    <button class="btn orange waves-effect waves-light" type="submit" [disabled]="!f.valid" style="margin-right: 10px;">Submit</button>
-                    <button class="btn grey grey lighten-1 waves-effect waves-light" (click)="onResetForm()">Cancel</button>
+                    <button class="btn orange waves-effect waves-light" type="submit" [disabled]="!f.valid" style="margin-right: 10px;">Save Profile Information</button>
+                    <!--<button class="btn grey grey lighten-1 waves-effect waves-light" (click)="onResetForm()">Cancel</button>-->
                 </div>
 
                 <div class="col s12 m12 l12 input-field" *ngIf="!editCtrl">
                     <button class="btn orange waves-effect waves-light" (click)="editCtrl=!editCtrl">Edit</button>
                 </div>
-
             </div>
-
         </div>
-
-
-
-
-
-
     </div>
-
 </form>
+<div id="modal-edit-confirmation" class="modal">
+    <div class="modal-content">
+        <div class="modal-content-message">
+            <h3>Success!</h3>
+                <h5>Personal information updated.</h5>
+            <div class="modal-footer">
+                <a class="modal-close waves-effect waves-green btn-flat">Ok</a>
+            </div>
+        </div>
+    </div>
+</div>

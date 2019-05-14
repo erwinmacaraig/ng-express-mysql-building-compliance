@@ -30,7 +30,7 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
 
   public person;
   public accountTypes;
-  editCtrl = false;
+  editCtrl = true;
   private baseUrl;
   public message;
   emailBlackListed = false;
@@ -53,8 +53,12 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   ngOnInit() {
-      this.userId = this.authService.userDataItem('userId'); 
-      
+      this.userId = this.authService.userDataItem('userId');
+      $('.modal').modal({
+        dismissible: false,
+        endingTop: '25%',
+        opacity: 0.7
+      });
       
       if(this.authService.userDataItem('profilePic').length > 5){
           this.usersImageURL = this.authService.userDataItem('profilePic');
@@ -79,16 +83,16 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     ); // end of subscribe
 
-    this.mySub = this.messageService.getMessage().subscribe((message) => {
-      console.log(message);
+    this.mySub = this.messageService.getMessage().subscribe((message) => {      
       if (message.profilePic) {
         this.hasUserImage = true;
         this.usersImageURL = message.profilePic;
       }
-      if (message.edit_person_info) {
-        console.log('here at person info with ' + message.edit_person_info);
+      /*
+      if (message.edit_person_info) {        
         this.editCtrl = message.edit_person_info;
       }
+      */
     });
 
   }
@@ -113,6 +117,7 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
       this.person.email = f.value.email;
       this.person.phone_number = f.value.phone_number;
       this.person.occupation = f.value.occupation;
+      $('#modal-edit-confirmation').modal('open');
       this.messageService.sendMessage({
         'person_first_name': f.value.first_name,
         'person_last_name': f.value.last_name
@@ -145,7 +150,8 @@ export class PersonInfoComponent implements OnInit, AfterViewInit, OnDestroy {
    } // emd onSubmitModifyPersonInfo
 
   onResetForm() {
-    this.editCtrl = false;
+    // this.editCtrl = false;
+    this.editCtrl = true;
     this.personInfoForm.resetForm(this.person);
     this.emailBlackListed = false;
   }

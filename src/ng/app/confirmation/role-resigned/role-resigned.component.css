@@ -1,0 +1,96 @@
+.role-resignation-container {
+    margin: 5px 500px;
+}
+
+.resignation-color-heading-text {
+    color: #2196F3;
+}
+
+.form-field-containter {
+    padding:3px;    
+    margin: 5px 0;
+}
+
+.form-info-fields {
+    margin: 20px 0;
+}
+.form-field-item-selection {
+    display: inline-block;
+    width: 100%;
+    background-color: #f2f2f2;
+    border-radius: 10px;
+    height: 3.5rem;
+
+}
+
+.form-field-item {
+    margin: 10px 0;
+}
+
+.btn-layout {
+    width: 100%;
+    margin: 20px 0;
+}
+
+textarea {
+    width: 100%;
+    height: 6rem;
+    background-color: #f2f2f2;
+    border-radius: 5px;
+
+}
+
+textarea::placeholder, input[type=text]::placeholder {
+    color: black;
+    font-size: .85rem;
+    padding-left: 10px;
+}
+
+/* label focus color */
+input#nominated_person[type=text]:focus + label {
+    color: none;
+}
+
+input#nominated_person_email[type=text]:focus + label {
+    color: none;
+}
+/* label underline focus color */
+input#nominated_person[type=text]:focus, input#nominated_person_email[type=text]:focus {
+    border-bottom: none;
+    box-shadow: 0 1px 0 0 #f2f2f2;
+}
+
+input#nominated_person[type=text], input#nominated_person_email[type=text] {
+      height: 3rem;
+      background-color: #f2f2f2;
+      border-radius: 10px;
+      border-bottom: none;
+
+}
+
+.person-nominated-container {
+    margin-left: 35px;
+}
+
+.label-style {
+    font-size: 14px !important;
+}
+
+.modal {
+    height: 37% !important;
+    width: 45% !important;
+}
+
+.modal-content-message {
+    text-align: center;
+}
+
+.modal-content-message h5 {
+    color: #64b5f6;
+}
+
+.modal .modal-footer {
+    text-align: center !important;
+}
+
+

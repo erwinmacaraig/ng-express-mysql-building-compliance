@@ -104,7 +104,7 @@
 
 .left-panel .bottom-buttons .btn{
 	margin-bottom: 20px;
-	height: 80px !important;
+	/*height: 80px !important;*/
 	padding: 0px;
     width: 245px;
 }
@@ -367,9 +367,12 @@ table tbody td .image{
 table tbody td .text{
     display: inline-block;
 }
+.location-div {
+    margin: 10px 0;
+}
 
 .location-div small{
-    font-size: 24px;
+    font-size: 20px;
 }
 
 .location-div h5{

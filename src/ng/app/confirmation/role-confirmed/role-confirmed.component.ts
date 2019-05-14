@@ -14,6 +14,7 @@ declare var $: any;
 })
 export class RoleConfirmComponent implements OnInit, OnDestroy, AfterViewInit {
     @Input() step:number = 0;
+    @Input() role: string = 'Warden';
     public locationUpdateSub: Subscription;
     public showLocationCtrlButton = true;
     public myName = '';
