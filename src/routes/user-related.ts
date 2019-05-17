@@ -18,6 +18,8 @@ import { Location } from '../models/location.model';
 import { Token } from '../models/token.model';
 import { UserLocationValidation } from '../models/user-location-validation.model';
 import * as moment from 'moment';
+import { LocationAccountUser } from '../models/location.account.user';
+
 const defs = require('../config/defs.json');
 
 
@@ -74,9 +76,135 @@ export class UserRelatedRoute extends BaseRoute {
     router.get('/mail-info-graphic', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
       new UserRelatedRoute().mailInfoGraphic(req, res);
     });
+
+    router.post('/account-user/request-update-location', new MiddlewareAuth().authenticate,  (req: AuthRequest, res: Response) => {
+      new UserRelatedRoute().requestAccountUserLocationUpdate(req, res);
+    });
   }
 
 
+  public async requestAccountUserLocationUpdate(req, res) {
+    let requestData = {
+      user_id: 0,
+      requested_role_id: 0,
+      location_id: 0,
+      provided_info: '',
+      remarks: ''
+    };
+    const user_role = req.body.role_id;
+    const oldLocation = JSON.parse(req.body.oldLocation);
+    const newLocation = JSON.parse(req.body.newLocation);
+    let oldLocationRecord = [];
+    let newLocationRecord = [];
+    for (let oLoc of oldLocation) {
+      const rec = await new Location(oLoc).load();
+      oldLocationRecord.push(rec);
+    }
+
+    for (let nLoc of newLocation) {
+      const rec = await new Location(nLoc).load();
+      newLocationRecord.push(rec);
+    }
+
+    oldLocationRecord = await new UtilsSync().getRootParent(oldLocationRecord);
+    newLocationRecord = await new UtilsSync().getRootParent(newLocationRecord);
+   
+    const oldLocationStrArr = [];
+    for (let oLoc of oldLocationRecord) {
+      if (oLoc['root_parent_loc_id'] == oLoc['location_id']) {
+        oldLocationStrArr.push(oLoc['name']);
+      } else {
+        oldLocationStrArr.push(`${oLoc['name']}, ${oLoc['root_parent_name']}`);
+      }
+    }
+
+    const newLocationStrArr = [];
+    for (let nLoc of newLocationRecord) {
+      if (nLoc['root_parent_loc_id'] == nLoc['location_id']) {
+        newLocationStrArr.push(nLoc['name']);
+      } else {
+        newLocationStrArr.push(`${nLoc['name']}, ${nLoc['root_parent_name']}`);
+      }
+    }
+
+    let remarks =`
+    ${req.user.first_name} ${req.user.last_name} (${req.user.email}) is requesting for a location update.
+    Account Role: ${defs['roles'][user_role]}
+    From location: 
+    ${oldLocationStrArr.join('\r\n')}
+
+    To location: 
+    ${newLocationStrArr.join('\r\n')}
+    
+    Additional Info: 
+    
+    `;
+
+
+    for (let nLoc of newLocation) { 
+      requestData = {
+        user_id: 0,
+        requested_role_id: 0,
+        location_id: 0,
+        provided_info: '',
+        remarks: ''
+      }
+
+      requestData['user_id'] = req.user.user_id;
+      requestData['requested_role_id'] = user_role;
+      requestData['location_id'] = nLoc;
+      
+      requestData['remarks'] = remarks;
+      
+      try {
+        await new UserRequest().create(requestData);
+      } catch(e) {
+        console.log(e);
+      }      
+    }
+
+    try {
+      for (let l of oldLocation) {
+       await new LocationAccountUser().deleteAccountUserFromLocation(req.user.user_id, l);       
+      }
+      for (let a of newLocation) {
+        await new LocationAccountUser().create({
+          'location_id': a,
+          'account_id': req.user.account_id,
+          'user_id': req.user.user_id
+        });
+      }
+    } catch(e) {
+      console.log(e);
+    }
+    const opts = {
+      from : '',
+      fromName : 'EvacConnect',
+      to : ['emacaraig@evacgroup.com.au', 'rsantos.evacgroup.com.au'],
+      cc: [],
+      body : `<pre> ${remarks} </pre>`,
+      attachments: [],
+      subject : 'EvacConnect Location Update Notification'
+    };
+    const email = new EmailSender(opts);
+    email.send(
+      (data) => {
+          console.log('Email sent successfully');					
+      },
+      (err) => console.log(err)
+    );
+
+    const assignedLocations = await new LocationAccountUser().getByUserId(req.user.user_id, true);
+    
+    return res.status(200).send({
+      message: 'Success',
+      assigned_locations: assignedLocations
+    });
+
+
+
+
+  }
   public mailInfoGraphic(req: AuthRequest, res:Response) {
     const emailData = {
       users_fullname: `${req.user.first_name} ${req.user.last_name}`
@@ -240,7 +368,7 @@ export class UserRelatedRoute extends BaseRoute {
 
     
     return res.status(200).send({
-      message: 'Test'
+      message: 'Success'
     });
 
   }

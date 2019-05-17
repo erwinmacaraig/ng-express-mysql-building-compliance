@@ -167,7 +167,7 @@ export class UserRoleRelation extends BaseClass {
         });
     }
 
-    public getManyByUserIds(userIds, roleIds?) {
+    public getManyByUserIds(userIds, roleIds?): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const
             roleidsQ = (roleIds) ? ' AND role_id IN ('+roleIds+') ' : '',
@@ -180,7 +180,9 @@ export class UserRoleRelation extends BaseClass {
 
               connection.query(sql_load, (error, results, fields) => {
                   if (error) {
-                      return console.log(error);
+                      
+                    return console.log(error, sql_load);
+
                   }
                   resolve(results);
               });

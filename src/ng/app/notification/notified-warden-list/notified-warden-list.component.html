@@ -1,0 +1,74 @@
+<div class="row">
+    <div class="col s12">
+        <h4 class="top-heading">Warden Confirmation List</h4>
+    </div>
+    <div class="col s12">
+        <div class="sub-headings__location">
+            <span style="display: block;">Location</span>
+            <span *ngFor="let building of myBuildings" class="sub-heading-text-value">{{building['name']}}</span>
+        </div>
+        <div class="sub-headings">
+            <span style="display: block;">No. of Receiver</span>
+            <span class="sub-heading-text-value">{{wardenList.length}}</span>
+        </div>
+        <div class="sub-headings">
+            <span style="display: block;">No. of Respondent</span>
+            <span class="sub-heading-text-value">{{responders}}</span>
+        </div>
+        <div class="resend-button-container right-align">
+            <button type="button" class="btn blue waves-effect waves-light">Resend notification to all pending status</button>
+        </div>
+    </div>
+    <div class="col s12">
+        <table class="striped">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Response</th>                    
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Sublocation</th>
+                    <th>Last Activity (dd/MM/YYYY)</th>
+                    <th>Required Action</th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                <tr *ngIf="wardenList.length == 0">
+                    <td colspan="8">No Records Found</td>
+                </tr>
+                <tr *ngFor="let warden of wardenList">
+                    <td>{{warden.strStatus}}</td>
+                    <td>
+                        <ng-container *ngIf="warden['jsonResponse']">
+                            <span class="response-parser">
+                               {{warden['jsonResponse']['reason']}}
+                            </span>
+                            <span *ngIf="warden['jsonResponse']['info'] != ''"> Additional Info: </span>
+                            <span *ngIf="warden['jsonResponse']['info'] != ''" class="response-parser">
+                               {{warden['jsonResponse']['info']}}
+                            </span>
+                        </ng-container>
+                    </td>
+                    <td>{{warden.first_name}} {{warden.last_name}}</td>
+                    <td>{{warden.email}}</td>
+                    <td>{{warden.mobile}}</td>
+                    <td>{{warden.name}}</td>
+                    <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
+                    <td>
+                        <div *ngIf="warden.strStatus == 'Pending'">
+                            <button style="width: 100%;" type="button" class="btn blue waves-effect waves-light">Resend Notification</button>
+                        </div>
+                        <div style="text-align: center;" *ngIf="warden.strStatus == 'Resigned'">
+                            <button style="width: 48%;" type="button" class="btn orange waves-effect waves-light" (click)="acceptResignation(warden['user_id'], warden['location_id'], warden['notification_token_id'])">Accept</button>
+                            <button style="width: 49%;" type="button" class="btn blue waves-effect waves-light" (click)="rejectResignation(warden['user_id'], warden['location_id'], warden['notification_token_id'])">Reject</button>
+                        </div>
+                        
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div preloader></div>

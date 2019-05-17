@@ -23,7 +23,7 @@ import { MobilityImpairedModel } from '../models/mobility.impaired.details.model
 import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { TrainingCertification } from './../models/training.certification.model';
-
+import { NotificationToken } from './../models/notification_token.model';
 const md5 = require('md5');
 const defs = require('../config/defs');
 import * as moment from 'moment';
@@ -168,6 +168,10 @@ export class TeamRoute extends BaseRoute {
     router.post('/team/training/send-invite/', new MiddlewareAuth().authenticate, async (req: AuthRequest, res: Response, next: NextFunction) => {
         new TeamRoute().trainingSendInvite(req, res);
     });
+
+    router.post('/team/build-eco-team-list/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new TeamRoute().buildMyEcoTeam(req, res);
+    });
 }
 
   /**
@@ -178,6 +182,91 @@ export class TeamRoute extends BaseRoute {
    */
   constructor() {
     super();
+  }
+
+
+  public async buildMyEcoTeam(req: AuthRequest, res: Response) {
+
+    let assignedLocations = [];
+    let buildings = [];
+    let sublocations = [];
+    let tempArr = [];
+    let whereLoc = [];
+    const location = new Location();
+    let list = [];
+    assignedLocations = JSON.parse(req.body.assignedLocations);
+    let myBuildings = [];
+
+    if (assignedLocations.length == 0) {
+        return res.status(500).send({
+            list: [],
+            message: 'No supplied location parameter'
+        });
+    }
+    whereLoc.push( `location_id IN (${assignedLocations.join(',')})`);
+	tempArr = await location.getWhere(whereLoc) as Array<object>;
+		
+    for (let index of tempArr) {
+        if (buildings.indexOf(index['parent_id']) == -1 && index['parent_id'] != -1) {
+            buildings.push(index['parent_id'])
+        } else if(buildings.indexOf(index['location_id']) == -1 && index['parent_id'] == -1 && index['is_building'] == 1) {
+            buildings.push(index['location_id']);
+            sublocations.push(index['location_id']);
+        }
+    }
+
+    whereLoc = [];
+    tempArr = [];
+    whereLoc.push(`parent_id IN (${buildings.join(',')})`);
+    tempArr = await location.getWhere(whereLoc) as Array<object>;
+    //tempArr now contains the sublevels
+
+    // getting the building details
+    whereLoc = [];
+    whereLoc.push(`location_id IN (${buildings.join(',')})`);
+    myBuildings = await location.getWhere(whereLoc) as Array<object>;
+
+    // get all wardens from these locations which belongs to the same account
+    for (let loc of tempArr) {
+        sublocations.push(loc['location_id']);	
+    }
+
+
+    tempArr = await new UserEmRoleRelation().getUserLocationByAccountIdAndLocationIds(req.user.account_id, sublocations.join(','));
+    // tempArr now contains all eco and go from the locations specified under the same account
+
+    let userIds = [];    
+    for (let user of tempArr) {
+        if (user['is_warden_role'] == 1) {
+            userIds.push(user['user_id']);            
+        }
+    }
+
+    // cross reference this users from notification_token table
+    const notificationToken = new NotificationToken();
+    list = await notificationToken.generateSummaryList({
+        'user_ids': userIds,
+        'location_ids': sublocations,
+        'role_text': 'Warden'
+    });
+
+
+    res.status(200).send({
+        list: list,
+        building: myBuildings
+    });
+
+
+
+    
+    /*
+   
+
+    tempArr = [];
+    
+
+    
+    */
   }
 
   /**

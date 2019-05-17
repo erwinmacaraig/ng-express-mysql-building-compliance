@@ -45,6 +45,8 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
     private configId = 0;
     public nominated_person_email = '';
     public myName = '';
+    public textAreaPlaceHolder = '';
+    public validInfo = true;
     constructor(
         private authService: AuthService,
         private accountService: AccountsDataProviderService,
@@ -114,6 +116,12 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
     onSelectReason(e) {                
         console.log(this.selectReason.nativeElement.value);
         this.selectedReasonIndex = +this.selectReason.nativeElement.value;
+        if (this.selectedReasonIndex == 3) {
+            this.textAreaPlaceHolder = 'Please provide additional information why you are resigning.';
+        } else {            
+            this.textAreaPlaceHolder = 'Please provide us additional information';
+        }
+        this.validInfo = true;
     }
 
     loadSublevel(e) {
@@ -156,13 +164,22 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
             break;
             case 1:
             case 2:
-            case 4:
+            case 3:
+            case 4:            
             query_responses['info'] = this.info.nativeElement.value; 
             break;
-            case 3:
-            query_responses['nominated_person'] = this.nominated_person;
-            query_responses['nominated_person_email'] = this.nominated_person_email;
-            break;
+            
+        }
+
+        query_responses['nominated_person'] = this.nominated_person;
+        query_responses['nominated_person_email'] = this.nominated_person_email;
+        
+        if (this.selectedReasonIndex == 3 &&  this.info.nativeElement.value == '') {
+            this.validInfo = false;
+            setTimeout(() => {
+                this.preloader.hide();
+            }, 600);
+            return false;
         }
         postBody.query_responses = JSON.stringify(query_responses);
         console.log(query_responses);

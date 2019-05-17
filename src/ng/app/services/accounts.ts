@@ -166,4 +166,20 @@ export class AccountsDataProviderService {
 		}>(this.baseUrl + '/accounts/location-listing/', this.options)
 	}
 
+	getAccountRoleInLocation(locationIds=[]) {
+		const assignedLocations = JSON.stringify(locationIds);
+		const httpParams = new HttpParams().set('assignedLocations', assignedLocations);
+		this.options['params'] = httpParams;
+		return this.http.get<{account_roles:  object[]}>(`${this.baseUrl}/accounts/location/roles`, this.options);
+	}
+
+	acceptResignationFromConfirmation(userId=0, locationId = 0, configId = 0) {
+		return this.http.post(`${this.baseUrl}/accounts/accept-resignation-confirmation/`, {
+			location_id: locationId,
+			user_id: userId,
+			notification_token_id: configId
+		});
+
+	}
+
 }

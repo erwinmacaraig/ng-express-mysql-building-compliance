@@ -84,6 +84,7 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
 import { NgDatepickerModule } from 'ng2-datepicker';
 import { ListGeneralOccupantComponent } from './teams/list-gen-occ/list.gen.occ.component';
 import { TeamsAddGeneralOccupantComponent } from './teams/add-gen-occ/add.gen.occ.component';
+import { ViewAccountRoleComponent } from './teams/view-account-role/view-account-role.component';
 
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
@@ -138,6 +139,8 @@ import { SummaryViewComponent } from './notification/summary-view/summary.view.c
 import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
 import { NotifiedTRPTrainingsComponent } from './notification/notified-trp-training/notified-trp-training.component';
 */
+
+import { NotifiedWardenListComponent } from './notification/notified-warden-list/notified-warden-list.component';
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -223,6 +226,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AllUsersArchivedComponent,
     ListGeneralOccupantComponent,
     TeamsAddGeneralOccupantComponent,
+    ViewAccountRoleComponent,
 
     ComplianceComponent,
     ViewComplianceComponent,
@@ -270,6 +274,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     SummaryViewComponent,
     NotifiedTRPTrainingsComponent,
     */
+   NotifiedWardenListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,

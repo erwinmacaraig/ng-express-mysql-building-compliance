@@ -121,7 +121,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getUserLocationByAccountIdAndLocationIds(accountId, locIds, archived = 0) {
+    public getUserLocationByAccountIdAndLocationIds(accountId, locIds, archived = 0): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -130,7 +130,8 @@ export class UserEmRoleRelation extends BaseClass {
                       uer.location_id,
                       er.em_roles_id,
                       l.name as location_name,
-                      l.parent_id,
+                      parent.name as building,
+                      l.parent_id,                      
                       l.formatted_address,
                       l.google_place_id,
                       l.google_photo_url,
@@ -141,10 +142,11 @@ export class UserEmRoleRelation extends BaseClass {
                       u.last_name,
                       u.user_id,
                       u.email
-                    FROM em_roles er
-                    INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
+                    FROM user_em_roles_relation uer
                     INNER JOIN users u ON u.user_id = uer.user_id
+                    INNER JOIN em_roles er ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
+                    LEFT JOIN locations parent ON l.parent_id = parent.location_id
                     WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived} AND u.archived = 0`;
 
             this.pool.getConnection((err, connection) => {
@@ -155,11 +157,9 @@ export class UserEmRoleRelation extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
-                    this.dbData = results;
-                    resolve(this.dbData);
                     connection.release();
-                });
-                
+                    resolve(results);                    
+                });                
             });
             
         });

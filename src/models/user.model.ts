@@ -914,7 +914,7 @@ export class User extends BaseClass {
                             INNER JOIN
                                 location_account_user
                             ON users.user_id = location_account_user.user_id
-                            INNER JOIN
+                            LEFT JOIN
                                 user_role_relation
                             ON
                                 location_account_user.user_id = user_role_relation.user_id

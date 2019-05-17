@@ -15,14 +15,15 @@ import { List } from '../models/list.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { AccountSubscription } from '../models/account.subscription.model';
-const validator = require('validator');
-const cryptoJs = require('crypto-js');
 import * as moment from 'moment';
 import { AuthenticateLoginRoute } from './authenticate_login';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { Token } from '../models/token.model';
 import { UtilsSync } from '../models/util.sync';
+const validator = require('validator');
+const cryptoJs = require('crypto-js');
+const defs = require('../config/defs.json');
 const RateLimiter = require('limiter').RateLimiter;
 
 /**
@@ -156,6 +157,11 @@ const RateLimiter = require('limiter').RateLimiter;
 			new AccountRoute().getLocationListing(req, res);
 		});
 
+		router.get('/accounts/location/roles', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new AccountRoute().accountUsersInLocation(req, res);
+		});
+		
+
   }
 
 	/**
@@ -166,6 +172,90 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
+	}
+
+	public async accountUsersInLocation(req: AuthRequest, res: Response) {
+		let assignedLocations = [];
+		let buildings = [];
+		let sublocations = [];
+		let tempArr = [];
+		let whereLoc = [];
+		const location = new Location();
+		assignedLocations = JSON.parse(req.query.assignedLocations);
+		
+		if (assignedLocations.length == 0) {
+			return res.status(500).send({
+				account_roles: [],
+				message: 'No account role'
+			});
+		}
+		whereLoc.push( `location_id IN (${assignedLocations.join(',')})`);
+		tempArr = await location.getWhere(whereLoc) as Array<object>;
+		
+		for (let index of tempArr) {
+			if (buildings.indexOf(index['parent_id']) == -1 && index['parent_id'] != -1) {
+				buildings.push(index['parent_id'])
+			} else if(buildings.indexOf(index['location_id']) == -1 && index['parent_id'] == -1 && index['is_building'] == 1) {
+				buildings.push(index['location_id']);
+				sublocations.push(index['location_id']);
+			}
+		}
+
+		whereLoc = [];
+		tempArr = [];
+
+		whereLoc.push(`parent_id IN (${buildings.join(',')})`);
+		tempArr = await location.getWhere(whereLoc) as Array<object>;
+		
+		const locationAccountRelation = new LocationAccountRelation();
+		const locsInAccount = await locationAccountRelation.getByAccountId(req.user.account_id);
+		const locsInAccountArr = [];
+		for (let loc of locsInAccount) {
+			locsInAccountArr.push(loc['location_id']);
+		}
+
+		for (let loc of tempArr) {
+			if (locsInAccountArr.indexOf(loc['location_id']) != -1) {
+				sublocations.push(loc['location_id']);				
+			}
+		}
+		
+		tempArr = [];
+		const locationAcctUser = new LocationAccountUser();
+		let listArray = [];
+		try {
+			listArray = await locationAcctUser.generateUserAccountRoles(req.user.account_id, sublocations);
+		} catch(e) {
+			console.log(e);
+			return res.status(500).send({
+				account_roles: [],
+				message: 'Cannot determine location from location account relation table'
+			});
+		}
+		
+		const userAccountRoleObj = {};
+		
+		for (let item of listArray) {
+			item['account_roles'] = [];
+			tempArr.push(item['user_id']);
+			userAccountRoleObj[item['user_id']] = [];			
+		}
+
+		let accountRole: Object[] = await new UserRoleRelation().getManyByUserIds(tempArr.join(','));
+		for (let role of accountRole) {
+			if (role['user_id'] in userAccountRoleObj) {
+				userAccountRoleObj[role['user_id']].push(defs['account_role_text'][role['role_id']]);
+			}
+		}
+		
+		for (let item of listArray) {
+			item['account_roles'] = userAccountRoleObj[item['user_id']];
+		}
+
+
+		return res.status(200).send({
+			account_roles: listArray
+		});
 	}
 
 	public async getLocationListing(req: AuthRequest, res: Response) {
@@ -1053,7 +1143,8 @@ const RateLimiter = require('limiter').RateLimiter;
           <script>
             localStorage.setItem('currentUser', '${loginResponse.token}');
             localStorage.setItem('userData', '${stringUserData}');
-
+						localStorage.setItem('concfg', ${configId});
+						
             setTimeout(function(){
               window.location.replace("${redirectUrl}")
             }, 2500);
@@ -1073,18 +1164,29 @@ const RateLimiter = require('limiter').RateLimiter;
       return res.redirect('/success-valiadation?verify-notified-user=0');
 		}	
 		
-		// update record
-		await tokenObj.create({
-			strToken: '',
+		// update record 	
+		await tokenObj.create({	
+			strToken: '',	
 			strStatus: 'Validated',
 			responded: 1,
 			dtResponded: moment().format('YYYY-MM-DD'),
 			completed: 1,
 			dtCompleted: moment().format('YYYY-MM-DD')
 		});
-		
-    const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
-        
+		const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();			
+		//const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text']);
+		const redirectUrl = 'http://localhost:4200/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text'])+`&cfg=${configId}`;
+
+		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+		if (userResponded.indexOf(uid) == -1) {
+			userResponded.push(uid);
+			configDBData['responders'] = configDBData['responders'] + 1;
+			configDBData['user_responded'] = userResponded.join(',');
+			await configurator.create(configDBData);
+		}
+		await loginAction(redirectUrl);
+
+/*
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
 			const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text']);
 			//const redirectUrl = 'http://localhost:4200/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
@@ -1140,6 +1242,7 @@ const RateLimiter = require('limiter').RateLimiter;
       }
     }
 
+		*/
 	}
 	
 	public async verifyIamWarden(req: AuthRequest, res:Response) {

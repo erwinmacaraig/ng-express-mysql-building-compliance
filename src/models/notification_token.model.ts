@@ -338,7 +338,11 @@ export class NotificationToken extends BaseClass {
         whereClause += `AND users.user_id IN (` + userIds.join(',') + `) `; 
       }
       if ('role_text' in filter) {
-        whereClause += `AND notification_token.role_text ${filter['role_text']} `;
+        whereClause += `AND notification_token.role_text = '${filter['role_text']}'`;
+      }
+      if ('location_ids' in filter) {
+        const locIds = (filter['location_ids'] as Number[]).join(',');
+        whereClause += `AND notification_token.location_id IN (${locIds}) `;
       }
       const sql = `SELECT
                   users.user_id,
@@ -347,10 +351,12 @@ export class NotificationToken extends BaseClass {
                   users.email,
                   users.mobile_number,
                   accounts.account_name,
-                  notification_token.notification_token_id,                  
+                  notification_token.notification_token_id,
+                  notification_token.location_id,                                    
                   notification_token.role_text,
                   notification_token.dtLastSent,
                   notification_token.lastActionTaken,
+                  notification_token.strResponse,
                   users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
                FROM
                  users
@@ -373,7 +379,7 @@ export class NotificationToken extends BaseClass {
                WHERE notification_token.notification_config_id <> 0
                  ${whereClause}
                ORDER BY accounts.account_name, users.user_id`;
-      
+      console.log(sql);
       this.pool.getConnection((err, connection) => {
         if(err){
           throw new Error(err);

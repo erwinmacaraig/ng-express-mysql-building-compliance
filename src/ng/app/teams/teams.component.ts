@@ -59,7 +59,8 @@ export class TeamsComponent implements OnInit, OnDestroy {
 			if(
 				this.thisRouteUrl.indexOf('view-warden') > -1 || 
 				this.thisRouteUrl.indexOf('view-gen-occupant') > -1 ||
-				this.thisRouteUrl.indexOf('view-chief-warden') > -1
+				this.thisRouteUrl.indexOf('view-chief-warden') > -1 ||
+				this.thisRouteUrl.indexOf('view-account-role') > -1
 				){
 				this.showTeamNav = false;
 				removeWorkspacePadding = true;

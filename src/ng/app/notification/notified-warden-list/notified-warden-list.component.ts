@@ -1,0 +1,92 @@
+import { Component, OnInit, AfterViewInit, OnDestroy  } from "@angular/core";
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+import { AccountsDataProviderService } from '../../services/accounts';
+import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+
+import { AuthService } from '../../services/auth.service';
+import { UserService } from '../../services/users';
+@Component({
+    selector: 'app-notified-warden',
+    templateUrl: './notified-warden-list.component.html',
+    styleUrls: ['./notified-warden-list.component.css'],
+    providers: [UserService, EncryptDecryptService, AccountsDataProviderService, DashboardPreloaderService, AuthService]
+})
+
+export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDestroy {
+
+    private myLocations = [];
+    public wardenList = [];
+    public myBuildings = [];
+    public responders = 0;
+    constructor(private auth: AuthService,
+        private userService: UserService,
+        private preloader: DashboardPreloaderService
+        ) {}
+
+    ngOnInit() {
+        // need to know what building I am building the list        
+        const roles: object[] = this.auth.userDataItem('roles');
+        const checker = [];
+        for (let r of roles) {
+            if (r['role_id'] <= 2) {                                
+                this.myLocations.push(r['location_id']);
+            }
+        }
+        this.generateList();
+    }
+
+    ngAfterViewInit() {}
+
+    ngOnDestroy() {}
+
+    private generateList() {
+        this.preloader.show();
+        this.responders = 0;
+        this.wardenList = [];
+        this.myBuildings = [];
+        //build the team here
+        this.userService.generateConfirmationWardenList({
+            'assignedLocations': JSON.stringify(this.myLocations)
+        }).subscribe((response) => {
+            for (let warden of response.list) {
+                if (warden['lastActionTaken'] != null) {
+                    continue;
+                }
+                let queryResponse = {};
+                if (warden['strStatus'] != 'Pending') {
+                    this.responders+= 1;
+                }
+                if (warden['strResponse'].length > 1) {
+                    queryResponse = JSON.parse(warden['strResponse']); 
+                    
+                    console.log(JSON.parse(warden['strResponse']));
+                    console.log(queryResponse);
+                    warden['jsonResponse'] = queryResponse;
+                    if (queryResponse['nominated_person'].length > 0) {
+                        warden['showNominatedReviewButton'] = 1;
+                    }
+
+                } else {
+                    warden['showNominatedReviewButton'] = 0;
+                }
+                
+            }            
+            this.wardenList = response.list;
+            this.myBuildings = response.building;
+            this.preloader.hide();
+        },
+        (error) => {
+            console.log(error);
+            this.preloader.hide();
+        });
+    }
+
+    public acceptResignation(user = 0, location = 0, cfg = 0) {
+
+    }
+
+    public rejectResignation(user = 0, location = 0, cfg = 0) {
+
+    }
+    
+}
