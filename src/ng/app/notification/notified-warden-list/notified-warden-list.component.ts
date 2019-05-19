@@ -19,6 +19,7 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     public validatedList = [];
     public myBuildings = [];
     public responders = 0;
+    public receivers = 0;
     constructor(private auth: AuthService,
         private userService: UserService,
         private preloader: DashboardPreloaderService,
@@ -45,11 +46,13 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
         this.preloader.show();
         this.responders = 0;
         this.wardenList = [];
+        this.validatedList = [];
         this.myBuildings = [];
         //build the team here
         this.userService.generateConfirmationWardenList({
             'assignedLocations': JSON.stringify(this.myLocations)
         }).subscribe((response) => {
+            this.receivers = response.list.length;
             for (let warden of response.list) {
                 if (warden['lastActionTaken'] != null) {
                     continue;
@@ -94,7 +97,7 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     public acceptResignation(user = 0, location = 0, cfg = 0) {
       this.preloader.show();
       this.accountService.acceptResignationFromConfirmation(user, location, cfg).subscribe((response) => {
-        this.preloader.hide();
+        this.generateList();
       }, (error) => {
         this.preloader.hide();
       });
@@ -103,7 +106,12 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     }
 
     public rejectResignation(user = 0, location = 0, cfg = 0) {
-
+      this.preloader.show();
+      this.accountService.rejectResignationFromConfirmation(user, location, cfg).subscribe((response) => {
+        this.generateList();
+      }, (error) => {
+        this.preloader.hide();
+      });
     }
 
 }

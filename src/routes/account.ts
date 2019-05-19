@@ -165,6 +165,10 @@ const RateLimiter = require('limiter').RateLimiter;
       new AccountRoute().removeEMRole(req, res);
     });
 
+    router.post('/accounts/reject-resignation-confirmation/', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+      new AccountRoute().rejectResignationConfirmation(req, res);
+    });
+
   }
 
 	/**
@@ -177,6 +181,28 @@ const RateLimiter = require('limiter').RateLimiter;
 		super();
   }
 
+  public async rejectResignationConfirmation(req: AuthRequest, res:Response) {
+    try {
+      const notificationToken = new NotificationToken(req.body.notification_token_id);
+      await notificationToken.load();
+      const eco = new UserEmRoleRelation();
+      const actionTakenObj = {
+        user_id: req.user.user_id,
+        date: moment().format('YYYY-MM-DD'),
+        action: 'Rejected'
+      };
+      notificationToken.set('lastActionTaken', JSON.stringify(actionTakenObj));
+      notificationToken.write();
+      return res.status(200).send({
+        message: 'Success'
+      });
+    } catch(e) {
+      console.log(e);
+      return res.status(500).send({
+        message: 'Failed'
+      });
+    }
+  }
   public async removeEMRole(req: AuthRequest, res: Response) {
     try {
       const notificationToken = new NotificationToken(req.body.notification_token_id);

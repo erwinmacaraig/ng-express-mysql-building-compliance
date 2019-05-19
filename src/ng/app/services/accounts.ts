@@ -180,6 +180,14 @@ export class AccountsDataProviderService {
 			notification_token_id: configId
 		});
 
-	}
+  }
+
+  rejectResignationFromConfirmation(userId=0, locationId = 0, configId = 0) {
+    return this.http.post<{message: string}>(`${this.baseUrl}/accounts/reject-resignation-confirmation/`, {
+      location_id: locationId,
+			user_id: userId,
+			notification_token_id: configId
+    });
+  }
 
 }
