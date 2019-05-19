@@ -16,6 +16,7 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
 
     private myLocations = [];
     public wardenList = [];
+    public validatedList = [];
     public myBuildings = [];
     public responders = 0;
     constructor(private auth: AuthService,
@@ -24,11 +25,11 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
         ) {}
 
     ngOnInit() {
-        // need to know what building I am building the list        
+        // need to know what building I am building the list
         const roles: object[] = this.auth.userDataItem('roles');
         const checker = [];
         for (let r of roles) {
-            if (r['role_id'] <= 2) {                                
+            if (r['role_id'] <= 2) {
                 this.myLocations.push(r['location_id']);
             }
         }
@@ -52,26 +53,34 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
                 if (warden['lastActionTaken'] != null) {
                     continue;
                 }
+
                 let queryResponse = {};
                 if (warden['strStatus'] != 'Pending') {
                     this.responders+= 1;
                 }
                 if (warden['strResponse'].length > 1) {
-                    queryResponse = JSON.parse(warden['strResponse']); 
-                    
+                    queryResponse = JSON.parse(warden['strResponse']);
+
                     console.log(JSON.parse(warden['strResponse']));
                     console.log(queryResponse);
                     warden['jsonResponse'] = queryResponse;
-                    if (queryResponse['nominated_person'].length > 0) {
+                    if (queryResponse['nominated_person']) {
+                      if (queryResponse['nominated_person'].length > 0) {
                         warden['showNominatedReviewButton'] = 1;
+                      }
+
                     }
 
                 } else {
                     warden['showNominatedReviewButton'] = 0;
                 }
-                
-            }            
-            this.wardenList = response.list;
+
+                if (warden['strStatus'] == 'Validated'){
+                  this.validatedList.push(warden);
+                } else {
+                  this.wardenList.push(warden);
+                }
+            }
             this.myBuildings = response.building;
             this.preloader.hide();
         },
@@ -88,5 +97,5 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     public rejectResignation(user = 0, location = 0, cfg = 0) {
 
     }
-    
+
 }

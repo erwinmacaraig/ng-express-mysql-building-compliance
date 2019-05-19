@@ -61,26 +61,26 @@ export class NotificationToken extends BaseClass {
         ('notification_config_id' in this.dbData) ? this.dbData['notification_config_id'] : 0,
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
-        ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : '0000-00-00',
+        ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : null,
         ('strStatus' in this.dbData) ? this.dbData['strStatus'] : 'Pending',
         ('responded' in this.dbData) ? this.dbData['responded'] : 0,
-        ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : '0000-00-00',
+        ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : null,
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
-        ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
-        ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',        
+        ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : null,
+        ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
         ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
         ('lastActionTaken' in this.dbData) ? this.dbData['lastActionTaken']: null,
         ('strToken' in this.dbData) ? this.dbData['strToken'] : '',
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
-        ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : '0000-00-00',
+        ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : null,
         ('strStatus' in this.dbData) ? this.dbData['strStatus'] : 'Pending',
         ('responded' in this.dbData) ? this.dbData['responded'] : 0,
-        ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : '0000-00-00',
+        ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : null,
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
-        ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
+        ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : null,
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
-        ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
+        ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : null,
         ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
         ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
         ('lastActionTaken' in this.dbData) ? this.dbData['lastActionTaken'] : null
@@ -101,11 +101,11 @@ export class NotificationToken extends BaseClass {
           resolve(true);
           connection.release();
         });
-        
+
 
       });
 
-      
+
 
     });
 
@@ -138,14 +138,14 @@ export class NotificationToken extends BaseClass {
         ('notification_config_id' in this.dbData) ? this.dbData['notification_config_id'] : 0,
         ('location_id' in this.dbData) ? this.dbData['location_id'] : 0,
         ('role_text' in this.dbData) ? this.dbData['role_text'] : '',
-        ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : '0000-00-00',
+        ('dtExpiration' in this.dbData) ? this.dbData['dtExpiration'] : null,
         ('strStatus' in this.dbData) ? this.dbData['strStatus'] : 'Pending',
         ('responded' in this.dbData) ? this.dbData['responded'] : 0,
-        ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : '0000-00-00',
+        ('dtResponded' in this.dbData) ? this.dbData['dtResponded'] : null,
         ('completed' in this.dbData) ? this.dbData['completed'] : 0,
-        ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : '0000-00-00',
+        ('dtCompleted' in this.dbData) ? this.dbData['dtCompleted'] : null,
         ('strResponse' in this.dbData) ? this.dbData['strResponse'] : '',
-        ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : '0000-00-00',
+        ('dtLastSent' in this.dbData) ? this.dbData['dtLastSent'] : null,
         ('manually_validated_by' in this.dbData) ? this.dbData['manually_validated_by'] : 0,
         ('training_reminder' in this.dbData) ? this.dbData['training_reminder'] : 0,
         ('lastActionTaken' in this.dbData) ? this.dbData['lastActionTaken'] : null,
@@ -164,10 +164,10 @@ export class NotificationToken extends BaseClass {
           resolve(true);
           connection.release();
         });
-        
+
 
       });
-      
+
     });
   }
   public load() {
@@ -182,18 +182,18 @@ export class NotificationToken extends BaseClass {
           if (error) {
             console.log('Cannot load record NotificationToken', sql_load);
             throw Error(error);
-          }        
+          }
           if (results.length > 0) {
             this.dbData = results[0];
-            this.setID(results[0]['notification_token_id']);          
-          }        
+            this.setID(results[0]['notification_token_id']);
+          }
           resolve(this.dbData);
           connection.release();
         });
-        
+
 
       });
-      
+
     });
   }
 
@@ -222,15 +222,15 @@ export class NotificationToken extends BaseClass {
           }
           connection.release();
         });
-        
+
 
       });
-      
+
 
     });
   }
 
-  
+
   public getByUserId(userId = 0): Promise<Array<object>> {
     return new Promise((resolve, reject) => {
       const sql_load = `SELECT *, IF(dtExpiration < NOW(), 'expired', 'active') as expiration_status FROM notification_token
@@ -245,7 +245,7 @@ export class NotificationToken extends BaseClass {
           if (error) {
             console.log('NotificationToken.loadByContraintKeys', error, sql_load);
             throw Error(error);
-          }          
+          }
           resolve(results);
         });
       });
@@ -270,7 +270,7 @@ export class NotificationToken extends BaseClass {
           }
           resolve(results);
           connection.release();
-        });        
+        });
       });
     });
   }
@@ -284,7 +284,7 @@ export class NotificationToken extends BaseClass {
                   users.email,
                   users.mobile_number,
                   accounts.account_name,
-                  notification_token.notification_token_id,                  
+                  notification_token.notification_token_id,
                   notification_token.role_text,
                   notification_token.dtLastSent,
                   users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
@@ -324,7 +324,7 @@ export class NotificationToken extends BaseClass {
          connection.release();
         });
       });
-      
+
     });
   }
 
@@ -335,7 +335,7 @@ export class NotificationToken extends BaseClass {
       if ('user_ids' in filter) {
         userIds = filter['user_ids'];
         userIds.push(0);
-        whereClause += `AND users.user_id IN (` + userIds.join(',') + `) `; 
+        whereClause += `AND users.user_id IN (` + userIds.join(',') + `) `;
       }
       if ('role_text' in filter) {
         whereClause += `AND notification_token.role_text = '${filter['role_text']}'`;
@@ -352,7 +352,7 @@ export class NotificationToken extends BaseClass {
                   users.mobile_number,
                   accounts.account_name,
                   notification_token.notification_token_id,
-                  notification_token.location_id,                                    
+                  notification_token.location_id,
                   notification_token.role_text,
                   notification_token.dtLastSent,
                   notification_token.lastActionTaken,
@@ -367,7 +367,7 @@ export class NotificationToken extends BaseClass {
                INNER JOIN
                  notification_token
                ON
-                 users.user_id = notification_token.user_id               
+                 users.user_id = notification_token.user_id
                LEFT JOIN
                  notification_config
                ON
@@ -393,10 +393,10 @@ export class NotificationToken extends BaseClass {
          resolve(results);
          connection.release();
         });
-        
+
 
       });
-      
+
     });
 
   }

@@ -24,7 +24,7 @@
             <thead>
                 <tr>
                     <th>Status</th>
-                    <th>Response</th>                    
+                    <th>Response</th>
                     <th>Name</th>
                     <th>Email</th>
                     <th>Mobile</th>
@@ -33,9 +33,9 @@
                     <th>Required Action</th>
                 </tr>
             </thead>
-            
+
             <tbody>
-                <tr *ngIf="wardenList.length == 0">
+                <tr *ngIf="wardenList.length == 0 && validatedList.length == 0">
                     <td colspan="8">No Records Found</td>
                 </tr>
                 <tr *ngFor="let warden of wardenList">
@@ -64,8 +64,17 @@
                             <button style="width: 48%;" type="button" class="btn orange waves-effect waves-light" (click)="acceptResignation(warden['user_id'], warden['location_id'], warden['notification_token_id'])">Accept</button>
                             <button style="width: 49%;" type="button" class="btn blue waves-effect waves-light" (click)="rejectResignation(warden['user_id'], warden['location_id'], warden['notification_token_id'])">Reject</button>
                         </div>
-                        
                     </td>
+                </tr>
+                <tr *ngFor="let warden of validatedList">
+                    <td>{{warden.strStatus}}</td>
+                    <td> -- </td>
+                    <td>{{warden.first_name}} {{warden.last_name}}</td>
+                    <td>{{warden.email}}</td>
+                    <td>{{warden.mobile}}</td>
+                    <td>{{warden.name}}</td>
+                    <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
+                    <td> -- </td>
                 </tr>
             </tbody>
         </table>
