@@ -21,7 +21,8 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     public responders = 0;
     constructor(private auth: AuthService,
         private userService: UserService,
-        private preloader: DashboardPreloaderService
+        private preloader: DashboardPreloaderService,
+        private accountService: AccountsDataProviderService
         ) {}
 
     ngOnInit() {
@@ -91,6 +92,13 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     }
 
     public acceptResignation(user = 0, location = 0, cfg = 0) {
+      this.preloader.show();
+      this.accountService.acceptResignationFromConfirmation(user, location, cfg).subscribe((response) => {
+        this.preloader.hide();
+      }, (error) => {
+        this.preloader.hide();
+      });
+
 
     }
 

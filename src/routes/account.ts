@@ -161,6 +161,9 @@ const RateLimiter = require('limiter').RateLimiter;
 			new AccountRoute().accountUsersInLocation(req, res);
 		});
 
+    router.post('/accounts/accept-resignation-confirmation/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new AccountRoute().removeEMRole(req, res);
+    });
 
   }
 
@@ -172,7 +175,35 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
-	}
+  }
+
+  public async removeEMRole(req: AuthRequest, res: Response) {
+    try {
+      const notificationToken = new NotificationToken(req.body.notification_token_id);
+      await notificationToken.load();
+      const eco = new UserEmRoleRelation();
+      const actionTakenObj = {
+        user_id: req.user.user_id,
+        date: moment().format('YYYY-MM-DD'),
+        action: 'Accepted'
+      };
+      notificationToken.set('lastActionTaken', JSON.stringify(actionTakenObj));
+      notificationToken.write();
+
+      await eco.removeEMRole(req.body.user_id, req.body.location_id);
+      return res.status(200).send({
+        message: 'Success'
+      });
+
+    } catch(e) {
+      console.log(e);
+      return res.status(500).send({
+        message: 'Failed'
+      });
+    }
+
+
+  }
 
 	public async accountUsersInLocation(req: AuthRequest, res: Response) {
 		let assignedLocations = [];

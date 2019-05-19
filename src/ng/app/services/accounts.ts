@@ -16,7 +16,7 @@ export class AccountsDataProviderService {
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
-		
+
 		this.baseUrl = environment.backendUrl;
 	}
 
@@ -141,7 +141,7 @@ export class AccountsDataProviderService {
     this.options['params'] = httpParams;
     return this.http.get(`${this.baseUrl}/accounts/notification-all-peep/`, this.options);
 	}
-	
+
 	execNotificationAction(action='', token_id = 0) {
 		return this.http.post(`${this.baseUrl}/accounts/notification-actions/`, {
 			action: action,
@@ -174,7 +174,7 @@ export class AccountsDataProviderService {
 	}
 
 	acceptResignationFromConfirmation(userId=0, locationId = 0, configId = 0) {
-		return this.http.post(`${this.baseUrl}/accounts/accept-resignation-confirmation/`, {
+		return this.http.post<{message: string}>(`${this.baseUrl}/accounts/accept-resignation-confirmation/`, {
 			location_id: locationId,
 			user_id: userId,
 			notification_token_id: configId
