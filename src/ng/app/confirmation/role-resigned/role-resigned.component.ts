@@ -29,7 +29,7 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
         'My location has changed',
         'Tenancy moved out',
         'I am no longer part of this organisation',
-        'I want to resign as a warden',
+        'I want to resign as ',
         'Others'
     ];
     private myAccountId = 0;
@@ -83,6 +83,7 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.configId = +tokenParts[2];
                 console.log(tokenParts);
                 this.emergencyRole = tokenParts[4];
+                this.reasonList[3] = this.reasonList[3] + this.emergencyRole;
                 this.retrieveLocationInformation(tokenParts); 
                                
             }

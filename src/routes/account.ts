@@ -638,6 +638,8 @@ const RateLimiter = require('limiter').RateLimiter;
     tokenDBData['strResponse'] = theAnswers;
     tokenDBData['completed'] = 1;
 		tokenDBData['strStatus'] = 'Resigned';
+		tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
+		tokenDBData['strToken'] = null;
 
 		try {
 			await tokenObj.create(tokenDBData);
@@ -1100,8 +1102,9 @@ const RateLimiter = require('limiter').RateLimiter;
 
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
 			// const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
-			const redirectUrl = 'http://' + req.get('host') + '/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
-      await loginAction(redirectUrl);
+			//const redirectUrl = 'http://' + req.get('host') + '/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			await loginAction(redirectUrl);
     } else if (tokenDbData['role_text'] == 'FRP') {
 			await tokenObj.create({
 				responded: 1,
@@ -1143,7 +1146,7 @@ const RateLimiter = require('limiter').RateLimiter;
       // update record
       await tokenObj.create({
         responded: 1,
-        strStatus: 'In Progress',
+        strStatus: 'Responded',
         dtResponded: moment().format('YYYY-MM-DD')
   		});
 
@@ -1156,7 +1159,8 @@ const RateLimiter = require('limiter').RateLimiter;
 			}
 
 
-      const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+      // const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+			const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
 			await loginAction(redirectUrl);
 
 
@@ -1376,8 +1380,10 @@ const RateLimiter = require('limiter').RateLimiter;
     // get sub levels within the building that belongs to the account
     const location = new Location();
     const configurator = new NotificationConfiguration();
-    const sublevels = [];
-    let userType = '';
+		const sublevels = [];
+		let emailRole = '';
+		let userType = '';
+		let configRoleText = '';
     // Allow 2 requests per second . Also understands
     // 'hour', 'minute', 'day', or a number of milliseconds
     // https://github.com/jhurliman/node-rate-limiter
@@ -1421,10 +1427,15 @@ const RateLimiter = require('limiter').RateLimiter;
     try{
       if (config['user_type'] == 'trp') {
         userType = 'trp';
-        allUsers = await lauObj.TRPUsersForNotification(sublevels);
+				allUsers = await lauObj.TRPUsersForNotification(sublevels);
+				emailRole = 'Tenant Responsible Person';
+				configRoleText = 'TRP';
+
       } else if (config['user_type'] == 'eco') {
         userType = 'eco';
-        eco = await uemr.emUsersForNotification(sublevels);
+				eco = await uemr.emUsersForNotification(sublevels);
+				emailRole = 'Warden';
+				configRoleText = 'Warden';
       } else if (config['user_type'] == 'all_users') {
         userType = 'all';
         trp = await lauObj.TRPUsersForNotification(sublevels);
@@ -1434,6 +1445,7 @@ const RateLimiter = require('limiter').RateLimiter;
 				allUsers = [...trp, ...eco, ...frp];
       } else if (config['user_type'] == 'frp') {
 				userType = 'frp';
+				configRoleText = 'FRP';
 				allUsers = await new LocationAccountUser().FRPUsersForNotification(config['building_id']);
 			}
     }catch(e){
@@ -1509,7 +1521,7 @@ const RateLimiter = require('limiter').RateLimiter;
         strToken: strToken,
         user_id: u['user_id'],
         location_id: u['location_id'],
-        role_text: u['role_name'],
+        role_text: configRoleText,
         notification_config_id: configurator.ID(),
 				dtExpiration: moment().add(21, 'day').format('YYYY-MM-DD'),
 				dtLastSent: moment().format('YYYY-MM-DD')
@@ -1517,7 +1529,8 @@ const RateLimiter = require('limiter').RateLimiter;
 			notificationToken = null;
 
       let locTextEmail = locData.location_name;
-      let emailRole = '';
+			
+			/*
       if (u['eco_sublocation_names']) {
         locTextEmail = locTextEmail +' '+ u['eco_sublocation_names'].join(',');
         emailRole = u['eco_role_names'].join(',');
@@ -1525,7 +1538,9 @@ const RateLimiter = require('limiter').RateLimiter;
   			if (u['name'] && u['name'].length > 0) {
   				locTextEmail = locData.location_name + ', ' + u['name'];
   			}
-      }
+			}
+			*/
+			locTextEmail = locData.location_name
 
       let
       emailData = {
