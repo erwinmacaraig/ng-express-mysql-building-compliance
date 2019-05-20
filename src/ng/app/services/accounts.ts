@@ -188,6 +188,14 @@ export class AccountsDataProviderService {
 			user_id: userId,
 			notification_token_id: configId
     });
-  }
+	}
+	
+	listPeepForConfirmation(locationIdArrStr='') {
+		return this.http.post<{
+			building: object[],
+			account_users: object[],
+			emergency_users: object[]
+		}>(`${this.baseUrl}/team/build-trp-peep-list/`, {assignedLocations: locationIdArrStr});
+	}
 
 }

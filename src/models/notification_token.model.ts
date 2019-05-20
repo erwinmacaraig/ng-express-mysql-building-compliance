@@ -350,6 +350,7 @@ export class NotificationToken extends BaseClass {
                   users.last_name,
                   users.email,
                   users.mobile_number,
+                  users.mobility_impaired,
                   accounts.account_name,
                   notification_token.notification_token_id,
                   notification_token.location_id,

@@ -104,6 +104,8 @@ export class DashboardComponent implements OnInit {
       if (params.has('confirmation')){
         this.showConfirmationProcessBar = true;
         this.auth.setUserDataItem('confirmation_process', true);
+      } else {
+        this.showConfirmationProcessBar = false;
       }
       if (params.has('step')) {
         this.confirmationProcessStep = +params.get('step');

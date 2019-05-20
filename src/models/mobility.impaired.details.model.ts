@@ -231,7 +231,7 @@ export class MobilityImpairedModel extends BaseClass {
     return new Promise((resolve, reject) => {
       let whereClause = '';
 
-      const queryResultSet = [];
+      
       let sql_peep_users = '';
       if (location.length > 0) {
         whereClause += ` AND locations.location_id IN (${location.join(',')})`;
@@ -245,9 +245,17 @@ export class MobilityImpairedModel extends BaseClass {
           users.mobility_impaired,
           users.mobile_number,
           users.email,
+          users.last_login,
           location_account_user.location_id,
           locations.name,
-          mobility_impaired_details.date_created
+          mobility_impaired_details.mobility_impaired_details_id,
+          mobility_impaired_details.is_permanent,
+          mobility_impaired_details.duration_date,
+          mobility_impaired_details.assistant_type,
+          mobility_impaired_details.equipment_type,
+          mobility_impaired_details.evacuation_procedure,
+          mobility_impaired_details.date_created,
+          IF (mobility_impaired_details.is_permanent = 1 AND mobility_impaired_details.duration_date > NOW(), 'expired', 'active') AS expiry
         FROM
           users
         INNER JOIN
@@ -279,9 +287,17 @@ export class MobilityImpairedModel extends BaseClass {
             users.mobility_impaired,
             users.mobile_number,
             users.email,
+            users.last_login,
             user_em_roles_relation.location_id,
             locations.name,
-            mobility_impaired_details.date_created
+            mobility_impaired_details.mobility_impaired_details_id,
+            mobility_impaired_details.is_permanent,
+            mobility_impaired_details.duration_date,
+            mobility_impaired_details.assistant_type,
+            mobility_impaired_details.equipment_type,
+            mobility_impaired_details.evacuation_procedure,
+            mobility_impaired_details.date_created,
+            IF (mobility_impaired_details.is_permanent = 1 AND mobility_impaired_details.duration_date > NOW(), 'expired', 'active') AS expiry
           FROM
             users
           INNER JOIN
@@ -316,11 +332,11 @@ export class MobilityImpairedModel extends BaseClass {
             throw Error('Cannot generate list of peep emergency users');
           }
           if (results.length > 0) {
-            for (const r of results) {
-              queryResultSet.push(r);
-            }
+            resolve(results);
+          } else {
+            reject('There are no peep');
           }
-          resolve(queryResultSet);
+          
           connection.release();
         });
       });

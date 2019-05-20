@@ -172,6 +172,10 @@ export class TeamRoute extends BaseRoute {
     router.post('/team/build-eco-team-list/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new TeamRoute().buildMyEcoTeam(req, res);
     });
+
+    router.post('/team/build-trp-peep-list/',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new TeamRoute().buildPeepListForTrp(req, res);
+    });
 }
 
   /**
@@ -182,6 +186,74 @@ export class TeamRoute extends BaseRoute {
    */
   constructor() {
     super();
+  }
+
+  public async buildPeepListForTrp(req:AuthRequest, res:Response) {
+    let assignedLocations = [];
+    let tempArr = [];
+    let whereLoc = [];
+    let buildings = [];
+    const location = new Location();
+    let myBuildings = [];
+    let sublocations = [];
+    assignedLocations = JSON.parse(req.body.assignedLocations);
+    if (assignedLocations.length == 0) {
+        return res.status(500).send({
+            list: [],
+            message: 'No supplied location parameter'
+        });
+    }
+    whereLoc.push( `location_id IN (${assignedLocations.join(',')})`);
+	tempArr = await location.getWhere(whereLoc) as Array<object>;
+		
+    for (let index of tempArr) {
+        if (buildings.indexOf(index['parent_id']) == -1 && index['parent_id'] != -1) {
+            buildings.push(index['parent_id'])
+        } else if(buildings.indexOf(index['location_id']) == -1 && index['parent_id'] == -1 && index['is_building'] == 1) {
+            buildings.push(index['location_id']);
+            sublocations.push(index['location_id']);
+        }
+    }
+
+    whereLoc = [];
+    tempArr = [];
+    whereLoc.push(`parent_id IN (${buildings.join(',')})`);
+    tempArr = await location.getWhere(whereLoc) as Array<object>;
+    //tempArr now contains the sublevels
+
+    // getting the building details
+    whereLoc = [];
+    whereLoc.push(`location_id IN (${buildings.join(',')})`);
+    myBuildings = await location.getWhere(whereLoc) as Array<object>;    
+    for (let loc of tempArr) {
+        sublocations.push(loc['location_id']);	
+    }
+    // get all emergency roles from these locations which belongs to the same account which is peep
+    const peepObj = new MobilityImpairedModel();
+    let accountTypeMobilityImpaired = [];
+    let emergencyTypeMobilityImpaired = [];
+    try {        
+        accountTypeMobilityImpaired = await peepObj.listAllMobilityImpaired(req.user.account_id, sublocations, 'account');
+        
+    } catch(e) {
+        console.log(e);
+        accountTypeMobilityImpaired = [];
+    }
+    try {
+        emergencyTypeMobilityImpaired = await peepObj.listAllMobilityImpaired(req.user.account_id, sublocations, 'emergency');
+    } catch(e) {
+        console.log(e);
+        emergencyTypeMobilityImpaired = [];
+    }
+
+    res.status(200).send({
+        building: myBuildings,
+        account_users: accountTypeMobilityImpaired,
+        emergency_users: emergencyTypeMobilityImpaired
+    });
+    
+    
+
   }
 
 

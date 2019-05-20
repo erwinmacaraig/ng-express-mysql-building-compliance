@@ -59,11 +59,34 @@ export class RoleConfirmComponent implements OnInit, OnDestroy, AfterViewInit {
         if (this.locationUpdateSub) {
             this.locationUpdateSub.unsubscribe();
         }
+        this.step = -1;
 
     }
 
     sendEditMessage() {        
         this.messageService.sendMessage({'edit_person_info': true});
+    }
+    
+    sendShowWardenActionSummaryList() {        
+        try {
+            this.messageService.sendMessage({'showWardenSummary': true});
+            this.step = 4;            
+        } catch(e) {
+            console.log(e);
+        }
+        
+    }
+    sendShowPeepSummaryList() {
+        try {
+            this.messageService.sendMessage({'showPEEPSummary': true});
+            this.step = 5;                       
+        } catch(e) {
+            console.log(e);
+        }
+    }
+
+    gotoDashboard() {        
+        this.router.navigate(['/dashboard']);
     }
 
 }

@@ -5,8 +5,8 @@
         <span>Finish updating your profile?</span>        
     </div>
     <div class="navbar-fixed-control-buttons">
-        <button *ngIf="role != 'TRP' || role != 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/teams', 'view-warden']" [queryParams]="{confirmation: true}" type="button">Next</button>
-        <button *ngIf="role == 'TRP' || role == 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/teams', 'view-trp']" [queryParams]="{confirmation: true}" type="button">Next</button>
+        <button *ngIf="role != 'TRP' && role != 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/teams', 'view-warden']" [queryParams]="{confirmation: true, r: role}" type="button">Next</button>
+        <button *ngIf="role == 'TRP' || role == 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/teams', 'view-account-role']" [queryParams]="{confirmation: true, r: role}" type="button">Next</button>
         <!--<button class="btn white waves-effect waves-light" type="button" (click)="sendEditMessage()"><span class="no-label-btn">No</span></button>-->
     </div>
 </div>
@@ -17,7 +17,8 @@
             <span>Are you still located at the Sub Location specified below?</span>        
         </div>
         <div class="navbar-fixed-control-buttons">
-            <button class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'stay-and-go']" [queryParams]="{confirmation: true, step: 3}" type="button">Next</button>
+            <button *ngIf="role != 'TRP' && role != 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'stay-and-go']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
+            <button *ngIf="role == 'TRP' || role == 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'my-notified-warden-list']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
             <!--<button class="btn white waves-effect waves-light" type="button" (click)="showLocationCtrlButton=false"><span class="no-label-btn">No</span></button>-->
         </div>
     </div>
@@ -31,7 +32,7 @@
 </div>
 
 
-<div class="navbar-fixed" *ngIf="step == 3">
+<div class="navbar-fixed" *ngIf="step == 3 && role != 'TRP' && role != 'FRP'">
     <div class="navbar-fixed-control-text">
         <span>Here's a refresh of your procedure as Warden.</span>        
     </div>
@@ -39,8 +40,38 @@
         <button class="btn orange waves-effect waves-light" [routerLink]="['/trainings', 'new-training']" [queryParams]="{confirmation: true}" type="button">Next</button>        
     </div>
 </div>
+<div class="navbar-fixed" *ngIf="step == 3 && (role == 'TRP' || role == 'FRP')">
+    <div class="navbar-fixed-control-text">
+        <span>Check required action for each Warden's status</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="sendShowWardenActionSummaryList()" type="button">Next</button>        
+    </div>
+    <!--
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="" [queryParams]="{confirmation: true}" type="button">Review Manually</button>        
+    </div>
+    -->
+    
+</div>
+<div class="navbar-fixed" *ngIf="step == 4 && (role == 'TRP' || role == 'FRP')">
+    <div class="navbar-fixed-control-text">
+        <span>Proceed to the next step</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="sendShowPeepSummaryList()" type="button">Next</button>        
+    </div>
+</div>
+<div class="navbar-fixed" *ngIf="step == 5 && (role == 'TRP' || role == 'FRP')">
+    <div class="navbar-fixed-control-text">
+        <span>Please review and udpate the current list of mobility impaired.</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="gotoDashboard()" type="button">Next</button>        
+    </div>
+</div>
 
-<div class="navbar-fixed" *ngIf="step == 4">
+<div class="navbar-fixed" *ngIf="step == 4 && role != 'TRP' && role != 'FRP'">
     <div class="navbar-fixed-control-text">
         <span>Success! Thanks for confirming, please review your current training status.</span>        
     </div>    
