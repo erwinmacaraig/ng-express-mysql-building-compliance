@@ -21,6 +21,7 @@ import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { Token } from '../models/token.model';
 import { UtilsSync } from '../models/util.sync';
+
 const validator = require('validator');
 const cryptoJs = require('crypto-js');
 const defs = require('../config/defs.json');
@@ -467,13 +468,83 @@ const RateLimiter = require('limiter').RateLimiter;
 
 	}
 	public async performNotificationAction(req, res) {
-		// console.log(req.body);
+		
 		const action = req.body.action;
+		let emailType;
+		if (req.body.action == 'resend-bulk') {
+			const tokenIds = JSON.parse(req.body.notification_token_id);
+
+			for (let id of tokenIds) {
+				let notificationTokenDbData = await new NotificationToken(id).load();				
+				if (Object.keys(notificationTokenDbData).length == 0) {
+					continue;
+				}
+				if (notificationTokenDbData['role_text'] == 'TRP') {
+					emailType = 'trp-confirmation';
+				} else if(notificationTokenDbData['role_text'] == 'FRP') {
+					emailType = 'frp-confirmation';
+				} else {
+					emailType = 'warden-confirmation';
+				}
+
+				let notificationConfigDbData = await new NotificationConfiguration(notificationTokenDbData['notification_config_id']).load();
+				let userDbData = await new User(notificationTokenDbData['user_id']).load();
+				let buildingDbData = await new Location(notificationConfigDbData['building_id']).load();
+				let locTextEmail = buildingDbData['name'];
+				let accountDbData = await new Account(userDbData['account_id']).load();
+				let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${notificationTokenDbData['user_id']}_${notificationTokenDbData['location_id']}_${notificationTokenDbData['notification_config_id']}`, process.env.KEY).toString();
+				const opts = {
+					from : '',
+					fromName : 'EvacConnect',
+					to: [userDbData['email']],
+					cc: [],
+					body : '',
+					attachments: [],
+					subject : 'EvacConnect Email Notification'
+				};
+					let
+				emailData = {
+					message : notificationConfigDbData['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
+					users_fullname : this.toTitleCase(userDbData['first_name']+' '+ userDbData['last_name']),
+					account_name : accountDbData['account_name'],
+					location_name : locTextEmail,
+					yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+					no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+					role : notificationTokenDbData['role_text']
+				};
+				const email = new EmailSender(opts);
+				email.sendFormattedEmail(emailType, emailData, res,
+					(data) => console.log(data),
+					(err) => console.log(err)
+				);
+				notificationTokenDbData['notificationTokenDbData'] = 'Pending';
+				notificationTokenDbData['strToken'] = strToken;
+				notificationTokenDbData['dtExpiration'] = moment().add(21, 'day').format('YYYY-MM-DD');
+				notificationTokenDbData['responded'] = 0;
+				notificationTokenDbData['dtResponded'] = null;
+				notificationTokenDbData['dtCompleted'] = 0
+				notificationTokenDbData['strResponse'] = null;
+				notificationTokenDbData['dtLastSent'] = moment().format('YYYY-MM-DD');
+				notificationTokenDbData['manually_validated_by'] = 0;
+
+				/*
+
+				*/
+				await new NotificationToken().create(notificationTokenDbData);
+				notificationTokenDbData = [];
+			}
+			return res.status(200).send({
+				message: 'Email bulk sent'
+			});
+
+		}
+
+		
 		const notification_token_id = parseInt(req.body.notification_token_id, 10);
 		const notificationTokenObj = new NotificationToken(notification_token_id);
 		const notificationTokenDbData = await notificationTokenObj.load();
 
-		let emailType;
+		
 		if (Object.keys(notificationTokenDbData).length == 0) {
 			return res.status(400).send({
 				message: 'No such token exists'
@@ -493,20 +564,23 @@ const RateLimiter = require('limiter').RateLimiter;
 		const userDbData = await user.load();
 		const buildingObj = new Location(notificationConfigDbData['building_id']);
 		const buildingDbData = await buildingObj.load();
-		const sublocationObj = new Location(notificationTokenDbData['location_id']);
-		const sublocationDbData = await sublocationObj.load();
+		
+		//const sublocationObj = new Location(notificationTokenDbData['location_id']);
+		//const sublocationDbData = await sublocationObj.load();
 
-		let locTextEmail;
+		let locTextEmail = buildingDbData['name'];
+		/*
 		if (notificationConfigDbData['building_id'] == notificationTokenDbData['location_id']) {
 			locTextEmail = buildingDbData['name'];
 		} else {
 			locTextEmail = `${buildingDbData['name']},  ${sublocationDbData['name']}`;
 		}
+		*/
 
 
 		const account = new Account(userDbData['account_id']);
 		const accountDbData = await account.load();
-		switch(action) {
+		switch(action) {		
 			case 'resend':
 			let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${notificationTokenDbData['user_id']}_${notificationTokenDbData['location_id']}_${notificationTokenDbData['notification_config_id']}`, process.env.KEY).toString();
       const opts = {
@@ -544,7 +618,7 @@ const RateLimiter = require('limiter').RateLimiter;
 				dtResponded: null,
 				completed: 0,
 				dtCompleted: null,
-				strResponse: '',
+				strResponse: null,
 				dtLastSent: moment().format('YYYY-MM-DD'),
 				manually_validated_by: 0
       });
@@ -1102,8 +1176,8 @@ const RateLimiter = require('limiter').RateLimiter;
 
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
 			// const redirectUrl = 'http://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
-			//const redirectUrl = 'http://' + req.get('host') + '/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
-			const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			const redirectUrl = 'http://' + req.get('host') + '/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			//const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
 			await loginAction(redirectUrl);
     } else if (tokenDbData['role_text'] == 'FRP') {
 			await tokenObj.create({
@@ -1160,7 +1234,8 @@ const RateLimiter = require('limiter').RateLimiter;
 
 
       // const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
-			const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			//const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			const redirectUrl = 'http://' + req.get('host') + '/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
 			await loginAction(redirectUrl);
 
 
@@ -1235,8 +1310,8 @@ const RateLimiter = require('limiter').RateLimiter;
 			dtCompleted: moment().format('YYYY-MM-DD')
 		});
 		const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
-		//const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text']);
-		const redirectUrl = 'http://localhost:4200/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text'])+`&cfg=${configId}`;
+		const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text'])+`&cfg=${configId}`;
+		//const redirectUrl = 'http://localhost:4200/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text'])+`&cfg=${configId}`;
 
 		const userResponded: Array<number> = configDBData['user_responded'].split(',');
 		if (userResponded.indexOf(uid) == -1) {

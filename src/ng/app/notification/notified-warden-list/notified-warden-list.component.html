@@ -16,7 +16,7 @@
             <span class="sub-heading-text-value">{{responders}}</span>
         </div>
         <div class="resend-button-container right-align">
-            <button [disabled]="showSummary" type="button" class="btn blue waves-effect waves-light">Resend notification to all pending status</button>
+            <button [disabled]="showSummary" (click)="resendToAllPending()" type="button" class="btn blue waves-effect waves-light">Resend notification to all pending status</button>
         </div>
     </div>
     <div class="col s12" *ngIf="showSummary == false">
@@ -58,7 +58,7 @@
                     <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
                     <td>
                         <div *ngIf="warden.strStatus == 'Pending'">
-                            <button style="width: 100%;" type="button" class="btn blue waves-effect waves-light">Resend Notification</button>
+                            <button style="width: 100%;" type="button" (click)="resendNotificationToUser(warden['notification_token_id'])" class="btn blue waves-effect waves-light">Resend Notification</button>
                         </div>
                         <div style="text-align: center;" *ngIf="warden.strStatus == 'Resigned'">
                             <button style="width: 48%;" type="button" class="btn orange waves-effect waves-light" (click)="acceptResignation(warden['user_id'], warden['location_id'], warden['notification_token_id'])">Accept</button>
@@ -241,5 +241,18 @@
     </form>
 </div>
 
+
+
+<div id="modal-email-confirmation" class="modal">
+    <div class="modal-content">
+        <div class="modal-content-message">
+            <h3>{{emailSentHeading}}</h3>
+                <h5>{{emailSendingStat}}</h5>
+            <div class="modal-footer">
+                <a class="modal-close waves-effect waves-green btn-flat">Ok</a>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div preloader></div>

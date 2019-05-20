@@ -142,7 +142,7 @@ export class AccountsDataProviderService {
     return this.http.get(`${this.baseUrl}/accounts/notification-all-peep/`, this.options);
 	}
 
-	execNotificationAction(action='', token_id = 0) {
+	execNotificationAction(action='', token_id: number | string) {
 		return this.http.post(`${this.baseUrl}/accounts/notification-actions/`, {
 			action: action,
 			notification_token_id: token_id.toString()

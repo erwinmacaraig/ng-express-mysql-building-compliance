@@ -4,7 +4,7 @@ import { AccountsDataProviderService } from '../../services/accounts';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { Subscription } from 'rxjs/Subscription';
 import { NgForm } from '@angular/forms';
-
+import { DatepickerOptions } from 'ng2-datepicker';
 import { AuthService } from '../../services/auth.service';
 import { UserService } from '../../services/users';
 import { MessageService } from '../../services/messaging.service';
@@ -33,6 +33,7 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     public emergencyMobilityImpaired = [];
     public showPEEPList = false;
     private messageSub:Subscription;
+    private allPending = [];
     
     loadingTable = false;
     showModalLoader = false;
@@ -40,6 +41,14 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     isShowDatepicker = false;
     datepickerModelFormatted = '';
     public selectedPeep = {};
+    options: DatepickerOptions = {
+      displayFormat: 'MMM D[,] YYYY',
+      minDate: moment().toDate()
+  };
+
+
+    public emailSentHeading = '';
+    public emailSendingStat = '';
 
     @ViewChild('formMobility') formMobility : NgForm;
     @ViewChild('durationDate') durationDate : ElementRef;
@@ -134,8 +143,10 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
                 let queryResponse = {};
                 if (warden['strStatus'] != 'Pending') {
                     this.responders+= 1;
+                } else if (warden['strStatus'] == 'Pending') {
+                  this.allPending.push(warden['notification_token_id']);
                 }
-                if (warden['strResponse'].length > 1) {
+                if (warden['strResponse'] != null) {
                     queryResponse = JSON.parse(warden['strResponse']);
 
                     console.log(JSON.parse(warden['strResponse']));
@@ -301,7 +312,48 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
             this.loadingTable = false; 
         });
     }
-}
+  }
+  resendNotificationToUser(notificationId=0) {
+    this.preloader.show();
+    this.accountService.execNotificationAction('resend', notificationId).subscribe((response) => {
+      this.emailSentHeading = 'Success!';
+      this.emailSendingStat = 'Notification sent successfully.';
+      this.preloader.hide();
+      setTimeout(() => {
+        $('#modal-email-confirmation').modal('open');
+    }, 300);
+      console.log(response);
+    }, (error) => {
+      this.preloader.hide();
+      this.emailSentHeading = 'Fail!';
+      this.emailSendingStat = 'Error sending email. Try again later.';
+      setTimeout(() => {
+        $('#modal-email-confirmation').modal('open');
+    }, 300);
+      console.log(error);
+    });
+  }
+
+  public resendToAllPending() {
+    this.preloader.show();
+    this.accountService.execNotificationAction('resend-bulk', JSON.stringify(this.allPending)).subscribe((response) => {
+      this.emailSentHeading = 'Success!';
+      this.emailSendingStat = 'Notification sent successfully.';
+      this.preloader.hide();
+      setTimeout(() => {
+        $('#modal-email-confirmation').modal('open');
+    }, 300);
+      console.log(response);
+    }, (error) => {
+      this.preloader.hide();
+      this.emailSentHeading = 'Fail!';
+      this.emailSendingStat = 'Error sending email. Try again later.';
+      setTimeout(() => {
+        $('#modal-email-confirmation').modal('open');
+    }, 300);
+      console.log(error);
+    });
+  }
     
 
 }

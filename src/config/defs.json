@@ -72,7 +72,8 @@
   "COMPLIANCE-DOCS-PACK": "compliance-docs.zip",
   "ADMIN_EMAIL": "admin@evacconnect.com",
   "DEFAULT_USER_PASSWORD" : "123456Uni",
-  "ALLOWED_ORIGINS": [    
+  "ALLOWED_ORIGINS": [
+    "http://ec2-13-211-146-134.ap-southeast-2.compute.amazonaws.com",    
     "http://localhost:3000",
     "http://localhost:4200"
   ]  
