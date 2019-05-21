@@ -139,7 +139,7 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
                 if (warden['lastActionTaken'] != null) {
                     continue;
                 }
-
+                warden['jsonResponse'] = {};
                 let queryResponse = {};
                 if (warden['strStatus'] != 'Pending') {
                     this.responders+= 1;
@@ -147,8 +147,8 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
                   this.allPending.push(warden['notification_token_id']);
                 }
                 if (warden['strResponse'] != null) {
+                  try {
                     queryResponse = JSON.parse(warden['strResponse']);
-
                     console.log(JSON.parse(warden['strResponse']));
                     console.log(queryResponse);
                     warden['jsonResponse'] = queryResponse;
@@ -156,8 +156,14 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
                       if (queryResponse['nominated_person'].length > 0) {
                         warden['showNominatedReviewButton'] = 1;
                       }
-
                     }
+                  } catch(e) {
+                    console.log(e);
+                    warden['jsonResponse']['reason'] = '';
+                    warden['jsonResponse']['info'] = '';
+                    warden['jsonResponse']['nominated_person'] = '';
+                  }
+                    
 
                 } else {
                     warden['showNominatedReviewButton'] = 0;
@@ -206,9 +212,16 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
           console.log(warden['actionTakenByTrp']);
         }
         let queryResponse = {};
-        if (warden['strResponse'].length > 1) {
-          queryResponse = JSON.parse(warden['strResponse']);         
-          warden['jsonResponse'] = queryResponse;
+        if (warden['strResponse'] != null) {
+          try {
+            queryResponse = JSON.parse(warden['strResponse']);         
+            warden['jsonResponse'] = queryResponse;
+          } catch(e) {
+            console.log(e);
+            warden['jsonResponse']['reason'] = '';
+            warden['jsonResponse']['info'] = '';
+            warden['jsonResponse']['nominated_person'] = '';
+          }
         }
       }
     }
