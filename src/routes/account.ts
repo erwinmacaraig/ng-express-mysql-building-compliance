@@ -526,6 +526,7 @@ const RateLimiter = require('limiter').RateLimiter;
 				notificationTokenDbData['strResponse'] = null;
 				notificationTokenDbData['dtLastSent'] = moment().format('YYYY-MM-DD');
 				notificationTokenDbData['manually_validated_by'] = 0;
+				notificationTokenDbData['lastActionTaken'] = null;
 
 				/*
 
@@ -620,7 +621,8 @@ const RateLimiter = require('limiter').RateLimiter;
 				dtCompleted: null,
 				strResponse: null,
 				dtLastSent: moment().format('YYYY-MM-DD'),
-				manually_validated_by: 0
+				manually_validated_by: 0,
+				lastActionTaken: null
       });
 
 			return res.status(200).send({
@@ -1322,63 +1324,6 @@ const RateLimiter = require('limiter').RateLimiter;
 		}
 		await loginAction(redirectUrl);
 
-/*
-    if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
-			const redirectUrl = 'http://' + req.get('host') + '/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text']);
-			//const redirectUrl = 'http://localhost:4200/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
-
-			await loginAction(redirectUrl);
-    }else{
-      try{
-        await userRole.getByUserId(uid);
-        hasFrpTrpRole = true;
-      } catch (e){
-        hasFrpTrpRole = false;
-      }
-
-
-
-  		const userResponded: Array<number> = configDBData['user_responded'].split(',');
-  		if (userResponded.indexOf(uid) == -1) {
-  			userResponded.push(uid);
-  			configDBData['responders'] = configDBData['responders'] + 1;
-  			configDBData['user_responded'] = userResponded.join(',');
-  			await configurator.create(configDBData);
-  		}
-
-
-      if (hasFrpTrpRole && tokenDbData['role_text'] != 'FRP') {
-        const redirectUrl = 'http://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
-        await loginAction(redirectUrl);
-      } else if (tokenDbData['role_text'] == 'FRP') {
-				const accountDbData = await new Account(userDbData['account_id']).load();
-				const locationDbData = await new Location(tokenDbData['location_id']).load();
-
-				// send email notification to admin
-				const opts = {
-					from : '',
-					fromName : 'EvacConnect',
-					to : ['rsantos.evacgroup.com.au'],
-					cc: [],
-					body : new EmailSender().getEmailHTMLHeader() + `<br> ${userDbData['first_name']} ${userDbData['last_name']} of ${accountDbData['account_name']} <br>
-					says that he/she is <strong>STILL</strong> the FRP at ${locationDbData['name']}.` +
-					new EmailSender().getEmailHTMLFooter(),
-					attachments: [],
-					subject : 'EvacConnect Email Notification'
-				};
-				const email = new EmailSender(opts);
-				email.send((success) => {
-					console.log('Sent successfully');
-				}, (error) => {
-					console.log('Email cannot be sent');
-				});
-				return res.redirect('/success-valiadation?verify-notified-user=1');
-			} else {
-        return res.redirect('/success-valiadation?verify-notified-user=1');
-      }
-    }
-
-		*/
 	}
 
 	public async verifyIamWarden(req: AuthRequest, res:Response) {
@@ -1483,6 +1428,7 @@ const RateLimiter = require('limiter').RateLimiter;
     let trp = [];
 		let eco = [];
 		let frp = [];
+		let gofr = [];
     let allUsers = [];
     const allUserIds = [];
     let allUserIdStr = '';
@@ -1511,7 +1457,13 @@ const RateLimiter = require('limiter').RateLimiter;
 				eco = await uemr.emUsersForNotification(sublevels);
 				emailRole = 'Warden';
 				configRoleText = 'Warden';
-      } else if (config['user_type'] == 'all_users') {
+			} else if (config['user_type'] == 'gofr') {
+				userType = 'gofr';
+				eco = await uemr.emUsersForNotification(sublevels, false);
+				emailRole = 'General Occupant';
+				configRoleText = 'GOFR';
+
+			} else if (config['user_type'] == 'all_users') {
         userType = 'all';
         trp = await lauObj.TRPUsersForNotification(sublevels);
 				eco = await uemr.emUsersForNotification(sublevels);
@@ -1599,7 +1551,8 @@ const RateLimiter = require('limiter').RateLimiter;
         role_text: configRoleText,
         notification_config_id: configurator.ID(),
 				dtExpiration: moment().add(21, 'day').format('YYYY-MM-DD'),
-				dtLastSent: moment().format('YYYY-MM-DD')
+				dtLastSent: moment().format('YYYY-MM-DD'),
+				lastActionTaken: null
       });
 			notificationToken = null;
 
@@ -1687,9 +1640,18 @@ const RateLimiter = require('limiter').RateLimiter;
       name: queryBldgName
     });
 
-    const accountLocations = lar.concat(locationsFromLAU);
+		const accountLocations = lar.concat(locationsFromLAU);
+		const tempArr = [];
+		const theLocations = [];
+		for (let loc of accountLocations) {
+			if (tempArr.indexOf(loc['location_id']) == -1) {
+				tempArr.push(loc['location_id']);
+				theLocations.push(loc);
+			}
+		}
+
     return res.status(200).send({
-      data: accountLocations
+      data: theLocations
     });
 
   }

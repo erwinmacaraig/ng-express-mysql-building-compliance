@@ -128,9 +128,12 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
     loadSublevel(e) {
         this.sublocations = [];
         this.selectedSubIndex = -1;
-        let i = +e.target.value;
-        this.buildingSelectionChoosenId = i;        
-        this.sublocations = this.locations[i]['sublocation'];
+        let i:number = +e.target.value;        
+        if (i >= 0) {
+            this.buildingSelectionChoosenId = i;        
+            this.sublocations = this.locations[i]['sublocation'];
+        }
+        
     }
 
     private retrieveLocationInformation(tokens:Array<string>) {
@@ -158,10 +161,14 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
         query_responses['reason'] = mainReason;
         switch(this.selectedReasonIndex) {
             case 0:                
-            query_responses['new_bulding_location'] = this.locations[this.buildingSelectionChoosenId]['location_id'];
-            query_responses['new_building_location_name'] = this.locations[this.buildingSelectionChoosenId]['name']
-            query_responses['new_level_location'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['location_id'];
-            query_responses['new_level_location_name'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['name'];
+                if(this.buildingSelectionChoosenId >= 0) {
+                    query_responses['new_bulding_location'] = this.locations[this.buildingSelectionChoosenId]['location_id'];
+                    query_responses['new_building_location_name'] = this.locations[this.buildingSelectionChoosenId]['name']
+                    query_responses['new_level_location'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['location_id'];
+                    query_responses['new_level_location_name'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['name'];
+                } else {
+                    query_responses['new_building_location_name'] = 'Location not in the list';
+                }
             break;
             case 1:
             case 2:
@@ -169,11 +176,10 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
             case 4:            
             query_responses['info'] = this.info.nativeElement.value; 
             break;
-            
         }
 
-        query_responses['nominated_person'] = this.nominated_person;
-        query_responses['nominated_person_email'] = this.nominated_person_email;
+        // query_responses['nominated_person'] = this.nominated_person;
+        // query_responses['nominated_person_email'] = this.nominated_person_email;
         
         if (this.selectedReasonIndex == 3 &&  this.info.nativeElement.value == '') {
             this.validInfo = false;

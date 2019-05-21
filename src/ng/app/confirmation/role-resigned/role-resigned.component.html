@@ -1,6 +1,7 @@
 <div class="role-resignation-container">
     <div>
-        <h5 class="resignation-color-heading-text">Please tell us why you are resigning as {{emergencyRole}} at {{buildingName}}?</h5>
+        <h5 *ngIf="emergencyRole == 'Warden'" class="resignation-color-heading-text">Please tell us why you are resigning as {{emergencyRole}} at {{buildingName}}?</h5>
+        <h5 *ngIf="emergencyRole == 'TRP'" class="resignation-color-heading-text">Why are you no longer a TRP on this building?</h5>
     </div>
     <div class="form-field-containter">
         <div class="form-field-item">
@@ -28,7 +29,7 @@
             
             <ng-container *ngIf="selectedReasonIndex != -1">
                 <ng-container *ngTemplateOutlet="additionalInfo"></ng-container>
-                <ng-container *ngTemplateOutlet="nominationref"></ng-container>
+                <!--<ng-container *ngTemplateOutlet="nominationref"></ng-container>-->
                 <ng-container *ngTemplateOutlet="submitInfo"></ng-container> 
             </ng-container>           
 

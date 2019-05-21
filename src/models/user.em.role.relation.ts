@@ -779,11 +779,17 @@ export class UserEmRoleRelation extends BaseClass {
     }
 
 
-    public emUsersForNotification(locations = []): Promise<Array<object>> {
+    public emUsersForNotification(locations = [], isWardenRole=true): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         if (!locations.length) {
           resolve([]);
           return;
+        }
+        let roleFilter = '';
+        if (isWardenRole) {
+          roleFilter = ' AND em_roles.is_warden_role = 1';
+        } else {
+          roleFilter = ' AND user_em_roles_relation.em_role_id IN (8)'
         }
         const locationStr = locations.join(',');
         const sql = `SELECT
@@ -828,7 +834,8 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
-                      AND
+                      ${roleFilter}
+                      AND 
                         account_subscription.type <> 'free'
                       GROUP BY user_em_roles_relation.user_id, em_roles.em_roles_id
                        `;

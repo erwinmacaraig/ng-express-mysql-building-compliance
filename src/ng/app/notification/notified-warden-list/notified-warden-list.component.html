@@ -1,6 +1,7 @@
 <div class="row" *ngIf='showPEEPList == false'>
     <div class="col s12">
-        <h4 class="top-heading">Warden Confirmation List</h4>
+        <h4 class="top-heading" *ngIf="showSummary == false">ECO Member List</h4>
+        <h4 class="top-heading" *ngIf="showSummary == true">Summary of Changes</h4>
     </div>
     <div class="col s12">
         <div class="sub-headings__location">
@@ -25,8 +26,7 @@
                 <tr>
                     <th>Status</th>
                     <th>Response</th>
-                    <th>Name</th>
-                    <th>Email</th>
+                    <th>Name</th>                    
                     <th>Mobile</th>
                     <th>Sublocation</th>
                     <th>Last Activity (dd/MM/YYYY)</th>
@@ -39,20 +39,24 @@
                     <td colspan="8">No Records Found</td>
                 </tr>
                 <tr *ngFor="let warden of wardenList">
-                    <td>{{warden.strStatus}}</td>
+                    <td>{{warden.statusText}}</td>
                     <td>
                         <ng-container *ngIf="warden['jsonResponse']">
                             <span class="response-parser">
                                {{warden['jsonResponse']['reason']}}
                             </span>
+                            <!--
                             <span *ngIf="warden['jsonResponse']['info'] != ''"> Additional Info: </span>
                             <span *ngIf="warden['jsonResponse']['info'] != ''" class="response-parser">
                                {{warden['jsonResponse']['info']}}
                             </span>
+                            -->
+                            <span style="display: block;" *ngFor="let info of warden['additional_info']">
+                                {{info}}
+                            </span>                            
                         </ng-container>
                     </td>
-                    <td>{{warden.first_name}} {{warden.last_name}}</td>
-                    <td>{{warden.email}}</td>
+                    <td>{{warden.first_name}} {{warden.last_name}}</td>                    
                     <td>{{warden.mobile}}</td>
                     <td>{{warden.name}}</td>
                     <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
@@ -67,7 +71,7 @@
                     </td>
                 </tr>
                 <tr *ngFor="let warden of validatedList">
-                    <td>{{warden.strStatus}}</td>
+                    <td>{{warden.statusText}}</td>
                     <td> -- </td>
                     <td>{{warden.first_name}} {{warden.last_name}}</td>
                     <td>{{warden.email}}</td>
@@ -86,8 +90,7 @@
                 <tr>
                     <th>Status</th>
                     <th>Response</th>
-                    <th>Name</th>
-                    <th>Email</th>
+                    <th>Name</th>                    
                     <th>Mobile</th>
                     <th>Sublocation</th>
                     <th>Last Activity (dd/MM/YYYY)</th>
@@ -100,20 +103,18 @@
                     <td colspan="8">No Records Found</td>
                 </tr>
                 <tr *ngFor="let warden of allWarden">
-                    <td>{{warden.strStatus}}</td>
+                    <td>{{warden.statusText}}</td>
                     <td>
                         <ng-container *ngIf="warden['jsonResponse']">
                             <span class="response-parser">
                                 {{warden['jsonResponse']['reason']}}
                             </span>
-                            <span *ngIf="warden['jsonResponse']['info'] != ''"> Additional Info: </span>
-                            <span *ngIf="warden['jsonResponse']['info'] != ''" class="response-parser">
-                                {{warden['jsonResponse']['info']}}
-                            </span>
+                            <span style="display: block;" *ngFor="let info of warden['additional_info']">
+                                {{info}}
+                            </span> 
                         </ng-container>
                     </td>
-                    <td>{{warden.first_name}} {{warden.last_name}}</td>
-                    <td>{{warden.email}}</td>
+                    <td>{{warden.first_name}} {{warden.last_name}}</td>                    
                     <td>{{warden.mobile}}</td>
                     <td>{{warden.name}}</td>
                     <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
@@ -141,8 +142,7 @@
                 <tr>
                     <th>Mobility Impaired Status</th>
                     <th>P.E.E.P Review Date</th>
-                    <th>Name</th>
-                    <th>Email</th>
+                    <th>Name</th>                    
                     <th>Mobile</th>
                     <th>Sublocation</th>
                     <th>Last Activity (dd/MM/YYYY)</th>
@@ -150,6 +150,9 @@
                 </tr>
             </thead>
             <tbody>
+                <tr *ngIf="emergencyMobilityImpaired.length == 0">
+                    <td colspan="8">No Records Found</td>
+                </tr>
                 <tr *ngFor="let peep of emergencyMobilityImpaired">
                     <td><span *ngIf="peep['mobility_impaired_details_id'] == null">--</span> 
                         <span>{{peep['status']}}</span>
@@ -158,8 +161,7 @@
                         <span *ngIf="peep['mobility_impaired_details_id'] == null">--</span> 
                         <span>{{peep['duration_date'] | date: 'dd/MM/yyyy' }}</span>
                     </td>
-                    <td>{{peep['first_name']}} {{peep['last_name']}}</td>
-                    <td>{{peep['email']}}</td>
+                    <td>{{peep['first_name']}} {{peep['last_name']}}</td>                    
                     <td>{{peep['mobile_number']}}</td>
                     <td>{{peep['name']}}</td>
                     <td>{{peep['last_login'] | date: 'dd/MM/yyyy' }}</td>

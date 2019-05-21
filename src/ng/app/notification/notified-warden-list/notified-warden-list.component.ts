@@ -128,6 +128,7 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
         this.wardenList = [];
         this.validatedList = [];
         this.myBuildings = [];
+        let wardenInformation = [];
         //build the team here
         this.userService.generateConfirmationWardenList({
             'assignedLocations': JSON.stringify(this.myLocations)
@@ -135,38 +136,80 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
             this.receivers = response.list.length;
             this.allWarden = response.list;
             for (let warden of response.list) {
-                
+              wardenInformation = [];
+              if (warden['strStatus'] != 'Pending') {
+                this.responders+= 1;
+                } else if (warden['strStatus'] == 'Pending') {
+                  this.allPending.push(warden['notification_token_id']);
+                }
                 if (warden['lastActionTaken'] != null) {
                     continue;
                 }
                 warden['jsonResponse'] = {};
+                warden['additional_info'] = [];
                 let queryResponse = {};
-                if (warden['strStatus'] != 'Pending') {
-                    this.responders+= 1;
-                } else if (warden['strStatus'] == 'Pending') {
-                  this.allPending.push(warden['notification_token_id']);
-                }
                 if (warden['strResponse'] != null) {
                   try {
-                    queryResponse = JSON.parse(warden['strResponse']);
-                    console.log(JSON.parse(warden['strResponse']));
-                    console.log(queryResponse);
+                    queryResponse = JSON.parse(warden['strResponse']);                    
                     warden['jsonResponse'] = queryResponse;
+                    /*
                     if (queryResponse['nominated_person']) {
                       if (queryResponse['nominated_person'].length > 0) {
                         warden['showNominatedReviewButton'] = 1;
                       }
                     }
+                    */
+                    Object.keys(queryResponse).forEach((key) => {
+                      switch(key) {
+                        case 'new_building_location_name':
+                            if (queryResponse['new_building_location_name'].length) { 
+                              wardenInformation.push(`New building location: ${queryResponse['new_building_location_name']}`);                            
+                            }                            
+                        break;
+                        case 'new_level_location_name':
+                            if (queryResponse['new_level_location_name'].length) { 
+                              wardenInformation.push(`New level location: ${queryResponse['new_level_location_name']}`);
+                            }
+                        break;
+                        case 'nominated_person':
+                            if (queryResponse['nominated_person'].length) {
+                              wardenInformation.push(`Nominated person: ${queryResponse['nominated_person']}`);
+                            }                            
+                        break;
+                        case 'nominated_person_email':
+                            if(queryResponse['nominated_person_email'].length) {
+                              wardenInformation.push(`Nominated person email: ${queryResponse['nominated_person_email']}`);
+                            }
+                        break;
+                        case 'info':
+                            if (queryResponse['info'].length) {
+                              wardenInformation.push(`Additional info: ${queryResponse['info']}`);
+                            }
+                        break;
+
+                      }
+                    });
+                    warden['additional_info'] = wardenInformation;
+
                   } catch(e) {
                     console.log(e);
                     warden['jsonResponse']['reason'] = '';
-                    warden['jsonResponse']['info'] = '';
-                    warden['jsonResponse']['nominated_person'] = '';
+                    warden['additional_info'] = [];
                   }
                     
 
                 } else {
                     warden['showNominatedReviewButton'] = 0;
+                }
+                switch(warden['strStatus']) {
+                  case 'Pending':
+                      warden['statusText'] = 'No Response';
+                  break;
+                  case 'Validated':
+                      warden['statusText'] = 'Confirmed';
+                  break;
+                  default:
+                      warden['statusText'] = warden['strStatus'];
                 }
 
                 if (warden['strStatus'] == 'Validated'){
@@ -205,23 +248,69 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     }
 
     public generateSummary() {
+      let wardenInformation = [];
+      
       for (let warden of this.allWarden) {
+      
         if (warden['lastActionTaken'] != null) {
+          wardenInformation = [];
           let actionTakenByTrpObj = JSON.parse(warden['lastActionTaken']);
           warden['actionTakenByTrp'] = actionTakenByTrpObj['action'];
           console.log(warden['actionTakenByTrp']);
         }
+        warden['additional_info'] = [];
         let queryResponse = {};
         if (warden['strResponse'] != null) {
           try {
             queryResponse = JSON.parse(warden['strResponse']);         
             warden['jsonResponse'] = queryResponse;
+            Object.keys(queryResponse).forEach((key) => {
+              switch(key) {
+                case 'new_building_location_name':
+                    if (queryResponse['new_building_location_name'].length) { 
+                      wardenInformation.push(`New building location: ${queryResponse['new_building_location_name']}`);                            
+                    }                            
+                break;
+                case 'new_level_location_name':
+                    if (queryResponse['new_level_location_name'].length) { 
+                      wardenInformation.push(`New level location: ${queryResponse['new_level_location_name']}`);
+                    }
+                break;
+                case 'nominated_person':
+                    if (queryResponse['nominated_person'].length) {
+                      wardenInformation.push(`Nominated person: ${queryResponse['nominated_person']}`);
+                    }                            
+                break;
+                case 'nominated_person_email':
+                    if(queryResponse['nominated_person_email'].length) {
+                      wardenInformation.push(`Nominated person email: ${queryResponse['nominated_person_email']}`);
+                    }
+                break;
+                case 'info':
+                    if (queryResponse['info'].length) {
+                      wardenInformation.push(`Additional info: ${queryResponse['info']}`);
+                    }
+                break;
+
+              }
+            });
+            warden['additional_info'] = wardenInformation;
+            wardenInformation = [];
           } catch(e) {
             console.log(e);
             warden['jsonResponse']['reason'] = '';
-            warden['jsonResponse']['info'] = '';
-            warden['jsonResponse']['nominated_person'] = '';
+            warden['additional_info'] = [];
           }
+        }
+        switch(warden['strStatus']) {
+          case 'Pending':
+              warden['statusText'] = 'No Response';
+          break;
+          case 'Validated':
+              warden['statusText'] = 'Confirmed';
+          break;
+          default:
+              warden['statusText'] = warden['strStatus'];
         }
       }
     }

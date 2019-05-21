@@ -9,7 +9,7 @@
 		</button>        
 	</div>
 </div>
-<div class="row filter-container to-hide-in-show-profile-update">
+<!--<div class="row filter-container to-hide-in-show-profile-update">
   <div class="col l6 m6 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search Location" id="searchLocation">
@@ -35,18 +35,21 @@
       <option value="archive">Archive selected</option>
     </select>
   </div>
-</div>
+</div>-->
 <div class="row" class="to-hide-in-show-profile-update">
   <div class="col  s12">
     <table class="table striped table-peep">
       <thead>
         <tr>
-          <th><p class="checkbox">
+          <!--
+            <th><p class="checkbox">
             <input id="allLocations" class="filled-in" type="checkbox">
             <label for="allLocations">Name</label>
           </p></th>
+          -->
+          <th>Name</th>
           <th>Email</th>
-          <th>Mobile</th>
+          <th>Response</th>
           <th>Role</th>
           <th>Account</th>
           <th>Location</th>
@@ -57,20 +60,27 @@
       </thead>
       <tbody>
         <tr *ngFor="let user of notifiedUsers">
-          <td>
+          <!--
+            <td>
             <p class="checkbox">
                 <input id="allUsers" class="filled-in" type="checkbox">
                 <label for="allUsers"></label>
                 {{ user['first_name'] }} {{user['last_name']}}
               </p>
           </td>
+          -->
+          <td>{{ user['first_name'] }} {{user['last_name']}}</td>
           <td> {{user['email']}} </td>
-          <td> {{user['mobile_number']}} </td>
+          <td>
+            <span style="display: block;" *ngFor="let response of user['additional_info']">
+            {{response}}
+            </span>
+          </td>
           <td> {{user['role_text']}} </td>
           <td> {{user['account_name']}} </td>
           <td> {{user['name']}} </td>
           <td> {{user['last_login'] | date : 'dd/MM/yyyy'}}</td>
-          <td> {{user['strStatus']}} </td>
+          <td> {{user['statusText']}} </td>
           <td>
             <select id="token_{{user['notification_token_id']}}" (change)="performNotificationAction(user['notification_token_id'])">
                 <option value="0"  selected disabled>Select action</option>

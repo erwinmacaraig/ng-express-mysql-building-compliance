@@ -287,7 +287,9 @@ export class NotificationToken extends BaseClass {
                   notification_token.notification_token_id,
                   notification_token.role_text,
                   notification_token.dtLastSent,
-                  users.last_login, parent_loctions.name as parent, locations.name, notification_token.strStatus
+                  notification_token.strResponse,
+                  users.last_login, parent_loctions.name as parent,
+                  locations.name, notification_token.strStatus
                FROM
                  users
                INNER JOIN

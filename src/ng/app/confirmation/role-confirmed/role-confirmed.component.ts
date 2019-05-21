@@ -85,8 +85,8 @@ export class RoleConfirmComponent implements OnInit, OnDestroy, AfterViewInit {
         }
     }
 
-    gotoDashboard() {        
-        this.router.navigate(['/dashboard']);
+    gotoTeamWardenList() {        
+        this.router.navigate(['/teams', 'list-wardens']);
     }
 
 }
