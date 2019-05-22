@@ -54,7 +54,7 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 	info = '';
 	private assignedLocs = [];
 	public chosenRoleId = 0;
-	public role_location_table: {[k: number]: Array<number>} = {};
+	public role_location_table: {[k: number]: Array<number>} = {};	
 	@ViewChild('invitefrm') emailInviteForm: NgForm;
 	@ViewChildren('llist') locationListing: QueryList<ElementRef>;
 	public bulkEmailInvite;
@@ -62,6 +62,8 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 	public buildings = [];
 	showModalResignLoader = false;
 	userIdEnc = '';
+	public inConfirmationProcess:boolean = false;
+	public confirmationProcessRole:string = 'Warden';
 	
 	constructor(
 		private auth: AuthService,
@@ -82,6 +84,8 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 	ngOnInit(){
 		this.preloaderService.show();
 		const roles = this.auth.userDataItem('roles') as Array<object>;
+		this.inConfirmationProcess = this.auth.userDataItem('confirmation_process');
+		this.confirmationProcessRole = this.auth.userDataItem('confirmation_process_role');
 		for (let r of roles) {
 			if (r['is_warden_role']) {
 				this.isWarden = true;
@@ -121,16 +125,16 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 		const display_role_ids = [];
 		this.userService.getMyWardenTeam({
 			role_id : this.initRole
-		}, (response) => {
-			this.viewData.user = response.data.user;
+		}).subscribe((response) => {
+			this.viewData.user = response['data'].user;
 			if (this.isWarden) {
-				for (let member of response.data.team) {
+				for (let member of response['data'].team) {
 					if (member['is_warden_role']) {
 						this.viewData.team.push(member);
 					}
 				}
 			} else {
-				for (let member of response.data.team) {
+				for (let member of response['data'].team) {
 					if (member['is_warden_role'] == 0) {
 						this.viewData.team.push(member);
 					}
@@ -139,10 +143,10 @@ export class ViewWardenComponent implements OnInit, OnDestroy, AfterViewInit {
 
 
 			// this.viewData.team = response.data.team;			
-			this.copyTeam = JSON.parse(JSON.stringify(response.data.team));
+			this.copyTeam = JSON.parse(JSON.stringify(response['data'].team));
 			
 			try {
-				for (let loc of response.data.myEmRoles) {					
+				for (let loc of response['data'].myEmRoles) {					
 					/*
 					let name = '';
 					

@@ -47,6 +47,9 @@ export class RoleConfirmComponent implements OnInit, OnDestroy, AfterViewInit {
                 $('#modal-welcome-confirmation').modal('open');
             }, 300);            
         }
+        if(this.step == 4 && this.role != 'TRP' && this.role != 'FRP') {
+            this.getOutOfConfirmation();
+        }
            
         
     }
@@ -85,8 +88,14 @@ export class RoleConfirmComponent implements OnInit, OnDestroy, AfterViewInit {
         }
     }
 
-    gotoTeamWardenList() {        
+    gotoTeamWardenList() { 
+        this.getOutOfConfirmation();       
         this.router.navigate(['/teams', 'list-wardens']);
+    }
+
+    private getOutOfConfirmation() {
+        this.authService.setUserDataItem('confirmation_process', false);
+        this.authService.setUserDataItem('confirmation_process_role', null);
     }
 
 }

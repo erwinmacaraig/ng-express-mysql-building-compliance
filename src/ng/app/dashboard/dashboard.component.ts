@@ -112,6 +112,7 @@ export class DashboardComponent implements OnInit {
       }
       if (params.has('r')) {
         this.emergencyRole = decodeURIComponent(params.get('r'));
+        this.auth.setUserDataItem('confirmation_process_role', this.emergencyRole);
         console.log('emergency role from url',  this.emergencyRole);
       }
       

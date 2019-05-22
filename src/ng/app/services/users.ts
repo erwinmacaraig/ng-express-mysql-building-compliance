@@ -206,13 +206,8 @@ export class UserService {
 		});
 	}
 
-	getMyWardenTeam(data, callBack){
-		this.http.post(this.baseUrl+"/users/get-my-warden-team", data)
-		.subscribe(res => {
-			callBack(res);
-		}, err => {
-			callBack( JSON.parse(err.error) );
-		});
+	getMyWardenTeam(data){
+		return this.http.post(this.baseUrl+"/users/get-my-warden-team", data);
 	}
 
 	requestAsWarden(requestData, callBack){

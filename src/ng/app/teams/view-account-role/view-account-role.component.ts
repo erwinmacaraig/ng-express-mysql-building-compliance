@@ -51,7 +51,10 @@ export class ViewAccountRoleComponent implements OnInit, OnDestroy, AfterViewIni
     public role_location_table: {[k: number]: Array<number>} = {};
     public confirmationHeader='';
     public confirmationMessage='';
-    
+    public userIdEnc = '';
+    public inConfirmationProcess = false;
+    public confirmationProcessRole = 'TRP';
+
     @ViewChildren('llist') locationListing: QueryList<ElementRef>;
 
     constructor(
@@ -70,6 +73,8 @@ export class ViewAccountRoleComponent implements OnInit, OnDestroy, AfterViewIni
     ngOnInit() {
         this.viewData.user.name = this.auth.userDataItem('name');
         this.viewData.user.profilePic = this.auth.userDataItem('profilePic');
+        this.inConfirmationProcess = this.auth.userDataItem('confirmation_process');
+		this.confirmationProcessRole = this.auth.userDataItem('confirmation_process_role');
         const roles: object[] = this.auth.userDataItem('roles');
         const checker = [];
         for (let r of roles) {
@@ -103,6 +108,7 @@ export class ViewAccountRoleComponent implements OnInit, OnDestroy, AfterViewIni
 			console.log(error);
 		});
 
+        this.userIdEnc = this.encryptDecrypt.encrypt(this.auth.userDataItem('userId'));
 
     }
 

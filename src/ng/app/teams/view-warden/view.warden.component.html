@@ -30,7 +30,10 @@
 				<div class="text inline-block">Resign as Warden</div>
 			</button>
 	
-			<button class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden' }">			
+			<button *ngIf="!inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden' }">			
+				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
+			</button>
+			<button *ngIf="inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden', confirmation: true,  step: 2, r: confirmationProcessRole }">			
 				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
 			</button>
 		</div>

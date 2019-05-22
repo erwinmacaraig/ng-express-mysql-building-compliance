@@ -10,7 +10,7 @@
         <!--<button class="btn white waves-effect waves-light" type="button" (click)="sendEditMessage()"><span class="no-label-btn">No</span></button>-->
     </div>
 </div>
-
+<!--    -->
 <div class="navbar-fixed" *ngIf="step == 1">
     <div *ngIf="showLocationCtrlButton == true">
         <div class="navbar-fixed-control-text">
@@ -25,12 +25,21 @@
     <div *ngIf="showLocationCtrlButton == false">
         <div class="navbar-fixed-control-text">
             <span>Click "Update Sub Location"</span>
-        </div>
-        
-    </div>
-    
+        </div>        
+    </div>    
 </div>
 
+<div class="navbar-fixed" *ngIf="step == 2">
+    <div class="navbar-fixed-control-text">
+        <span>Fill up Personal Emergency Evacuation Plan</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button *ngIf="role != 'TRP' && role != 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'stay-and-go']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
+        <button *ngIf="role == 'TRP' || role == 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'my-notified-warden-list']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
+        <!--<button class="btn white waves-effect waves-light" type="button" (click)="showLocationCtrlButton=false"><span class="no-label-btn">No</span></button>-->
+    </div>
+</div>
+<!--   -->
 
 <div class="navbar-fixed" *ngIf="step == 3 && role != 'TRP' && role != 'FRP'">
     <div class="navbar-fixed-control-text">

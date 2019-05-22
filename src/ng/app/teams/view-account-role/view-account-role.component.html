@@ -26,8 +26,10 @@
 			<button class="btn orange waves-effect waves-light remove">			
 				<div class="text inline-block">Resign My Facilty Role</div>
 			</button>
-			<!--[routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden' }"-->
-			<button class="btn grey waves-effect waves-light presonal-emergency">			
+			<button *ngIf="!inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-account-role' }">			
+				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
+			</button>
+			<button *ngIf="inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-account-role', confirmation: true,  step: 2, r: confirmationProcessRole }">			
 				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
 			</button>
 		</div>
