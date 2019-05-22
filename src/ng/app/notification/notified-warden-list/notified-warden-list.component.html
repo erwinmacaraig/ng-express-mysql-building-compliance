@@ -29,6 +29,8 @@
                     <th>Name</th>                    
                     <th>Mobile</th>
                     <th>Sublocation</th>
+                    <th>ECO Role</th>
+                    <th>Training</th>
                     <th>Last Activity (dd/MM/YYYY)</th>
                     <th>Required Action</th>
                 </tr>
@@ -59,6 +61,8 @@
                     <td>{{warden.first_name}} {{warden.last_name}}</td>                    
                     <td>{{warden.mobile}}</td>
                     <td>{{warden.name}}</td>
+                    <td><span style="display: block;" *ngFor="let role of warden['roles']">{{role}}</span></td>
+                    <td><span [ngStyle]="{'color':warden.training === 'Non-compliant' ? 'red' : '#39a1ff'}">{{warden.training}}</span></td>
                     <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
                     <td>
                         <div *ngIf="warden.strStatus == 'Pending'">
@@ -77,6 +81,10 @@
                     <td>{{warden.email}}</td>
                     <td>{{warden.mobile}}</td>
                     <td>{{warden.name}}</td>
+                    <td>
+                        <span style="display: block;" *ngFor="let role of warden['roles']">{{role}}</span>
+                    </td>
+                    <td><span [ngStyle]="{'color':warden.training === 'Non-compliant' ? 'red' : '#39a1ff'}">{{warden.training}}</span></td>
                     <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
                     <td> -- </td>
                 </tr>
@@ -93,6 +101,8 @@
                     <th>Name</th>                    
                     <th>Mobile</th>
                     <th>Sublocation</th>
+                    <th>ECO Role</th>
+                    <th>Training</th>
                     <th>Last Activity (dd/MM/YYYY)</th>
                     <th>Required Action</th>
                 </tr>
@@ -117,6 +127,8 @@
                     <td>{{warden.first_name}} {{warden.last_name}}</td>                    
                     <td>{{warden.mobile}}</td>
                     <td>{{warden.name}}</td>
+                    <td><span style="display: block;" *ngFor="let role of warden['roles']">{{role}}</span></td>
+                    <td><span [ngStyle]="{'color':warden.training === 'Non-compliant' ? 'red' : '#39a1ff'}">{{warden.training}}</span></td>
                     <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
                     <td><span [ngStyle]="{'color':warden.actionTakenByTrp === 'Rejected' ? 'red' : '#39a1ff'}">{{warden.actionTakenByTrp}}</span> </td>
                 </tr>

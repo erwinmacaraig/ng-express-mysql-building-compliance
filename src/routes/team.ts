@@ -24,11 +24,10 @@ import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { CourseUserRelation } from '../models/course-user-relation.model';
 import { TrainingCertification } from './../models/training.certification.model';
 import { NotificationToken } from './../models/notification_token.model';
+import { TrainingRequirements } from './../models/training.requirements';
 const md5 = require('md5');
 const defs = require('../config/defs');
 import * as moment from 'moment';
-import * as csv from 'fast-csv';
-
 import { AdminRoute } from './admin';
 
 
@@ -303,16 +302,56 @@ export class TeamRoute extends BaseRoute {
         sublocations.push(loc['location_id']);	
     }
 
+    //need to get the training requirements for emergency roles
+    const trainingForRoles: Array<object> = await new TrainingRequirements().allEmRolesTrainings();
+    const tempUserTrainingReqObj:{[r:number]:Array<Number>} = {};
+    for (let training of trainingForRoles) {
+        try {
+            tempUserTrainingReqObj[training['em_role_id']].push(training['training_requirement_id']);
+        } catch(e) {
+            tempUserTrainingReqObj[training['em_role_id']] = [];
+            tempUserTrainingReqObj[training['em_role_id']].push(training['training_requirement_id']);
+        }
+    }
+
 
     tempArr = await new UserEmRoleRelation().getUserLocationByAccountIdAndLocationIds(req.user.account_id, sublocations.join(','));
     // tempArr now contains all eco and go from the locations specified under the same account
 
-    let userIds = [];    
-    for (let user of tempArr) {
+    let userIds = [];
+    const tempUserRoleObj:{[k:number]:String[]} = {};
+    const trainingReqForUser: {[k:number]: Number[]} = {};
+    const uniqTrainingRequirementsIds = [];
+
+    for (let user of tempArr) {        
         if (user['is_warden_role'] == 1) {
             userIds.push(user['user_id']);            
+            try {
+                tempUserRoleObj[user['user_id']].push(user['role_name']);
+            } catch(e) {
+                tempUserRoleObj[user['user_id']] = [];
+                tempUserRoleObj[user['user_id']].push(user['role_name']);
+            }
+            for (let trid of tempUserTrainingReqObj[user['em_roles_id']]) {
+                if (uniqTrainingRequirementsIds.indexOf(trid) == -1) {
+                    uniqTrainingRequirementsIds.push(trid);
+                }
+            }            
+            try {
+                for(let tr of tempUserTrainingReqObj[user['em_roles_id']]) {
+                    if (trainingReqForUser[user['user_id']].indexOf(tr) == -1) {
+                        trainingReqForUser[user['user_id']].push(tr);
+                    }
+                }
+                
+            } catch(e) {
+                trainingReqForUser[user['user_id']] = [];
+                trainingReqForUser[user['user_id']] = [...tempUserTrainingReqObj[user['em_roles_id']]];
+            }
         }
     }
+
+    const cert = await new TrainingCertification().getBulkActiveCertificates(userIds, uniqTrainingRequirementsIds);
 
     // cross reference this users from notification_token table
     const notificationToken = new NotificationToken();
@@ -321,6 +360,23 @@ export class TeamRoute extends BaseRoute {
         'location_ids': sublocations,
         'role_text': 'Warden'
     });
+    for (let item of list) {
+        item['training'] = 'Non-compliant';        
+        if(item['user_id'] in tempUserRoleObj) {
+            item['roles'] = tempUserRoleObj[item['user_id']];
+        }
+        if (item['user_id'] in trainingReqForUser ) {
+            for (let trid of trainingReqForUser[item['user_id']]) {
+                for (let c of cert) {
+                    if (c['user_id'] == item['user_id'] && trid == c['training_requirement_id']) {
+                        item['training'] = 'Compliant'; 
+                    }
+                }
+            }    
+        }
+        
+    }
+
 
 
     res.status(200).send({

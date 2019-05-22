@@ -876,4 +876,46 @@ export class TrainingCertification extends BaseClass {
       });
     });
   }
+
+  public getBulkActiveCertificates(userIds=[], trainingIds=[]): Promise<Array<object>> {
+    return new Promise((resolve, reject) => {
+      if (userIds.length == 0 || trainingIds.length == 0) {
+        reject('Arguments cannot be empty for user ids and training ids');
+        return;
+      }
+      const sql = `SELECT
+                    certifications.*,
+                    DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) as expiry_date 
+                  FROM
+                    certifications
+                  INNER JOIN
+                       training_requirement
+                    ON
+                        training_requirement.training_requirement_id = certifications.training_requirement_id
+                    WHERE
+                        certifications.user_id IN (${userIds.join(',')})
+                    AND
+                      certifications.training_requirement_id IN (${trainingIds.join(',')})
+                    AND
+                      certifications.pass = 1
+                    AND
+                      DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()
+                    `;
+      console.log(sql);
+      this.pool.getConnection((err, connection) => {
+        if (err) {                    
+            throw new Error(err);
+        }
+
+        connection.query(sql, [], (error, results) => {
+          if (error) {
+            console.log('training.certifications.model.getBulkActiveCertificates', error, sql);
+            throw Error('Cannot query certifications');
+          }      
+          resolve(results);
+          connection.release();
+        });
+      });
+    });
+  }
 }

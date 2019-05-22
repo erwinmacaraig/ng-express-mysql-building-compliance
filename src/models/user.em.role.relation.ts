@@ -132,9 +132,7 @@ export class UserEmRoleRelation extends BaseClass {
                       l.name as location_name,
                       parent.name as building,
                       l.parent_id,
-                      l.formatted_address,
-                      l.google_place_id,
-                      l.google_photo_url,
+                      l.formatted_address,                      
                       l.admin_verified,
                       l.is_building,
                       l.archived,
@@ -148,7 +146,7 @@ export class UserEmRoleRelation extends BaseClass {
                     LEFT JOIN locations l ON l.location_id = uer.location_id
                     LEFT JOIN locations parent ON l.parent_id = parent.location_id
                     WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived} AND u.archived = 0`;
-
+            console.log(sql_load);
             this.pool.getConnection((err, connection) => {
                 if (err) {
                     throw new Error(err);
@@ -767,9 +765,8 @@ export class UserEmRoleRelation extends BaseClass {
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         return console.log(error);
-                    }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    }                    
+                    resolve(results);
                     connection.release();
                 });
 

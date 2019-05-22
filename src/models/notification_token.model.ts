@@ -340,7 +340,7 @@ export class NotificationToken extends BaseClass {
         whereClause += `AND users.user_id IN (` + userIds.join(',') + `) `;
       }
       if ('role_text' in filter) {
-        whereClause += `AND notification_token.role_text = '${filter['role_text']}'`;
+        whereClause += `AND notification_token.role_text = '${filter['role_text']}' `;
       }
       if ('location_ids' in filter) {
         const locIds = (filter['location_ids'] as Number[]).join(',');
