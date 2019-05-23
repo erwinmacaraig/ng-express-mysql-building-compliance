@@ -58,11 +58,11 @@ export class DashboardComponent implements OnInit {
               this.isTRP = true;
             }
 
-            if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
+            /*if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
               if(this.userData['accountId'] < 1){
                 router.navigate(['/setup-company']);
               }
-            }
+            }*/
           }
 
           if(val.url == '/' || val.url == '/dashboard'){

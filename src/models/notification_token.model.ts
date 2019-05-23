@@ -381,8 +381,7 @@ export class NotificationToken extends BaseClass {
                  locations as parent_loctions ON locations.parent_id = parent_loctions.location_id
                WHERE notification_token.notification_config_id <> 0
                  ${whereClause}
-               ORDER BY accounts.account_name, users.user_id`;
-      console.log(sql);
+               ORDER BY accounts.account_name, users.user_id`;      
       this.pool.getConnection((err, connection) => {
         if(err){
           throw new Error(err);

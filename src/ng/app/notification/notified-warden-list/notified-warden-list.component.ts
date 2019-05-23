@@ -34,6 +34,7 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     public showPEEPList = false;
     private messageSub:Subscription;
     private allPending = [];
+    public inConfirmationProcess = false;
     
     loadingTable = false;
     showModalLoader = false;
@@ -61,8 +62,10 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
         ) {}
 
     ngOnInit() {
-      this.messageSub =  this.messageService.getMessage().subscribe(message => {
-        console.log('Receiving message', message);
+      if(this.auth.userDataItem('confirmation_process') && this.auth.userDataItem('confirmation_process') == true) {
+        this.inConfirmationProcess = true;
+      }
+      this.messageSub =  this.messageService.getMessage().subscribe(message => {        
         if (message.showWardenSummary) {
           this.showSummary = true;
           this.showPEEPList = false;
@@ -455,6 +458,16 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
     }, 300);
       console.log(error);
     });
+  }
+
+  showSummaryInThisPage() {
+    this.showSummary = true;
+    this.showPEEPList = false;
+    console.log(this.showSummary);
+  }
+  showWardenListInThisPage() {
+    this.showPEEPList = false;
+    this.showSummary = false;
   }
     
 
