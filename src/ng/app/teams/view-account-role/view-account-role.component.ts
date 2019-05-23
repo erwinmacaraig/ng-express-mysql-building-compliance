@@ -91,10 +91,10 @@ export class ViewAccountRoleComponent implements OnInit, OnDestroy, AfterViewIni
             for (let member of this.viewData.team) {
    
                 if (this.auth.userDataItem('userId') == member['user_id']) {
-                    if (member['building']) {
+                    if (member['building'] && this.viewData.location.indexOf(member['building']) == -1) {
                         this.viewData.location.push(member['building']);
                     }
-                    if (member['name']) {
+                    if (member['name'] && this.viewData.sublocation.indexOf(member['name']) == -1) {
                         this.viewData.sublocation.push(member['name']);
                     }                    
                 }
@@ -197,8 +197,12 @@ export class ViewAccountRoleComponent implements OnInit, OnDestroy, AfterViewIni
 
             for (let loc of response.assigned_locations) {
                 this.myLocations.push(loc['location_id']);
-                this.viewData.location.push(loc['building']);
-                this.viewData.sublocation.push(loc['name']);
+                if (this.viewData.location.indexOf(loc['building']) == -1) {
+                    this.viewData.location.push(loc['building']);
+                }
+                if (this.viewData.sublocation.indexOf(loc['name']) == -1) {
+                    this.viewData.sublocation.push(loc['name']);
+                }
             }
 			setTimeout(() => {
 				$('#modal-confirmation').modal('open');
@@ -207,6 +211,8 @@ export class ViewAccountRoleComponent implements OnInit, OnDestroy, AfterViewIni
             this.messageService.sendMessage({location_updated: true});
         },  (error) => {
             console.log(error);
+            this.confirmationHeader = 'Fail';
+            this.confirmationMessage = 'There was an error updating your location. Try again later.';
             this.preloaderService.hide();
             $('#modal-request-location-update').modal('close');
            

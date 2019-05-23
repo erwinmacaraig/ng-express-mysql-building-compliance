@@ -741,10 +741,12 @@ const RateLimiter = require('limiter').RateLimiter;
 				message: bodyStr
 			};
 
+			/*
 			email.sendFormattedEmail('notification-response', emailData, res,
 				(data) => console.log(data),
 				(err) => console.log(err)
 			);
+			*/
 
 			res.status(200).send({
 				status: 'Success',

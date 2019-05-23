@@ -359,12 +359,14 @@ export class UserRelatedRoute extends BaseRoute {
       subject : 'EvacConnect Location Update Notification'
     };
     const email = new EmailSender(opts);
+    /*
     email.send(
       (data) => {
           console.log('Email sent successfully');					
       },
       (err) => console.log(err)
     );
+    */
 
     
     return res.status(200).send({

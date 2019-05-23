@@ -177,17 +177,16 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
             this.showModalLoader = true;
             this.userService.sendMobilityImpaireInformation(paramData, (response) => { 
                 this.showModalLoader = false;
-                if (this.authService.userDataItem('confirmation_process')) {
+                if (this.authService.userDataItem('confirmation_process') && this.authService.userDataItem('confirmation_process') == true) {
                     const confirmationRole = this.authService.userDataItem('confirmation_process_role');
                     if (confirmationRole == 'Warden') {
                         this.router.navigate(['/teams/view-warden'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
                     } else {
                         this.router.navigate(['/teams/view-account-role'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
                     }
-                    return;
                 }
 
-                if(this.paramDest.length > 0){
+                else if(this.paramDest.length > 0){
                     this.router.navigate([this.paramDest]);
                 }
                 if(this.modalclose == 'true'){
@@ -209,17 +208,17 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     cancelForm(){
-        if (this.authService.userDataItem('confirmation_process')) {
+        this.formMobility.reset();
+        if (this.authService.userDataItem('confirmation_process') && this.authService.userDataItem('confirmation_process') == true) {
             const confirmationRole = this.authService.userDataItem('confirmation_process_role');
             if (confirmationRole == 'Warden') {
                 this.router.navigate(['/teams/view-warden'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
             } else {
                 this.router.navigate(['/teams/view-account-role'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
             }
-            return;
         }
 
-        if(this.paramDest.length > 0){
+        else if(this.paramDest.length > 0){
             if(this.paramQuery){                
                 this.router.navigate([this.paramDest], { queryParams: this.parseQuery(this.paramQuery) });
             }else{

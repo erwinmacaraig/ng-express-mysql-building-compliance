@@ -1,7 +1,7 @@
 <div class="inline-block left-panel">
 	<div class="row">
 		<div class="col l12 m12 s12 col-user-profile">
-			<h5>My Facilty Role</h5>
+			<h5>My Facility Role</h5>
 			
 			<div class="image-container">				
 				<p class="initials" *ngIf="viewData.user.profilePic.length > 0 === false">
@@ -29,7 +29,7 @@
 			<button *ngIf="!inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-account-role' }">			
 				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
 			</button>
-			<button *ngIf="inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-account-role', confirmation: true,  step: 2, r: confirmationProcessRole }">			
+			<button *ngIf="inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, confirmation: true,  step: 2, r: confirmationProcessRole }">			
 				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
 			</button>
 		</div>
