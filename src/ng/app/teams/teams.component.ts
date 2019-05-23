@@ -18,7 +18,7 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	public showConfirmationProcessBar = false;
 	public confirmationProcessStep = -1;
 	private myQueryRouteSub: Subscription;
-
+	public role = 'Warden';
 
 	constructor(
 		private router: Router,
@@ -37,10 +37,19 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-		this.myQueryRouteSub = this.route.queryParams.filter(params => params.confirmation)
+		this.myQueryRouteSub = this.route.queryParamMap
 		.subscribe(params => {
-			this.showConfirmationProcessBar = true;
-			this.confirmationProcessStep = 1;
+			if (params.has('confirmation')){
+				this.showConfirmationProcessBar = true;
+				this.confirmationProcessStep = 1; 
+			}
+			if (params.has('step')) {
+        this.confirmationProcessStep = +params.get('step');
+			}
+			if (params.has('r')) { 
+				this.role = decodeURIComponent(params.get('r'));
+			}
+			
 		});
 		
 
@@ -59,7 +68,8 @@ export class TeamsComponent implements OnInit, OnDestroy {
 			if(
 				this.thisRouteUrl.indexOf('view-warden') > -1 || 
 				this.thisRouteUrl.indexOf('view-gen-occupant') > -1 ||
-				this.thisRouteUrl.indexOf('view-chief-warden') > -1
+				this.thisRouteUrl.indexOf('view-chief-warden') > -1 ||
+				this.thisRouteUrl.indexOf('view-account-role') > -1
 				){
 				this.showTeamNav = false;
 				removeWorkspacePadding = true;

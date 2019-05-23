@@ -29,7 +29,7 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
         'My location has changed',
         'Tenancy moved out',
         'I am no longer part of this organisation',
-        'I want to resign as a warden',
+        'I want to resign as ',
         'Others'
     ];
     private myAccountId = 0;
@@ -45,6 +45,8 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
     private configId = 0;
     public nominated_person_email = '';
     public myName = '';
+    public textAreaPlaceHolder = '';
+    public validInfo = true;
     constructor(
         private authService: AuthService,
         private accountService: AccountsDataProviderService,
@@ -81,6 +83,7 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.configId = +tokenParts[2];
                 console.log(tokenParts);
                 this.emergencyRole = tokenParts[4];
+                this.reasonList[3] = this.reasonList[3] + this.emergencyRole;
                 this.retrieveLocationInformation(tokenParts); 
                                
             }
@@ -114,14 +117,23 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
     onSelectReason(e) {                
         console.log(this.selectReason.nativeElement.value);
         this.selectedReasonIndex = +this.selectReason.nativeElement.value;
+        if (this.selectedReasonIndex == 3) {
+            this.textAreaPlaceHolder = 'Please provide additional information why you are resigning.';
+        } else {            
+            this.textAreaPlaceHolder = 'Please provide us additional information';
+        }
+        this.validInfo = true;
     }
 
     loadSublevel(e) {
         this.sublocations = [];
         this.selectedSubIndex = -1;
-        let i = +e.target.value;
-        this.buildingSelectionChoosenId = i;        
-        this.sublocations = this.locations[i]['sublocation'];
+        let i:number = +e.target.value;        
+        if (i >= 0) {
+            this.buildingSelectionChoosenId = i;        
+            this.sublocations = this.locations[i]['sublocation'];
+        }
+        
     }
 
     private retrieveLocationInformation(tokens:Array<string>) {
@@ -149,20 +161,32 @@ export class RoleResignedComponent implements OnInit, AfterViewInit, OnDestroy {
         query_responses['reason'] = mainReason;
         switch(this.selectedReasonIndex) {
             case 0:                
-            query_responses['new_bulding_location'] = this.locations[this.buildingSelectionChoosenId]['location_id'];
-            query_responses['new_building_location_name'] = this.locations[this.buildingSelectionChoosenId]['name']
-            query_responses['new_level_location'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['location_id'];
-            query_responses['new_level_location_name'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['name'];
+                if(this.buildingSelectionChoosenId >= 0) {
+                    query_responses['new_bulding_location'] = this.locations[this.buildingSelectionChoosenId]['location_id'];
+                    query_responses['new_building_location_name'] = this.locations[this.buildingSelectionChoosenId]['name']
+                    query_responses['new_level_location'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['location_id'];
+                    query_responses['new_level_location_name'] = this.locations[this.buildingSelectionChoosenId]['sublocation'][this.selectedSubIndex]['name'];
+                } else {
+                    query_responses['new_building_location_name'] = 'Location not in the list';
+                }
             break;
             case 1:
             case 2:
-            case 4:
+            case 3:
+            case 4:            
             query_responses['info'] = this.info.nativeElement.value; 
             break;
-            case 3:
-            query_responses['nominated_person'] = this.nominated_person;
-            query_responses['nominated_person_email'] = this.nominated_person_email;
-            break;
+        }
+
+        // query_responses['nominated_person'] = this.nominated_person;
+        // query_responses['nominated_person_email'] = this.nominated_person_email;
+        
+        if (this.selectedReasonIndex == 3 &&  this.info.nativeElement.value == '') {
+            this.validInfo = false;
+            setTimeout(() => {
+                this.preloader.hide();
+            }, 600);
+            return false;
         }
         postBody.query_responses = JSON.stringify(query_responses);
         console.log(query_responses);

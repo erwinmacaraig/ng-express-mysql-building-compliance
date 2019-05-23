@@ -93,4 +93,7 @@ input#nominated_person[type=text], input#nominated_person_email[type=text] {
     text-align: center !important;
 }
 
+.addInfo {
+    border-color: red;
+}
 

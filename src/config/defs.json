@@ -33,6 +33,8 @@
     "": 8
   },
   "roles": {
+    "1": "Facility Responsible Person",
+    "2": "Tenancy Responsible Person",
     "8": "General Occupant",
     "9": "Warden",
     "10": "Floor / Area Warden",
@@ -58,6 +60,11 @@
     "MANAGER": 1,
     "TENANT": 2
   },
+  "account_role_text": [
+    "",
+    "Facility Responsible Person",
+    "Tenancy Responsible Person"
+  ],
   "PAID": 1,
   "PAYMENT_CANCELLED": 2,
   "UNPAID":0,
@@ -65,9 +72,8 @@
   "COMPLIANCE-DOCS-PACK": "compliance-docs.zip",
   "ADMIN_EMAIL": "admin@evacconnect.com",
   "DEFAULT_USER_PASSWORD" : "123456Uni",
-  "ALLOWED_ORIGINS": [    
-    "http://localhost:3000",
-    "http://localhost:4200"
+  "ALLOWED_ORIGINS": [
+    "https://portal.evacconnect.com"
   ]  
    
 }

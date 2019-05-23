@@ -58,11 +58,11 @@ export class DashboardComponent implements OnInit {
               this.isTRP = true;
             }
 
-            if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
+            /*if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
               if(this.userData['accountId'] < 1){
                 router.navigate(['/setup-company']);
               }
-            }
+            }*/
           }
 
           if(val.url == '/' || val.url == '/dashboard'){
@@ -104,12 +104,15 @@ export class DashboardComponent implements OnInit {
       if (params.has('confirmation')){
         this.showConfirmationProcessBar = true;
         this.auth.setUserDataItem('confirmation_process', true);
+      } else {
+        this.showConfirmationProcessBar = false;
       }
       if (params.has('step')) {
         this.confirmationProcessStep = +params.get('step');
       }
       if (params.has('r')) {
         this.emergencyRole = decodeURIComponent(params.get('r'));
+        this.auth.setUserDataItem('confirmation_process_role', this.emergencyRole);
         console.log('emergency role from url',  this.emergencyRole);
       }
       

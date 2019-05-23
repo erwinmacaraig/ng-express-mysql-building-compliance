@@ -15,7 +15,7 @@ export class UserEmRoleRelation extends BaseClass {
             const sql_load = 'SELECT * FROM user_em_roles_relation WHERE user_em_roles_relation_id = ?';
             const uid = [this.id];
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, uid, (error, results, fields) => {
@@ -31,9 +31,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     connection.release();
                 });
-                
+
             });
-            
+
         });
     }
 
@@ -57,7 +57,7 @@ export class UserEmRoleRelation extends BaseClass {
         this.pool.getConnection((err, connection) => {
           if (err) {
             throw new Error(err);
-          } 
+          }
           connection.query(sql, params, (error, results) => {
             if (error) {
               console.log(sql, params);
@@ -70,7 +70,7 @@ export class UserEmRoleRelation extends BaseClass {
             }
             connection.release();
           });
-          
+
         });
       });
     }
@@ -91,7 +91,7 @@ export class UserEmRoleRelation extends BaseClass {
                       l.name as location_name,
                       p.name as parent_name,
                       l.name,
-                      l.parent_id,                      
+                      l.parent_id,
                       l.is_building
                     FROM user_em_roles_relation uer
                     INNER JOIN em_roles er  ON er.em_roles_id = uer.em_role_id
@@ -100,7 +100,7 @@ export class UserEmRoleRelation extends BaseClass {
                     WHERE uer.user_id = ? AND l.archived = ${archived} ${groupClause}`;
             const uid = [userId];
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
 
@@ -110,18 +110,18 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     if(!results.length){
                         reject('No role found');
-                    }else{                        
+                    }else{
                         resolve(results);
                     }
                     connection.release();
                 });
 
-                
+
             });
         });
     }
 
-    public getUserLocationByAccountIdAndLocationIds(accountId, locIds, archived = 0) {
+    public getUserLocationByAccountIdAndLocationIds(accountId, locIds, archived = 0): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT
                       uer.user_em_roles_relation_id,
@@ -130,10 +130,9 @@ export class UserEmRoleRelation extends BaseClass {
                       uer.location_id,
                       er.em_roles_id,
                       l.name as location_name,
+                      parent.name as building,
                       l.parent_id,
-                      l.formatted_address,
-                      l.google_place_id,
-                      l.google_photo_url,
+                      l.formatted_address,                      
                       l.admin_verified,
                       l.is_building,
                       l.archived,
@@ -141,27 +140,26 @@ export class UserEmRoleRelation extends BaseClass {
                       u.last_name,
                       u.user_id,
                       u.email
-                    FROM em_roles er
-                    INNER JOIN user_em_roles_relation uer ON er.em_roles_id = uer.em_role_id
+                    FROM user_em_roles_relation uer
                     INNER JOIN users u ON u.user_id = uer.user_id
+                    INNER JOIN em_roles er ON er.em_roles_id = uer.em_role_id
                     LEFT JOIN locations l ON l.location_id = uer.location_id
+                    LEFT JOIN locations parent ON l.parent_id = parent.location_id
                     WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived} AND u.archived = 0`;
-
+            console.log(sql_load);
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         return console.log(error);
                     }
-                    this.dbData = results;
-                    resolve(this.dbData);
                     connection.release();
+                    resolve(results);
                 });
-                
             });
-            
+
         });
     }
 
@@ -169,17 +167,17 @@ export class UserEmRoleRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = `SELECT * FROM em_roles`;
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         return console.log(error);
-                    }                    
+                    }
                     resolve(results);
                     connection.release();
                 });
-                
+
             });
         });
     }
@@ -203,7 +201,7 @@ export class UserEmRoleRelation extends BaseClass {
         const sql_get_roles = `SELECT user_em_roles_relation.em_role_id, em_roles.role_name, user_em_roles_relation.location_id, user_em_roles_relation.user_id FROM user_em_roles_relation
         INNER JOIN em_roles ON user_em_roles_relation.em_role_id = em_roles.em_roles_id ${whereClause}`;
         this.pool.getConnection((err, connection) => {
-            if (err) {                    
+            if (err) {
                 throw new Error(err);
             }
             connection.query(sql_get_roles, [], (error, results, fields) => {
@@ -224,7 +222,7 @@ export class UserEmRoleRelation extends BaseClass {
               }
               connection.release();
             });
-            
+
         });
       });
     }
@@ -243,7 +241,7 @@ export class UserEmRoleRelation extends BaseClass {
             ('location_id' in this.dbData) ? this.dbData['location_id'] : null
             ];
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_insert, user, (err, results, fields) => {
@@ -267,7 +265,7 @@ export class UserEmRoleRelation extends BaseClass {
             this.ID() ? this.ID() : 0
             ];
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_update, user, (err, results, fields) => {
@@ -278,7 +276,7 @@ export class UserEmRoleRelation extends BaseClass {
                     connection.release();
                 });
             });
-            
+
         });
     }
 
@@ -298,7 +296,7 @@ export class UserEmRoleRelation extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_del = `DELETE FROM user_em_roles_relation WHERE user_em_roles_relation_id = ? LIMIT 1`;
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_del, [this.ID()], (error, results, fields) => {
@@ -311,9 +309,9 @@ export class UserEmRoleRelation extends BaseClass {
                     }
                     connection.release();
                 });
-                
+
             });
-            
+
         });
     }
 
@@ -343,9 +341,9 @@ export class UserEmRoleRelation extends BaseClass {
                 AND
                   location_id = ? AND users.archived = 0
                 ${role_filter}`;
-        
+
         this.pool.getConnection((err, connection) => {
-            if (err) {                    
+            if (err) {
                 throw new Error(err);
             }
             connection.query(sql, [account_id, location_id], (error, results, fields) => {
@@ -370,10 +368,10 @@ export class UserEmRoleRelation extends BaseClass {
               }
               connection.release();
             });
-            
+
         });
 
-        
+
       });
     }
 
@@ -391,7 +389,7 @@ export class UserEmRoleRelation extends BaseClass {
             `;
             const param = [accountId, archived];
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, param, (error, results, fields) => {
@@ -403,9 +401,9 @@ export class UserEmRoleRelation extends BaseClass {
                     resolve(results);
                     connection.release();
                 });
-                
+
             });
-            
+
         });
     }
 
@@ -446,7 +444,7 @@ export class UserEmRoleRelation extends BaseClass {
                 WHERE u.archived = ${archived} ${configFilter} ${limitQuery}`;
 
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
@@ -457,7 +455,7 @@ export class UserEmRoleRelation extends BaseClass {
                     connection.release();
                 });
             });
-            
+
         });
     }
 
@@ -482,9 +480,9 @@ export class UserEmRoleRelation extends BaseClass {
             if(locationIds){
                 sql_load += ` AND l.location_id IN (${locationIds}) `;
             }
-            
+
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
@@ -494,9 +492,9 @@ export class UserEmRoleRelation extends BaseClass {
                     resolve(results);
                     connection.release();
                 });
-                
+
             });
-            
+
         });
     }
 
@@ -519,7 +517,7 @@ export class UserEmRoleRelation extends BaseClass {
             }
 
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
@@ -530,9 +528,9 @@ export class UserEmRoleRelation extends BaseClass {
                     resolve(results);
                     connection.release();
                 });
-                
+
             });
-            
+
         });
     }
 
@@ -576,9 +574,9 @@ export class UserEmRoleRelation extends BaseClass {
                     ON
                       user_em_roles_relation.em_role_id = em_roles.em_roles_id
                     WHERE location_id IN (${locationStr}) AND user_id IN (${usersStr});`;
-        
+
         this.pool.getConnection((err, connection) => {
-            if (err) {                    
+            if (err) {
                 throw new Error(err);
             }
             connection.query(sql, [], (error, results, fields) => {
@@ -612,10 +610,10 @@ export class UserEmRoleRelation extends BaseClass {
               }
               connection.release();
             });
-            
+
         });
 
-        
+
       });
 
     }
@@ -634,7 +632,7 @@ export class UserEmRoleRelation extends BaseClass {
               }
           }
           this.pool.getConnection((err, connection) => {
-              if (err) {                    
+              if (err) {
                   throw new Error(err);
               }
               connection.query(sql_load, (error, results, fields) => {
@@ -644,9 +642,9 @@ export class UserEmRoleRelation extends BaseClass {
                   resolve(results);
                   connection.release();
               });
-              
+
           });
-          
+
       });
     }
 
@@ -683,7 +681,7 @@ export class UserEmRoleRelation extends BaseClass {
 
             this.pool.getConnection((err, connection) => {
                 if (err) {
-                    console.log('sql_load', sql_load);              
+                    console.log('sql_load', sql_load);
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
@@ -691,14 +689,14 @@ export class UserEmRoleRelation extends BaseClass {
                         console.log('sql_load', sql_load);
                         return console.log(error);
                     }
-                    
+
                     resolve(results);
                     connection.release();
                 });
-                
+
             });
 
-            
+
         });
     }
 
@@ -725,7 +723,7 @@ export class UserEmRoleRelation extends BaseClass {
                     WHERE uemr.user_id IN (`+userIds+`) ${whereLoc} `;
 
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
@@ -737,10 +735,10 @@ export class UserEmRoleRelation extends BaseClass {
                     resolve(this.dbData);
                     connection.release();
                 });
-                
+
             });
 
-            
+
         });
     }
 
@@ -761,29 +759,34 @@ export class UserEmRoleRelation extends BaseClass {
 
             const sql_load = 'SELECT em.*, er.role_name  FROM user_em_roles_relation em INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id '+whereSql;
             this.pool.getConnection((err, connection) => {
-                if (err) {                    
+                if (err) {
                     throw new Error(err);
                 }
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
                         return console.log(error);
-                    }
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    }                    
+                    resolve(results);
                     connection.release();
                 });
-                
+
             });
-            
+
         });
     }
 
 
-    public emUsersForNotification(locations = []): Promise<Array<object>> {
+    public emUsersForNotification(locations = [], isWardenRole=true): Promise<Array<object>> {
       return new Promise((resolve, reject) => {
         if (!locations.length) {
           resolve([]);
           return;
+        }
+        let roleFilter = '';
+        if (isWardenRole) {
+          roleFilter = ' AND em_roles.is_warden_role = 1';
+        } else {
+          roleFilter = ' AND user_em_roles_relation.em_role_id IN (8)'
         }
         const locationStr = locations.join(',');
         const sql = `SELECT
@@ -828,13 +831,14 @@ export class UserEmRoleRelation extends BaseClass {
                         locations.parent_id = parent_location.location_id
                       WHERE
                         user_em_roles_relation.location_id IN (${locationStr})
-                      AND
+                      ${roleFilter}
+                      AND 
                         account_subscription.type <> 'free'
                       GROUP BY user_em_roles_relation.user_id, em_roles.em_roles_id
                        `;
-        
+
         this.pool.getConnection((err, connection) => {
-            if (err) {                    
+            if (err) {
                 throw new Error(err);
             }
             connection.query(sql, [], (error, results) => {
@@ -845,9 +849,34 @@ export class UserEmRoleRelation extends BaseClass {
               resolve(results);
               connection.release();
             });
-            
+
         });
-        
+
+      });
+    }
+
+    /**
+     * @description
+     * @param userId warden role and gofr to be removed
+     * @param locationId the location where the eco member is assigned to
+     */
+    public removeEMRole(userId=0, locationId=0): Promise<boolean> {
+      return new Promise((resolve, reject) => {
+        const params = [userId, locationId];
+        const sql = `DELETE FROM user_em_roles_relation WHERE user_id = ? AND location_id = ?`;
+        this.pool.getConnection((err, connection) => {
+          if (err) {
+            throw new Error(err);
+          }
+          connection.query(sql, params, (error, results) => {
+            if (error) {
+              console.log(error, sql, params);
+              throw new Error(error);
+            }
+            resolve(results);
+            connection.release();
+          });
+        });
       });
     }
 }

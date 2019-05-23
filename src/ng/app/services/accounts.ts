@@ -16,7 +16,7 @@ export class AccountsDataProviderService {
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
-		
+
 		this.baseUrl = environment.backendUrl;
 	}
 
@@ -141,8 +141,8 @@ export class AccountsDataProviderService {
     this.options['params'] = httpParams;
     return this.http.get(`${this.baseUrl}/accounts/notification-all-peep/`, this.options);
 	}
-	
-	execNotificationAction(action='', token_id = 0) {
+
+	execNotificationAction(action='', token_id: number | string) {
 		return this.http.post(`${this.baseUrl}/accounts/notification-actions/`, {
 			action: action,
 			notification_token_id: token_id.toString()
@@ -164,6 +164,38 @@ export class AccountsDataProviderService {
 			buildings: Array<object>,
 			locations: Array<object>
 		}>(this.baseUrl + '/accounts/location-listing/', this.options)
+	}
+
+	getAccountRoleInLocation(locationIds=[]) {
+		const assignedLocations = JSON.stringify(locationIds);
+		const httpParams = new HttpParams().set('assignedLocations', assignedLocations);
+		this.options['params'] = httpParams;
+		return this.http.get<{account_roles:  object[]}>(`${this.baseUrl}/accounts/location/roles`, this.options);
+	}
+
+	acceptResignationFromConfirmation(userId=0, locationId = 0, configId = 0) {
+		return this.http.post<{message: string}>(`${this.baseUrl}/accounts/accept-resignation-confirmation/`, {
+			location_id: locationId,
+			user_id: userId,
+			notification_token_id: configId
+		});
+
+  }
+
+  rejectResignationFromConfirmation(userId=0, locationId = 0, configId = 0) {
+    return this.http.post<{message: string}>(`${this.baseUrl}/accounts/reject-resignation-confirmation/`, {
+      location_id: locationId,
+			user_id: userId,
+			notification_token_id: configId
+    });
+	}
+	
+	listPeepForConfirmation(locationIdArrStr='') {
+		return this.http.post<{
+			building: object[],
+			account_users: object[],
+			emergency_users: object[]
+		}>(`${this.baseUrl}/team/build-trp-peep-list/`, {assignedLocations: locationIdArrStr});
 	}
 
 }

@@ -2,9 +2,9 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
 import { environment } from '../../environments/environment';
-import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+
 
 @Injectable()
 export class UserService {
@@ -22,6 +22,10 @@ export class UserService {
 
 	requestLocationUpdate(postBody={}){
 		return this.http.post(this.baseUrl + '/eco-user/request-update-location', postBody);
+	}
+
+	requestAccountUserLocationUpdate(postBody={}) {
+		return this.http.post<{message: string, assigned_locations: object[]}>(`${this.baseUrl}/account-user/request-update-location`, postBody);
 	}
 
 	checkUserIsAdmin(userId, callBack){
@@ -201,13 +205,8 @@ export class UserService {
 		});
 	}
 
-	getMyWardenTeam(data, callBack){
-		this.http.post(this.baseUrl+"/users/get-my-warden-team", data)
-		.subscribe(res => {
-			callBack(res);
-		}, err => {
-			callBack( JSON.parse(err.error) );
-		});
+	getMyWardenTeam(data){
+		return this.http.post(this.baseUrl+"/users/get-my-warden-team", data);
 	}
 
 	requestAsWarden(requestData, callBack){
@@ -391,6 +390,10 @@ export class UserService {
 
 	updateWardenProfile(profile={}) {
 		return this.http.post(`${this.baseUrl}/users/update-warden-profile/`, profile);
+	}
+
+	generateConfirmationWardenList(postBody={}) {
+		return this.http.post<{list: object[], building: object[]}>(`${this.baseUrl}/team/build-eco-team-list/`, postBody);
 	}
 
 

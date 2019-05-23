@@ -170,8 +170,8 @@ export class Location extends BaseClass {
                         results[i]['sublocations'] = [];
                     }
 
-                    this.dbData = results;
-                    resolve(this.dbData);
+                    
+                    resolve(results);
                     connection.release();
                 });
             });
@@ -1415,5 +1415,4 @@ export class Location extends BaseClass {
             });
         });
     }
-
 }

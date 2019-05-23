@@ -21,6 +21,24 @@
 		</div>	
 	</div>
 	<div class="row">
+		<div class="bottom-buttons">
+			<button class="btn blue waves-effect waves-light request-change-loc" (click)="showUpdateLocForm()">					
+						<div class="text inline-block">Update Sub Location</div>
+			</button>
+	
+			<button class="btn orange waves-effect waves-light remove" (click)="resignClicked()">			
+				<div class="text inline-block">Resign as Warden</div>
+			</button>
+	
+			<button *ngIf="!inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden' }">			
+				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
+			</button>
+			<button *ngIf="inConfirmationProcess" class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, confirmation: true,  step: 2, r: confirmationProcessRole }">			
+				<div class="text inline-block">Personal Emergency Evacuation Plan</div>
+			</button>
+		</div>
+	</div>
+	<div class="row">
 		<div class="col l12 m12 s12 location-div" *ngIf="viewData.location.length > 0">
 			<small>Location</small>
 			<h6 *ngFor="let loc of viewData.location">
@@ -34,22 +52,8 @@
 				{{loc}}
 			</h6>
 		</div>
-
 	</div>
-
-	<div class="bottom-buttons">
-		<button class="btn blue waves-effect waves-light request-change-loc" (click)="showUpdateLocForm()">					
-					<div class="text inline-block">Update Sub Location</div>
-		</button>
-
-		<button class="btn orange waves-effect waves-light remove" (click)="resignClicked()">			
-			<div class="text inline-block">Resign as Warden</div>
-		</button>
-
-		<button class="btn grey waves-effect waves-light presonal-emergency" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ id: userIdEnc, dest : '/teams/view-warden' }">			
-			<div class="text inline-block">Personal Emergency Evacuation Plan</div>
-		</button>
-	</div>
+	
 </div>
 <div class="inline-block right-content">
 	<div class="row">
@@ -177,7 +181,7 @@
 					<h3>Please choose a new location for the role</h3>
 					<div>
 						<div>
-							<h5>Emergency Roles</h5>
+							<h5>Account Roles</h5>
 							<select [(ngModel)]="chosenRoleId" #roleSelection id="role-selection" style="display: block;" (change)="loadLocation($event)">
 									<option value="0" selected>Select Role</option>
 									<option *ngFor="let role of viewData.eco_role" [value]="role['em_roles_id']">{{role['role_name']}}</option>

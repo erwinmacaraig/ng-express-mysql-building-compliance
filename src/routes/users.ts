@@ -604,7 +604,7 @@ export class UsersRoute extends BaseRoute {
             distinct: 'em_role_id' 
         });
 
-        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); 
+        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); console.log(myEmRoleIds);
 
         for (let em of myEmRoleIds) {
             if (isWardenRoleArray.indexOf(em)  != -1) {
@@ -613,7 +613,7 @@ export class UsersRoute extends BaseRoute {
         }
 
         // get locations for em roles
-        const designatedEMRoleLocations = await emroles.getLocationsByUserIds(userId, (emRolesInfoArr[1] as Array<number>).join(','));
+        const designatedEMRoleLocations = await emroles.getLocationsByUserIds(userId, null, (emRolesInfoArr[1] as Array<number>).join(','));
 
         const trainingReqmtArr = await new TrainingRequirements().allEmRolesTrainings();
         const trainingReqmtObj = {};

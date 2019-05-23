@@ -1,17 +1,17 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
-import { PersonDataProviderService } from '../services/person-data-provider.service';
+import { NgForm } from '@angular/forms';
+
 import { AdminService } from '../services/admin.service';
-import { Subscription, Observable } from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Rx';
 import { AccountsDataProviderService } from '../services/accounts';
 import { DashboardPreloaderService } from '../services/dashboard.preloader';
 import { UserService } from '../services/users';
 import { LocationsService } from '../services/locations';
-import { HttpParams, HttpClient } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
 import { DatepickerOptions } from 'ng2-datepicker';
+
+import { AuthService } from '../services/auth.service';
 
 declare var $: any;
 declare var Materialize: any;
@@ -33,7 +33,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     datepickerModel : Date;
     isShowDatepicker = false;
     datepickerModelFormatted = '';
-    sub;
+    sub:Subscription;
     user = <any> {
         user_id: 0, first_name : '', last_name : ''
     };
@@ -51,8 +51,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
         private accountsDataService: AccountsDataProviderService,
         private dashboardPreloaderService: DashboardPreloaderService,
         private userService: UserService,
-        private adminService: AdminService,
-        private locationsService: LocationsService,
+        private authService: AuthService,
         private route: ActivatedRoute,
         private router: Router
         ){
@@ -62,6 +61,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngOnInit(){
+
 
         this.sub = this.route.queryParams.subscribe(params => {
             if(params['formodal']=='true'){
@@ -177,7 +177,16 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
             this.showModalLoader = true;
             this.userService.sendMobilityImpaireInformation(paramData, (response) => { 
                 this.showModalLoader = false;
-                if(this.paramDest.length > 0){
+                if (this.authService.userDataItem('confirmation_process') && this.authService.userDataItem('confirmation_process') == true) {
+                    const confirmationRole = this.authService.userDataItem('confirmation_process_role');
+                    if (confirmationRole == 'Warden') {
+                        this.router.navigate(['/teams/view-warden'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
+                    } else {
+                        this.router.navigate(['/teams/view-account-role'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
+                    }
+                }
+
+                else if(this.paramDest.length > 0){
                     this.router.navigate([this.paramDest]);
                 }
                 if(this.modalclose == 'true'){
@@ -199,8 +208,18 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     cancelForm(){
-        if(this.paramDest.length > 0){
-            if(this.paramQuery){
+        this.formMobility.reset();
+        if (this.authService.userDataItem('confirmation_process') && this.authService.userDataItem('confirmation_process') == true) {
+            const confirmationRole = this.authService.userDataItem('confirmation_process_role');
+            if (confirmationRole == 'Warden') {
+                this.router.navigate(['/teams/view-warden'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
+            } else {
+                this.router.navigate(['/teams/view-account-role'], {queryParams: {confirmation: true, step: 1, r: confirmationRole}});
+            }
+        }
+
+        else if(this.paramDest.length > 0){
+            if(this.paramQuery){                
                 this.router.navigate([this.paramDest], { queryParams: this.parseQuery(this.paramQuery) });
             }else{
                 this.router.navigate([this.paramDest]);

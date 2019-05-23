@@ -87,11 +87,13 @@ export class EmailSender {
         let email = this.buildEmail(),
         params = {            
             Destination: {
-                ToAddresses: ['emacaraig@evacgroup.com.au'],
-                CcAddresses: ['rsantos@evacgroup.com.au']
-                /*ToAddresses: this.options['to'],              
+                ToAddresses: this.options['to'],              
                 CcAddresses: this.options['cc'],
-                BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'mmanclark@evacgroup.com.au']
+                BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au']
+                /*
+                ToAddresses: ['emacaraig@evacgroup.com.au'],
+                CcAddresses: ['rsantos@evacgroup.com.au'],
+                BccAddresses: ['mmanclark@evacgroup.com.au', 'dgilmore@evacgroup.com.au']                
                 */
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",

@@ -144,7 +144,7 @@
                     <div style="padding: 0% 2%;">
                         <h5>{{roles['role_name']}}</h5>
                         <h6 style="color:#39a1ff ;" *ngIf="roles['inc_text'].length > 0 && has_online_training">{{roles['inc_text']}}</h6>
-                        <h6 style="color:#39a1ff ;" *ngIf="!has_online_training">Access to Online Training is restricted</h6>
+                        <h6 style="color:#39a1ff ;" *ngIf="!has_online_training">You currently don't have access to online training. Please attend the next face to face training on your building.</h6>
                     </div>                    
                 </div>
                 <div class="col l12 m12 s12" *ngIf="has_online_training">                    
