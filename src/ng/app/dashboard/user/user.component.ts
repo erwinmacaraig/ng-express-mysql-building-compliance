@@ -79,7 +79,12 @@ showWardenConfirmationList = false;
       // console.log(response);
       this.training_percentage = parseInt(response['percentage_training'], 10);
       this.assignedCourses = response['courses'];
-      this.trainings = response['trainings'];
+      //this.trainings = response['trainings'];
+      for(let training of response['trainings']) {
+        training['encryptedCertId'] = this.encryptDecryptService.encrypt(training['certifications_id'])
+        this.trainings.push(training);
+      }
+
       if (response['peepDetails'] && (response['peepDetails'] as Array<object>).length > 0 ) {
         this.peep = response['peepDetails'][0];
         this.showConfirmation = true;

@@ -51,6 +51,7 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     locationLinkForFrp = false;
     isAdmin = false;
     subscriptionType = 'free';
+    isFRP = false;
 
     constructor(
         private auth: AuthService,
@@ -66,6 +67,9 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         if (role <= 2 ) {
             this.hasAccountRole = true;
+        }
+        if (role == 1) {
+            this.isFRP = true;
         }
     }
 

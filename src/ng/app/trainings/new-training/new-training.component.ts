@@ -1,7 +1,6 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
@@ -9,8 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
 import { UserService } from '../../services/users';
 import { CourseService } from '../../services/course';
-import { DatepickerOptions } from 'ng2-datepicker';
-import * as enLocale from 'date-fns/locale/en';
+
 import { ComplianceService } from './../../services/compliance.service';
 import { AdminService } from './../../services/admin.service';
 import { Observable, Subscription } from 'rxjs/Rx';

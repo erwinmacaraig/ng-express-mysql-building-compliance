@@ -103,20 +103,6 @@
 							<img src="{{location.google_photo_url}}" alt="">
 						</div>
 						<div class="inline-block">
-                        <!--
-                        <a *ngIf="location.parent_id > -1"  [routerLink]="['/location/view-sublocation/', location.location_id]" class="location-name-link">
-                        <span *ngIf="location.parent">{{location.parent.name}},</span>
-                        <span *ngIf="location.name.length > 0"> {{location.name}}</span>
-                        <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-                        </a>
-                        		<a *ngIf="location.parent_id == -1" [routerLink]="['/location/view/', location.location_id]" class="location-name-link">
-                        			<span *ngIf="location.parent">{{location.parent.name}},</span>
-                        			<span *ngIf="location.name.length > 0"> {{location.name}}</span>
-                        			<span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-                        </a>
-                        -->
-
-
                         <a *ngIf="location.is_building != 1 && location.has_child_building == 1 else notCampus" [routerLink]="['/location/list']"  [queryParams]="{ undrlocid : location.location_id, archived : paramArchived }" class="location-name-link">
                             <span *ngIf="location.parent">{{location.parent.name}},</span>
                             <span *ngIf="location.name.length > 0"> {{location.name}}</span>
@@ -124,12 +110,14 @@
                         </a>
 
                         <ng-template #notCampus>
-                            <a *ngIf="location.is_building == 1 && (location.parent_is_building == 0 || location.parent_is_building == null)" [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">
+							<!--<a *ngIf="location.is_building == 1 && (location.parent_is_building == 0 || location.parent_is_building == null)" [routerLink]="['/location', 'view', location.location_id]" class="location-name-link">-->
+                            <a *ngIf="location.is_building == 1 && (location.parent_is_building == 0 || location.parent_is_building == null)" [routerLink]="['/location/compliance/view/', location.location_id]" class="location-name-link">
                                 <span *ngIf="location.parent">{{location.parent.name}},</span>
                                 <span *ngIf="location.name.length > 0"> {{location.name}}</span>
                                 <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
-                            </a>
-                            <a *ngIf="location.is_building == 0 && location.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">
+							</a>
+							<!--<a *ngIf="location.is_building == 0 && location.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', location.location_id]" class="location-name-link">-->
+                            <a *ngIf="location.is_building == 0 && location.parent_is_building == 1" [routerLink]="['/location/compliance/view/', location.parent_id]" class="location-name-link">
                                 <span *ngIf="location.parent">{{location.parent.name}},</span>
                                 <span *ngIf="location.name.length > 0"> {{location.name}}</span>
                                 <span *ngIf="location.name.length == 0"> {{location.formatted_address}} </span>
@@ -154,17 +142,12 @@
 					<td>
 						{{location.mobility_impaired}}
 					</td>
-                    <!-- <td *ngIf="location.is_building == 0">
-                        Not a building
-                    </td> -->
+                    
 					<td class="with-bar" >
 
                         <div *ngIf="location.fetchingCompliance" class="progress fetching">
                             <div class="indeterminate"></div>
-                        </div>
-
-						<!-- <span *ngIf="!location.fetchingCompliance" class="red-text">For verification</span> -->
-						
+                        </div>						
                         <a *ngIf="!location.fetchingCompliance && location.is_building == 1" [routerLink]="['/location/compliance/view/', location.location_id]">
 							<div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
 							<div class="progress-container" >
@@ -174,30 +157,11 @@
 							</div>
 						</a>
 
-                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && location.has_child_building == 1" [routerLink]="['/location/list']"  [queryParams]="{ undrlocid : location.location_id, archived : paramArchived }">
-							<!-- 
-							<a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && encryptDecrypt.decrypt(location.parent_id) != -1" [routerLink]="['/location/compliance/view/', location.parent_id]">
-							<div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
-                            <div class="progress-container" >
-                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
-                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
-                                </div>
-                            </div>
-							-->
-							<div class="text">Click for details</div>
-							
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && location.has_child_building == 1" [routerLink]="['/location/list']"  [queryParams]="{ undrlocid : location.location_id, archived : paramArchived }">							
+							<div class="text">Click for details</div>							
                         </a>
 
-                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && location.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', location.location_id]">
-							<!--
-							<a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && encryptDecrypt.decrypt(location.parent_id) == -1" [routerLink]="['/location/compliance/view/', location.location_id]">
-							<div class="text" [ngClass]="{ 'green-text' : location.compliance_percentage == 100 }">{{location.compliance_percentage}}%</div>
-                            <div class="progress-container" >
-                                <div class="progress" [ngClass]="{ 'green-theme' : location.compliance_percentage == 100 }">
-                                    <div class="determinate" [ngStyle]="{ 'width' : location.compliance_percentage+'%' }"></div>
-                                </div>
-                            </div>
-							-->
+                        <a *ngIf="location.admin_verified == 1 && !location.fetchingCompliance && location.is_building == 0 && location.parent_is_building == 1" [routerLink]="['/location', 'view-sublocation', location.location_id]">							
 							<div class="text">Click for details</div>
                         </a>
 					</td>

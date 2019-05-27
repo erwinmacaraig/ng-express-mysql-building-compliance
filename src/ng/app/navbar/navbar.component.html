@@ -19,7 +19,8 @@
 					<a [routerLink]="['/location', 'warden']" *ngIf="!locationLinkForFrp"><img alt="Location" src="assets/images/location.png" ><span>Compliance</span></a>
                 </li>
                 <li *ngIf="showLinks.team" class="nav-list-team">
-                    <a [routerLink]="['/teams']"> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
+					<a *ngIf="isFRP == false" [routerLink]="['/teams']"> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
+					<a *ngIf="isFRP == true" [routerLink]="['/teams/list-administrators']"> <img alt="Team" src="assets/images/team.png" ><span>Team</span> </a>
 				</li>
 				<!--
 					<li *ngIf="showLinks.training" class="nav-list-trainings">

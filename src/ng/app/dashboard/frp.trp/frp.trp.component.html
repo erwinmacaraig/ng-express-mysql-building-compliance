@@ -327,14 +327,17 @@
 					<li *ngFor="let course of courses; let i = index;" [hidden]="i > 1">
 						<div class="display-table width100">
 							<div class="cell">
-								<div class="image expired" *ngIf="['failed', 'not attempted', 'incomplete', 'browsed', null].indexOf(course.lesson_status) > -1"></div>
+                                <!--
+                                <div class="image expired" *ngIf="['failed', 'not attempted', 'incomplete', 'browsed', null].indexOf(course.lesson_status) > -1"></div>
 								<div class="image check" *ngIf="['passed'].indexOf(course.lesson_status) > -1"></div>
+                                -->
+								
 							</div>
 							<div class="cell">
 								<p class="font-size-20">{{course.training_requirement_name}}</p>
 							</div>
 						</div>
-
+                    <!--
 						<div class="right align-right">
 							<div class="display-table">
 								<a  [routerLink]="['/trainings/my-training']">
@@ -346,8 +349,8 @@
 									</div>
 								</a>
 							</div>
-						</div>
-
+                        </div>
+                    -->
 						<div class="clearfix"></div>
 					</li>
 				</ul>
@@ -392,7 +395,7 @@
 					</div>
 				</li>
 
-				<li>
+				<!-- <li>
 					<div class="display-table width100">
 						<a  [routerLink]="['/trainings/my-training']">
 							<div class="cell">
@@ -405,7 +408,7 @@
 							</div>
 						</a>
 					</div>
-				</li>
+				</li> -->
 
 				<li>
 					<div class="display-table width100">
@@ -423,7 +426,7 @@
 				</li>
 			</ul>
 
-			<a  class="blue-text font-size-16 right">View all ></a>
+			<!-- <a  class="blue-text font-size-16 right">View all ></a> -->
 			<div class="clearfix"></div>
 		</div>
         
