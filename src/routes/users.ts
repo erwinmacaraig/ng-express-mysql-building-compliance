@@ -2819,12 +2819,21 @@ export class UsersRoute extends BaseRoute {
                     userId : 0,
                     name : '',
                     email : '',
+                    mobile: '',
+                    first_name: '',
+                    last_name: '',
+                    account_has_online_training: 0,
                     accountId : 0,
+                    evac_role: 'Client',
                     roles : [],
-                    profilePic : ''
+                    profilePic : '',
+                    account_roles: {},
+                    subscription: {}
                 }
-            };
-
+            },
+            wardenRoles = [];
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
         try{
            let tokenData = <any> await tokenModel.getByToken(token),
                today = moment(),
@@ -2868,9 +2877,16 @@ export class UsersRoute extends BaseRoute {
                     response.data.name = user.first_name+' '+user.last_name;
                     response.data.email = user.email;
                     response.data.accountId = user.account_id;
+                    response.data.first_name = user.first_name;
+                    response.data.last_name = user.last_name;
 
+                    try {
+                        response.data.subscription = await Account.getAccountSubscription(user.account_id);
+                    } catch(e) {
+                        console.log('Error in getting account subscriptions at authenticate login', e);
+                    }
                     response['token'] = token;
-
+                    /*
                     try{
                         let trpfrp = <any> await useRoleModel.getByUserId(userId);
 
@@ -2887,6 +2903,42 @@ export class UsersRoute extends BaseRoute {
                     }catch(e){ }
 
                     response.data.roles.push(roleData);
+                    */
+
+                   try{
+                        wardenRoles = <any> await new UserEmRoleRelation().getEmRolesByUserId(userModel.get('user_id'));
+                        for(let role of wardenRoles){
+                            response.data['roles'].push({
+                                role_id : role['em_roles_id'],
+                                location_id: role['location_id'],
+                                role_name : role['role_name'],
+                                is_warden_role : role['is_warden_role']
+                            });
+                        }
+                    }catch(e){ }
+
+                   try {
+                    // determine if you are a building manager or tenant in these locations - response.locations
+                    roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(user.account_id);
+                    // response.data['account_roles'] = { ...roleOfAccountInLocationObj };
+                    } catch(err) {
+                        console.log('authenticate route get account role relation in locatio', err);
+                    }
+
+                    try {
+                        accountUserData = await new LocationAccountUser().getByUserId(user.user_id);
+                        for(let data of accountUserData) {
+                            if (data['location_id'] in roleOfAccountInLocationObj) {
+                                response.data['roles'].push({
+                                    role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                                    location_id: data['location_id'],
+                                    user_id:userModel.get('user_id') 
+                                });
+                            }
+                        }
+                    } catch(e) {
+                        console.log(' authenticate route, error getting in location account user data', e);
+                    }
 
                     response.status = true;
 
@@ -3112,7 +3164,7 @@ export class UsersRoute extends BaseRoute {
                         'expiration_date': moment().add('1 day').format('YYYY-MM-DD HH:mm:ss')
                     },
                     tokenModel = new Token(),
-                    emailLink = 'https://' + req.get('host'),
+                    emailLink = 'http://' + req.get('host'),
                     locationModel = new Location(),
                     acestrieIds = <any> await locationModel.getAncestryIds(users[i]['account_location_id']),
                     idsLocation = [],
