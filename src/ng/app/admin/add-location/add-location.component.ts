@@ -10,6 +10,8 @@ import { LocationsService } from '../../services/locations';
 import { AlertService } from '../../services/alert.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 
+declare var $: any;
+
 @Component({
     selector: 'app-admin-add-location',
     templateUrl: './add-location.component.html',

@@ -7,6 +7,7 @@ import { SignupComponent } from './signup/signup.component';
 import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.component';
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { StayAndGoComponent } from './dashboard/stay-go/stay_go.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
@@ -61,6 +62,7 @@ import { ViewChiefWardenComponent } from './teams/view-chief-warden/view.chief.w
 import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen.occupant.component';
 import { ListGeneralOccupantComponent } from './teams/list-gen-occ/list.gen.occ.component';
 import { TeamsAddGeneralOccupantComponent } from './teams/add-gen-occ/add.gen.occ.component';
+import { ViewAccountRoleComponent } from './teams/view-account-role/view-account-role.component';
 
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
@@ -107,6 +109,8 @@ import { WardenNotificationComponent } from './notification/warden-notification/
 import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
 import { NotifiedTRPTrainingsComponent } from './notification/notified-trp-training/notified-trp-training.component';
 import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
+import { RoleResignedComponent } from './confirmation/role-resigned/role-resigned.component';
+import { NotifiedWardenListComponent } from './notification/notified-warden-list/notified-warden-list.component';
 
 // ADMIN SECTION HERE
 import { AdminComponent } from './admin/admin.component';
@@ -164,7 +168,10 @@ const appRoutes: Routes = [
       { path: 'warden-notification', component : WardenNotificationComponent },
       { path: 'notification-summary-view/:token', component: SummaryViewComponent },
       { path: 'update-notified-trp-profile/:token', component: NotifiedTrpUpdateProfileComponent},
-      { path: 'trainings-for-notified-trp/:token', component: NotifiedTRPTrainingsComponent }
+      { path: 'trainings-for-notified-trp/:token', component: NotifiedTRPTrainingsComponent },
+      { path: 'stay-and-go', component: StayAndGoComponent },
+      { path: 'role-resignation', component: RoleResignedComponent },
+      { path: 'my-notified-warden-list', component: NotifiedWardenListComponent }
     ]
   },
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
@@ -211,6 +218,7 @@ const appRoutes: Routes = [
       { path : 'add-general-occupant', component : TeamsAddGeneralOccupantComponent },
       { path : 'list-administrators', component : AllUsersComponent },
       { path : 'add-administrators', component : AddUserComponent },
+      { path: 'view-account-role', component: ViewAccountRoleComponent }
     ]
   },
   {

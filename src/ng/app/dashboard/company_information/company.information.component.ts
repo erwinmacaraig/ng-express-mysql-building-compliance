@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewEncapsulation } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../../environments/environment';
 import { ViewChild } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
@@ -8,7 +9,7 @@ import { AccountsDataProviderService } from '../../services/accounts';
 import { UserService } from '../../services/users';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
-import { Router, NavigationEnd  } from '@angular/router';
+import { Router } from '@angular/router';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -60,7 +61,7 @@ export class CompanyInformationComponent implements OnInit, AfterViewInit {
 		private router : Router,
 		private userService: UserService
 	) {
-		this.baseUrl = (platformLocation as any).location.origin;
+		this.baseUrl = environment.backendUrl;
 		this.options = { headers : this.headers };
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.userData = this.auth.getUserData();

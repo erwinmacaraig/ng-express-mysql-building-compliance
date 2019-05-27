@@ -1,6 +1,7 @@
 
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { PlatformLocation } from '@angular/common';
 import { AuthService } from './auth.service';
 import { Person } from '../models/person.model';
@@ -16,10 +17,9 @@ export class PersonDataProviderService {
   private options;
 
   constructor(private http: HttpClient,
-              private platformLocation: PlatformLocation,
               private auth: AuthService
-            ) {
-    this.baseUrl = (platformLocation as any).location.origin;
+            ) {    
+		this.baseUrl = environment.backendUrl;
   }
 
   public getPersonInfo(): Observable<Person> {

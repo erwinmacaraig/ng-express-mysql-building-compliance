@@ -10,7 +10,7 @@ import { HttpClient, HttpRequest, HttpResponse, HttpEvent } from '@angular/commo
 import { PlatformLocation } from '@angular/common';
 import { ComponentCanDeactivate } from '../../models/component-can-deactivate';
 import { Observable } from 'rxjs/Observable';
-
+import { environment } from '../../../environments/environment';
 import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 declare var moment: any;
@@ -144,7 +144,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     public dashboard: DashboardPreloaderService,
     private platformLocation: PlatformLocation,
     public http: HttpClient) {
-      this.baseUrl = (platformLocation as any).location.origin;
+      this.baseUrl = environment.backendUrl;
     }
     @HostListener('window:beforeunload')
     canDeactivate(): Observable<boolean> | boolean {

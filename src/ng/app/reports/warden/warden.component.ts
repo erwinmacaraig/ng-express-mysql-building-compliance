@@ -10,9 +10,7 @@ import { CourseService } from '../../services/course';
 import { UserService } from '../../services/users';
 import { ExportToCSV } from '../../services/export.to.csv';
 import { Observable } from 'rxjs/Rx';
-import html2canvas from 'html2canvas';
-// import * as jsPDF from 'jspdf';
-import * as moment from 'moment';
+import { environment } from '../../../environments/environment';
 import { PrintService } from '../../services/print.service';
 
 declare var $: any;
@@ -349,7 +347,8 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
 
         searchedName = (searchedName.length == 0) ? ' ' : searchedName;
 
-        a.href = location.origin+"/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
+        //a.href = location.origin+"/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
+        a.href = environment.backendUrl + "/reports/pdf-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
         a.target = "_blank";
         document.body.appendChild(a);
 
@@ -370,7 +369,7 @@ export class WardenReportsComponent implements OnInit, OnDestroy {
 
         searchedName = (searchedName.length == 0) ? ' ' : searchedName;
 
-        a.href = location.origin+"/reports/csv-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
+        a.href = environment.backendUrl + "/reports/csv-warden-list/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+searchedName+"/"+roles.join(",");
         a.target = "_blank";
         document.body.appendChild(a);
 

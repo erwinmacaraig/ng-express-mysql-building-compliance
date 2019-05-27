@@ -186,7 +186,11 @@ table tr td .btn{
     margin-bottom: 10px;
 }
 
-.activity-container .cell{
+.activity-container .cell {
+    padding:  24px;
+}
+
+.activity-container-warden .cell {
     padding:  35px;
 }
 

@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '../../services/users';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DomSanitizer } from '@angular/platform-browser';
+import { environment } from '../../../environments/environment';
 import { PlatformLocation } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { CourseService } from '../../services/course';
@@ -51,7 +52,7 @@ export class NotifiedTRPTrainingsComponent implements OnInit, AfterViewInit, OnD
         private courseService: CourseService,
         private platformLocation: PlatformLocation,
         private complianceService: ComplianceService) {
-            this.baseUrl = (platformLocation as any).location.origin;
+            this.baseUrl = environment.backendUrl;
         }
 
 

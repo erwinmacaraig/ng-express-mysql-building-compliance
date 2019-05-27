@@ -15,7 +15,7 @@ import { ComplianceService } from './../../services/compliance.service';
 import { AdminService } from './../../services/admin.service';
 import { Observable, Subscription } from 'rxjs/Rx';
 import { DomSanitizer } from '@angular/platform-browser';
-
+import { environment } from '../../../environments/environment';
 
 declare var $: any;
 declare var Materialize: any;
@@ -65,7 +65,7 @@ export class NewTrainingComponent implements OnInit, OnDestroy, AfterViewInit {
         private sanitizer: DomSanitizer,        
         private platformLocation: PlatformLocation,
     ){
-        this.baseUrl = (platformLocation as any).location.origin;
+        this.baseUrl = environment.backendUrl;
     }
 
     public ngOnInit() {

@@ -1,17 +1,16 @@
 import { UserService } from './../../services/users';
-import { Component, OnInit, AfterViewInit, OnDestroy, ViewEncapsulation, ElementRef } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
+import { Component, OnInit, AfterViewInit, OnDestroy, ElementRef } from '@angular/core';
+
 import { ViewChild } from '@angular/core';
-import { NgForm, NgModel } from '@angular/forms';
+import { NgForm } from '@angular/forms';
 import { AuthService } from '../../services/auth.service';
 import { AccountsDataProviderService } from '../../services/accounts';
 import { LocationsService } from '../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { DatepickerOptions } from 'ng2-datepicker';
-import { Router, NavigationEnd  } from '@angular/router';
+
 import * as moment from 'moment';
-import { Observable } from 'rxjs/Rx';
+
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
@@ -47,7 +46,7 @@ datepickerModelFormatted = '';
 peep = {};
 showConfirmation = false;
 locationStr = '';
-
+showWardenConfirmationList = false;
     userIdEnc = '';
 	constructor(
 		private authService: AuthService,
@@ -67,6 +66,15 @@ locationStr = '';
 	}
 
 	ngOnInit() {
+    const roles: object[] = this.authService.userDataItem('roles');
+    this.showWardenConfirmationList = false;
+    for (let r of roles) {
+      if (r['role_id'] <= 2) {                
+          this.showWardenConfirmationList = true;
+          break;
+      }
+  }
+
     this.userService.getEmUserDashboardInfo().subscribe((response) => {
       // console.log(response);
       this.training_percentage = parseInt(response['percentage_training'], 10);
@@ -82,7 +90,6 @@ locationStr = '';
     }, (e) => {
       console.log(e);
     });
-
 	}
 
 	ngAfterViewInit(){

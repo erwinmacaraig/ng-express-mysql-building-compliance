@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
+import { environment } from '../../environments/environment';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -9,13 +10,14 @@ import 'rxjs/add/operator/catch';
 export class AccountsDataProviderService {
 
 	private headers: Object;
-  	private options: Object;
+  private options: Object;
 	private baseUrl: String;
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    	this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
+    this.options = { headers : this.headers };
+
+		this.baseUrl = environment.backendUrl;
 	}
 
 	getByUserId(user_id, callBack){
@@ -118,10 +120,10 @@ export class AccountsDataProviderService {
      return this.http.get(`${this.baseUrl}/accounts/list-notified-users/`, this.options);
 	}
 
-	submitQueryResponses(responses='', notification_token_id = 0, completed=0, status='In Progress', toUpdate = true) {
+	submitQueryResponses(responses='', configId = 0, completed=0, status='In Progress', toUpdate = true) {
        return this.http.post(this.baseUrl + '/accounts/process-query-notified-user-responses/', {
 			      query_responses: responses,
-				    notification_token_id: notification_token_id,
+				    configId: configId,
 						completed: completed,
 						strStatus: status,
             update_token: toUpdate
@@ -139,8 +141,8 @@ export class AccountsDataProviderService {
     this.options['params'] = httpParams;
     return this.http.get(`${this.baseUrl}/accounts/notification-all-peep/`, this.options);
 	}
-	
-	execNotificationAction(action='', token_id = 0) {
+
+	execNotificationAction(action='', token_id: number | string) {
 		return this.http.post(`${this.baseUrl}/accounts/notification-actions/`, {
 			action: action,
 			notification_token_id: token_id.toString()
@@ -155,6 +157,45 @@ export class AccountsDataProviderService {
 	}
 	performNotificationSummaryAction(reqBody = {}) {
 		return this.http.post(`${this.baseUrl}/accounts/perform-notification-summ-action`, reqBody);
+	}
+
+	getTaggedLocation(account_id=0) {
+		return this.http.get<{
+			buildings: Array<object>,
+			locations: Array<object>
+		}>(this.baseUrl + '/accounts/location-listing/', this.options)
+	}
+
+	getAccountRoleInLocation(locationIds=[]) {
+		const assignedLocations = JSON.stringify(locationIds);
+		const httpParams = new HttpParams().set('assignedLocations', assignedLocations);
+		this.options['params'] = httpParams;
+		return this.http.get<{account_roles:  object[]}>(`${this.baseUrl}/accounts/location/roles`, this.options);
+	}
+
+	acceptResignationFromConfirmation(userId=0, locationId = 0, configId = 0) {
+		return this.http.post<{message: string}>(`${this.baseUrl}/accounts/accept-resignation-confirmation/`, {
+			location_id: locationId,
+			user_id: userId,
+			notification_token_id: configId
+		});
+
+  }
+
+  rejectResignationFromConfirmation(userId=0, locationId = 0, configId = 0) {
+    return this.http.post<{message: string}>(`${this.baseUrl}/accounts/reject-resignation-confirmation/`, {
+      location_id: locationId,
+			user_id: userId,
+			notification_token_id: configId
+    });
+	}
+	
+	listPeepForConfirmation(locationIdArrStr='') {
+		return this.http.post<{
+			building: object[],
+			account_users: object[],
+			emergency_users: object[]
+		}>(`${this.baseUrl}/team/build-trp-peep-list/`, {assignedLocations: locationIdArrStr});
 	}
 
 }

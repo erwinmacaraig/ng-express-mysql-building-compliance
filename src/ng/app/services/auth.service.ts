@@ -15,6 +15,10 @@ export class AuthService {
     return localStorage.getItem('currentUser');
   }
 
+  public getConfirmationNotificationConfigId() {
+    return localStorage.getItem('concfg');
+  }
+
   public setToken(theToken) {
     return localStorage.setItem('currentUser', theToken);
   }
@@ -25,6 +29,12 @@ export class AuthService {
 
   public setUserData(data){
   	localStorage.setItem('userData', JSON.stringify(data));
+  }
+
+  public setUserDataItem(item, value) {
+    const dataItems = this.getUserData();
+    dataItems[item] = value;
+    this.setUserData(dataItems);
   }
 
   public getUserData(){
@@ -67,6 +77,7 @@ export class AuthService {
 		localStorage.removeItem('parentLocationsForListing');
 		localStorage.removeItem('locationHierarchy');
     localStorage.removeItem('archivedParentLocationsForListing');
+    localStorage.removeItem('concfg');
     clearTimeout(this.tokenTimer);
     this.router.navigate(['/login']);    
   }

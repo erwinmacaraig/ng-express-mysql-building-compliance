@@ -1,7 +1,7 @@
 .title{
   color:#64b5f6;
   font-size: 1.5rem;
-  margin: 20px 0px;
+  margin: 15px 0px;
 }
 
 
@@ -56,4 +56,39 @@
   color: #a94442;
   background-color: #f2dede;
   border-color: #ebccd1;
+}
+
+.upload-photo{
+  margin: 0;
+}
+
+.upload-photo a > div{
+  display: inline-block;
+}
+
+#myAccountPhoto{
+  width: 95px !important;
+  height: 90px !important;
+  overflow: hidden;
+  border-radius: 40px;
+}
+
+.custom-upload-photo-lbl {
+  font-size: 1rem;
+  margin-left: 10px;
+  color: #555555;
+}
+
+.img-container {
+  margin-left: 20px;
+  vertical-align: middle;
+}
+
+.label-container {
+  width: 150px;
+  vertical-align: middle;
+}
+
+#my_photo {
+  visibility: hidden;
 }

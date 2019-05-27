@@ -1,0 +1,110 @@
+<div class="main-confirmation-header" *ngIf="step < 4"><span class="header-text">Confirmation process is in progress</span></div>
+
+<div class="navbar-fixed" *ngIf="step == 0">
+    <div class="navbar-fixed-control-text">
+        <span>Finish updating your profile?</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button *ngIf="role != 'TRP' && role != 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/teams', 'view-warden']" [queryParams]="{confirmation: true, r: role}" type="button">Next</button>
+        <button *ngIf="role == 'TRP' || role == 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/teams', 'view-account-role']" [queryParams]="{confirmation: true, r: role}" type="button">Next</button>
+        <!--<button class="btn white waves-effect waves-light" type="button" (click)="sendEditMessage()"><span class="no-label-btn">No</span></button>-->
+    </div>
+</div>
+<!--    -->
+<div class="navbar-fixed" *ngIf="step == 1">
+    <div *ngIf="showLocationCtrlButton == true">
+        <div class="navbar-fixed-control-text">
+            <span>Are you still located at the Sub Location specified below?</span>        
+        </div>
+        <div class="navbar-fixed-control-buttons">
+            <button *ngIf="role != 'TRP' && role != 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'stay-and-go']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
+            <button *ngIf="role == 'TRP' || role == 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'my-notified-warden-list']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
+            <!--<button class="btn white waves-effect waves-light" type="button" (click)="showLocationCtrlButton=false"><span class="no-label-btn">No</span></button>-->
+        </div>
+    </div>
+    <div *ngIf="showLocationCtrlButton == false">
+        <div class="navbar-fixed-control-text">
+            <span>Click "Update Sub Location"</span>
+        </div>        
+    </div>    
+</div>
+
+<div class="navbar-fixed" *ngIf="step == 2">
+    <div class="navbar-fixed-control-text">
+        <span>Fill up Personal Emergency Evacuation Plan</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button *ngIf="role != 'TRP' && role != 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'stay-and-go']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
+        <button *ngIf="role == 'TRP' || role == 'FRP'" class="btn orange waves-effect waves-light" [routerLink]="['/dashboard', 'my-notified-warden-list']" [queryParams]="{confirmation: true, step: 3, r: role}" type="button">Next</button>
+        <!--<button class="btn white waves-effect waves-light" type="button" (click)="showLocationCtrlButton=false"><span class="no-label-btn">No</span></button>-->
+    </div>
+</div>
+<!--   -->
+
+<div class="navbar-fixed" *ngIf="step == 3 && role != 'TRP' && role != 'FRP'">
+    <div class="navbar-fixed-control-text">
+        <span>Here's a refresh of your procedure as Warden.</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" [routerLink]="['/trainings', 'new-training']" [queryParams]="{confirmation: true}" type="button">Next</button>        
+    </div>
+</div>
+<div class="navbar-fixed" *ngIf="step == 3 && (role == 'TRP' || role == 'FRP')">
+    <div class="navbar-fixed-control-text">
+        <span>Check required action for each Warden's status</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="sendShowWardenActionSummaryList()" type="button">Next</button>        
+    </div>
+    <!--
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="" [queryParams]="{confirmation: true}" type="button">Review Manually</button>        
+    </div>
+    -->
+    
+</div>
+<div class="navbar-fixed" *ngIf="step == 4 && (role == 'TRP' || role == 'FRP')">
+    <div class="navbar-fixed-control-text">
+        <span>Proceed to the next step</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="sendShowPeepSummaryList()" type="button">Next</button>        
+    </div>
+</div>
+<div class="navbar-fixed" *ngIf="step == 5 && (role == 'TRP' || role == 'FRP')">
+    <div class="navbar-fixed-control-text">
+        <span>Please review and udpate the current list of mobility impaired.</span>        
+    </div>
+    <div class="navbar-fixed-control-buttons">
+        <button class="btn orange waves-effect waves-light" (click)="gotoTeamWardenList()" type="button">Acknowledge</button>        
+    </div>
+</div>
+
+<div class="navbar-fixed" *ngIf="step == 4 && role != 'TRP' && role != 'FRP'">
+    <div class="navbar-fixed-control-text">
+        <span>Success! Thanks for confirming, please review your current training status.</span>        
+    </div>    
+</div>
+
+
+<div id="modal-welcome-confirmation" class="modal">
+    <div class="modal-content">
+        <div class="modal-content-message">
+            <h4>{{role}} Confirmation Process</h4>
+            <h5>Welcome back to EvacConnect, <br>{{myName}}</h5>
+            <div style="padding: 15px 0px">
+                <p>Thank you for participating. We just need a little bit of your time to  keep you current.</p>
+                <p>
+                    We are currently implementing a reward system.
+                    The more you interact with us by keeping us informed or completing
+                    training on time, the more reward points you will earn
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-close btn orange waves-effect waves-light">Start the confirmation process</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+

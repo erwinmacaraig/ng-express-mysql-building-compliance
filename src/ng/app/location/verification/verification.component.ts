@@ -1,6 +1,6 @@
 import { AuthService } from './../../services/auth.service';
 import { EncryptDecryptService } from './../../services/encrypt.decrypt';
-
+import { environment } from '../../../environments/environment';
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router';
@@ -46,7 +46,7 @@ export class VerificationComponent implements OnInit, OnDestroy {
               private platformLocation: PlatformLocation,
               private locService : LocationsService) {
 
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;
     this.emailDomain = this.authService.getUserData()['email'];
     this.emailDomain =  this.emailDomain.substr(this.emailDomain.indexOf('@') + 1, this.emailDomain.length);
 

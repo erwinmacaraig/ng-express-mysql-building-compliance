@@ -1,6 +1,8 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, Input } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../../environments/environment';
+
 import { ActivatedRoute } from '@angular/router';
 import { Subscription, Observable } from 'rxjs/Rx';
 import { FormBuilder, FormGroup, FormArray, Validators, FormControl } from '@angular/forms';
@@ -86,7 +88,7 @@ export class AddAccountUserComponent  implements OnInit, AfterViewInit, OnDestro
     private route: ActivatedRoute,
     private messageService: MessageService) {
 
-    this.baseUrl = (platformLocation as any).location.origin;
+    this.baseUrl = environment.backendUrl;
   }
 
   ngOnInit() {

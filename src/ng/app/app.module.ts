@@ -3,7 +3,6 @@ import { AppRoutingModule } from './app-routing.module';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HttpModule } from '@angular/http';
 import { HttpClientModule } from '@angular/common/http';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './auth/token.interceptor';
@@ -18,7 +17,6 @@ import { MessageService } from './services/messaging.service';
 import { LocationsService } from './services/locations';
 import { AlertService } from './services/alert.service';
 
-
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
 import { SignupComponent } from './signup/signup.component';
@@ -26,7 +24,10 @@ import { ForgotpasswordComponent } from './forgotpassword/forgotpassword.compone
 import { ChangepasswordComponent } from './changepassword/changepassword.component';
 import { NavbarComponent } from './navbar/navbar.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
+import { StayAndGoComponent } from './dashboard/stay-go/stay_go.component';
 import { AlertComponent } from './alert/alert.component';
+import { RoleConfirmComponent } from './confirmation/role-confirmed/role-confirmed.component';
+import { RoleResignedComponent } from './confirmation/role-resigned/role-resigned.component';
 
 import { FrpTrpDashboardComponent } from './dashboard/frp.trp/frp.trp.component';
 import { UserDashboardComponent  } from './dashboard/user/user.component';
@@ -56,7 +57,6 @@ import { SublocationComponent } from './location/sublocation/sublocation.compone
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
-import { AgmCoreModule } from '@agm/core';
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
@@ -84,6 +84,7 @@ import { ViewGeneralOccupantComponent } from './teams/view-gen-occupant/view.gen
 import { NgDatepickerModule } from 'ng2-datepicker';
 import { ListGeneralOccupantComponent } from './teams/list-gen-occ/list.gen.occ.component';
 import { TeamsAddGeneralOccupantComponent } from './teams/add-gen-occ/add.gen.occ.component';
+import { ViewAccountRoleComponent } from './teams/view-account-role/view-account-role.component';
 
 import { ComplianceComponent } from './compliance/compliance.component';
 import { ViewComplianceComponent } from './compliance/view-compliance/view.compliance.component';
@@ -125,6 +126,8 @@ import { AssignCoursesComponent } from './assign-courses/assign.courses.componen
 import { EpcMinutesMeetingComponent } from './compliance/epc-minutes-meeting/epc.minutes.meeting';
 
 // NOTIFICATION
+import { NotificationModule } from './notification/notification.module';
+/*
 import { NotificationListComponent } from './notification/list/notification-list.component';
 import { NotificationConfigurationComponent } from './notification/configuration/notification-config.component';
 import { NotifiedUsersListComponent } from './notification/notified-users-list/notified-users-list.component';
@@ -135,6 +138,9 @@ import { WardenNotificationComponent } from './notification/warden-notification/
 import { SummaryViewComponent } from './notification/summary-view/summary.view.component';
 import { NotifiedTrpUpdateProfileComponent } from './notification/notified-trp-update-profile/notified-trp-update-profile.component';
 import { NotifiedTRPTrainingsComponent } from './notification/notified-trp-training/notified-trp-training.component';
+*/
+
+import { NotifiedWardenListComponent } from './notification/notified-warden-list/notified-warden-list.component';
 // ADMIN COMPONENTS HERE
 import { AdminComponent } from './admin/admin.component';
 import { ListAccountsComponent } from './admin/list-accounts/list-accounts.component';
@@ -173,10 +179,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     NavbarComponent,
     DashboardComponent,
     SecurityPrivacyComponent,
-
     FrpTrpDashboardComponent,
     UserDashboardComponent,
-
     WardenInvitationFormComponent,
     TenantInvitationFormComponent,
     ProfileCompletionComponent,
@@ -222,6 +226,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AllUsersArchivedComponent,
     ListGeneralOccupantComponent,
     TeamsAddGeneralOccupantComponent,
+    ViewAccountRoleComponent,
 
     ComplianceComponent,
     ViewComplianceComponent,
@@ -258,7 +263,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
     // NOTIFICATION
-    NotificationListComponent,
+    /*NotificationListComponent,
     NotificationConfigurationComponent,
     NotifiedUsersListComponent,
     NotificationQueryComponent,
@@ -268,6 +273,8 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     NotifiedTrpUpdateProfileComponent,
     SummaryViewComponent,
     NotifiedTRPTrainingsComponent,
+    */
+   NotifiedWardenListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
     ListAccountsComponent,
@@ -290,24 +297,23 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AddAccountLocationComponent,
     RewardProgramConfigComponent,
     ListRewardConfigComponent,
-    RedeemersComponent
+    RedeemersComponent,
+    RoleConfirmComponent,
+    RoleResignedComponent,
+    StayAndGoComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
     HttpClientModule,
     AppRoutingModule,
-    AgmCoreModule.forRoot({
-      // apiKey : 'AIzaSyDmkSaP4MEhSdZxmndpExIbDEaJ3_kZpTk',
-      apiKey : 'AIzaSyBB5YdbG9RZOiqBLcQsM_0CD7jfGJTs-hU',
-      libraries: ['places']
-    }),
     NgMultiSelectDropDownModule.forRoot(),
     // todo: move to location module
     ReactiveFormsModule,
     NgDatepickerModule,
     CommonModule,
     ngfModule,
+    NotificationModule,
   ],
   providers: [
     AuthService,

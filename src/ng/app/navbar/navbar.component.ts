@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs/Subscription';
 import { AuthService } from '../services/auth.service';
 import { UserService } from '../services/users';
@@ -7,8 +7,6 @@ import { ViewChild } from '@angular/core';
 import { DomSanitizer } from '@angular/platform-browser';
 import { MessageService } from '../services/messaging.service';
 import { EncryptDecryptService } from '../services/encrypt.decrypt';
-
-import * as jQuery from 'jquery';
 
 import * as moment from 'moment';
 declare var $: any;
@@ -21,7 +19,7 @@ declare var navigator: any;
     styleUrls: ['./navbar.component.css'],
     providers : [UserService, EncryptDecryptService]
 })
-export class NavbarComponent implements OnInit, AfterViewInit {
+export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     @ViewChild('formFile') formFile: NgForm;
 
     public userData = <any> {
@@ -81,6 +79,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
+        
         this.subscriptionType = this.userData['subscription']['subscriptionType'];
         this.username = this.userData['name'];
         this.usersInitial = this.getInitials(this.username);
@@ -190,6 +189,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
             this.elems['rowLoader'].find('.p-icon').html('Uploading...').hide();
             callBack();
             this.elems['modalCloseBtn'].trigger('click');
+            this.messageService.sendMessage({'profilePic': this.usersImageURL});
         }else{
             this.elems['rowLoader'].find('.preloader-wrapper').hide();
             this.elems['rowLoader'].find('.p-icon').html(response.message).show();
@@ -219,7 +219,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
         formData = new FormData();
         formData.append('user_id', this.userData['userId']);
         formData.append('file', file, file.name);
-        this.userService.uploadProfilePicture(formData, (response) => {
+        
+        this.userService.uploadProfilePicture(formData).subscribe((response) => {
             let showBtns = () => {
                 this.elems['rowLoader'].hide();
                 this.elems['modalCloseBtn'].show();
@@ -229,7 +230,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
             };
 
             this.uploadResponseHandler(response, showBtns);
-        });
+       });
     }
 
     changePhotoSelectFileEvent(){
@@ -296,7 +297,8 @@ export class NavbarComponent implements OnInit, AfterViewInit {
         formData = new FormData();
         formData.append('user_id', this.userData['userId']);
         formData.append('file', file, this.userData['userId']+''+moment().valueOf()+'.jpg');
-        this.userService.uploadProfilePicture(formData, (response) => {
+        
+        this.userService.uploadProfilePicture(formData).subscribe((response) => {
             let showBtns = () => {
                 this.elems['rowLoader'].hide();
                 this.elems['modalCloseBtn'].show();
@@ -306,7 +308,7 @@ export class NavbarComponent implements OnInit, AfterViewInit {
             };
 
             this.uploadResponseHandler(response, showBtns);
-        });
+       });
     }
 
     changePhotoWebCamEvent(){
@@ -416,12 +418,22 @@ export class NavbarComponent implements OnInit, AfterViewInit {
                 this.username = message.person_first_name + ' ' + message.person_last_name;
                 this.usersInitial = this.getInitials(this.username);
             }
+            if (message.profilePic) {
+                this.usersImageURL = message.profilePic;
+                this.auth.setUserDataItem('profilePic', this.usersImageURL);    
+            }
 
         });
 
         $('body').off('click.closerightnav').on('click.closerightnav', '.links .li-nav', () => {
             $('#closeRightNav').trigger('click');
         });
+    }
+
+    ngOnDestroy() {
+        if (this.mySubscription) {
+            this.mySubscription.unsubscribe();
+        }
     }
 
 

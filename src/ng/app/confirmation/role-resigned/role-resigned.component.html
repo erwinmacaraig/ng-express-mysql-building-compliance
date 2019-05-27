@@ -1,0 +1,87 @@
+<div class="role-resignation-container">
+    <div>
+        <h5 *ngIf="emergencyRole == 'Warden'" class="resignation-color-heading-text">Please tell us why you are resigning as {{emergencyRole}} at {{buildingName}}?</h5>
+        <h5 *ngIf="emergencyRole == 'TRP'" class="resignation-color-heading-text">Why are you no longer a TRP on this building?</h5>
+    </div>
+    <div class="form-field-containter">
+        <div class="form-field-item">
+            <select class="form-field-item-selection" (change)="onSelectReason($event)" #reasons>
+                <option value="-1" disabled  selected>Select your answer here.</option>
+                <option *ngFor="let reason of reasonList; let i = index" value="{{i}}">{{reason}}</option>
+            </select>
+        </div>
+        <div class="form-info-fields">
+            <ng-container *ngIf="selectedReasonIndex == 0">
+                <div class="form-field-item">
+                    <select class="form-field-item-selection" (change)="loadSublevel($event)">
+                        <option value="-1" disabled>Search for a new location</option>
+                        <option *ngFor="let loc of locations; let i = index;" value="{{i}}">{{loc['name']}}</option>
+                        <option value="-2">Location not in the list</option>
+                    </select>
+                </div>
+                <div class="form-field-item">
+                    <select class="form-field-item-selection" [(ngModel)]="selectedSubIndex">
+                        <option value="-1" disabled selected>Search location level</option>
+                        <option *ngFor="let sub of sublocations; let i = index;" value="{{i}}">{{sub['name']}}</option>
+                    </select>
+                </div>                
+            </ng-container>
+            
+            <ng-container *ngIf="selectedReasonIndex != -1">
+                <ng-container *ngTemplateOutlet="additionalInfo"></ng-container>
+                <!--<ng-container *ngTemplateOutlet="nominationref"></ng-container>-->
+                <ng-container *ngTemplateOutlet="submitInfo"></ng-container> 
+            </ng-container>           
+
+        </div>
+    </div>
+    <ng-template #nominationref>
+        <h6 class="resignation-color-heading-text">Would you be able to nominate a new {{emergencyRole}}?</h6>
+        <p>
+            <input type="radio" name="nomination" id="yes-nominate"><label class="label-style" for="yes-nominate">Yes, I can nominate</label>
+        </p> 
+        <p class="person-nominated-container">
+            <input type="text"  [(ngModel)]="nominated_person" id="nominated_person" placeholder="  Please enter nominated person's full name">
+            <input type="text"  [(ngModel)]="nominated_person_email" id="nominated_person_email" placeholder="  Please provide nomiated person's email address">
+        </p>
+        <p>
+            <input type="radio" name="nomination" id="no-nomination"  checked="checked"><label class="label-style" for="no-nomination">No, I cannot nominate</label>
+        </p>                                      
+    </ng-template>
+
+    <ng-template #submitInfo>
+        <div class="form-field-item">
+                <button (click)="collateAnswers()" class="btn orange waves-effect waves-light btn-layout">Submit</button>
+        </div>
+    </ng-template>
+    <ng-template #additionalInfo>
+        <div class="form-field-item">            
+            <textarea [ngClass]="{'addInfo': validInfo === false}" placeholder="{{textAreaPlaceHolder}}" #info></textarea>
+        </div>
+    </ng-template>
+</div>
+
+<div id="modal-thanks-confirmation" class="modal">
+    <div class="modal-content">
+        <div class="modal-content-message">
+            <h5>Thank you for participating</h5>
+            <h4>{{myName}}</h4>
+            <div style="padding: 15px 0px">
+                <h6>
+                    We will immediately inform your tenancy manager.
+                </h6>
+                
+            </div>
+            <div class="modal-footer center">
+                <div>
+                    <button [routerLink]="['/trainings', 'new-training']" class="modal-close btn blue waves-effect waves-light">Continue browsing EvacConnect</button>
+                </div>
+                <div>
+                    <button style="width: 330px;" [routerLink]="['/signout']" class="modal-close btn orange waves-effect waves-light">Sign me out to EvacConnect</button>
+                </div>                
+            </div>
+        </div>
+    </div>
+</div>
+
+<div preloader></div>

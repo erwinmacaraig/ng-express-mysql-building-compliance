@@ -1,0 +1,72 @@
+.workspace.container {
+    padding: 0 !important;
+}
+.stay-go-race {
+    display: inline-block;    
+    padding: 5px;    
+    width: 79%;
+    height: 938px;
+}
+
+.stay-go-manual {
+    display: inline-block;
+    vertical-align: bottom;
+    height: 938px;    
+    background: #f3f3f3;     
+    padding: 5px;
+    width: 20%;
+    
+}
+
+.text-title {
+    color: #2196f3;
+}
+.stay-go-img-container {
+    background-image: url("/assets/images/trainings/stay_go.png");
+    background-repeat: no-repeat;
+    margin: 5px;
+    padding: 5px;
+    height: 60%;
+    width: 100%;   
+    background-size:contain; 
+}
+
+.user-guide-img {
+    background-image: url("/assets/images/trainings/download_warden.jpg");
+    background-repeat: no-repeat;
+    display: inline-block;
+    padding: 1px;
+    width: 55%;
+    height: 117px;
+    max-height: 100%;
+    
+}
+
+.user-guide-link {
+    display: inline-block;
+    width: 41%;
+    padding: 2px;    
+}
+
+.list-messages {
+    display: inline-block;
+    margin: 10px;
+    vertical-align: top;
+    list-style-type: disc;
+}
+
+.my-list-item {
+    list-style-type: disc;
+}
+
+.messages-container, .reminder-container {
+    display: inline-block;
+    margin-top: 30px;
+    margin-left: 25px;
+    width: 45%;
+}
+
+.email-btn-container {
+    text-align: right;
+    margin-top: 10px;
+}

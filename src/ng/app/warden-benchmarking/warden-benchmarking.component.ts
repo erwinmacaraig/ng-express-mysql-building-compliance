@@ -6,7 +6,7 @@ import { PlatformLocation } from '@angular/common';
 import { Location } from '@angular/common';
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { MessageService } from '../services/messaging.service';
-
+import { environment } from '../../environments/environment';
 declare var $: any;
 @Component({
   selector: 'app-warden-benchmarking',
@@ -29,7 +29,7 @@ export class WardenBenchMarkingComponent implements OnInit, OnDestroy, AfterView
   constructor(private location: Location, private http: HttpClient,
               private platformLocation: PlatformLocation,
               private messageService: MessageService) {
-    this.baseUrl = (platformLocation as any).location.origin;
+                this.baseUrl = environment.backendUrl;
   }
 
   ngOnInit() {

@@ -550,6 +550,7 @@ export class User extends BaseClass {
                   user_em_roles_relation.em_role_id,
                   user_em_roles_relation.em_role_id as role_id,
                   em_roles.role_name,
+                  locations.name as main_name,
                   locations.location_id,
                   locations.parent_id,
                   locations.is_building,
@@ -913,7 +914,7 @@ export class User extends BaseClass {
                             INNER JOIN
                                 location_account_user
                             ON users.user_id = location_account_user.user_id
-                            INNER JOIN
+                            LEFT JOIN
                                 user_role_relation
                             ON
                                 location_account_user.user_id = user_role_relation.user_id

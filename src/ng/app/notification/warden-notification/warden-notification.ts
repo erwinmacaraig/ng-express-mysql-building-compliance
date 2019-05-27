@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, AfterViewChecked, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { ActivatedRoute, Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 import { NgForm, FormGroup, FormControl, Validators } from '@angular/forms';
 import { PersonDataProviderService } from '../../services/person-data-provider.service';
 import { AdminService } from '../../services/admin.service';
@@ -10,8 +11,7 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
 import { LocationsService } from '../../services/locations';
-import { HttpParams, HttpClient } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
+import { HttpClient } from '@angular/common/http';
 import { DomSanitizer } from '@angular/platform-browser';
 import { ComplianceService } from './../../services/compliance.service';
 
@@ -45,6 +45,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     locationRoles = <any> [];
     requiredTrainings = <any> [];
     notificationTokens = <any> [];
+    showAssignedLocations = false;
     displayText = {
         yesUpdateProfile : {
             role : '',
@@ -77,10 +78,27 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     validTrainings = <any> [];
     trainingItems = <any> [];
 
+    public email:string = '';
+    public first_name: string = '';
+    public last_name: string = '';
+    public mobile: string = '';
+    public building = 0;
+    public selectedBuilding = 0;
+
     private getNotificationSub: Subscription;
     private routeParamsSub: Subscription;
     private verifyWardenSub: Subscription;
     private routeSub: Subscription;
+    private assignedSublocations = [];
+
+//
+
+    sublocationList = [];
+  selectedItems = [];
+  dropdownSettings = {};
+//
+
+
 
     constructor(
         private route: ActivatedRoute,
@@ -91,18 +109,21 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         private preloader: DashboardPreloaderService,
         private personDataService: PersonDataProviderService,
         private adminService: AdminService,
-        private platformLocation: PlatformLocation,
         public http: HttpClient,
         private locationService: LocationsService,
         private sanitizer: DomSanitizer,
         private complianceService: ComplianceService,
         private router: Router
         ) {
-
-        this.baseUrl = (platformLocation as any).location.origin;
+   
+        this.baseUrl = environment.backendUrl;
         this.userData = this.authService.getUserData();
+        this.email = this.authService.userDataItem('email');
+        this.first_name = this.authService.userDataItem('first_name');
+        this.last_name = this.authService.userDataItem('last_name');
+        this.mobile = this.authService.userDataItem('mobile');
         this.encryptedUserId = this.cryptor.encrypt(this.userData['userId']);
-
+       
         this.accountService.getById(this.userData['accountId'], (response) => {
             this.accountData = response.data;
         });
@@ -126,6 +147,33 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.router.navigate(['/dashboard/warden-notification'], {  queryParams : params });
     }
 
+    updateProfile(updateForm: NgForm) {
+        const locations = [];
+        for (let loc of this.selectedItems) {
+            locations.push(loc.location_id);
+        }
+        const postBody = {
+            first_name: this.first_name,
+            last_name: this.last_name,
+            mobile: this.mobile,
+            email:  this.email,
+            building: this.building,
+            assignedLocations: JSON.stringify(locations),
+            oldLocations: JSON.stringify(this.assignedSublocations),
+            user_em_role_id: 9 
+        };
+
+        this.userService.updateWardenProfile(postBody).subscribe((response) => {
+            console.log(response);
+            this.authService.setUserDataItem('email', this.email);
+            this.authService.setUserDataItem('first_name', this.first_name);
+            this.authService.setUserDataItem('last_name', this.last_name);
+            this.authService.setUserDataItem('mobile', this.mobile);
+        });
+
+
+    }
+
     getNotificationTokens(){
         this.getNotificationSub = this.userService.getNotificationToken(this.userData['userId']).subscribe((tokens) => {
             this.notificationTokens = tokens;
@@ -146,7 +194,26 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         return moment(dt).format('DD/MM/YYYY')
     }
 
+    onItemSelect(item: any) {
+        console.log(item);
+      }
+     
+
     ngOnInit() {
+
+        this.preloader.show();         
+
+          this.dropdownSettings = {
+            singleSelection: false,
+            idField: 'location_id',
+            textField: 'name',
+            maxHeight: 350,
+            itemsShowLimit: 3,
+            enableCheckAll: false,
+            allowSearchFilter: false,
+            noDataAvailablePlaceholderText: 'Fetching data from server'
+          };
+         
         this.routeParamsSub =  this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
             let params = this.getQueryParams();
@@ -180,13 +247,20 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     }
 
                     if (this.locationData['is_building'] == 1) {
+                        this.building = this.selectedBuilding = this.locationData['location_id'];                        
+                        console.log(this.selectedBuilding);
+                        this.sublocationList = this.locationData['sublocations'];
                         this.buildingSelections.push({
                             name: this.locationData['name'],
+                            location_id: this.locationData['location_id'],
                             sublocations: this.locationData['sublocations'] 
                         });
                     } else {
+                        this.building = this.selectedBuilding = response.parent['location_id'];
+                        this.sublocationList = response.siblings;
                         this.buildingSelections.push({
                             name: response.parent['name'],
+                            location_id: response.parent['location_id'], 
                             sublocations:[] 
                         });
                         
@@ -198,16 +272,20 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                             }
 
                         }
-                    }
-
-                    
+                    }                    
                     
                 });
                 this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
                     for(let loc of response.data.locations){
                         if(loc.user_em_roles_relation_id){
                             this.locationRoles.push(loc);
+                            this.selectedItems.push({
+                                location_id: loc.location_id,
+                                name: loc.main_name
+                            });
+                            this.assignedSublocations.push(loc.location_id);                            
                         }
+                        this.showAssignedLocations = true;
                     }
                     this.userData = Object.assign(this.userData, response.data.user);
                     this.requiredTrainings = response.data.required_trainings;
@@ -246,6 +324,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     setTimeout(() => {
                         this.changeEventSubLocationReviewProfile();
                     }, 500);
+                    this.preloader.hide();
                 });
 
             }

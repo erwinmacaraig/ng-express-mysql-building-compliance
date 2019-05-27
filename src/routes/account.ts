@@ -15,14 +15,16 @@ import { List } from '../models/list.model';
 import { AuthRequest } from '../interfaces/auth.interface';
 import { MiddlewareAuth } from '../middleware/authenticate.middleware';
 import { AccountSubscription } from '../models/account.subscription.model';
-const validator = require('validator');
-const cryptoJs = require('crypto-js');
 import * as moment from 'moment';
 import { AuthenticateLoginRoute } from './authenticate_login';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { Token } from '../models/token.model';
 import { UtilsSync } from '../models/util.sync';
+
+const validator = require('validator');
+const cryptoJs = require('crypto-js');
+const defs = require('../config/defs.json');
 const RateLimiter = require('limiter').RateLimiter;
 
 /**
@@ -124,13 +126,13 @@ const RateLimiter = require('limiter').RateLimiter;
         new AccountRoute().listPEEPOnNotificationScreen(req, res);
       }
 		);
-		
+
 		router.post('/accounts/notification-actions/',
 		    new MiddlewareAuth().authenticate, (req: Request, res: Response, next: NextFunction) => {
 				new AccountRoute().performNotificationAction(req, res);
-			}			
+			}
 		);
-		
+
 		router.get('/accounts/process-summary-link-token/',
 			(req: Request, res: Response, next: NextFunction) => {
 				new AccountRoute().processNotificationSummaryLink(req, res);
@@ -152,6 +154,22 @@ const RateLimiter = require('limiter').RateLimiter;
 			new AccountRoute().verifyIamWarden(req, res);
 		});
 
+		router.get('/accounts/location-listing/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new AccountRoute().getLocationListing(req, res);
+		});
+
+		router.get('/accounts/location/roles', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+			new AccountRoute().accountUsersInLocation(req, res);
+		});
+
+    router.post('/accounts/accept-resignation-confirmation/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      new AccountRoute().removeEMRole(req, res);
+    });
+
+    router.post('/accounts/reject-resignation-confirmation/', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+      new AccountRoute().rejectResignationConfirmation(req, res);
+    });
+
   }
 
 	/**
@@ -162,6 +180,182 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
+  }
+
+  public async rejectResignationConfirmation(req: AuthRequest, res:Response) {
+    try {
+      const notificationToken = new NotificationToken(req.body.notification_token_id);
+      await notificationToken.load();
+      const eco = new UserEmRoleRelation();
+      const actionTakenObj = {
+        user_id: req.user.user_id,
+        date: moment().format('YYYY-MM-DD'),
+        action: 'Rejected'
+      };
+      notificationToken.set('lastActionTaken', JSON.stringify(actionTakenObj));
+      notificationToken.write();
+      return res.status(200).send({
+        message: 'Success'
+      });
+    } catch(e) {
+      console.log(e);
+      return res.status(500).send({
+        message: 'Failed'
+      });
+    }
+  }
+  public async removeEMRole(req: AuthRequest, res: Response) {
+    try {
+      const notificationToken = new NotificationToken(req.body.notification_token_id);
+      await notificationToken.load();
+      const eco = new UserEmRoleRelation();
+      const actionTakenObj = {
+        user_id: req.user.user_id,
+        date: moment().format('YYYY-MM-DD'),
+        action: 'Accepted'
+      };
+      notificationToken.set('lastActionTaken', JSON.stringify(actionTakenObj));
+      notificationToken.write();
+
+      await eco.removeEMRole(req.body.user_id, req.body.location_id);
+      return res.status(200).send({
+        message: 'Success'
+      });
+
+    } catch(e) {
+      console.log(e);
+      return res.status(500).send({
+        message: 'Failed'
+      });
+    }
+
+
+  }
+
+	public async accountUsersInLocation(req: AuthRequest, res: Response) {
+		let assignedLocations = [];
+		let buildings = [];
+		let sublocations = [];
+		let tempArr = [];
+		let whereLoc = [];
+		const location = new Location();
+		assignedLocations = JSON.parse(req.query.assignedLocations);
+
+		if (assignedLocations.length == 0) {
+			return res.status(500).send({
+				account_roles: [],
+				message: 'No account role'
+			});
+		}
+		whereLoc.push( `location_id IN (${assignedLocations.join(',')})`);
+		tempArr = await location.getWhere(whereLoc) as Array<object>;
+
+		for (let index of tempArr) {
+			if (buildings.indexOf(index['parent_id']) == -1 && index['parent_id'] != -1) {
+				buildings.push(index['parent_id'])
+			} else if(buildings.indexOf(index['location_id']) == -1 && index['parent_id'] == -1 && index['is_building'] == 1) {
+				buildings.push(index['location_id']);
+				sublocations.push(index['location_id']);
+			}
+		}
+
+		whereLoc = [];
+		tempArr = [];
+
+		whereLoc.push(`parent_id IN (${buildings.join(',')})`);
+		tempArr = await location.getWhere(whereLoc) as Array<object>;
+
+		const locationAccountRelation = new LocationAccountRelation();
+		const locsInAccount = await locationAccountRelation.getByAccountId(req.user.account_id);
+		const locsInAccountArr = [];
+		for (let loc of locsInAccount) {
+			locsInAccountArr.push(loc['location_id']);
+		}
+
+		for (let loc of tempArr) {
+			if (locsInAccountArr.indexOf(loc['location_id']) != -1) {
+				sublocations.push(loc['location_id']);
+			}
+		}
+
+		tempArr = [];
+		const locationAcctUser = new LocationAccountUser();
+		let listArray = [];
+		try {
+			listArray = await locationAcctUser.generateUserAccountRoles(req.user.account_id, sublocations);
+		} catch(e) {
+			console.log(e);
+			return res.status(500).send({
+				account_roles: [],
+				message: 'Cannot determine location from location account relation table'
+			});
+		}
+
+		const userAccountRoleObj = {};
+
+		for (let item of listArray) {
+			item['account_roles'] = [];
+			tempArr.push(item['user_id']);
+			userAccountRoleObj[item['user_id']] = [];
+		}
+
+		let accountRole: Object[] = await new UserRoleRelation().getManyByUserIds(tempArr.join(','));
+		for (let role of accountRole) {
+			if (role['user_id'] in userAccountRoleObj) {
+				userAccountRoleObj[role['user_id']].push(defs['account_role_text'][role['role_id']]);
+			}
+		}
+
+		for (let item of listArray) {
+			item['account_roles'] = userAccountRoleObj[item['user_id']];
+		}
+
+
+		return res.status(200).send({
+			account_roles: listArray
+		});
+	}
+
+	public async getLocationListing(req: AuthRequest, res: Response) {
+
+		const locationAccountRelation = new LocationAccountRelation();
+
+		const buildings = [];
+		const buildingObjArr = [];
+		const locations = [];
+		const locationObj:{ [i:number]: {} } = {};
+		try {
+			const allLocations = await locationAccountRelation.getTaggedLocationsOfAccount(req.user.account_id);
+			for (let loc of allLocations) {
+				if (loc['is_building'] == 1 && buildings.indexOf(loc['location_id']) == -1) {
+					buildings.push(loc['location_id']);
+					buildingObjArr.push(loc);
+				} else if (loc['parent_id'] != -1) {
+					if (loc['parent_id'] in locationObj) {
+						locationObj[loc['parent_id']]['sublocation'].push(loc);
+					} else {
+						locationObj[loc['parent_id']] = {
+							name: loc['parent_name'],
+							location_id: loc['parent_id'],
+							sublocation: [loc]
+						};
+					}
+				}
+			}
+			Object.keys(locationObj).forEach(key => {
+				locations.push(locationObj[key]);
+			});
+			return res.status(200).send({
+				buildings: buildingObjArr,
+				locations: locations
+			});
+		} catch (e) {
+			console.log(e);
+			return res.status(500).send({
+				message: 'No tagged location'
+			});
+		}
+
 	}
 	public async generateUserListOfNotifiedUsers(req: AuthRequest, res: Response) {
 		const buildingId = req.body.building;
@@ -182,7 +376,7 @@ const RateLimiter = require('limiter').RateLimiter;
 		}
 		// we still need to include the building itself
 		sublocationIds.push(buildingId);
-		
+
 		if (roleId == 1) {
 			// filter TRP users
 			const trpUsers = await accountUsers.TRPUsersForNotification(sublocationIds);
@@ -195,12 +389,12 @@ const RateLimiter = require('limiter').RateLimiter;
 				role_text: `= 'TRP'`
 			});
 		} else if (roleId == 2) {
-			
+
 			const emergencyUsers = await emUsers.emUsersForNotification(sublocationIds);
 			// get only related to account and only GO and Warden
 			// console.log('=================== EM ======================' ,emergencyUsers);
-			for (let em of emergencyUsers) { 
-				
+			for (let em of emergencyUsers) {
+
 				if (em['account_id'] == accountId && (em['em_role_id'] == 8  || em['em_role_id'] == 9)) {
 					emUserIds.push(em['user_id']);
 				}
@@ -218,7 +412,7 @@ const RateLimiter = require('limiter').RateLimiter;
 	}
 	public async processNotificationSummaryLink(req: Request, res: Response) {
 		let strToken = decodeURIComponent(req.query.token);
-		
+
 		const bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
 		const strTokenDecoded = bytes.toString(cryptoJs.enc.Utf8);
 		const parts = strTokenDecoded.split('_');
@@ -274,13 +468,84 @@ const RateLimiter = require('limiter').RateLimiter;
 
 	}
 	public async performNotificationAction(req, res) {
-		// console.log(req.body);
+		
 		const action = req.body.action;
+		let emailType;
+		if (req.body.action == 'resend-bulk') {
+			const tokenIds = JSON.parse(req.body.notification_token_id);
+
+			for (let id of tokenIds) {
+				let notificationTokenDbData = await new NotificationToken(id).load();				
+				if (Object.keys(notificationTokenDbData).length == 0) {
+					continue;
+				}
+				if (notificationTokenDbData['role_text'] == 'TRP') {
+					emailType = 'trp-confirmation';
+				} else if(notificationTokenDbData['role_text'] == 'FRP') {
+					emailType = 'frp-confirmation';
+				} else {
+					emailType = 'warden-confirmation';
+				}
+
+				let notificationConfigDbData = await new NotificationConfiguration(notificationTokenDbData['notification_config_id']).load();
+				let userDbData = await new User(notificationTokenDbData['user_id']).load();
+				let buildingDbData = await new Location(notificationConfigDbData['building_id']).load();
+				let locTextEmail = buildingDbData['name'];
+				let accountDbData = await new Account(userDbData['account_id']).load();
+				let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${notificationTokenDbData['user_id']}_${notificationTokenDbData['location_id']}_${notificationTokenDbData['notification_config_id']}`, process.env.KEY).toString();
+				const opts = {
+					from : '',
+					fromName : 'EvacConnect',
+					to: [userDbData['email']],
+					cc: ['mmanclark@evacgroup.com.au'],
+					body : '',
+					attachments: [],
+					subject : 'EvacConnect Email Notification'
+				};
+					let
+				emailData = {
+					message : notificationConfigDbData['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
+					users_fullname : this.toTitleCase(userDbData['first_name']+' '+ userDbData['last_name']),
+					account_name : accountDbData['account_name'],
+					location_name : locTextEmail,
+					yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+					no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+					role : notificationTokenDbData['role_text']
+				};
+				const email = new EmailSender(opts);
+				email.sendFormattedEmail(emailType, emailData, res,
+					(data) => console.log(data),
+					(err) => console.log(err)
+				);
+				notificationTokenDbData['notificationTokenDbData'] = 'Pending';
+				notificationTokenDbData['strToken'] = strToken;
+				notificationTokenDbData['dtExpiration'] = moment().add(21, 'day').format('YYYY-MM-DD');
+				notificationTokenDbData['responded'] = 0;
+				notificationTokenDbData['dtResponded'] = null;
+				notificationTokenDbData['dtCompleted'] = 0
+				notificationTokenDbData['strResponse'] = null;
+				notificationTokenDbData['dtLastSent'] = moment().format('YYYY-MM-DD');
+				notificationTokenDbData['manually_validated_by'] = 0;
+				notificationTokenDbData['lastActionTaken'] = null;
+
+				/*
+
+				*/
+				await new NotificationToken().create(notificationTokenDbData);
+				notificationTokenDbData = [];
+			}
+			return res.status(200).send({
+				message: 'Email bulk sent'
+			});
+
+		}
+
+		
 		const notification_token_id = parseInt(req.body.notification_token_id, 10);
 		const notificationTokenObj = new NotificationToken(notification_token_id);
 		const notificationTokenDbData = await notificationTokenObj.load();
+
 		
-		let emailType;		
 		if (Object.keys(notificationTokenDbData).length == 0) {
 			return res.status(400).send({
 				message: 'No such token exists'
@@ -293,27 +558,30 @@ const RateLimiter = require('limiter').RateLimiter;
 		} else {
 			emailType = 'warden-confirmation';
 		}
-    
+
 		const notificationConfigObj = new NotificationConfiguration(notificationTokenDbData['notification_config_id']);
 		const notificationConfigDbData = await notificationConfigObj.load();
 		const user = new User(notificationTokenDbData['user_id']);
 		const userDbData = await user.load();
 		const buildingObj = new Location(notificationConfigDbData['building_id']);
-		const buildingDbData = await buildingObj.load();		
-		const sublocationObj = new Location(notificationTokenDbData['location_id']);
-		const sublocationDbData = await sublocationObj.load();
+		const buildingDbData = await buildingObj.load();
+		
+		//const sublocationObj = new Location(notificationTokenDbData['location_id']);
+		//const sublocationDbData = await sublocationObj.load();
 
-		let locTextEmail;
+		let locTextEmail = buildingDbData['name'];
+		/*
 		if (notificationConfigDbData['building_id'] == notificationTokenDbData['location_id']) {
 			locTextEmail = buildingDbData['name'];
 		} else {
 			locTextEmail = `${buildingDbData['name']},  ${sublocationDbData['name']}`;
 		}
+		*/
 
 
 		const account = new Account(userDbData['account_id']);
 		const accountDbData = await account.load();
-		switch(action) {
+		switch(action) {		
 			case 'resend':
 			let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${notificationTokenDbData['user_id']}_${notificationTokenDbData['location_id']}_${notificationTokenDbData['notification_config_id']}`, process.env.KEY).toString();
       const opts = {
@@ -327,7 +595,7 @@ const RateLimiter = require('limiter').RateLimiter;
 			};
 
 
-			let 
+			let
       emailData = {
         message : notificationConfigDbData['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
         users_fullname : this.toTitleCase(userDbData['first_name']+' '+ userDbData['last_name']),
@@ -336,9 +604,9 @@ const RateLimiter = require('limiter').RateLimiter;
         yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
         no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
         role : notificationTokenDbData['role_text']
-			};			
-			const email = new EmailSender(opts);			
-			email.sendFormattedEmail(emailType, emailData, res, 
+			};
+			const email = new EmailSender(opts);
+			email.sendFormattedEmail(emailType, emailData, res,
 				(data) => console.log(data),
 				(err) => console.log(err)
 			);
@@ -348,19 +616,20 @@ const RateLimiter = require('limiter').RateLimiter;
 				dtExpiration: moment().add(21, 'day').format('YYYY-MM-DD'),
 				strStatus: 'Pending',
 				responded: 0,
-				dtResponded: '0000-00-00',
+				dtResponded: null,
 				completed: 0,
-				dtCompleted: '0000-00-00',
-				strResponse: '',
+				dtCompleted: null,
+				strResponse: null,
 				dtLastSent: moment().format('YYYY-MM-DD'),
-				manually_validated_by: 0
+				manually_validated_by: 0,
+				lastActionTaken: null
       });
 
 			return res.status(200).send({
 				message: `Email sent to ${userDbData['first_name']} ${userDbData['last_name']} at ${userDbData['email']}`
 			});
-		
-		case 'validate': 
+
+		case 'validate':
 			await notificationTokenObj.create({
 				strToken: '',
 				strStatus: 'Validated',
@@ -435,10 +704,60 @@ const RateLimiter = require('limiter').RateLimiter;
   }
 
   public async processQueryResponses(req, res) {
-		console.log(req.body);
-    const theAnswers = req.body.query_responses;
+		
+		const uid = req.user.user_id;
+		const configId = req.body.configId;
+		const theAnswers = req.body.query_responses;
+		const tokenObj = new NotificationToken();
+		const tokenDBData = await tokenObj.loadByContraintKeys(uid, configId);
+
+    tokenDBData['strResponse'] = theAnswers;
+    tokenDBData['completed'] = 1;
+		tokenDBData['strStatus'] = 'Resigned';
+		tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
+		tokenDBData['strToken'] = null;
+
+		try {
+			await tokenObj.create(tokenDBData);
+			const theAnswersObj = JSON.parse(theAnswers);
+			const opts = {
+				from : '',
+				fromName : 'EvacConnect',
+				to: [],
+				cc: [],
+				body: '',
+				attachments: [],
+				subject: 'EvacConnect Email Notification User Response'
+			};
+			let bodyStr = '';
+			Object.keys(theAnswersObj).forEach((key) => {
+				bodyStr += `<br>${key}: ${theAnswersObj[key]}`;
+			});
+
+			const email = new EmailSender(opts);
+			const emailData = {
+				full_name: `${req.user.first_name} ${req.user.last_name}`,
+				status: `Resigned`,
+				message: bodyStr
+			};
+			email.sendFormattedEmail('notification-response', emailData, res,
+				(data) => console.log(data),
+				(err) => console.log(err)
+			);
+			res.status(200).send({
+				status: 'Success',
+				data: tokenDBData
+			});
+		}catch(e) {
+			console.log(e);
+		}
+
+
+
+		/*
+
     const responsesToQueryArr = JSON.parse(req.body.query_responses);
-    const notification_token_id = req.body.notification_token_id;
+
     const update_token = req.body.update_token;
     let nominatedUserName = '';
     let nominatedUserEmail = '';
@@ -449,11 +768,7 @@ const RateLimiter = require('limiter').RateLimiter;
     };
     const completed = parseInt(req.body.completed, 10);
     const status = req.body.strStatus;
-    const tokenObj = new NotificationToken(notification_token_id);
-    const tokenDBData = await tokenObj.load();
-    tokenDBData['strResponse'] = theAnswers;
-    tokenDBData['completed'] = completed;
-    tokenDBData['strStatus'] = status;
+
 
     if (completed) {
 			tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
@@ -517,7 +832,7 @@ const RateLimiter = require('limiter').RateLimiter;
         }
 
         if(changeLocation.from_location_id > 0 && changeLocation.to_location_id > 0){
-          let 
+          let
           locModel = new Location(),
           parentModel = new Location(),
           ids = [changeLocation.from_location_id, changeLocation.to_location_id],
@@ -535,7 +850,7 @@ const RateLimiter = require('limiter').RateLimiter;
           if(emData[0]){
             emData = emData[0];
           }
-          
+
 
           for(let loc of locationsFromAndTo){
             if(loc.location_id == changeLocation.from_location_id){
@@ -574,11 +889,11 @@ const RateLimiter = require('limiter').RateLimiter;
           }else if(fromLoc.is_building == 0 && toLoc.is_building == 1){
             if(fromLoc.parent_id != toLoc.location_id){
               isDiffLoc = true;
-						}						
+						}
           } else if(fromLoc.parent_id != toLoc.parent_id){
             isDiffLoc = true;
           }
-          /*Send Email To TRP and Admin*/
+          //Send Email To TRP and Admin
           if(isDiffLoc){
             await this.sendChangeLocationEmails(fromLoc, toLoc, emData);
           }else{
@@ -594,8 +909,8 @@ const RateLimiter = require('limiter').RateLimiter;
 			} else if (status == 'Tenancy Moved Out') {
 				const trpLocationToQuery = tokenObj['location_id'];
 			}
-			
-		
+
+
 
       return res.status(200).send({
         message: 'Success',
@@ -607,15 +922,16 @@ const RateLimiter = require('limiter').RateLimiter;
       message: 'Fail',
       data: tokenDBData
       });
-    }
+		}
+		*/
 
 	}
-	
+
 	public async performActionOnSummaryList(req: AuthRequest, res: Response) {
 
 		const reqData = JSON.parse(req.body.info);
 		const role = req.body.role;
-		
+
 		const action = req.body.action;
 		const tokenDbData = await new NotificationToken(reqData['notification_token_id']).load();
 		let emailType = '';
@@ -624,7 +940,7 @@ const RateLimiter = require('limiter').RateLimiter;
 		} else if (role == 2) {
 			emailType = 'warden-confirmation';
 		}
-		const allData = { ...tokenDbData, 
+		const allData = { ...tokenDbData,
 			host: req.get('host'),
 			emailType: emailType,
 			role_name: reqData['role_name'],
@@ -633,12 +949,12 @@ const RateLimiter = require('limiter').RateLimiter;
 			account_name: reqData['account_name'],
 			parent: reqData['parent'],
 			name: reqData['name']
-		};		
+		};
 		let util;
 
 		switch(action) {
 			case 'resend':
-				
+
 				util = new UtilsSync();
 				util.sendToNotification(0,'resend-notification', 0, '', allData, res).then(() => {
 					tokenDbData['lastActionTaken'] = 'Resend';
@@ -649,10 +965,10 @@ const RateLimiter = require('limiter').RateLimiter;
 						});
 					}).catch((e) => {
 						return res.status(400).send({
-							'message': 'There was a problem resending notification.'							
+							'message': 'There was a problem resending notification.'
 						});
 					});
-					
+
 				});
 
 			break;
@@ -667,7 +983,7 @@ const RateLimiter = require('limiter').RateLimiter;
 						console.log(`new location id = ${newLocationId}`);
 					}
 					if (r['question'] == 'user_em_roles_relation_id') {
-						emRoleRelId = r['ans']; 
+						emRoleRelId = r['ans'];
 						// console.log(`em role id is ${emRoleRelId}`);
 						const emRoleRel = new UserEmRoleRelation(emRoleRelId);
 						const emData = await emRoleRel.load();
@@ -687,9 +1003,9 @@ const RateLimiter = require('limiter').RateLimiter;
 							res.status(200).send({
 								message: 'User is already assigned to the location'
 							});
-						}						
+						}
 					}
-				}				
+				}
 			break;
 
 			case 'tenancy-moved-out':
@@ -704,7 +1020,7 @@ const RateLimiter = require('limiter').RateLimiter;
 						from : '',
 						fromName : 'EvacConnect',
 						to : ['emacaraig@evacgroup.com.au'],
-						cc: ['adelfing@evacgroup.com.au'],
+						cc: [],
 						body : new EmailSender().getEmailHTMLHeader() + `
 						Hi ${frp['first_name']} ${frp['last_name']}, <br><br>
 						${reqData['first_name']} ${reqData['last_name']} of ${reqData['account_name']} has notified that their tenancy has moved out. <br>
@@ -717,17 +1033,17 @@ const RateLimiter = require('limiter').RateLimiter;
 						(data) => console.log(data),
 						(err) => console.log(err)
 					);
-				} 
+				}
 				return res.status(200).send({
 					'message': 'Email sent',
-					'FRP': frpUsersInBuilding 
+					'FRP': frpUsersInBuilding
 				});
-			
+
 		}
 	}
 
   private async sendChangeLocationEmails(fromLoc, toLocations, emData){
-    let 
+    let
     locIds = [toLocations.location_id],
     locModel = new Location(),
     locAccUser = new LocationAccountUser(),
@@ -762,7 +1078,7 @@ const RateLimiter = require('limiter').RateLimiter;
       };
 
       const email = new EmailSender(opts);
-      let 
+      let
       fromLocationName = (fromLoc.parent.name) ? fromLoc.parent.name+', '+fromLoc.name : fromLoc.name,
       toLocationName = (toLocations.parent.name) ? toLocations.parent.name+', '+toLocations.name : toLocations.name,
       emailBody = email.getEmailHTMLHeader(),
@@ -842,13 +1158,26 @@ const RateLimiter = require('limiter').RateLimiter;
 
     if (!(Object.keys(userDbData)).length) {
       return res.redirect('/success-valiadation?query-notified-user=0');
-    }
+		}
 
-		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
-		
+
+
+		const cipherText = cryptoJs.AES.encrypt(`${userDbData['user_id']}_${tokenDbData['location_id']}_${configId}_${configDBData['building_id']}_${tokenDbData['role_text']}`, 'NifLed').toString();
+
+		// the fact that the user clicked the link, we should update the token
+		tokenDbData['strStatus'] = 'Responded';
+		tokenDbData['responded'] = 1;
+		tokenDbData['dtResponded'] = moment().format('YYYY-MM-DD');
+		try {
+			await tokenObj.create(tokenDbData);
+		} catch(e) {
+			console.log(e);
+		}
+
     if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
-      const redirectUrl = 'https://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=no&token='+encodeURIComponent(cipherText);
-      await loginAction(redirectUrl);
+			const redirectUrl = 'https://' + req.get('host') + '/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			//const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			await loginAction(redirectUrl);
     } else if (tokenDbData['role_text'] == 'FRP') {
 			await tokenObj.create({
 				responded: 1,
@@ -865,10 +1194,10 @@ const RateLimiter = require('limiter').RateLimiter;
 			const opts = {
 				from : '',
 				fromName : 'EvacConnect',
-				to : ['jmanoharan@evacgroup.com.au'],				
-				cc: ['emacaraig@evacgroup.com.au'],
+				to : ['rsantos.evacgroup.com.au'],
+				cc: [],
 				body : new EmailSender().getEmailHTMLHeader() + `<br> ${userDbData['first_name']} ${userDbData['last_name']} of ${accountDbData['account_name']} <br>
-				says that he/she is <strong>NO LONGER</strong> the FRP at ${locationDbData['name']}.` + 
+				says that he/she is <strong>NO LONGER</strong> the FRP at ${locationDbData['name']}.` +
 				new EmailSender().getEmailHTMLFooter(),
 				attachments: [],
 				subject : 'EvacConnect Email Notification'
@@ -890,22 +1219,24 @@ const RateLimiter = require('limiter').RateLimiter;
       // update record
       await tokenObj.create({
         responded: 1,
-        strStatus: 'In Progress',
+        strStatus: 'Responded',
         dtResponded: moment().format('YYYY-MM-DD')
   		});
-  		
+
   		const userResponded: Array<number> = configDBData['user_responded'].split(',');
   		if (userResponded.indexOf(uid) == -1) {
   			userResponded.push(uid);
   			configDBData['responders'] = configDBData['responders'] + 1;
   			configDBData['user_responded'] = userResponded.join(',');
   			await configurator.create(configDBData);
-  		}
+			}
 
-			
-      const redirectUrl = 'https://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+
+      // const redirectUrl = 'http://' + req.get('host') + '/dashboard/process-notification-queries/' + encodeURIComponent(cipherText);
+			//const redirectUrl = 'http://localhost:4200/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
+			const redirectUrl = 'https://' + req.get('host') + '/dashboard/role-resignation?token='+encodeURIComponent(cipherText);
 			await loginAction(redirectUrl);
-			
+
 
     }
 
@@ -913,23 +1244,23 @@ const RateLimiter = require('limiter').RateLimiter;
 
   }
   public async verifyNotifiedUser(req: Request, res: Response) {
-		
-		let strToken = decodeURIComponent(req.query.token);		
-		
+
+		let strToken = decodeURIComponent(req.query.token);
+
     const tokenObj = new NotificationToken();
     const  bytes = cryptoJs.AES.decrypt(strToken, process.env.KEY);
     const strTokenDecoded: string = bytes.toString(cryptoJs.enc.Utf8);
 
     console.log('strTokenDecoded', strTokenDecoded);
     const authRoute = new AuthenticateLoginRoute();
-    
+
     const parts = strTokenDecoded.split('_');
     const uid = parseInt(parts[1], 10);
     const configId = parseInt(parts[3], 10);
 
     const user = new User(uid);
 		const userDbData = await user.load();
-		
+
     const userRole = new UserRoleRelation();
     let hasFrpTrpRole = false;
 
@@ -941,19 +1272,19 @@ const RateLimiter = require('limiter').RateLimiter;
     const loginAction = async (redirectUrl) => {
       const loginResponse = <any> await authRoute.successValidation(req, res, user, 7200, true);
       let stringUserData = JSON.stringify(loginResponse.data);
-      stringUserData = stringUserData.replace(/\'/gi, '');
-
+			stringUserData = stringUserData.replace(/\'/gi, '');
       const script = `
           <h4>Redirecting...</h4>
           <script>
             localStorage.setItem('currentUser', '${loginResponse.token}');
             localStorage.setItem('userData', '${stringUserData}');
+						localStorage.setItem('concfg', ${configId});
 
             setTimeout(function(){
               window.location.replace("${redirectUrl}")
-            }, 1000);
+            }, 2500);
           </script>
-      `;
+			`;
       res.status(200).send(script);
     };
 
@@ -966,74 +1297,32 @@ const RateLimiter = require('limiter').RateLimiter;
     // todo token expired
     if (tokenDbData['expiration_status'] == 'expired') {
       return res.redirect('/success-valiadation?verify-notified-user=0');
-		}	
-		
+		}
 
-    const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
-        
-    if(tokenDbData['role_text'] != 'TRP' && tokenDbData['role_text'] != 'FRP'){
-      const redirectUrl = 'https://' + req.get('host') + '/dashboard/warden-notification?userid='+tokenDbData['user_id']+'&locationid='+tokenDbData['location_id']+'&stillonlocation=yes&step=1&token='+encodeURIComponent(cipherText);
-      await loginAction(redirectUrl);
-    }else{
-      try{
-        await userRole.getByUserId(uid);
-        hasFrpTrpRole = true;
-      } catch (e){
-        hasFrpTrpRole = false;
-      }
+		// update record
+		await tokenObj.create({
+			strToken: '',
+			strStatus: 'Validated',
+			responded: 1,
+			dtResponded: moment().format('YYYY-MM-DD'),
+			completed: 1,
+			dtCompleted: moment().format('YYYY-MM-DD')
+		});
+		const cipherText = cryptoJs.AES.encrypt(`${uid}_${tokenDbData['location_id']}_${configId}_${tokenDbData['notification_token_id']}_${configDBData['building_id']}`, 'NifLed').toString();
+		const redirectUrl = 'https://' + req.get('host') + '/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text'])+`&cfg=${configId}`;
+		//const redirectUrl = 'http://localhost:4200/dashboard/person-info?confirmation=true&r='+encodeURIComponent(tokenDbData['role_text'])+`&cfg=${configId}`;
 
-      // update record
-      await tokenObj.create({
-        strToken: '',
-        strStatus: 'Validated',
-        responded: 1,
-        dtResponded: moment().format('YYYY-MM-DD'),
-        completed: 1,
-        dtCompleted: moment().format('YYYY-MM-DD')
-      });
-
-  		const userResponded: Array<number> = configDBData['user_responded'].split(',');
-  		if (userResponded.indexOf(uid) == -1) {
-  			userResponded.push(uid);
-  			configDBData['responders'] = configDBData['responders'] + 1;
-  			configDBData['user_responded'] = userResponded.join(',');
-  			await configurator.create(configDBData);
-  		}
-
-			
-      if (hasFrpTrpRole && tokenDbData['role_text'] != 'FRP') {
-        const redirectUrl = 'https://' + req.get('host') + '/success-valiadation?verify-notified-user=1&token=' + encodeURIComponent(cipherText);
-        await loginAction(redirectUrl);
-      } else if (tokenDbData['role_text'] == 'FRP') {
-				const accountDbData = await new Account(userDbData['account_id']).load();
-				const locationDbData = await new Location(tokenDbData['location_id']).load();
-
-				// send email notification to admin
-				const opts = {
-					from : '',
-					fromName : 'EvacConnect',
-					to : ['rsantos.evacgroup.com.au'],				
-					cc: [],
-					body : new EmailSender().getEmailHTMLHeader() + `<br> ${userDbData['first_name']} ${userDbData['last_name']} of ${accountDbData['account_name']} <br>
-					says that he/she is <strong>STILL</strong> the FRP at ${locationDbData['name']}.` + 
-					new EmailSender().getEmailHTMLFooter(),
-					attachments: [],
-					subject : 'EvacConnect Email Notification'
-				};
-				const email = new EmailSender(opts);
-				email.send((success) => {
-					console.log('Sent successfully');
-				}, (error) => {
-					console.log('Email cannot be sent');
-				});
-				return res.redirect('/success-valiadation?verify-notified-user=1');
-			} else {
-        return res.redirect('/success-valiadation?verify-notified-user=1');
-      }
-    }
+		const userResponded: Array<number> = configDBData['user_responded'].split(',');
+		if (userResponded.indexOf(uid) == -1) {
+			userResponded.push(uid);
+			configDBData['responders'] = configDBData['responders'] + 1;
+			configDBData['user_responded'] = userResponded.join(',');
+			await configurator.create(configDBData);
+		}
+		await loginAction(redirectUrl);
 
 	}
-	
+
 	public async verifyIamWarden(req: AuthRequest, res:Response) {
 		const configId  = req.query.configId;
 		if(configId == 0) {
@@ -1073,7 +1362,7 @@ const RateLimiter = require('limiter').RateLimiter;
 	}
 
 
-	
+
   public async listNotifiedUsers(req: AuthRequest, res: Response) {
     const notification_config_id = req.query.config_id;
 	  const tokenObj = new NotificationToken();
@@ -1097,7 +1386,7 @@ const RateLimiter = require('limiter').RateLimiter;
 		}
 		const list = await configurator.generateConfigData(accountId);
 
-		
+
     return res.status(200).send({
       data: list
     });
@@ -1108,8 +1397,10 @@ const RateLimiter = require('limiter').RateLimiter;
     // get sub levels within the building that belongs to the account
     const location = new Location();
     const configurator = new NotificationConfiguration();
-    const sublevels = [];
-    let userType = '';
+		const sublevels = [];
+		let emailRole = '';
+		let userType = '';
+		let configRoleText = '';
     // Allow 2 requests per second . Also understands
     // 'hour', 'minute', 'day', or a number of milliseconds
     // https://github.com/jhurliman/node-rate-limiter
@@ -1121,7 +1412,7 @@ const RateLimiter = require('limiter').RateLimiter;
     }
     sublevels.push(config['building_id']);
 
-    let 
+    let
     locModel = new Location(config['building_id']),
     locData = <any> {
       location_name : ''
@@ -1134,6 +1425,7 @@ const RateLimiter = require('limiter').RateLimiter;
     let trp = [];
 		let eco = [];
 		let frp = [];
+		let gofr = [];
     let allUsers = [];
     const allUserIds = [];
     let allUserIdStr = '';
@@ -1153,19 +1445,31 @@ const RateLimiter = require('limiter').RateLimiter;
     try{
       if (config['user_type'] == 'trp') {
         userType = 'trp';
-        allUsers = await lauObj.TRPUsersForNotification(sublevels);
+				allUsers = await lauObj.TRPUsersForNotification(sublevels);
+				emailRole = 'Tenant Responsible Person';
+				configRoleText = 'TRP';
+
       } else if (config['user_type'] == 'eco') {
         userType = 'eco';
-        eco = await uemr.emUsersForNotification(sublevels);
-      } else if (config['user_type'] == 'all_users') {
+				eco = await uemr.emUsersForNotification(sublevels);
+				emailRole = 'Warden';
+				configRoleText = 'Warden';
+			} else if (config['user_type'] == 'gofr') {
+				userType = 'gofr';
+				eco = await uemr.emUsersForNotification(sublevels, false);
+				emailRole = 'General Occupant';
+				configRoleText = 'GOFR';
+
+			} else if (config['user_type'] == 'all_users') {
         userType = 'all';
         trp = await lauObj.TRPUsersForNotification(sublevels);
 				eco = await uemr.emUsersForNotification(sublevels);
 				frp = await new LocationAccountUser().FRPUsersForNotification(config['building_id']);
-			
+
 				allUsers = [...trp, ...eco, ...frp];
       } else if (config['user_type'] == 'frp') {
 				userType = 'frp';
+				configRoleText = 'FRP';
 				allUsers = await new LocationAccountUser().FRPUsersForNotification(config['building_id']);
 			}
     }catch(e){
@@ -1210,7 +1514,7 @@ const RateLimiter = require('limiter').RateLimiter;
       }
     }
 
-    
+
     for (const u of allUsers) {
 
       if (allUserIds.indexOf(u['user_id']) == -1) {
@@ -1233,7 +1537,7 @@ const RateLimiter = require('limiter').RateLimiter;
       building_manager: req.user.user_id,
       dtLastSent: moment().format('YYYY-MM-DD')
     });
-    
+
     for (const u of allUsers) {
       let strToken = cryptoJs.AES.encrypt(`${Date.now()}_${u['user_id']}_${u['location_id']}_${configurator.ID()}`, process.env.KEY).toString();
       let notificationToken = new NotificationToken();
@@ -1241,15 +1545,17 @@ const RateLimiter = require('limiter').RateLimiter;
         strToken: strToken,
         user_id: u['user_id'],
         location_id: u['location_id'],
-        role_text: u['role_name'],
+        role_text: configRoleText,
         notification_config_id: configurator.ID(),
 				dtExpiration: moment().add(21, 'day').format('YYYY-MM-DD'),
-				dtLastSent: moment().format('YYYY-MM-DD')
+				dtLastSent: moment().format('YYYY-MM-DD'),
+				lastActionTaken: null
       });
 			notificationToken = null;
 
       let locTextEmail = locData.location_name;
-      let emailRole = '';
+			
+			/*
       if (u['eco_sublocation_names']) {
         locTextEmail = locTextEmail +' '+ u['eco_sublocation_names'].join(',');
         emailRole = u['eco_role_names'].join(',');
@@ -1257,9 +1563,11 @@ const RateLimiter = require('limiter').RateLimiter;
   			if (u['name'] && u['name'].length > 0) {
   				locTextEmail = locData.location_name + ', ' + u['name'];
   			}
-      }
+			}
+			*/
+			locTextEmail = locData.location_name
 
-      let 
+      let
       emailData = {
         message : config['message'].replace(/(?:\r\n|\r|\n)/g, '<br>'),
         users_fullname : this.toTitleCase(u['first_name']+' '+u['last_name']),
@@ -1284,19 +1592,20 @@ const RateLimiter = require('limiter').RateLimiter;
         from : '',
         fromName : 'EvacConnect',
 				to : [u['email']],
+				cc: ['mmanclark@evacgroup.com.au'],
         body : '',
         attachments: [],
         subject : 'EvacConnect Email Notification'
       };
       const email = new EmailSender(opts);
-			
+
       limiter.removeTokens(1, (err, remainingRequests) => {
-        email.sendFormattedEmail(emailType, emailData, res, 
+        email.sendFormattedEmail(emailType, emailData, res,
           (data) => console.log(data),
           (err) => console.log(err)
         );
       });
-			
+
     }
 
     return res.status(200).send({
@@ -1329,9 +1638,18 @@ const RateLimiter = require('limiter').RateLimiter;
       name: queryBldgName
     });
 
-    const accountLocations = lar.concat(locationsFromLAU);
+		const accountLocations = lar.concat(locationsFromLAU);
+		const tempArr = [];
+		const theLocations = [];
+		for (let loc of accountLocations) {
+			if (tempArr.indexOf(loc['location_id']) == -1) {
+				tempArr.push(loc['location_id']);
+				theLocations.push(loc);
+			}
+		}
+
     return res.status(200).send({
-      data: accountLocations
+      data: theLocations
     });
 
   }

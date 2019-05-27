@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
+import { environment } from '../../environments/environment';
 import { AuthService } from '../services/auth.service';
-import { Router, NavigationEnd  } from '@angular/router';
+import { Router, NavigationEnd, ActivatedRoute  } from '@angular/router';
 import { SignupService } from '../services/signup.service';
 import { UserService } from '../services/users';
+import { Subscription } from 'rxjs/Subscription';
+
 
 declare var $: any;
 
@@ -18,24 +18,28 @@ declare var $: any;
 export class DashboardComponent implements OnInit {
 	private baseUrl: String;
 	public userData: Object;
-	public userRoles;
+  public userRoles;
+  public emergencyRole = '';
 	showEmailVerification = false;
 	showResponse = false;
-	responseMessage = '';
+  responseMessage = '';
+  public confirmationProcessStep = 0;
 
+  public showConfirmationProcessBar = false;
 	routerSubs;
   isFRP = false;
   isTRP = false;
 
+  queryParamSub: Subscription;
   constructor(
-    private http: HttpClient,
-    private platform: PlatformLocation,
+    
     private auth: AuthService,
     private router: Router,
+    private route: ActivatedRoute,
     private signupServices: SignupService,
     private userService: UserService
     ) {
-    this.baseUrl = (platform as any).location.origin;
+    this.baseUrl = environment.backendUrl;
     this.subscribeAndCheckUserHasAccountToSetup(router);
     this.userData = this.auth.getUserData();
   }
@@ -54,11 +58,11 @@ export class DashboardComponent implements OnInit {
               this.isTRP = true;
             }
 
-            if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
+            /*if( this.userRoles[i]['role_id'] == 1 || this.userRoles[i]['role_id'] == 2 ){
               if(this.userData['accountId'] < 1){
                 router.navigate(['/setup-company']);
               }
-            }
+            }*/
           }
 
           if(val.url == '/' || val.url == '/dashboard'){
@@ -94,6 +98,27 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.queryParamSub = this.route.queryParamMap
+    .subscribe(params => {
+      console.log(params);
+      if (params.has('confirmation')){
+        this.showConfirmationProcessBar = true;
+        this.auth.setUserDataItem('confirmation_process', true);
+      } else {
+        this.showConfirmationProcessBar = false;
+      }
+      if (params.has('step')) {
+        this.confirmationProcessStep = +params.get('step');
+      }
+      if (params.has('r')) {
+        this.emergencyRole = decodeURIComponent(params.get('r'));
+        this.auth.setUserDataItem('confirmation_process_role', this.emergencyRole);
+        console.log('emergency role from url',  this.emergencyRole);
+      }
+      
+    });
+
+
     this.userService.checkUserVerified( this.userData['userId'] , (response) => {
       if(response.status === false && response.message == 'not verified'){
         localStorage.setItem('showemailverification', 'true');

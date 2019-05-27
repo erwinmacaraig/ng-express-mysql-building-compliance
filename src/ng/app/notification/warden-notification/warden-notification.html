@@ -76,75 +76,74 @@
 
 <ng-template #yesUpdateProfile>
     <div class="div-center update-profile">
-        
-        <div class="row">
-            <div class="col l12 m12 s12">`
-                <h5 class="blue-text" style="margin-bottom: 10%;">Review Your Profile</h5>
-            </div>
-
-            <div class="col l12 m12 s12">
-                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
-                    <label>Location</label>
-                    <select id="selectLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
-                        <option value="{{loc.user_em_roles_relation_id}}" *ngFor="let loc of locationRoles">{{loc.name}} ({{loc.role_name}})</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="col l12 m12 s12 margin-bottom-40">
-                <div class="form-group">
-                    <label for="subLocation">Mobile</label>
-                    <input type="text" class="form-control" id="mobile" placeholder="Type mobile number" value="{{displayText.yesUpdateProfile.mobile}}" />
-                </div>
-            </div>
-
-            <!-- <div class="col l12 m12 s12" style="position: relative;" [hidden]="!showLocationSelect">
-                <div class="form-group">
-                    <label for="subLocation">Search New Location</label>
-                    <input type="text" class="form-control" #inpsearchLocProfile placeholder="Type location here" />
-                </div>
-                <div class="search-result" *ngIf="searchedLocations.length > 0">
-                    <ul>
-                        <li *ngFor="let loc of searchedLocations" (click)="selectSearchLocation(loc, inpsearchLocProfile)">{{loc.name}}</li>
-                    </ul>
-                </div>
-            </div> -->
+        <form (ngSubmit)="updateProfile(formUpdateProfile)" #formUpdateProfile="ngForm">
+                <div class="row">
+                        <div class="col l12 m12 s12">`
+                            <h5 class="blue-text" style="margin-bottom: 10%;">Review Your Profile</h5>
+                        </div>
             
-            <!-- <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
-                buildingSelections
-                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
-                    <label>Select Location</label>
-                    <select id="selectBuildingSelections"  (change)="onSelectBuilding()">
-                        <option *ngFor="let bldg of buildingSelections" value="{{bldg.location_id}}">{{bldg.name}}</option>
-                    </select>
-                </div>
-            </div> -->
-
-            <div class="col l12 m12 s12" [hidden]="!showLocationSelect">
-                <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
-                    <label>Select Sublocation</label>
-                    <select id="selectSubLocProfile" (change)="onSelectSubLocation()">
-                        <optgroup *ngFor="let loc of buildingSelections" label="{{loc.name}}">
-                            <option *ngFor="let sub of loc.sublocations" value="{{sub.location_id}}">{{sub.name}}</option>
-                        </optgroup>
-                    </select>
-                </div>
-            </div>
-
-            <div class="col l6 m12 s12">
-                <button class="btn btn-block grey waves-effect waves-light" *ngIf="!showLocationSelect" #updateProfileBtn (click)="clickUpdateProfile(updateProfileBtn, 1)" >Update Profile</button>
-                <button class="btn btn-block grey waves-effect waves-light" *ngIf="showLocationSelect" #updateProfileBtn2 (click)="clickUpdateProfile(updateProfileBtn2, 2)" >Submit</button>
-            </div>
-
-            <div class="col l6 m12 s12">
-                <button class="btn btn-block orange waves-effect waves-light" (click)="clickToStep2()" >Next</button>
-            </div>
+                        <div class="col l6 m12 s12">
+                            <div class="form-group">
+                                <label for="first_name">First Name</label>
+                                <input type="text" class="form-control" id="first_name" placeholder="Enter Name" name="first_name" [(ngModel)]="first_name" />
+                            </div>
+                        </div>
             
-            <div class="col l12 m12 s12">
-                <button class="btn btn-block blue" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ 'id' : encryptedUserId, 'dest' : peepDestParam, 'query' : peepDestQuery }">Register as Mobility Impaired</button>
-            </div>
-
-        </div>
+                        <div class="col l6 m12 s12">
+                            <div class="form-group">
+                                <label for="last_name">Last Name</label>
+                                <input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter Last Name" [(ngModel)]="last_name" />
+                            </div>
+                        </div>
+            
+                        <div class="col l12 m12 s12">
+                            <div class="form-group">
+                                <label for="mobile">Mobile</label>
+                                <input type="text" class="form-control" id="mobile" name="mobile" placeholder="Type mobile number" [(ngModel)]="mobile" />
+                            </div>
+                        </div>
+            
+                        <div class="col l12 m12 s12">
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="text" class="form-control" name="email" id="email" placeholder="Enter your email address" [(ngModel)]="email" />
+                            </div>
+                        </div>
+            
+                        <div class="col l12 m12 s12">
+                            <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                                <label>Building</label>
+                                <select name="building" [(ngModel)]="building" id="selectLocReviewProf" (change)="changeEventSubLocationReviewProfile()">
+                                    <option *ngFor="let loc of buildingSelections" [selected]="selectedBuilding == loc.location_id" [value]="loc.location_id">{{loc.name}}</option>
+                                </select>
+                            </div>
+                        </div>
+                                   
+                        <div class="col l12 m12 s12" *ngIf="showAssignedLocations">
+                            <div class="input-white-bg margin-bottom-20 form-group" style="margin-right: 0px;">
+                                <label for="selectedItems">Assigned Location(s)</label>
+                                <ng-multiselect-dropdown
+                                    id="selectedItems"                                        
+                                    name="selectedItems"
+                                    [placeholder]="'Choose Building Level'"
+                                    [data]="sublocationList"
+                                    [(ngModel)]="selectedItems"
+                                    [settings]="dropdownSettings"
+                                    (onSelect)="onItemSelect($event)">
+                                </ng-multiselect-dropdown>
+                            </div>
+                                
+                        </div>
+                        <div class="col l12 m12 s12">
+                            <button class="btn btn-block blue" [routerLink]="['/dashboard/peep-form']" [queryParams]="{ 'id' : encryptedUserId, 'dest' : peepDestParam, 'query' : peepDestQuery }">Register As Mobility Impaired</button>
+                        </div>
+            
+                        <div class="col l12 m12 s12">
+                            <button class="btn btn-block orange waves-effect waves-light" type="submit">Next</button>
+                        </div>
+                    </div>
+        </form>    
+        <pre>{{formUpdateProfile.value | json}}</pre>
 
     </div>
 </ng-template>
@@ -396,4 +395,11 @@
     <div class="modal-footer">
         <button type="button" class="modal-action modal-close waves-effect waves-green btn-flat" (click)="onCloseCourseModule(selectedCourse)" >Close</button>
     </div>
+</div>
+
+<div class="modal" id="modal-update-confirmation">
+    <div class="modal-content">
+        
+    </div>
+
 </div>

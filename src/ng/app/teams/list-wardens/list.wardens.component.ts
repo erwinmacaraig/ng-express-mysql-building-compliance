@@ -1,7 +1,4 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { LocationsService } from './../../services/locations';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
@@ -128,6 +125,11 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 this.isFRP = true;
             }
         }
+        if (this.authService.userDataItem('confirmation_process')) {
+            this.authService.setUserDataItem('confirmation_process', false);
+            this.authService.setUserDataItem('confirmation_process_role', null);
+        }
+        
 
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');

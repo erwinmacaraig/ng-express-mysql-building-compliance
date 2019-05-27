@@ -57,21 +57,22 @@ export class ViewChiefWardenComponent implements OnInit, OnDestroy {
 		private router: Router
 		){
 		this.userData = this.auth.getUserData();
-
+			
 		this.userService.getMyWardenTeam({
 			role_id : 11
-		}, (response) => {
-			this.viewData.user = response.data.user;
-			this.viewData.team = response.data.team;
-			this.viewData.location = response.data.location;
-			this.viewData.eco_role = response.data.eco_role;
-			this.copyTeam = JSON.parse(JSON.stringify(response.data.team));
+		}).subscribe((response) => {
+			this.viewData.user = response['data'].user;
+			this.viewData.team = response['data'].team;
+			this.viewData.location = response['data'].location;
+			this.viewData.eco_role = response['data'].eco_role;
+			this.copyTeam = JSON.parse(JSON.stringify(response['data'].team));
 			this.preloaderService.hide();
 
 			setTimeout(() => {
 				$('select').material_select();
 			},300);
 		});
+		
 	}
 
 	ngOnInit(){}

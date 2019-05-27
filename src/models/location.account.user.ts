@@ -572,8 +572,8 @@ export class LocationAccountUser extends BaseClass {
             let sql_load = 'SELECT * FROM location_account_user WHERE user_id = ?';
             if(getLocationDetails){
                 sql_load = `
-                SELECT l.*, lau.location_account_user_id, lau.account_id,
-                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name
+                SELECT l.*, lau.location_account_user_id, lau.account_id, p.name as building,
+                IF(p.name IS NOT NULL, CONCAT(p.name, ' ', l.name), l.name) as location_name                
                 FROM location_account_user lau
                 INNER JOIN locations l ON lau.location_id = l.location_id
                 LEFT JOIN locations p ON l.parent_id = p.location_id
@@ -1094,6 +1094,84 @@ export class LocationAccountUser extends BaseClass {
                 
             });
 
+        });
+    }
+
+    public generateUserAccountRoles(accountId=0, location=[]): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            const params = [accountId];
+            if (location.length == 0) {
+                reject('No sublocation');
+            }
+            let locationIds = location.join(',');
+            let sql = `SELECT
+                    u.user_id,
+                    u.email,
+                    u.last_name,
+                    u.first_name,
+                    l.name,
+                    p.name AS building
+                FROM
+                    users u
+                INNER JOIN
+                    location_account_user lau
+                ON
+                    u.user_id = lau.user_id
+                INNER JOIN
+                    locations l
+                ON
+                    l.location_id = lau.location_id
+                LEFT JOIN
+                    locations p
+                ON
+                    p.location_id = l.parent_id
+                WHERE
+                    u.account_id = ?
+                AND
+                    lau.location_id IN (${locationIds})
+                ORDER BY
+                    u.user_id
+            `;
+            this.pool.getConnection((error, connection) => {
+                if (error) {
+                    throw Error(error);
+                }
+                connection.query(sql, params, (err, results) => {
+                    if (err) {
+                        console.log(err,  params, sql);
+                        throw new Error(err);
+                    }
+                    if (results.length > 0) {
+                        resolve(results);
+                    } else {
+                        reject('Cannot generate user account roles');
+                    }
+                    connection.release();
+                });
+            });
+        });
+    }
+
+    public deleteAccountUserFromLocation(userId=0, location_id=0) {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM location_account_user WHERE user_id = ? AND location_id = ?`;
+            const params = [userId, location_id];
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+  
+                connection.query(sql_del, params, (error, results, fields) => {
+                  if (error) {
+                      console.log(error);
+                      reject('Error deleting record');
+  
+                  } else {
+                      resolve(true);
+                  }
+                  connection.release();
+                });              
+              });
         });
     }
 

@@ -84,13 +84,17 @@ export class EmailSender {
     }
 
     public async send(success, error){
-        var
-        email = this.buildEmail(),
+        let email = this.buildEmail(),
         params = {            
             Destination: {
                 ToAddresses: this.options['to'],              
                 CcAddresses: this.options['cc'],
-                BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'mmanclark@evacgroup.com.au']
+                BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au']
+                /*
+                ToAddresses: ['emacaraig@evacgroup.com.au'],
+                CcAddresses: ['rsantos@evacgroup.com.au'],
+                BccAddresses: ['mmanclark@evacgroup.com.au', 'dgilmore@evacgroup.com.au']                
+                */
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
@@ -105,7 +109,7 @@ export class EmailSender {
                 }
               }
             }
-        };
+        };        
         await this.ses.sendEmail(params, function(err, data) {
           if(err) {
               error(err);
@@ -215,6 +219,14 @@ export class EmailSender {
                 subj = "EvacConnect Notification List Summary Link";
                 filename = "send-notification-summary-link";
                 break;
+            case "stay_go_info":
+                subj = 'EvacConnect Emergency Evacuation Procedures for Wardens';
+                filename = 'info-graphic-email';
+                break;
+            case "notification-response":
+                subj = 'EvacConnect Email Notification - User Response';
+                filename = 'user-confirmation-response';
+            break;
             
         }
 
@@ -225,6 +237,10 @@ export class EmailSender {
 
                 this.options['subject'] = subj;
                 this.options['body'] = htmlBody;
+
+                if (err) {
+                    console.log(err);
+                }
 
                 this.send(success,error);
             });

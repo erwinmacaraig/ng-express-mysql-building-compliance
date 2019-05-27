@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Router, NavigationStart, NavigationEnd, ActivatedRoute } from '@angular/router';
-import { ResponseContentType } from '@angular/http';
 import { PlatformLocation } from '@angular/common';
+import { environment } from '../../environments/environment';
 import { AuthService } from './auth.service';
 
 @Injectable()
@@ -20,8 +20,8 @@ export class CourseService {
         ) {
 
         this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-        this.options = { headers : this.headers };
-        this.baseUrl = (platformLocation as any).location.origin;
+        this.options = { headers : this.headers };        
+		this.baseUrl = environment.backendUrl;
     }
 
     getCourses(callBack){

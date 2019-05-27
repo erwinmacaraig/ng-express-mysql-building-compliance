@@ -13,7 +13,7 @@ import { AccountsDataProviderService } from '../services/accounts';
 import { AuthService } from '../services/auth.service';
 import { Countries } from '../models/country.model';
 import { Timezone } from '../models/timezone';
-
+import { environment } from '../../environments/environment';
 
 
 @Component({
@@ -72,7 +72,7 @@ export class SetupCompanyComponent implements OnInit, AfterViewInit {
 		this.userData = this.auth.getUserData();
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
 		this.options = { headers : this.headers };
-		this.baseUrl = (platformLocation as any).location.origin;
+		this.baseUrl = environment.backendUrl;
 		if(this.userData['accountId'] > 0){
 			router.navigate(['/dashboard']);
 		}

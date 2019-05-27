@@ -19,7 +19,6 @@ import { Files } from '../models/files.model';
 import { LocationAccountUser } from '../models/location.account.user';
 import { LocationAccountRelation } from '../models/location.account.relation';
 import { Location } from '../models/location.model';
-import { BlacklistedEmails } from '../models/blacklisted-emails';
 import { EmailSender } from './../models/email.sender';
 import { UserRequest } from '../models/user.request.model';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
@@ -30,10 +29,6 @@ import { UserTrainingModuleRelation } from '../models/user.training.module.relat
 import { RewardConfig } from '../models/reward.program.config.model';
 
 import * as moment from 'moment';
-import * as validator from 'validator';
-import * as path from 'path';
-import * as fs from 'fs';
-import * as multer from 'multer';
 import * as jwt from 'jsonwebtoken';
 const md5 = require('md5');
 const defs = require('./../config/defs.json');
@@ -451,8 +446,67 @@ export class UsersRoute extends BaseRoute {
           new UsersRoute().certificateDetails(req, res);
       });
 
+      router.post('/users/update-warden-profile/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+          new UsersRoute().updateWardenProfile(req, res);
+      });
+
+
     }
 
+    public async updateWardenProfile(req:AuthRequest, res:Response) {
+        const first_name = req.body.first_name;
+        const last_name = req.body.last_name;
+        const mobile_number = req.body.mobile;
+        const email = req.body.email;
+
+        // user emergency roles related
+        const building = req.body.building;
+        const assignedLocations:Array<Number> = JSON.parse(req.body.assignedLocations);
+        const user_em_role_id = req.body.user_em_role_id;
+        const oldAssignedLocations:Array<Number> = JSON.parse(req.body.oldLocations);
+
+        const userObj = new User(req.user.user_id);
+        let userData: object = {};
+        // update user information
+        try {
+            userData = await userObj.load();
+            userData['first_name'] = first_name;
+            userData['last_name'] = last_name;
+            userData['mobile_number'] = mobile_number;
+            userData['email'] = email;
+            userObj.create(userData);
+        } catch(e) {
+            console.log(e);
+        }
+        try {            
+            for (let l of oldAssignedLocations) {
+                let res = await new UserEmRoleRelation().getByWhere({
+                    user_id: req.user.user_id,
+                    em_role_id: user_em_role_id,
+                    location_id: l
+                });
+                await new UserEmRoleRelation(res[0]['user_em_roles_relation_id']).delete();
+            }
+
+            for (let a of assignedLocations) {
+                await new UserEmRoleRelation().create({
+                    user_id: req.user.user_id,
+                    em_role_id: user_em_role_id,
+                    location_id: a
+                });
+            }
+
+        } catch(e) {
+            console.log(e);
+        }
+
+        res.status(200).send({
+            message: 'Success'
+        });
+
+        
+
+    }
 
 
     public async certificateDetails(req: AuthRequest, res:Response) {
@@ -550,7 +604,7 @@ export class UsersRoute extends BaseRoute {
             distinct: 'em_role_id' 
         });
 
-        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); 
+        const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); console.log(myEmRoleIds);
 
         for (let em of myEmRoleIds) {
             if (isWardenRoleArray.indexOf(em)  != -1) {
@@ -559,7 +613,7 @@ export class UsersRoute extends BaseRoute {
         }
 
         // get locations for em roles
-        const designatedEMRoleLocations = await emroles.getLocationsByUserIds(userId, (emRolesInfoArr[1] as Array<number>).join(','));
+        const designatedEMRoleLocations = await emroles.getLocationsByUserIds(userId, null, (emRolesInfoArr[1] as Array<number>).join(','));
 
         const trainingReqmtArr = await new TrainingRequirements().allEmRolesTrainings();
         const trainingReqmtObj = {};
@@ -3351,7 +3405,7 @@ export class UsersRoute extends BaseRoute {
 		let response = {
 			status : true, data : {
 				user : {},
-				eco_role : {},
+				eco_role : [],
 				location : {},
 				team : <any>[]
 			}, message : ''
@@ -3365,10 +3419,10 @@ export class UsersRoute extends BaseRoute {
 		locationModel = new Location();
 
 		try {
-			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id']);
-			for(let i in emRoles){
+			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id'], 0, false);            
+            for(let i in emRoles){
 				if(emRoles[i]['em_roles_id'] == roleId){
-					response.data.eco_role = emRoles[i];
+					response.data.eco_role.push( emRoles[i]);
 				}
 			}
 

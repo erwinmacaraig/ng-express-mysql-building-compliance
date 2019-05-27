@@ -32,6 +32,20 @@
     "DEPUTY_BUILDING_WARDEN": 18,
     "": 8
   },
+  "roles": {
+    "1": "Facility Responsible Person",
+    "2": "Tenancy Responsible Person",
+    "8": "General Occupant",
+    "9": "Warden",
+    "10": "Floor / Area Warden",
+    "11": "Chief Warden",
+    "12": "Fire Safety Advisor",
+    "13": "Emergency Planning Committee Member",
+    "14": "First Aid Officer",
+    "15": "Deputy Chief Warden",
+    "16": "Building Warden",
+    "18": "Deputy Building Warden"
+  },
   "table_headers": {
     "first_name": "First Name",
     "last_name": "Last Name",
@@ -46,6 +60,11 @@
     "MANAGER": 1,
     "TENANT": 2
   },
+  "account_role_text": [
+    "",
+    "Facility Responsible Person",
+    "Tenancy Responsible Person"
+  ],
   "PAID": 1,
   "PAYMENT_CANCELLED": 2,
   "UNPAID":0,
@@ -53,7 +72,7 @@
   "COMPLIANCE-DOCS-PACK": "compliance-docs.zip",
   "ADMIN_EMAIL": "admin@evacconnect.com",
   "DEFAULT_USER_PASSWORD" : "123456Uni",
-  "ALLOWED_ORIGINS": [    
+  "ALLOWED_ORIGINS": [
     "https://portal.evacconnect.com"
   ]  
    

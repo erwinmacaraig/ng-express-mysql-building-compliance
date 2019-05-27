@@ -89,6 +89,9 @@ table tr td .checkbox [type="checkbox"].filled-in:not(:checked)+label:after{
 	background-color: #fff;
     border: 1px solid #aaaaaa;
 }
+table tr td {
+  padding: 15px;
+}
 table tr td .text{
     display: inline-block;
 }
