@@ -187,6 +187,7 @@ const defs = require('../config/defs.json');
                     message: 'Successful'
                 });
             }).catch((e) => {
+                console.log(e);
                 return res.status(400).send({
                     message: e
                 });
@@ -831,12 +832,19 @@ const defs = require('../config/defs.json');
 
     public async archiveLocation(req: AuthRequest, res: Response){
     	let locationId = req.body.location_id,
-            archivedValue = (req.body.archived) ? req.body.archived : 1,
+            archivedValue = req.body.archived,
     		locationModel = new Location(),
     		locationSubModel = new Location(),
     		locations;
-
-    	locations = await locationModel.getByInIds(locationId);
+        
+        let control = 0;
+        if (archivedValue == 0) {
+            control = 1;
+        }
+        console.log('archivedValue', archivedValue);
+        console.log(req.body, control);
+        
+    	locations = await locationModel.getByInIds(locationId, control);
     	if(Object.keys(locations).length > 0){
     		let location = locations[0];
 
@@ -850,8 +858,9 @@ const defs = require('../config/defs.json');
     		try{
     			await locationModel.dbUpdate();
 
-	    		let sublocations = await locationSubModel.getDeepLocationsByParentId(locationId);
-	    		for(let i in sublocations){
+	    		let sublocations = await locationSubModel.getDeepLocationsByParentId(locationId, control);
+                console.log('sublocations', sublocations);
+                for(let i in sublocations){
 	    			let archiveModel = new Location();
 
 	    			for(let x in sublocations[i]){

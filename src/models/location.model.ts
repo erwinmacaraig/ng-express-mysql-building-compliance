@@ -234,6 +234,7 @@ export class Location extends BaseClass {
             }
 
             let sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
+            console.log(sql_load);
             if(withParentName){
                 sql_load = `SELECT l.*, IF(p.location_id IS NOT NULL, CONCAT(p.name, ', ', l.name), l.name) as name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id 
                 WHERE l.location_id IN (`+ids+`) AND l.archived = `+archived + ` ORDER BY l.location_id ASC `;
@@ -249,7 +250,6 @@ export class Location extends BaseClass {
                         console.log(`location.model.getByInIds() - ${sql_load}`, error);
                         throw Error(error);                        
                     }
-                    this.dbData = results;
                     resolve(results);
                     connection.release();
                 });
@@ -476,7 +476,7 @@ export class Location extends BaseClass {
         });
     }
 
-    public getDeepLocationsByParentId(parentId){
+    public getDeepLocationsByParentId(parentId, archived?){
         return new Promise((resolve) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {
@@ -484,8 +484,13 @@ export class Location extends BaseClass {
                     throw err;
                 }
 
+                let archivedCtrl = 0;
+                if (archived) {
+                    archivedCtrl = archived;
+                }
+
                 const sql_load = `SELECT *
-                FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
+                FROM (SELECT * FROM locations WHERE archived = ${archivedCtrl} ORDER BY parent_id, location_id) sublocations,
                 (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
