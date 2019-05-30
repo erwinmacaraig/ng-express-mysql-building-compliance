@@ -312,4 +312,40 @@ export class AdminService {
     }>(this.baseUrl + '/admin/refer-activity-lookup/');
   }
 
+  getActiveAccounts() {
+    return this.http.get<{
+      accounts: object[]
+    }>(`${this.baseUrl}/admin/all-accounts/`, this.options);
+  }
+
+  updateUserInfo(postBody={}) {
+		return this.http.post(`${this.baseUrl}/admin/update-person-info`, postBody);
+  }
+  
+  generateArchiveUserList(search='') {
+    if (search.length > 0) {
+      const httpParams = new HttpParams().set('search', search);
+      this.options['params'] = httpParams;
+    }
+    return this.http.get<{
+      message: string,
+      archiveUsers: Array<object>}>(`${this.baseUrl}/admin/list-archive-users/`, this.options);
+
+  }
+
+  performArchiveOperationOnAccount(accountIds=[], control) {
+    return this.http.post<{message: string}>(`${this.baseUrl}/admin/archive-account/`,{
+      accountIds: accountIds,
+      control: control
+    });
+  }
+
+  generateArchiveAccountList() {
+    return this.http.get<{
+      message: string,
+      archive_accounts: Object[]
+    }>(`${this.baseUrl}/admin/list-archive-accounts`);
+  }
+
+
 }

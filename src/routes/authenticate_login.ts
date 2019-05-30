@@ -157,6 +157,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
 
         const now = moment().format('YYYY-MM-DD HH-mm-ss');
         userModel.set('last_login', now);
+        userModel.set('profile_completion', 1);
 
         try{
             await userModel.dbUpdate();

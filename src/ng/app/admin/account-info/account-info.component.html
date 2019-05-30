@@ -74,6 +74,8 @@
                                 <input id="ola" type="checkbox" [(ngModel)]="accountInfo.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
                                 <br />
                                 <input id="fsa_evac" type="checkbox" [(ngModel)]="accountInfo.fsa_by_evac" (change)="toggleFSAByEvac($event)"><label for="fsa_evac">FSA By Evac</label>
+                                <br />
+                                <input id="account_archive" type="checkbox" [(ngModel)]="accountInfo.archived" (change)="performActionOnAccount($event)"><label for="account_archive">Archive</label>
                             </div>
                         </div>
                     </div>

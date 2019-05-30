@@ -395,6 +395,4 @@ export class UserService {
 	generateConfirmationWardenList(postBody={}) {
 		return this.http.post<{list: object[], building: object[]}>(`${this.baseUrl}/team/build-eco-team-list/`, postBody);
 	}
-
-
 }

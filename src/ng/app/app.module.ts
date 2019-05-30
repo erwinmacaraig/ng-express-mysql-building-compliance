@@ -164,6 +164,7 @@ import { RewardProgramConfigComponent } from './admin/rewards/config/reward-prog
 import { ListRewardConfigComponent } from './admin/rewards/list/list-reward-config.component';
 import { RedeemersComponent } from './admin/rewards/redeemers/redeemers.component';
 import { NgMultiSelectDropDownModule } from 'ng-multiselect-dropdown';
+import { ArchiveComponent } from './admin/archives/archives.component'
 
 import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
 
@@ -277,6 +278,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
    NotifiedWardenListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
+    ArchiveComponent,
     ListAccountsComponent,
     AccountInfoComponent,
     AccountUsersListComponent,

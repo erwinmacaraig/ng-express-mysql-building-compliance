@@ -2886,6 +2886,12 @@ export class UsersRoute extends BaseRoute {
                         console.log('Error in getting account subscriptions at authenticate login', e);
                     }
                     response['token'] = token;
+                    try {
+                        let accountData = await new Account(user.account_id).load();
+                        response.data['account_has_online_training'] = accountData['online_training'];
+                    } catch (e) {
+                        response.data['account_has_online_training'] = 0;
+                    }
                     /*
                     try{
                         let trpfrp = <any> await useRoleModel.getByUserId(userId);
@@ -2954,6 +2960,7 @@ export class UsersRoute extends BaseRoute {
         }catch(e){
             response.message = 'Invalid Token';
         }
+        
 
 
         res.status(200).send(response);

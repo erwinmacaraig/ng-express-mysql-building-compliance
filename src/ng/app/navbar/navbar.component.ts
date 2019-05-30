@@ -52,6 +52,7 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
     isAdmin = false;
     subscriptionType = 'free';
     isFRP = false;
+    isTRP = false;
 
     constructor(
         private auth: AuthService,
@@ -70,7 +71,11 @@ export class NavbarComponent implements OnInit, AfterViewInit, OnDestroy {
         }
         if (role == 1) {
             this.isFRP = true;
+        } 
+        if (role == 2) {
+            this.isTRP = true;
         }
+
     }
 
     public getInitials(fullName){

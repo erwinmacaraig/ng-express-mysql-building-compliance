@@ -21,7 +21,7 @@
     <div class="col l4 m12 s12">
         <div class="label-and-text">
             <label>Phone:</label>
-            <p>{{ userData.phone }}</p>
+            <p>{{ userData.phone_number }}</p>
         </div>
     </div>
     <div class="col l4 m12 s12">
@@ -33,8 +33,8 @@
     <div class="col l4 m12 s12">
         <div class="label-and-text">
             <label>Imapaired:</label>
-            <p *ngIf="userData.mobility_impaired == 0">No</p>
-            <p *ngIf="userData.mobility_impaired == 1">Yes<p>
+            <p><span *ngIf="userData.mobility_impaired == 0">No</span> <span *ngIf="userData.mobility_impaired == 1">Yes</span></p>
+            
         </div>
     </div>
     <div class="col l4 m12 s12">
@@ -43,7 +43,13 @@
             <p>{{ userData.last_login }}</p>
         </div>
     </div>
+    <div class="col l12 m12 s12">
+        <div class="label-and-text">
+            <input id="archived" type="checkbox" [(ngModel)]="userData.archived" (change)="toggleArchivedUser($event)"><label for="archived">Archived</label>
+        </div>
+    </div>    
 </div>
+
 
 <div class="row">
     <div class="col l12 m12 s12">
@@ -51,6 +57,7 @@
             <ul>
                 <li (click)="selectTab('rolesLocations')" [ngClass]="{ active : activeLink == 'rolesLocations' }"> Roles & Locations </li>
                 <li (click)="selectTab('credentials')" [ngClass]="{ active : activeLink == 'credentials' }"> Credentials </li>
+                <li (click)="selectTab('information')" [ngClass]="{ active : activeLink == 'information' }"> Information </li>
                 <!-- <li (click)="selectTab('trainings')" [ngClass]="{ active : activeLink == 'trainings' }"> Trainings </li> -->
             </ul>
         </div>
@@ -158,4 +165,85 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<div class="row" *ngIf="activeLink == 'information'">
+    <form #formInfo="ngForm" (submit)="updateInfo(formInfo)">
+        <div class="col l5 m4 s12">
+            <div class="input-field">
+                <input type="hidden" name="user_id" [(ngModel)]="userData.user_id">
+                <input type="hidden" name="originalAccountId" [(ngModel)]="originalAccountId">
+                <input [(ngModel)]="userData.first_name" name="first_name" id="input_text_first_name" type="text" placeholder="Please enter your first name" required #inputFirstName="ngModel">
+                <label for="input_text_first_name" class="active">
+                    First Name
+                    <span class="red-text" *ngIf=" !inputFirstName.valid && inputFirstName.dirty ">*Required</span>
+                </label>
+            </div>
+        </div>
+        <div class="col l5 m4 s12">
+            <div class="input-field">
+                <input [(ngModel)]="userData.last_name" name="last_name" id="input_text_last_name" type="text" placeholder="Please enter your last name" required #inputLastName="ngModel">
+                <label for="input_text_last_name" class="active">
+                    Last Name
+                    <span class="red-text" *ngIf=" !inputLastName.valid && inputLastName.dirty ">*Required</span>
+                </label>
+            </div>
+        </div>
+        <div class="col l5 m5 s12">
+            <div class="input-field">
+                <input id="input_text_email" type="text" placeholder="Enter a valid email" name="email" [(ngModel)]="userData.email" #email="ngModel" required>
+                <label for="input_text_email" class="active">
+                    Email
+                    <span class="red-text" *ngIf=" !email.valid && email.dirty && email.errors.required">Email is required</span>
+                    <!--                                            
+                    <span class="red-text" *ngIf=" emailTaken "> *Email taken </span>                    
+                    -->
+                </label>
+            </div>
+        </div>
+        <div class="col l5 m5 s12">
+            <div class="input-field">
+                <input [(ngModel)]="userData.phone_number" name="phone_number" id="input_text_phone" type="text" placeholder="Provide a valid phone number">
+                <label for="input_text_phone" class="active">Phone No</label>
+            </div>
+        </div>
+
+        <div class="col l5 m5 s12">
+            <div class="input-field">
+                <input [(ngModel)]="userData.occupation" id="input_text_occupation" type="text" placeholder="Please enter your occupation" name="occupation">
+                <label for="input_text_occupation" class="active">Occupation</label>
+            </div>
+        </div>
+
+        <div class="col l5 m5 s12">
+            <div class="input-field">
+                <input [(ngModel)]="userData.mobile_number" name="mobile_number" id="input_text_mobile" type="text" placeholder="Provide a valid mobile number">
+                <label for="input_text_mobile" class="active">Mobile No</label>
+            </div>
+        </div>
+        
+        <div class="col l5 m5 s12">
+            <div class="">
+                <label for="input_account">Account</label>
+                <select style="display: block;" [(ngModel)]="userData.account_id" name="account_id" id="input_account">
+                    <option [value]="account['account_id']" *ngFor="let account of accounts">{{account['account_name']}}</option>
+                </select>
+            </div>
+        </div>
+        <div class="col l10 m10 s12 right-align">
+            <button [disabled]="!formInfo.valid" type="submit" class="btn lighten-1 orange waves-effect">Update User Information</button>
+        </div>
+    </form>    
+</div>
+
+<div id="modalConfirm" class="modal">
+	<div class="modal-content">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			{{message}}
+		</p>
+	</div>
+	<div class="modal-footer">
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">OK</a>		
+	</div>
 </div>

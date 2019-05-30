@@ -501,8 +501,8 @@ export class AdminRoute extends BaseRoute {
             users_fullname : accountRole['first_name'] +' '+accountRole['last_name'],
             account_name : accountRole['account_name'],
             location_name: accountRole['building_name'] + " " + accountRole['name'] ,
-            yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-            no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
+            yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+            no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
           };
           let emailType = 'warden-confirmation';
           
@@ -2505,7 +2505,160 @@ export class AdminRoute extends BaseRoute {
       });
     });
     
+    router.get('/admin/all-accounts/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+      const account = new Account();
+      account.getActive().then((accounts) => {
+        return res.status(200).send({
+          accounts: accounts
+        });
+      }).catch((e) => {
+        return res.status(500).send({
+          accounts: []
+        });
+      });
+    });
+
+
+    router.post('/admin/update-person-info', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new AdminRoute().updateUserInfo(req, res);
+    });
+
+    router.get('/admin/list-archive-users/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+      new AdminRoute().getAllArchiveUsers(req, res);
+    });
+
+    router.post('/admin/archive-account/', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+       new AdminRoute().archiveAccount(req, res);
+    });
+
+    router.get('/admin/list-archive-accounts', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+      new AdminRoute().getAllArchiveAccounts(req, res);
+    });
   // ===============
+  }
+
+  public async getAllArchiveAccounts(req: AuthRequest, res:Response) {
+    const account = new Account();
+    try {
+      const accountList = await account.getArchiveAccounts();
+      return res.status(200).send({
+        message: 'Success',
+        archive_accounts: accountList
+      });
+    } catch(e) {
+      return res.status(500).send({
+        message: 'Fail'
+      });
+    }
+    
+
+  }
+  public async archiveAccount(req: AuthRequest, res:Response) {
+      const accountIds = req.body.accountIds;
+      const control = req.body.control;
+      const account = new Account();
+      let hasError = false;
+      let message = '';
+
+      try {
+        await account.archiveAccount(accountIds, control);        
+      } catch(e) {
+        console.log(e);
+        message += ' Unable to perform operation on account(s). ';
+        hasError = true;
+      }
+      try {
+        await account.archivePeopleInAccount(accountIds, control);
+      } catch(e) {
+        hasError = true;
+        message += ' Unable to perform operation on people in account(s). ';
+        console.log(e);
+      }
+
+      if (hasError) {
+        return res.status(500).send({
+          message: message
+        });
+      }
+      return res.status(200).send({
+        message: 'Success'
+      });
+      
+
+
+  }
+
+  public async getAllArchiveUsers(req: AuthRequest, res:Response) {
+    let searchKey = '';
+    if (req.query.search) {
+      searchKey = req.query.search;
+    }
+    try {
+      const archiveUsers = await new User().listAllArchiveUsers();
+      return res.status(200).send({
+        message: 'Success',
+        archiveUsers: archiveUsers
+      });
+    } catch(e) {
+      console.log(e);
+      return res.status(500).send({
+        message: 'No archive user(s)'
+      });
+
+    }
+    
+
+    
+  }
+  public async updateUserInfo(req: AuthRequest, res: Response) {
+     // validation checks
+     let isValid = true;
+     let errMessage = 'Invalid ';
+
+     if (!validator.isEmail(req.body.email)) {
+       isValid = false;
+       errMessage += 'email ';
+     }
+     if (validator.isEmpty(req.body.first_name)) {
+       isValid = false;
+       errMessage += ' person name';
+     }
+     if (validator.isEmpty(req.body.last_name)) {
+       isValid = false;
+       errMessage += ' last name';
+     }
+     if (!isValid) {
+       return res.status(500).send({
+         status: 'Bad Request',
+         message: errMessage
+       });
+     }
+
+     if (req.body.originalAccountId != req.body.account_id) {
+       // remove the person from location account user and user em roles
+       try {
+        new LocationAccountUser().removeUser(req.body.user_id);
+        new UserEmRoleRelation().removeUser(req.body.user_id);
+       } catch(e) {
+        console.log(e);
+       }
+       
+     }
+
+     const user = new User(req.body.user_id);
+     await user.load();
+     try {
+        await user.create(req.body);
+        return res.status(200).send({
+          message: 'Success'
+        });
+     } catch(e) {
+        console.log(e);
+        return res.status(500).send({
+          message: 'Fail'
+        })
+     }
+
   }
 
   public async performActionOnSmartForm(req: AuthRequest, res: Response) {
@@ -3020,8 +3173,7 @@ export class AdminRoute extends BaseRoute {
             const locationRolesObj = {};
 
             for(let loc of userAccountInfo) {
-                let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;
-                console.log(loc);
+                let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;                
                 locationRolesObj[loc['location_id']] = {
                   location_id: loc['location_id'],
                   location_role: [loc['account_role']],
@@ -3142,7 +3294,7 @@ export class AdminRoute extends BaseRoute {
         account_name: accountData['account_name'],
         role: roleStr,
         location_name: locStr,
-        setup_link: 'https://' + req.get('host') + '/change-user-password/'+tkString 
+        setup_link: 'http://' + req.get('host') + '/change-user-password/'+tkString 
       };
       email.sendFormattedEmail('set-passwd-invite', emailData, res, 
         (data) => console.log(data),
