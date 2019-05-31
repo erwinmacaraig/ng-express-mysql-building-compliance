@@ -254,6 +254,20 @@ const defs = require('../config/defs.json');
         }
       );
 
+        router.post('/location/location-details-update', new MiddlewareAuth().authenticate,
+        (req:AuthRequest, res:Response) => {
+            new LocationRoute().updateLocationDetails(req, res);
+        });
+
+        router.get('/location/list-archived-locations/', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res:Response) => {
+            new LocationRoute().listArchivedLocations(req, res);
+        });
+
+        router.post('/location/delete/', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res:Response) => {
+            new LocationRoute().permanentlyDeleteLocation(req, res);
+        })
       
 
 
@@ -269,6 +283,68 @@ const defs = require('../config/defs.json');
   	*/
   	constructor() {
   		super();
+      }
+
+      public async permanentlyDeleteLocation(req: AuthRequest, res:Response) {
+        const location = new Location();
+        const ids = [req.body.location_id];
+        const temp = await location.immediateSublocations(req.body.location_id);
+        
+        for (let loc of temp) {
+            ids.push(loc['location_id']);
+        }
+        console.log(req.body);
+        
+        try {
+            new UserEmRoleRelation().removeLocation(ids);
+            new LocationAccountUser().removeLocation(ids);
+            new LocationAccountRelation().removeLocation(ids);
+
+            await location.delete(req.body.location_id);            
+            return res.status(200).send({
+                message: 'Success'                
+            });
+        } catch(e) {
+            console.log(e);
+            return res.status(500).send({
+                message: 'Fail'                
+            });
+        }
+      }
+      public async listArchivedLocations(req: AuthRequest, res: Response) {
+          const location = new Location();
+          try {
+            const list = await location.getArchivedLocations();
+            return res.status(200).send({
+                message: 'Success',
+                archives: list
+            });
+          } catch(e) {
+            console.log(e);
+            return res.status(500).send({
+                message: 'Fail'                
+            });
+          }
+
+      }
+      public async updateLocationDetails(req: AuthRequest, res: Response) {
+
+         console.log(req.body);
+         const location = new Location(req.body.location_id);
+         try {
+             await location.load();
+             await location.create(req.body);
+             return res.status(200).send({
+                message: 'Success'
+            });
+         } catch(e) {
+             console.log(e);
+            return res.status(500).send({
+                message: 'Fail'
+            });
+         }
+         
+
       }
       
       public getTaggedLocationsForTRP(req: AuthRequest, res: Response) {

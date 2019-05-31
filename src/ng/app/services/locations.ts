@@ -306,4 +306,19 @@ export class LocationsService {
             online_training: number
         }>>(this.baseUrl + '/location/list-levels-for-trp', {user: user, building: building});
     }
+
+    public updateLocationDetails(details={}) {
+        return this.http.post(`${this.baseUrl}/location/location-details-update`, details);
+    }
+
+    public generateArchivedLocationList() {
+        return this.http.get<{
+            message: string,
+            archives: Object[]
+        }>(`${this.baseUrl}/location/list-archived-locations/`);
+    }
+
+    public permanentlyDeleteLocation(locationId) {
+        return this.http.post(`${this.baseUrl}/location/delete/`, {location_id: locationId});
+    }
 }

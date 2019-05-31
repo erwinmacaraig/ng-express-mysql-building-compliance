@@ -55,7 +55,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   accountIdParam = 0;
 
   activeLink = '';
-  subRouter;
+  subRouter: Subscription;
   paramSub:Subscription;
 
   constructor(
@@ -138,7 +138,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
             this.people.push(response['data']['people'][key]);
           });
     
-          if(this.sublocations.length == 0){
+          if(this.sublocations.length == 0 && this.location_details.is_building == 1) {
             const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
             queryParams['active'] = 'people';
             this.router.navigate(['/admin/view-location/'+this.locationId], { queryParams: queryParams });
@@ -186,7 +186,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
 
   archiveLocation(e) {
     let control = 1;
-
+    this.dashboard.show();
     if (e.target.checked) { 
       control = 1;
     } else {
@@ -196,24 +196,28 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
       location_id: this.location_details.location_id,
       archived: control
     }).subscribe((response) => {
-      this.paramSub.unsubscribe();
-      this.subRouter.unsubscribe();
-      const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
-     if (control == 0) {      
-      queryParams['active'] = 'locations';
-      this.router.navigate(['/admin/view-location/'+this.locationId], { queryParams: queryParams });
-     } else {      
-      queryParams['active'] = 'people';
-      this.router.navigate(['/admin/view-location/'+this.locationId], { queryParams: queryParams });
-     }
+      
       this.message = 'Archive operation successful.';
-      $('#modalConfirm').modal('open');      
+      $('#modalConfirm').modal('open');
+          
     }, (error) => {
       this.message = 'There was a problem performing the operation. Try again later.';
       $('#modalConfirm').modal('open');
       this.location_details.archived = this.isArchived;
       console.log(error);
       
+    });
+
+  }
+
+  public updateInfo(f: NgForm) {
+    
+    this.locationService.updateLocationDetails(f.value).subscribe((response) => {
+      this.message = 'Location details updated.';
+      $('#modalConfirm').modal('open');
+    }, (err) => {
+      this.message = 'There was a problem updating location information.';
+      $('#modalConfirm').modal('open');
     });
 
   }

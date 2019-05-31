@@ -683,5 +683,27 @@ export class LocationAccountRelation extends BaseClass {
             });
         });
     }
+    public removeLocation(locationIds=[]){
+        return new Promise((resolve, reject) => {
+          if (locationIds.length == 0) {
+            reject('Invalid location id supplied');
+            return;
+          }
+          this.pool.getConnection((con_err, connection) => {
+            if (con_err) {
+              throw new Error(con_err);
+            }
+            const sql = `DELETE FROM location_account_relation WHERE location_id IN (${locationIds.join(',')})`;
+            connection.query(sql, [], (error, results) => {
+              if (error) {
+                console.log(error, sql);
+                throw new Error(error);
+              }
+              resolve(results);
+              connection.release();
+            });
+          });
+        });
+      }
 
 }

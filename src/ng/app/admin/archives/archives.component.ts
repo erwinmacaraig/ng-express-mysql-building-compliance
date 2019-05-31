@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs/Rx';
 import { AdminService } from '../../services/admin.service';
 import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
+import { LocationsService } from '../../services/locations';
 declare var $: any;
 declare var moment: any;
 declare var Materialize: any;
@@ -11,7 +12,7 @@ declare var Materialize: any;
 @Component({
     templateUrl: './archives.component.html',
     styleUrls: ['./archives.component.css'],
-    providers: [AdminService, DashboardPreloaderService, UserService]
+    providers: [AdminService, DashboardPreloaderService, UserService, LocationsService]
 })
 export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
     
@@ -19,16 +20,22 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
     activeLink = 'users';
     public archiveUsers = [];
     public archiveAccounts = [];
+    public archiveLocations = [];
+
     private users = [];
     private accounts = [];
+    private locations = [];
 
+    private typeToDelete = '';
+    private toDeleteId = 0;
     typingTimeout:any;
     sub:Subscription;
-    constructor(private userService: UserService, private adminService: AdminService, public dashboard: DashboardPreloaderService,) {}
+    constructor(private locationService: LocationsService, private userService: UserService, private adminService: AdminService, public dashboard: DashboardPreloaderService,) {}
 
     ngOnInit() {
         this.listArchiveUsers();
         this.listArchiveAccounts();
+        this.listArchiveLocations();
     }
 
     ngAfterViewInit() {
@@ -86,6 +93,49 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
         });
     }
 
+    private listArchiveLocations() {
+        this.archiveLocations = [];
+        this.locations = [];
+        this.locationService.generateArchivedLocationList().subscribe((response) => {
+            this.archiveLocations = response.archives;
+            this.locations = response.archives;
+        });
+
+    }
+
+    performActionOnLocation(e, locationId){
+        const a = e.target.value;
+        switch(a) {
+            case 'restore':
+                this.locationService.archiveLocation({
+                    location_id: locationId,
+                    archived: 0
+                    }).subscribe((response) => {
+                        this.listArchiveLocations();
+                        setTimeout(() => {
+                            this.message = 'Location successfully restored';
+                            $('#modalConfirm').modal('open');
+                        }, 300);            
+                        
+                        
+                    }, (error) => {
+                        this.message = 'There was a problem performing the operation. Try again later.';
+                        $('#modalConfirm').modal('open');            
+                        console.log(error);
+                    
+                    });
+            break;
+            case 'delete':
+                this.typeToDelete = 'location';
+                this.toDeleteId = locationId;
+                $('#modalDeleteConfirm').modal('open');  
+
+            break;
+        }
+
+        
+    }
+
     performActionOnUser(e, userId) {        
         const a = e.target.value;
         switch(a) {
@@ -122,6 +172,39 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
         }
     }
 
+    searchLocationName(event: KeyboardEvent) {
+        clearTimeout(this.typingTimeout);
+        this.typingTimeout = setTimeout(() => {
+            let searchKey = (<HTMLInputElement>event.target).value;
+            searchKey = searchKey.toLowerCase();
+            this.archiveLocations = [];
+            const choosen = [];
+            if (searchKey.length == 0) {
+                this.archiveLocations = this.locations;
+            } else {
+                for (let location of this.locations) {
+
+                    if (choosen.indexOf(location['location_id']) == -1) {                        
+                        if (location['name'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(location['location_id']);
+                            this.archiveLocations.push(location);   
+                        } else if (location['building'] != null && location['building'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(location['location_id']);
+                            this.archiveLocations.push(location);   
+                        } else if (location['street'] != null && location['street'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(location['location_id']);
+                            this.archiveLocations.push(location);   
+                        } else if (location['city'] != null && location['city'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(location['location_id']);
+                            this.archiveLocations.push(location);
+                            
+                        } 
+                    }
+                }
+                
+            }
+        });
+    }
     
     searchByUserAndEmail(event: KeyboardEvent) {        
         clearTimeout(this.typingTimeout);
@@ -178,6 +261,30 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
             }
         }, 300);
 
+    }
+
+    public delete() {
+        switch(this.typeToDelete) {
+            case 'location':
+                this.locationService.permanentlyDeleteLocation(this.toDeleteId).subscribe((response) => {
+                    this.message = 'Permanently deleted the location and all relevant information';
+                    this.listArchiveLocations();
+                    setTimeout(() => {
+                        this.message = 'Location successfully deleted';
+                        $('#modalConfirm').modal('open');
+                    }, 300);
+                    
+                    this.typeToDelete = '';
+                    this.toDeleteId = 0;
+
+                }, (error) => {
+                    this.message = 'There was a problem with deleting the location. Try again later.';
+                    $('#modalConfirm').modal('open');
+                    this.typeToDelete = '';
+                    this.toDeleteId = 0;
+                });
+            break;
+        }
     }
 
 
