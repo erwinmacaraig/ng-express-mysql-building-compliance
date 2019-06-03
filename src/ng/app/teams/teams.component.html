@@ -26,8 +26,11 @@
 			<a >
 				<div class="default"> </div>
 				<div class="hover"> </div>
-				<span>
-					General Occupant
+				<span *ngIf="isFRP">
+					General Occupant for {{accountName}}
+				</span>
+				<span *ngIf="!isFRP">
+						General Occupant
 				</span>
 			</a>
 		</li>

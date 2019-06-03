@@ -2823,6 +2823,7 @@ export class UsersRoute extends BaseRoute {
                     first_name: '',
                     last_name: '',
                     account_has_online_training: 0,
+                    accountName: '',
                     accountId : 0,
                     evac_role: 'Client',
                     roles : [],
@@ -2888,6 +2889,7 @@ export class UsersRoute extends BaseRoute {
                     response['token'] = token;
                     try {
                         let accountData = await new Account(user.account_id).load();
+                        response.data.accountName = accountData['account_name'];
                         response.data['account_has_online_training'] = accountData['online_training'];
                     } catch (e) {
                         response.data['account_has_online_training'] = 0;

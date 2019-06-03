@@ -501,8 +501,8 @@ export class AdminRoute extends BaseRoute {
             users_fullname : accountRole['first_name'] +' '+accountRole['last_name'],
             account_name : accountRole['account_name'],
             location_name: accountRole['building_name'] + " " + accountRole['name'] ,
-            yes_link : 'http://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-            no_link : 'http://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
+            yes_link : 'https://' + req.get('host') + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+            no_link : 'https://' + req.get('host') + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken)
           };
           let emailType = 'warden-confirmation';
           
@@ -2713,7 +2713,7 @@ export class AdminRoute extends BaseRoute {
       limiter.removeTokens(1, (err, remainingRequests) => {
         email.sendFormattedEmail('send-summary-notification-link', {
           users_fullname: `${u['first_name']} ${u['last_name']}`,
-          link: 'http://' + req.get('host') + '/accounts/process-summary-link-token/?token=' + encodeURIComponent(u['token']),
+          link: 'https://' + req.get('host') + '/accounts/process-summary-link-token/?token=' + encodeURIComponent(u['token']),
           role: defs['summary_role_label'][role],
           location: `${u['name']} ${u['Building']}`,
           account: u['account_name']
@@ -3294,7 +3294,7 @@ export class AdminRoute extends BaseRoute {
         account_name: accountData['account_name'],
         role: roleStr,
         location_name: locStr,
-        setup_link: 'http://' + req.get('host') + '/change-user-password/'+tkString 
+        setup_link: 'https://' + req.get('host') + '/change-user-password/'+tkString 
       };
       email.sendFormattedEmail('set-passwd-invite', emailData, res, 
         (data) => console.log(data),

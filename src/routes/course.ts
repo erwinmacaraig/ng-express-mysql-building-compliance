@@ -480,8 +480,8 @@ export class CourseRoute extends BaseRoute {
             let
             stringUserData = JSON.stringify(loginResponse.data),
             userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),            
-            redirectUrlWarden = 'http://'+req.get('host') + '/trainings/new-training',
-            redirectUrlFRP = 'http://'+req.get('host') + '/trainings/new-training',
+            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/new-training',
+            redirectUrlFRP = 'https://'+req.get('host') + '/trainings/new-training',
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
             stringUserData = stringUserData.replace(/\'/gi, '');
             let script = `

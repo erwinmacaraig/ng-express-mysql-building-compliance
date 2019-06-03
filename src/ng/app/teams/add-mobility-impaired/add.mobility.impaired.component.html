@@ -27,7 +27,7 @@
 						<th>Last Name</th>
 						<th>Email</th>
 						<!-- <th>Account Role</th> -->
-						<th>Role</th>
+						<!-- <th>Role</th> -->
 						<th>Location</th>
 						<th>Contact Information</th>
 					</tr>
@@ -58,25 +58,26 @@
 								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
 							</select>
 						</td> -->
+						<!--<td >
+							 <select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" pattern="[1-9][0-9]*">
+											<option value="0" selected disabled>Select Role</option>
+											<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
+									</select> 
+									<ng-multiselect-dropdown
+											#thisDropDown
+											[placeholder]="'Select Role'"
+											[data]="selectRolesDropdown"
+											[(ngModel)]="user.selected_roles"
+											[ngModelOptions]="{standalone: true}"
+											[settings]="dropdownSettings"
+											[name]="accountRole"
+											(onSelect)="onSelectRole($event, i, thisDropDown)"
+									>
+									</ng-multiselect-dropdown>
+														
+						</td> [class.disabled]="user.selected_roles.length == 0" -->
 						<td >
-							<!-- <select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" pattern="[1-9][0-9]*">
-                                <option value="0" selected disabled>Select Role</option>
-                                <option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
-                            </select> -->
-                            <ng-multiselect-dropdown
-                                #thisDropDown
-                                [placeholder]="'Select Role'"
-                                [data]="selectRolesDropdown"
-                                [(ngModel)]="user.selected_roles"
-                                [ngModelOptions]="{standalone: true}"
-                                [settings]="dropdownSettings"
-                                [name]="accountRole"
-                                (onSelect)="onSelectRole($event, i, thisDropDown)"
-                            >
-                            </ng-multiselect-dropdown>
-						</td>
-						<td >
-							<a  [class.disabled]="user.selected_roles.length == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
+							<a class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
 							<input type="hidden" name="selectedLocation{{i}}" [(ngModel)]="user.account_location_id" required pattern="[1-9][0-9]*">
 						</td>
 						<td class="with-remove">

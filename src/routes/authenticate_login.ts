@@ -62,6 +62,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
                 last_name: userModel.get('last_name'), 
                 account_has_online_training: 0,
                 accountId: userModel.get('account_id'),
+                accountName: '',
                 evac_role: userModel.get('evac_role'),
                 roles : [],
                 profilePic : '',
@@ -77,6 +78,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
 
         try {
             let accountData = await new Account(userModel.get('account_id')).load();
+            response.data.accountName = accountData['account_name'];
             response.data['account_has_online_training'] = accountData['online_training'];
         } catch (e) {
             response.data['account_has_online_training'] = 0;

@@ -353,9 +353,10 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
       let allInputValid = true;
       if (f.valid) {
         for(let i in this.addedUsers){
-          this.addedUsers[i]['role_id'] = (this.addedUsers[i]['account_role_id'] == 1 ||
-          this.addedUsers[i]['account_role_id'] == 2) ? this.addedUsers[i]['account_role_id'] : 0;
-          this.addedUsers[i]['eco_role_id'] = (this.addedUsers[i]['account_role_id'] != 1 || this.addedUsers[i]['account_role_id'] != 2) ? this.addedUsers[i]['account_role_id'] : 0;
+          //this.addedUsers[i]['role_id'] = (this.addedUsers[i]['account_role_id'] == 1 ||
+          //this.addedUsers[i]['account_role_id'] == 2) ? this.addedUsers[i]['account_role_id'] : 0;
+          //this.addedUsers[i]['eco_role_id'] = (this.addedUsers[i]['account_role_id'] != 1 || this.addedUsers[i]['account_role_id'] != 2) ? this.addedUsers[i]['account_role_id'] : 0;
+          this.addedUsers[i]['eco_role_id'] = 8;
         }
         for (const u of this.addedUsers) {
           if (!/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(u['email'])) {
