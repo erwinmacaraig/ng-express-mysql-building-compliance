@@ -21,7 +21,7 @@
           </div>
 
           <div class="center-block text-button-container">
-              <button class="btn orange waves-effect waves-light center-block display-block" [routerLink]="['/trainings/my-training']"> Go to training > </button>
+              <button class="btn orange waves-effect waves-light center-block display-block" [routerLink]="['/trainings/new-training']"> Go to training > </button>
           </div>
         </div>
 
@@ -46,16 +46,15 @@
                     <img src="/assets/images/check_icon.png" >
                   </td>
                   <td>{{t.training_requirement_name}}</td>
-                  <td> <a href="https://mycompliancegroup.evacconnect.com/tenant/my_training/Certificate.php?s={{t.scorm_course_id}}&amp;c={{t.certifications_id}}" target="_blank" class="btn light-blue waves-effect waves-light">Cerificate</a> </td>
+                  <td><a [routerLink]="['/certificate', t['encryptedCertId']]" target="_blank" class="btn light-blue waves-effect waves-light">Cerificate</a></td>
                 </tr>
-
                 <!-- Assigned Courses -->
                 <tr *ngFor="let c of assignedCourses">
                   <td>
                     <img src="/assets/images/expired_icon.png" >
                   </td>
                   <td>{{c['training_requirement_name']}}</td>
-                  <td> <a [routerLink]="['/trainings/my-training-profile/', userIdEnc]"> Take Course</a> </td>
+                  <td> <a [routerLink]="['/trainings/new-training']"> Take Course</a> </td>
                 </tr>
               </tbody>
             </table>

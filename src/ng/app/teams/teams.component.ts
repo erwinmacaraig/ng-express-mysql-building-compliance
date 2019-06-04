@@ -19,6 +19,10 @@ export class TeamsComponent implements OnInit, OnDestroy {
 	public confirmationProcessStep = -1;
 	private myQueryRouteSub: Subscription;
 	public role = 'Warden';
+	public accountName = '';
+
+	isFRP = false;
+  isTRP = false;
 
 	constructor(
 		private router: Router,
@@ -33,7 +37,17 @@ export class TeamsComponent implements OnInit, OnDestroy {
 		});
 
 		this.oUserData = this.authService.getUserData();
+		this.accountName = this.oUserData['accountName'];
 		this.subscriptionType = this.oUserData['subscription']['subscriptionType'];
+
+		const role = this.authService.getHighestRankRole();		
+		if (role == 1) {
+				this.isFRP = true;
+		} 
+		if (role == 2) {
+				this.isTRP = true;
+		}
+
 	}
 
 	ngOnInit(){

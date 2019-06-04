@@ -473,6 +473,10 @@ export class CourseRoute extends BaseRoute {
             }catch(e){}
 
             // redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
+            /*
+            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/new-training',
+            redirectUrlFRP = 'https://'+req.get('host') + '/trainings/new-training',
+            */
             let
             stringUserData = JSON.stringify(loginResponse.data),
             userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),            
@@ -481,7 +485,7 @@ export class CourseRoute extends BaseRoute {
             redirectURL = (hasFrpTrpRole) ? redirectUrlFRP : redirectUrlWarden;
             stringUserData = stringUserData.replace(/\'/gi, '');
             let script = `
-                <h4>Redirecting...</h4>
+                <h4>Redirecting ...</h4>
                 <script>
                     localStorage.setItem('currentUser', '${loginResponse.token}');
                     localStorage.setItem('userData', '${stringUserData}');

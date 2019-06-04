@@ -114,7 +114,7 @@
           <td>
               <select (change)="selectActionChangeEvent(user, $event)">
                 <option value="0" disabled selected>Select Action</option>
-                <option value="profile">Update Profile</option>
+                <!--<option value="profile">Update Profile</option>-->
                 <option value="credential">Update Credential</option>
                 <option value="set-passwd-invite">Send Invitation</option>
                 <option *ngIf="sendInvitationData.account.subscription.type != 'free'" value="send-notification">Send Initiate Confirmation Process</option>
@@ -122,6 +122,7 @@
                 <!-- <option value="assign">Assign Trainings</option> -->
                 <option value="location-role">Assign Location & Role</option>
                 <option value="send-summary-link" *ngIf="user['allAccountRoles'].length > 0 && sendInvitationData.account.subscription.type != 'free'">Send Summary Notification Link</option>
+                <option value="archive-user">Archive User</option>
                 
               </select>
           </td>
@@ -485,4 +486,17 @@
         </div>
     </div>
 
+</div>
+
+
+<div id="modalArchive" class="modal">
+	<div class="modal-content">
+		<h5>Confirmation</h5>
+		<p style="font-size: 16px;">
+			{{message}}
+		</p>
+	</div>
+	<div class="modal-footer">
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat">OK</a>		
+	</div>
 </div>

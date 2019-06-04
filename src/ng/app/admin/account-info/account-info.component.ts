@@ -158,5 +158,19 @@ export class AccountInfoComponent implements OnInit, OnDestroy, AfterViewInit {
     });
 
   }
+  performActionOnAccount(e): void {
+    let control = 0;
+    if (e.target.checked) {
+      control = 1;
+    }
+    this.adminService.performArchiveOperationOnAccount([this.accountId], control).subscribe((response) => {
+      this.alertService.info('Account successfully archived.');
+    }, (error) => {
+      this.alertService.error('There was problem archiving the account. Try again later.');
+      setTimeout(() => {this.alertService.info(null); }, 5000);
+      console.log(error);
+    });
+
+  }
 }
 

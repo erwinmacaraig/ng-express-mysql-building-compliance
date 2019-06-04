@@ -235,6 +235,12 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         $('.modal').modal({
             dismissible: false
         });
+        var self = this;
+        $('#selectPageUpper').change(function(){
+            // console.log($('#selectPageUpper').val());
+            self.pageChange($('#selectPageUpper').val());
+       });
+       
 
         this.accountService.isOnlineTrainingValid((response) => {
             if(response.valid){

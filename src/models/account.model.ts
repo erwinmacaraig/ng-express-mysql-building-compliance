@@ -181,7 +181,7 @@ export class Account extends BaseClass {
                 if (err) {                    
                     throw new Error(err);
                 }
-                const sql_load = 'SELECT * FROM accounts WHERE archived = 0';
+                const sql_load = 'SELECT account_id, account_name FROM accounts WHERE archived = 0 ORDER BY account_name';
                 connection.query(sql_load, (error, results, fields) => {
                   if (error) {
                     return console.log(error);
@@ -892,7 +892,7 @@ export class Account extends BaseClass {
                     parent_locations.name as parent_name
                     FROM users
                     INNER JOIN accounts ON users.account_id = accounts.account_id
-                    INNER JOIN
+                    LEFT JOIN
                     user_em_roles_relation
                     ON
                     users.user_id = user_em_roles_relation.user_id
@@ -979,6 +979,86 @@ export class Account extends BaseClass {
 
                 
             });  
+        });
+    }
+
+    public archiveAccount(accountIds=[], control=1): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (accountIds.length == 0) {
+                reject('Invalid input parameter');
+                return;
+            }
+            
+            this.pool.getConnection((con_err, connection) => {
+                if (con_err) {
+                    console.log('Error gettting pool connection ' + con_err);
+                    throw new Error(con_err);
+                }
+                const sql = `UPDATE accounts SET archived = ${control} WHERE account_id IN (${accountIds.join(',')})`;
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log(sql, error);
+                        throw new Error('Cannot archive account(s)');
+                    }
+                    resolve(true);     
+                    connection.release();
+                });
+            });
+
+        });
+    }
+
+    public archivePeopleInAccount(accountIds=[], control=1): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (accountIds.length == 0) {
+                reject('Invalid input parameter');
+                return;
+            }
+            this.pool.getConnection((con_err, connection) => {
+                if (con_err) {
+                    console.log('Error gettting pool connection ' + con_err);
+                    throw new Error(con_err);
+                }
+                const sql = `UPDATE users SET archived = ${control} WHERE account_id IN (${accountIds.join(',')})`;
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log(sql, error);
+                        throw new Error('Cannot archive users in accounts');
+                    }
+                    resolve(true);     
+                    connection.release();
+                });
+            });
+        });
+        
+    }
+
+    public getArchiveAccounts(): Promise<Array<object>> {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT
+                account_id,
+                account_name
+            FROM
+                accounts
+            WHERE
+                archived = 1
+            ORDER BY
+                accounts.account_name
+            `;
+            this.pool.getConnection((con_error, connection) => {
+                if (con_error) {
+                    console.log('Error gettting pool connection ' + con_error);
+                    throw new Error(con_error);
+                }
+                connection.query(sql, [], (err, results) => {
+                    if (err) {
+                        console.log(sql, err);
+                        throw new Error('Cannot get list of archived accounts');
+                    }
+                    resolve(results);
+                    connection.release();
+                });
+            });
         });
     }
 

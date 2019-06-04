@@ -1,0 +1,80 @@
+.mid-nav{
+    border-bottom: 1px solid #cacaca;
+    padding: 0px;
+    margin-bottom: 20px;  
+}
+
+.mid-nav ul{
+    margin: 0px;
+}
+
+.mid-nav ul li{
+    text-align: left;
+    border-bottom: 1px solid #cacaca;
+    display: inline-block;
+    margin-right: 30px;
+    padding: 15px 0px !important;
+    margin-bottom: -1px;
+    color: #383838;
+    font-size: 18px;
+    transition: 0.5s all;
+}
+
+.mid-nav ul li:hover{
+    border-bottom: 1px solid #39a1ff !important;
+    cursor: pointer;
+    color: #39a1ff !important;
+}
+
+.mid-nav ul li:focus{
+    outline: none;
+}
+
+.mid-nav ul li.active{
+    color: #39a1ff !important;
+    border-bottom: 1px solid #39a1ff !important;
+}
+
+.filter-container .search-field{
+	background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+}
+.filter-container .search-field input{
+	margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+.filter-container .search-field input:focus{
+	border-bottom: 0px;
+    box-shadow: none;
+}
+
+.filter-container .search-field .material-icons{
+	width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
+}
+
+table thead tr th{
+	background-color: #2f2f2f;
+    color: #fff;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    border: 1px solid #2f2f2f;
+    border-radius: 0px;
+}
+
+table tbody td{
+	border: 1px solid #ddd;
+	font-size: 14px;
+}

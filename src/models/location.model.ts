@@ -234,6 +234,7 @@ export class Location extends BaseClass {
             }
 
             let sql_load = `SELECT * FROM locations WHERE location_id IN (`+ids+`) AND archived = `+archived + ` ORDER BY location_id ASC `;
+            console.log(sql_load);
             if(withParentName){
                 sql_load = `SELECT l.*, IF(p.location_id IS NOT NULL, CONCAT(p.name, ', ', l.name), l.name) as name FROM locations l LEFT JOIN locations p ON l.parent_id = p.location_id 
                 WHERE l.location_id IN (`+ids+`) AND l.archived = `+archived + ` ORDER BY l.location_id ASC `;
@@ -249,7 +250,6 @@ export class Location extends BaseClass {
                         console.log(`location.model.getByInIds() - ${sql_load}`, error);
                         throw Error(error);                        
                     }
-                    this.dbData = results;
                     resolve(results);
                     connection.release();
                 });
@@ -476,7 +476,7 @@ export class Location extends BaseClass {
         });
     }
 
-    public getDeepLocationsByParentId(parentId){
+    public getDeepLocationsByParentId(parentId, archived?){
         return new Promise((resolve) => {
             this.pool.getConnection((err, connection) => {
                 if (err) {
@@ -484,8 +484,13 @@ export class Location extends BaseClass {
                     throw err;
                 }
 
+                let archivedCtrl = 0;
+                if (archived) {
+                    archivedCtrl = archived;
+                }
+
                 const sql_load = `SELECT *
-                FROM (SELECT * FROM locations WHERE archived = 0 ORDER BY parent_id, location_id) sublocations,
+                FROM (SELECT * FROM locations WHERE archived = ${archivedCtrl} ORDER BY parent_id, location_id) sublocations,
                 (SELECT @pi := ('${parentId}')) initialisation WHERE FIND_IN_SET(parent_id, @pi) > 0 AND @pi := concat(@pi, ',', location_id)`;
                 connection.query(sql_load, (error, results, fields) => {
                     if (error) {
@@ -1412,6 +1417,118 @@ export class Location extends BaseClass {
                     resolve(results);
                 });
                 connection.release();
+            });
+        });
+    }
+
+    public getArchivedLocations() {
+        return new Promise((resolve, reject) => {
+            const sql = `SELECT
+                locations.location_id,
+                locations.parent_id,
+                locations.name,
+                locations.street,
+                locations.city,
+                locations.state,
+                locations.postal_code,                
+                parent.name AS building                
+            FROM
+                locations
+            LEFT JOIN
+                locations as parent
+            ON
+                locations.parent_id = parent.location_id
+            WHERE
+                locations.archived = 1
+            `;
+
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error('Error getting db connection');
+                }
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log(sql, error);
+                        throw new Error('Cannot perform query.');
+                    }
+                    if (results.length > 0) {
+                        resolve(results);
+                    } else {
+                        reject('No archive location');
+                    }
+                    connection.release();
+                });
+                
+            });
+        });
+    }
+
+    public delete(location_id = 0) {
+        return new Promise((resolve, reject) => {
+            let locId = this.ID();
+            if (location_id) {
+                locId = location_id;
+            }
+           
+            this.deleteSubLevels(locId).then(() => {
+                this.pool.getConnection((err, connection) => {
+                    if (err) {
+                        throw new Error('Error getting db connection');
+                    }
+                    const sql = `DELETE FROM locations WHERE location_id = ?`;
+                    connection.query(sql, [locId], (error, results) => {
+                        if (error) {
+                            console.log(sql, error);
+                            throw new Error('Cannot perform query.');
+                        } 
+                        resolve(results);
+                        connection.release();
+                    });
+                });
+            }).catch((e) => {
+                console.log(e);
+            });
+        });
+        
+        
+        
+    }
+    
+    private deleteSubLevels(parent_id) {
+        return new Promise((resolve, reject) => {
+            const sql = `DELETE FROM locations WHERE parent_id = ?`;
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error('Error getting db connection');
+                }
+                connection.query(sql, [parent_id], (error, results) => {
+                    if (error) {
+                        console.log(sql, error);
+                        throw new Error('Cannot perform query.');
+                    } 
+                    resolve(results);
+                    connection.release();
+                });
+            });
+        });
+    }
+
+    public immediateSublocations(parent_id = 0): Promise<Array<Object>> {
+        return new Promise((resolve, reject) => {
+            this.pool.getConnection((err, connection) => {
+                if (err) {
+                    throw new Error('Error getting db connection');
+                }
+                const sql = `SELECT * FROM locations WHERE parent_id = ?`;
+                connection.query(sql, [parent_id], (error, results) => {
+                    if (error) {
+                        console.log(sql, error);
+                        throw new Error('Cannot perform query.');
+                    } 
+                    resolve(results);
+                    connection.release();
+                });
+
             });
         });
     }

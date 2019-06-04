@@ -34,12 +34,15 @@
     </div>
     <div  class="label-and-text">
         <label >Address:</label>
-        <p >{{location_details['formatted_address']}}</p>
+        <p >{{location_details['street']}} {{location_details['city']}} {{location_details['state']}} {{location_details['postal_code']}}</p>
     </div>
     <div  class="label-and-text">
         <label >Settings:</label>
         <div class="checkbox">
-          <input id="ola" type="checkbox" [(ngModel)]="location_details.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>
+          <input id="ola" type="checkbox" [(ngModel)]="location_details.online_training" (change)="toggleOnlineTrainingAccess($event)"><label for="ola">Access to Online Training</label>          
+        </div>
+        <div class="checkbox">
+            <input id="archive" type="checkbox" [(ngModel)]="location_details.archived" (change)="archiveLocation($event)"><label for="archive">Archive</label>          
         </div>
     </div>
   </div>
@@ -49,9 +52,11 @@
     <div class="col l12 m12 s12">
         <div class="mid-nav">
             <ul id="nav-mobile">
-                <li *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations', accntId : accountIdParam }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people', accntId : accountIdParam }" [ngClass]="{active:activeLink=='people'}"> Team </li>
+                <li [hidden]="(sublocations.length > 0) == false" *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations', accntId : accountIdParam }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people', accntId : accountIdParam }" [ngClass]="{active:activeLink=='people'}"> Team </li>                
                 <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts', accntId : accountIdParam }" [ngClass]="{active:activeLink=='accounts'}"> Compliance </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'information', accntId : accountIdParam }" [ngClass]="{active:activeLink=='information'}"> Information </li>
+                
                 <!--<li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'compliance', accntId : accountIdParam }" [ngClass]="{active:activeLink=='compliance'}"> Compliance </li>
                 <li [routerLink]="['/admin', 'view-location', locationId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li> -->
             </ul>
@@ -146,8 +151,86 @@
   </div>
 </div>
 
+
+<div class="row" [hidden]="(activeLink=='information') == false">
+  <div class="col l7 m7 s7">
+      <form #formInfo="ngForm" (submit)="updateInfo(formInfo)">
+          <input type="hidden" name="location_id" [(ngModel)]="location_details['location_id']">
+          
+          <div class="col l7 m7 s12">
+              <div class="input-field">
+                                    
+                  <input [(ngModel)]="location_details.name" name="name" id="input_text_name" type="text" placeholder="Location/Building Name" required #inputLocationName="ngModel">
+                  <label for="input_text_name" class="active">
+                      Location Name
+                      <span class="red-text" *ngIf=" !inputLocationName.valid && inputLocationName.dirty ">*Required</span>
+                  </label>
+              </div>
+          </div>
+
+          <div class="col l7 m7 s12">
+              <div class="input-field">                  
+                  <input [(ngModel)]="location_details.street" name="street" id="input_text_street" type="text" placeholder="Street name" required #inputLocationStreet="ngModel">
+                  <label for="input_text_street" class="active">
+                      Street Name
+                      <span class="red-text" *ngIf=" !inputLocationStreet.valid && inputLocationStreet.dirty ">*Required</span>
+                  </label>
+              </div>
+          </div>
+
+          <div class="col l7 m7 s12">
+              <div class="input-field">                  
+                  <input [(ngModel)]="location_details.city" name="city" id="input_text_city" type="text" placeholder="City" required #inputLocationCity="ngModel">
+                  <label for="input_text_city" class="active">
+                      City
+                      <span class="red-text" *ngIf=" !inputLocationCity.valid && inputLocationCity.dirty ">*Required</span>
+                  </label>
+              </div>
+          </div>
+
+          <div class="col l7 m7 s12">
+              <div class="input-field">                  
+                  <input [(ngModel)]="location_details.state" name="state" id="input_text_state" type="text" placeholder="State" required #inputLocationState="ngModel">
+                  <label for="input_text_state" class="active">
+                      State
+                      <span class="red-text" *ngIf=" !inputLocationState.valid && inputLocationState.dirty ">*Required</span>
+                  </label>
+              </div>
+          </div>
+
+          <div class="col l7 m7 s12">
+              <div class="input-field">                  
+                  <input [(ngModel)]="location_details.postal_code" name="postal_code" id="input_text_postal" type="text" placeholder="Postal Code">
+                  <label for="input_text_postal" class="active">
+                      Postal Code
+                  </label>
+              </div>
+          </div>
+
+          <div class="col l7 m7 s12  right-align">
+              <button [disabled]="!formInfo.valid" type="submit" class="btn lighten-1 orange waves-effect">Update Location Information</button>
+          </div>
+          
+        
+      </form>
+    </div>
+</div>
+
 <div class="row" [hidden]=" (activeLink=='compliance') == false">
     <app-admin-compliance-summary [selectedKPIinput]="2" [locationIdInput]="locationId" [accountIdInput]="accountIdParam" [hideAccountComponent]="true"></app-admin-compliance-summary>
 </div>
+
+<div id="modalConfirm" class="modal">
+    <div class="modal-content">
+      <h5>Confirmation</h5>
+      <p style="font-size: 16px;">
+        {{message}}
+      </p>
+    </div>
+    <div class="modal-footer">
+      <a  class="modal-action modal-close waves-effect waves-red btn-flat">OK</a>		
+    </div>
+  </div>
+  
 
 <div preloader></div>

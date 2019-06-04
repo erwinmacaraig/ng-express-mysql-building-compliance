@@ -187,6 +187,7 @@ const defs = require('../config/defs.json');
                     message: 'Successful'
                 });
             }).catch((e) => {
+                console.log(e);
                 return res.status(400).send({
                     message: e
                 });
@@ -253,6 +254,20 @@ const defs = require('../config/defs.json');
         }
       );
 
+        router.post('/location/location-details-update', new MiddlewareAuth().authenticate,
+        (req:AuthRequest, res:Response) => {
+            new LocationRoute().updateLocationDetails(req, res);
+        });
+
+        router.get('/location/list-archived-locations/', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res:Response) => {
+            new LocationRoute().listArchivedLocations(req, res);
+        });
+
+        router.post('/location/delete/', new MiddlewareAuth().authenticate,
+        (req: AuthRequest, res:Response) => {
+            new LocationRoute().permanentlyDeleteLocation(req, res);
+        })
       
 
 
@@ -268,6 +283,68 @@ const defs = require('../config/defs.json');
   	*/
   	constructor() {
   		super();
+      }
+
+      public async permanentlyDeleteLocation(req: AuthRequest, res:Response) {
+        const location = new Location();
+        const ids = [req.body.location_id];
+        const temp = await location.immediateSublocations(req.body.location_id);
+        
+        for (let loc of temp) {
+            ids.push(loc['location_id']);
+        }
+        console.log(req.body);
+        
+        try {
+            new UserEmRoleRelation().removeLocation(ids);
+            new LocationAccountUser().removeLocation(ids);
+            new LocationAccountRelation().removeLocation(ids);
+
+            await location.delete(req.body.location_id);            
+            return res.status(200).send({
+                message: 'Success'                
+            });
+        } catch(e) {
+            console.log(e);
+            return res.status(500).send({
+                message: 'Fail'                
+            });
+        }
+      }
+      public async listArchivedLocations(req: AuthRequest, res: Response) {
+          const location = new Location();
+          try {
+            const list = await location.getArchivedLocations();
+            return res.status(200).send({
+                message: 'Success',
+                archives: list
+            });
+          } catch(e) {
+            console.log(e);
+            return res.status(500).send({
+                message: 'Fail'                
+            });
+          }
+
+      }
+      public async updateLocationDetails(req: AuthRequest, res: Response) {
+
+         console.log(req.body);
+         const location = new Location(req.body.location_id);
+         try {
+             await location.load();
+             await location.create(req.body);
+             return res.status(200).send({
+                message: 'Success'
+            });
+         } catch(e) {
+             console.log(e);
+            return res.status(500).send({
+                message: 'Fail'
+            });
+         }
+         
+
       }
       
       public getTaggedLocationsForTRP(req: AuthRequest, res: Response) {
@@ -831,12 +908,19 @@ const defs = require('../config/defs.json');
 
     public async archiveLocation(req: AuthRequest, res: Response){
     	let locationId = req.body.location_id,
-            archivedValue = (req.body.archived) ? req.body.archived : 1,
+            archivedValue = req.body.archived,
     		locationModel = new Location(),
     		locationSubModel = new Location(),
     		locations;
-
-    	locations = await locationModel.getByInIds(locationId);
+        
+        let control = 0;
+        if (archivedValue == 0) {
+            control = 1;
+        }
+        console.log('archivedValue', archivedValue);
+        console.log(req.body, control);
+        
+    	locations = await locationModel.getByInIds(locationId, control);
     	if(Object.keys(locations).length > 0){
     		let location = locations[0];
 
@@ -850,8 +934,9 @@ const defs = require('../config/defs.json');
     		try{
     			await locationModel.dbUpdate();
 
-	    		let sublocations = await locationSubModel.getDeepLocationsByParentId(locationId);
-	    		for(let i in sublocations){
+	    		let sublocations = await locationSubModel.getDeepLocationsByParentId(locationId, control);
+                console.log('sublocations', sublocations);
+                for(let i in sublocations){
 	    			let archiveModel = new Location();
 
 	    			for(let x in sublocations[i]){

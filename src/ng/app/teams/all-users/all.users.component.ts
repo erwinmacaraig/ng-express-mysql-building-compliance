@@ -270,7 +270,14 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	ngAfterViewInit(){
 		$('.modal').modal({
 			dismissible: false
-		});
+        });
+        var self = this;
+        $('#selectPageUpper').change(function(){
+            // console.log($('#selectPageUpper').val());
+            self.pageChange($('#selectPageUpper').val());
+            
+       });
+       
 
         this.accountService.isOnlineTrainingValid((response) => {
             if(response.valid){
@@ -575,7 +582,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 	pageChange(type){
 
-		let changeDone = false;
+		let changeDone = false; console.log(type);
 		switch (type) {
 			case "prev":
 				if(this.pagination.currentPage > 1){
@@ -593,7 +600,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			
 			default:
 				if(this.pagination.prevPage != parseInt(type)){
-					this.pagination.currentPage = parseInt(type);
+                    this.pagination.currentPage = parseInt(type);
+                    
 					changeDone = true;
 				}
 				break;
@@ -605,11 +613,13 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			this.queries.offset = offset;
 			this.loadingTable = true;
 			this.getListData(() => { 
-				this.loadingTable = false;
+                this.loadingTable = false;
+                $("#selectPageUpper option[value='" + this.pagination.currentPage  +"']").attr("selected", "selected");
+
 			});
 		}
-	}
-
+    }
+    
     clickMultipleLocation(locations){
         this.multipleLocations = locations;
         $('#modalSelectMultipleLocations').modal('open');

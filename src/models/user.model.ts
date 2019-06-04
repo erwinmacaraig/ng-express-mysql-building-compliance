@@ -1300,4 +1300,58 @@ export class User extends BaseClass {
         });
     }
 
+    /**
+     * 
+     * @param searchKey key used for limiting the results given the search key word
+     * @description list all archive users in the database
+     * @author Erwin M. Macaraig
+     * 
+     */
+    public listAllArchiveUsers(searchKey=''):Promise<Array<Object>> {
+        return new Promise((resolve, reject) => {
+            let searchPhrase = '';
+            if (searchKey.length > 0) {
+                if (searchKey.indexOf('@') !== -1){
+                    searchPhrase = ` AND  users.email LIKE '%${searchKey}%' `;
+                } else {
+                    searchPhrase = ` AND users.first_name LIKE '%${searchKey}%' OR users.last_name LIKE '%${searchKey}%' OR accounts.account_name LIKE '%${searchKey}%' `;
+                }
+            }
+            const sql = `SELECT
+                            users.user_id,
+                            users.email,
+                            users.first_name,
+                            users.last_name,
+                            accounts.account_name
+                        FROM
+                            users
+                        INNER JOIN
+                            accounts 
+                        ON
+                            users.account_id = accounts.account_id
+                        WHERE
+                            users.archived = 1
+                        AND accounts.archived = 0
+                        ${searchPhrase}`;
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    console.log('Error gettting pool connection ' + err);
+                    throw new Error(err);
+                }
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log(error, sql);
+                        throw new Error('There was a problem with the query');
+                    }
+                    if (results.length) {
+                        resolve(results);
+                    } else {
+                        reject('No archived users');
+                    }
+                });  
+            });
+        });
+    } 
+
 }

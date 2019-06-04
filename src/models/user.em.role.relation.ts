@@ -878,5 +878,48 @@ export class UserEmRoleRelation extends BaseClass {
           });
         });
       });
+    } 
+
+    public removeUser(userId=0) {
+      return new Promise((resolve, reject) => {
+        const params = [userId];
+        const sql = `DELETE FROM user_em_roles_relation WHERE user_id = ? `;
+        this.pool.getConnection((err, connection) => {
+          if (err) {
+            throw new Error(err);
+          }
+          connection.query(sql, params, (error, results) => {
+            if (error) {
+              console.log(error, sql, params);
+              throw new Error(error);
+            }
+            resolve(results);
+            connection.release();
+          });
+        });
+      });
     }
+    public removeLocation(locationIds=[]){
+      return new Promise((resolve, reject) => {
+        if (locationIds.length == 0) {
+          reject('Invalid location id supplied');
+          return;
+        }
+        this.pool.getConnection((con_err, connection) => {
+          if (con_err) {
+            throw new Error(con_err);
+          }
+          const sql = `DELETE FROM user_em_roles_relation WHERE location_id IN (${locationIds.join(',')})`;
+          connection.query(sql, [], (error, results) => {
+            if (error) {
+              console.log(error, sql);
+              throw new Error(error);
+            }
+            resolve(results);
+            connection.release();
+          });
+        });
+      });
+    }
+
 }

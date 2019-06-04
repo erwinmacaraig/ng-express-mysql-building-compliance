@@ -143,7 +143,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.locationPagination.pages = response.pagination.pages;
             this.locationPagination.total = response.pagination.total;
             setTimeout(() => {
-                $('.row.filter-container select.location').material_select();
+                //$('.row.filter-container select.location').material_select();
             },500);
         });
 
@@ -169,9 +169,9 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
                 }
 
                 this.dashboardService.hide();
-
+                
                 setTimeout(() => {
-                    $('.row.filter-container select').material_select();
+                     $('.row.filter-container select').material_select();
                 }, 100);
             });
         });
@@ -264,6 +264,12 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         $('.modal').modal({
             dismissible: false
         });
+
+        var self = this;
+        $('#selectPageUpper').change(function(){
+            // console.log($('#selectPageUpper').val());
+            self.pageChange($('#selectPageUpper').val());
+       });
 
         this.accountService.isOnlineTrainingValid((response) => {
             if(response.valid){
@@ -573,6 +579,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             default:
                 if(this.pagination.prevPage != parseInt(type)){
                     this.pagination.currentPage = parseInt(type);
+                    $("#selectPageUpper option[value='20']").attr("selected", "selected");
                     changeDone = true;
                 }
                 break;
@@ -585,6 +592,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.loadingTable = true;
             this.getListData(() => { 
                 this.loadingTable = false;
+                
             });
         }
     }

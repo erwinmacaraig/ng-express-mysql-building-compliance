@@ -30,6 +30,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     public total_pages = 0;
     public createRange;
     public currentPage = 0;
+    public message = '';
     @ViewChild('selectPage') selectedPage: ElementRef;
     isTyping = false;
     typingTimeout:any;
@@ -419,6 +420,10 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
     }
 
     ngAfterViewInit() {
+        $('.modal').modal({
+            dismissible: false
+        });
+
         $('.row.filter-container select').material_select();
         console.log('this.assignLocationRoleData', this.assignLocationRoleData);
         this.assignLocationRoleData.onKeyUpSearchLocationEvent.bind(this)();
@@ -525,7 +530,8 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             this.adminService.sendNotificationEmail({
                 user: user['user_id']
             }).subscribe((response) => {
-                alert('Notification sent.');                
+                this.message = 'Notification sent.';
+                $('#modalArchive').modal('open');                
             });
         }
         else if(val == 'assign'){
@@ -546,13 +552,16 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 this.assignLocationRoleData.fetching = false;
             });
         } else if (val == 'set-passwd-invite') {
-            this.adminService.sendPasswordSetupInvite({user: user['user_id']}).subscribe((response) => {
-                alert('Send invite successful!');
+            this.adminService.sendPasswordSetupInvite({user: user['user_id']}).subscribe((response) => {                
+                this.message = 'Send invite successful!';
+                $('#modalArchive').modal('open'); 
             });
         } else if (val == 'send-summary-link') {            
             this.adminService.sendNotificationSummaryLink(user['user_id'], user['allAccountRoles'][0], this.accountId)
                 .subscribe((response) => {
-                    console.log('Email Sent');                   
+                    console.log('Email Sent');
+                    this.message = 'Email Sent';
+                    $('#modalArchive').modal('open');                   
                 });
 
             if (user['allAccountRoles'].length > 1) {
@@ -561,6 +570,21 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                     console.log('Email Sent');                   
                 });
             }
+        } else if (val == 'archive-user') {
+            this.userService.archiveUsers([user.user_id], () => {
+                this.message = 'User successfully archived.';
+                $('#modalArchive').modal('open');
+                this.dashboard.show();
+                this.sub = this.adminService.getAllAccountUsers(this.accountId, this.currentPage).subscribe((response) => {
+                    this.userObjects = response['data']['list'];
+                    this.total_pages = response['data']['total_pages'];
+                    this.createRange = new Array(this.total_pages);
+                    this.dashboard.hide();
+                }, (error) => {
+                    this.dashboard.hide();
+                    console.log(error);
+                });
+            });
         }
 
         event.target.value = "0";

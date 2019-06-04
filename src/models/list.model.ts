@@ -196,7 +196,7 @@ export class List extends BaseClass{
             location_account_user
           ON
             accounts.account_id = location_account_user.account_id
-          WHERE 1 = 1 ${accntIdStr}
+          WHERE accounts.archived = 0 ${accntIdStr}
           GROUP BY
             location_account_user.location_id
           ORDER BY
@@ -225,7 +225,7 @@ export class List extends BaseClass{
           ON
             accounts.account_id = location_account_relation.account_id
           INNER JOIN locations ON locations.location_id =location_account_relation.location_id          
-          WHERE 1 = 1 ${accntIdStr}
+          WHERE accounts.archived = 0 ${accntIdStr}
           GROUP BY
           location_account_relation.location_id
           ORDER BY
@@ -326,7 +326,7 @@ export class List extends BaseClass{
             location_account_relation
           ON
             accounts.account_id = location_account_relation.account_id
-          WHERE 1 = 1 ${accntIdStr}
+          WHERE accounts.archived = 0 ${accntIdStr} 
           ORDER BY
             accounts.account_id DESC;`;
         this.pool.getConnection((err, connection) => {
