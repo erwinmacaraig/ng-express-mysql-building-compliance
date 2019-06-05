@@ -52,10 +52,10 @@
     <div class="col l12 m12 s12">
         <div class="mid-nav">
             <ul id="nav-mobile">
-                <li [hidden]="(sublocations.length > 0) == false" *ngIf="sublocations.length > 0"  [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations', accntId : accountIdParam }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people', accntId : accountIdParam }" [ngClass]="{active:activeLink=='people'}"> Team </li>                
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts', accntId : accountIdParam }" [ngClass]="{active:activeLink=='accounts'}"> Compliance </li>
-                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'information', accntId : accountIdParam }" [ngClass]="{active:activeLink=='information'}"> Information </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'locations', accntId : accountIdParam }" [ngClass]="{active:activeLink=='locations'}"> SubLocations </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'people' }" [ngClass]="{active:activeLink=='people'}"> Team </li>                
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'accounts' }" [ngClass]="{active:activeLink=='accounts'}"> Compliance </li>
+                <li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'information' }" [ngClass]="{active:activeLink=='information'}"> Information </li>
                 
                 <!--<li [routerLink]="['/admin', 'view-location', locationId]" [queryParams]="{ active : 'compliance', accntId : accountIdParam }" [ngClass]="{active:activeLink=='compliance'}"> Compliance </li>
                 <li [routerLink]="['/admin', 'view-location', locationId]" [ngClass]="{active:activeLink=='trainings'}"> Trainings </li> -->
@@ -72,17 +72,16 @@
           <th>Name</th>
           <th>Address</th>
           <th>Sublocations</th>
-          <th>Compliance</th>
-          <th>Archived</th>
         </tr>
         </thead>
         <tbody>
           <tr *ngFor="let sub of sublocations">
-            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['name']}}</a></td>
-            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['formatted_address']}}</a></td>
-            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]">{{sub['sublocations_count']}}</a></td>
-            <td></td>
-            <td></td>
+            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]" [queryParams]="{ active : 'locations' }">{{sub['name']}}</a></td>
+            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]" [queryParams]="{ active : 'locations' }">{{sub['formatted_address']}}</a></td>
+            <td><a [routerLink]="['/admin', 'view-location', sub['location_id']]" [queryParams]="{ active : 'locations' }">{{sub['sublocations_count']}}</a></td>            
+          </tr>
+          <tr *ngIf="sublocations.length == 0">
+            <td colspan="3">No sublocations</td>
           </tr>
         </tbody>
     </table>
