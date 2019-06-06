@@ -395,4 +395,8 @@ export class UserService {
 	generateConfirmationWardenList(postBody={}) {
 		return this.http.post<{list: object[], building: object[]}>(`${this.baseUrl}/team/build-eco-team-list/`, postBody);
 	}
+
+	permanentlyDeleteUser(userId=0) {
+		return this.http.post(`${this.baseUrl}/users/delete-permanently/`, {user: userId});
+	}
 }

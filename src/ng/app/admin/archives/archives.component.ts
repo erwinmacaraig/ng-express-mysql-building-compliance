@@ -150,7 +150,9 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
 
             break;
             case 'delete':
-
+                this.typeToDelete = 'user';
+                this.toDeleteId = userId;
+                $('#modalDeleteConfirm').modal('open');
             break;
         }
     }
@@ -283,6 +285,25 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.typeToDelete = '';
                     this.toDeleteId = 0;
                 });
+            break;
+
+            case 'user':
+                    this.userService.permanentlyDeleteUser(this.toDeleteId).subscribe((response) => {
+                        this.message = 'User permanently deleted and all relevant information';
+                        this.listArchiveUsers();
+                        setTimeout(() => {
+                            this.message = 'User successfully deleted';
+                            $('#modalConfirm').modal('open');
+                        }, 300);
+                    
+                        this.typeToDelete = '';
+                        this.toDeleteId = 0;
+                    }, (error) => {
+                        this.message = 'There was a problem with deleting the user . Try again later.';
+                        $('#modalConfirm').modal('open');
+                        this.typeToDelete = '';
+                        this.toDeleteId = 0;
+                    });
             break;
         }
     }

@@ -255,9 +255,29 @@ export class UserRoleRelation extends BaseClass {
             });
             
         });
+    }
 
-
-        
+    public removeUser(userId=0): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM user_role_relation WHERE user_id = ?`;
+            const params = [userId];
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+  
+                connection.query(sql_del, params, (error, results) => {
+                  if (error) {
+                      console.log(error);
+                      reject('Error deleting record');
+  
+                  } else {
+                      resolve(true);
+                  }
+                  connection.release();
+                });              
+              });
+        });
     }
 
 }

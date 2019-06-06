@@ -450,6 +450,64 @@ export class UsersRoute extends BaseRoute {
           new UsersRoute().updateWardenProfile(req, res);
       });
 
+      router.post('/users/delete-permanently/', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+          new UsersRoute().deletePermanently(req, res);
+      });
+
+
+    }
+
+    public async deletePermanently(req: AuthRequest, res: Response) {
+        let status = '';
+        try {
+            // delete from location_account_user
+            await new LocationAccountUser().removeUser(req.body.user);            
+        } catch(e) {
+            console.log(e);
+            status += ' Unable to delete user from location account user ';
+        }
+
+        try {
+            // delete from user_role_relation
+            await new UserRoleRelation().removeUser(req.body.user);
+        } catch(e) {
+            console.log(e);
+            status += ' Unable to delete user from user role relation ';
+        }
+        
+        try {
+            // delete from user_em_roles_relation
+            await new UserEmRoleRelation().removeUser(req.body.user);
+        } catch(e) {
+            console.log(e);
+            status += ' Unable to delete user from user em role relation ';
+        }
+
+        try {
+            // delete from certifications
+            await new TrainingCertification().removeUser(req.body.user);
+        } catch(e) {
+            console.log(e);
+            status += ' Unable to delete user info from certifications ';
+        }
+        try {
+            await new UserTrainingModuleRelation().removeUser(req.body.user);
+        } catch(e) {
+            console.log(e);
+            status += ' Unable to delete user info from training modules ';
+        }
+        try {
+            // delete from users
+            await new User().removeUser(req.body.user);
+        } catch(e) {
+            console.log(e);
+            status += ' Unable to delete user from users ';
+        }
+
+        return res.status(200).send({
+            message: 'User deleted',
+            status: status
+        });
 
     }
 
