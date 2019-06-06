@@ -213,6 +213,29 @@ export class AccountSubscription extends BaseClass {
         });
     }
 
+    public removeAccount(accountId=0) {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM account_subscription WHERE account_id = ? LIMIT 1`;
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_del, [accountId], (error, results, fields) => {
+                    if (error) {
+                        console.log(error, sql_del);
+                        reject('Error deleting record');
+
+                    } else {
+                        resolve(true);
+                    }
+                    connection.release();
+                });
+                
+            });
+            
+        });
+    }
+
 
 
 }

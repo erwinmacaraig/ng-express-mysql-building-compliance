@@ -21,6 +21,7 @@ import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { MobilityImpairedModel } from '../models/mobility.impaired.details.model';
 import { Token } from '../models/token.model';
 import { UtilsSync } from '../models/util.sync';
+import { UserTrainingModuleRelation } from '../models/user.training.module.relation.model';
 
 const validator = require('validator');
 const cryptoJs = require('crypto-js');
@@ -168,7 +169,11 @@ const RateLimiter = require('limiter').RateLimiter;
 
     router.post('/accounts/reject-resignation-confirmation/', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
       new AccountRoute().rejectResignationConfirmation(req, res);
-    });
+		});
+		
+		router.post('/accounts/delete/', new MiddlewareAuth().authenticate, (req: AuthRequest, res:Response) => {
+			new AccountRoute().permanentlyDeleteAccount(req, res);
+		});
 
   }
 
@@ -180,7 +185,69 @@ const RateLimiter = require('limiter').RateLimiter;
 	*/
 	constructor() {
 		super();
-  }
+	}
+	
+	public async permanentlyDeleteAccount(req: AuthRequest, res: Response) {
+		// get account users 
+		const account = new Account(req.body.account);
+		let accountUsers = [];
+		let status = '';
+		try {
+			accountUsers = await account.accountUserIds(); console.log(accountUsers);
+		} catch (e) {
+			console.log(e);			
+		}
+
+		try {
+			await new UserEmRoleRelation().removeListOfUsers(accountUsers)
+		} catch(e){
+			console.log(e);
+			status += ' Cannot remove users from em role relation ';
+		}
+		try {
+			await new LocationAccountUser().removeListOfUsers(accountUsers);
+		} catch(e) {
+			console.log(e);
+			status += ' Cannot remove users from location account user ';
+		}
+		try {
+			await new UserRoleRelation().removeListOfUsers(accountUsers);
+		} catch(e) {
+			console.log(e);
+			status += ' Cannot remove users from user role relation ';
+		}
+		try {
+			await new UserTrainingModuleRelation().removeListOfUsers(accountUsers);
+		} catch(e) {			
+			console.log(e);
+			status += ' Cannot remove users from training module relation ';
+		}
+		try {
+			await new LocationAccountRelation().removeAccount(req.body.account);
+		} catch(e) {
+			console.log(e);
+			status += ' Cannot remove account from location account relation ';
+		}
+
+		try {
+			await new AccountSubscription().removeAccount(req.body.account);
+		} catch(e) {
+			console.log(e);
+			status += ' Cannot remove account from account subscription ';
+		}
+		try {
+			await new Account().delete(req.body.account);
+		} catch(e) {
+			console.log(e);
+			status += ' Cannot remove account and users ';
+		}
+
+		return res.status(200).send({
+			message: 'Account delete',
+			status: status
+		});
+
+	}
 
   public async rejectResignationConfirmation(req: AuthRequest, res:Response) {
     try {
@@ -751,179 +818,6 @@ const RateLimiter = require('limiter').RateLimiter;
 		}catch(e) {
 			console.log(e);
 		}
-
-
-
-		/*
-
-    const responsesToQueryArr = JSON.parse(req.body.query_responses);
-
-    const update_token = req.body.update_token;
-    let nominatedUserName = '';
-    let nominatedUserEmail = '';
-    let changeLocation = {
-      from_location_id : 0,
-      to_location_id : 0,
-      user_em_roles_relation_id : 0
-    };
-    const completed = parseInt(req.body.completed, 10);
-    const status = req.body.strStatus;
-
-
-    if (completed) {
-			tokenDBData['dtCompleted'] = moment().format('YYYY-MM-DD');
-			tokenDBData['dtResponded'] = moment().format('YYYY-MM-DD');
-			tokenDBData['responded'] = 1;
-      tokenDBData['strToken'] = '';
-    }
-    try {
-      if(update_token){
-        await tokenObj.create(tokenDBData);
-      }
-
-      // email
-      for (const item of responsesToQueryArr) {
-        if (item['question'] == 'New person appointed name') {
-          nominatedUserName = item['ans'];
-        }
-        if (item['question'] == 'New person appointed email') {
-          nominatedUserEmail = item['ans'];
-        }
-      }
-
-      if (nominatedUserName.length > 0 && nominatedUserEmail.length > 0) {
-        const opts = {
-          from : '',
-          fromName : 'EvacConnect',
-          to : [nominatedUserEmail],
-          cc: [],
-          body : '',
-          attachments: [],
-          subject : 'EvacConnect Email Notification'
-        };
-
-        const email = new EmailSender(opts);
-        let emailBody = email.getEmailHTMLHeader();
-        emailBody += `<h3 style="text-transform:capitalize;">Hi ${nominatedUserName},</h3>
-        You are being nominated as ${tokenDBData['role_text']}.
-        `;
-        emailBody += email.getEmailHTMLFooter();
-        email.assignOptions({
-          body : emailBody
-        });
-        email.send(
-          (data) => console.log(data),
-          (err) => console.log(err)
-        );
-
-      }
-
-      if(status == 'Location Changed'){
-        for(let i in responsesToQueryArr){
-          if(responsesToQueryArr[i]['question'] == 'Old location'){
-            changeLocation.from_location_id = responsesToQueryArr[i]['ans'];
-          }
-          if(responsesToQueryArr[i]['question'] == 'New location'){
-            changeLocation.to_location_id = responsesToQueryArr[i]['ans'];
-          }
-          if(responsesToQueryArr[i]['question'] == 'user_em_roles_relation_id'){
-            changeLocation.user_em_roles_relation_id = responsesToQueryArr[i]['ans'];
-          }
-        }
-
-        if(changeLocation.from_location_id > 0 && changeLocation.to_location_id > 0){
-          let
-          locModel = new Location(),
-          parentModel = new Location(),
-          ids = [changeLocation.from_location_id, changeLocation.to_location_id],
-          parentids = [],
-          locationsFromAndTo = <any> await locModel.getByInIds( ids.join(',') ),
-          parents = <any> [],
-          fromLoc = <any> {},
-          toLoc = <any> {},
-          isDiffLoc = false,
-          emRoleRelModel = new UserEmRoleRelation(changeLocation.user_em_roles_relation_id),
-          arrWhereEmRole = [];
-
-          arrWhereEmRole.push([ 'user_em_roles_relation_id = '+ changeLocation.user_em_roles_relation_id ]);
-          let emData = <any> await emRoleRelModel.getWhere(arrWhereEmRole);
-          if(emData[0]){
-            emData = emData[0];
-          }
-
-
-          for(let loc of locationsFromAndTo){
-            if(loc.location_id == changeLocation.from_location_id){
-              fromLoc = loc;
-            }
-            if(loc.location_id == changeLocation.to_location_id){
-              toLoc = loc;
-            }
-          }
-
-          parentids = [fromLoc.parent_id, toLoc.parent_id];
-          parents = await parentModel.getByInIds( parentids.join(',') );
-
-          fromLoc['parent'] = <any> {};
-          toLoc['parent'] = <any> {};
-          for(let loc of parents){
-            if(fromLoc.parent_id == loc.location_id){
-              fromLoc['parent'] = loc;
-            }
-            if(toLoc.parent_id == loc.location_id){
-              toLoc['parent'] = loc;
-            }
-          }
-
-          if( toLoc.is_building == 1 && fromLoc.is_building == 1 ){
-            if( fromLoc.location_id != toLoc.location_id ){
-              isDiffLoc = true;
-            }
-          }else if(fromLoc.is_building == 1 && toLoc.is_building == 0){
-            if(fromLoc.location_id != toLoc.parent_id){
-              isDiffLoc = true;
-						}
-						if(fromLoc.location_id != toLoc.location_id){
-              isDiffLoc = true;
-						}
-          }else if(fromLoc.is_building == 0 && toLoc.is_building == 1){
-            if(fromLoc.parent_id != toLoc.location_id){
-              isDiffLoc = true;
-						}
-          } else if(fromLoc.parent_id != toLoc.parent_id){
-            isDiffLoc = true;
-          }
-          //Send Email To TRP and Admin
-          if(isDiffLoc){
-            await this.sendChangeLocationEmails(fromLoc, toLoc, emData);
-          }else{
-            for(let i in emData){
-              emRoleRelModel.set(i, emData[i]);
-            }
-            emRoleRelModel.set('location_id', toLoc.location_id);
-            await emRoleRelModel.dbUpdate();
-          }
-
-        }
-
-			} else if (status == 'Tenancy Moved Out') {
-				const trpLocationToQuery = tokenObj['location_id'];
-			}
-
-
-
-      return res.status(200).send({
-        message: 'Success',
-        data: tokenDBData
-      });
-    } catch(e) {
-      console.log('accounts route processQueryResponses()', e , tokenDBData);
-      return res.status(400).send({
-      message: 'Fail',
-      data: tokenDBData
-      });
-		}
-		*/
 
 	}
 

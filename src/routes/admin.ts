@@ -1079,16 +1079,18 @@ export class AdminRoute extends BaseRoute {
 
       // get all sublocation ids
       const allSublocations  = (await locationObj.getParentsChildren(req.params.location, 0, false, 0) as Number[]);
+
       allSublocations.push(req.params.location);
+      
       const allAccounts = await new LocationAccountRelation().getByLocationId(allSublocations, true);
       let temp;
       temp = [];
       const account = [];
       for (const acct of allAccounts) {
-        // if (temp.indexOf(acct['account_id']) === -1) {
-          // temp.push(acct['account_id']);
-          account.push(acct);
-        //}
+         if (temp.indexOf(acct['account_id']) === -1) {
+            temp.push(acct['account_id']);
+            account.push(acct);
+        }
       }
 
       // const account = await new LocationAccountRelation().getByLocationId(allSublocations, true);

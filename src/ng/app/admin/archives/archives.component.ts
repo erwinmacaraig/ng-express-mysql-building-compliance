@@ -5,6 +5,8 @@ import { AdminService } from '../../services/admin.service';
 import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { LocationsService } from '../../services/locations';
+import { AccountsDataProviderService } from '../../services/accounts';
+
 declare var $: any;
 declare var moment: any;
 declare var Materialize: any;
@@ -12,7 +14,7 @@ declare var Materialize: any;
 @Component({
     templateUrl: './archives.component.html',
     styleUrls: ['./archives.component.css'],
-    providers: [AdminService, DashboardPreloaderService, UserService, LocationsService]
+    providers: [AdminService, DashboardPreloaderService, UserService, LocationsService, AccountsDataProviderService]
 })
 export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
     
@@ -30,7 +32,7 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
     private toDeleteId = 0;
     typingTimeout:any;
     sub:Subscription;
-    constructor(private locationService: LocationsService, private userService: UserService, private adminService: AdminService, public dashboard: DashboardPreloaderService,) {}
+    constructor(private accountService: AccountsDataProviderService, private locationService: LocationsService, private userService: UserService, private adminService: AdminService, public dashboard: DashboardPreloaderService,) {}
 
     ngOnInit() {
         this.listArchiveUsers();
@@ -150,7 +152,9 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
 
             break;
             case 'delete':
-
+                this.typeToDelete = 'user';
+                this.toDeleteId = userId;
+                $('#modalDeleteConfirm').modal('open');
             break;
         }
     }
@@ -167,6 +171,9 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
                 });
             break;
             case 'delete':
+                this.typeToDelete = 'account';
+                this.toDeleteId = accountId;
+                $('#modalDeleteConfirm').modal('open');
 
             break;
         }
@@ -270,6 +277,7 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.message = 'Permanently deleted the location and all relevant information';
                     this.listArchiveLocations();
                     setTimeout(() => {
+                        $('#searchLocations').val('');
                         this.message = 'Location successfully deleted';
                         $('#modalConfirm').modal('open');
                     }, 300);
@@ -284,6 +292,47 @@ export class ArchiveComponent implements OnInit, AfterViewInit, OnDestroy {
                     this.toDeleteId = 0;
                 });
             break;
+
+            case 'user':
+                this.userService.permanentlyDeleteUser(this.toDeleteId).subscribe((response) => {
+                    this.message = 'User permanently deleted and all relevant information';
+                    this.listArchiveUsers();
+                    setTimeout(() => {
+                        $('#searchUsers').val('');
+                        this.message = 'User successfully deleted';
+                        $('#modalConfirm').modal('open');
+                    }, 300);
+                
+                    this.typeToDelete = '';
+                    this.toDeleteId = 0;
+                }, (error) => {
+                    this.message = 'There was a problem with deleting the user . Try again later.';
+                    $('#modalConfirm').modal('open');
+                    this.typeToDelete = '';
+                    this.toDeleteId = 0;
+                });
+            break;
+
+            case 'account':
+               this.accountService.permanentlyDeleteAccount(this.toDeleteId).subscribe((response) => {
+                this.message = 'Account permanently deleted and all relevant information';
+                this.listArchiveAccounts();
+                setTimeout(() => {
+                    $('#searchAccounts').val('');
+                    this.message = 'Account successfully deleted';
+                    $('#modalConfirm').modal('open');
+                }, 300);
+            
+                this.typeToDelete = '';
+                this.toDeleteId = 0;
+               }, (error) => {
+                this.message = 'There was a problem with deleting the account . Try again later.';
+                $('#modalConfirm').modal('open');
+                this.typeToDelete = '';
+                this.toDeleteId = 0;
+               });
+            break;
+
         }
     }
 

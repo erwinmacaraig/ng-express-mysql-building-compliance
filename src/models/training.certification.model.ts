@@ -918,4 +918,55 @@ export class TrainingCertification extends BaseClass {
       });
     });
   }
+
+  public removeUser(userId=0) {
+    return new Promise((resolve, reject) => {
+      const params = [userId];
+      const sql = `DELETE FROM certifications WHERE user_id = ? `;
+      this.pool.getConnection((err, connection) => {
+        if (err) {
+          throw new Error(err);
+        }
+        connection.query(sql, params, (error, results) => {
+          if (error) {
+            console.log(error, sql, params);
+            throw new Error(error);
+          }
+          resolve(results);
+          connection.release();
+        });
+      });
+    });
+  }
+
+  public removeListOfUsers(users:Number[]=[]): Promise<any> {
+    return new Promise((resolve, reject) => {
+        if (users.length == 0) {
+            reject('Invalid parameter supplied');
+            return;
+        }
+        const userIds = users.join(',');
+
+        const sql_del = `DELETE FROM certifications WHERE user_id IN (${userIds})`;
+        
+        this.pool.getConnection((err, connection) => {
+            if (err) {                    
+                throw new Error(err);
+            }
+
+            connection.query(sql_del, [], (error, results) => {
+              if (error) {
+                  console.log(error);
+                  reject('Error deleting records');
+
+              } else {
+                  resolve(true);
+              }
+              connection.release();
+            });              
+          });
+    });
+}
+
+
 }

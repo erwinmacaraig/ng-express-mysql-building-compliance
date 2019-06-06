@@ -50,10 +50,10 @@ export class LocationAccountRelation extends BaseClass {
                 FROM location_account_relation
                 INNER JOIN accounts
                 ON location_account_relation.account_id = accounts.account_id
-                WHERE location_account_relation.location_id IN (${locationIdsString})`;
+                WHERE location_account_relation.location_id IN (${locationIdsString}) ORDER BY accounts.account_name`;
             }
 
-            sql_load += ` GROUP BY location_account_relation.responsibility`;
+            // sql_load += ` GROUP BY location_account_relation.responsibility`;
             const param = [];
             this.pool.getConnection((err, connection) => {
                 if (err) {
@@ -705,5 +705,28 @@ export class LocationAccountRelation extends BaseClass {
           });
         });
       }
+
+      public removeAccount(accountId=0) {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM location_account_relation WHERE account_id = ? LIMIT 1`;
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+                connection.query(sql_del, [accountId], (error, results, fields) => {
+                    if (error) {
+                        console.log(error, sql_del);
+                        reject('Error deleting record');
+
+                    } else {
+                        resolve(true);
+                    }
+                    connection.release();
+                });
+                
+            });
+            
+        });
+    }
 
 }

@@ -255,9 +255,58 @@ export class UserRoleRelation extends BaseClass {
             });
             
         });
+    }
 
+    public removeUser(userId=0): Promise<any> {
+        return new Promise((resolve, reject) => {
+            const sql_del = `DELETE FROM user_role_relation WHERE user_id = ?`;
+            const params = [userId];
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+  
+                connection.query(sql_del, params, (error, results) => {
+                  if (error) {
+                      console.log(error);
+                      reject('Error deleting record');
+  
+                  } else {
+                      resolve(true);
+                  }
+                  connection.release();
+                });              
+              });
+        });
+    }
 
-        
+    public removeListOfUsers(users:Number[]=[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (users.length == 0) {
+                reject('Invalid parameter supplied');
+                return;
+            }
+            const userIds = users.join(',');
+  
+            const sql_del = `DELETE FROM user_role_relation WHERE user_id IN (${userIds})`;
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+  
+                connection.query(sql_del, [], (error, results) => {
+                  if (error) {
+                      console.log(error, sql_del);
+                      reject('Error deleting records');
+  
+                  } else {
+                      resolve(true);
+                  }
+                  connection.release();
+                });              
+              });
+        });
     }
 
 }
