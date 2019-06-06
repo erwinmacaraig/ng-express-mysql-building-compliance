@@ -344,4 +344,36 @@ export class UserTrainingModuleRelation extends BaseClass {
           });
         });
       }
+
+
+      public removeListOfUsers(users:Number[]=[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (users.length == 0) {
+                reject('Invalid parameter supplied');
+                return;
+            }
+            const userIds = users.join(',');
+  
+            const sql_del = `DELETE FROM user_training_module_relation WHERE user_id IN (${userIds})`;
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+  
+                connection.query(sql_del, [], (error, results) => {
+                  if (error) {
+                      console.log(error, sql_del);
+                      reject('Error deleting records');
+  
+                  } else {
+                      resolve(true);
+                  }
+                  connection.release();
+                });              
+              });
+        });
+    }
+
+
 }

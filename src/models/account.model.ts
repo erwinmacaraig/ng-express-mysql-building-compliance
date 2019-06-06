@@ -1061,5 +1061,103 @@ export class Account extends BaseClass {
             });
         });
     }
+    /**
+     * 
+     * @param accountId account id
+     * @description returns an array of user id for this account
+     */
+
+    public accountUserIds(accountId=0): Promise<Array<Number>> {
+        return new Promise((resolve, reject) => {
+            let account = this.ID();
+            if (accountId) {
+                account = accountId;
+            }
+            
+            this.pool.getConnection((con_error, connection) => {
+                if (con_error) {
+                    console.log('Error gettting pool connection ' + con_error);
+                    throw new Error(con_error);
+                }
+                const sql = `SELECT user_id FROM users WHERE account_id = ?`;
+                const params = [account];
+                connection.query(sql, params, (err, results) => {
+                    const ids = [];
+                    if (err) {
+                        console.log(sql, err);
+                        throw new Error('Cannot list all users in accounts');
+                    }
+                    for (let r of results) {
+                        ids.push(r['user_id']);
+                    }
+                    resolve(ids);
+                    connection.release();
+                });
+
+            });
+
+        });
+    }
+
+    public delete(accountId=0) {
+        return new Promise((resolve, reject) => {
+            let account = this.ID();
+            if (accountId) {
+                account = accountId;
+            }
+
+            this.deleteAccountUsers(account).then(() => {
+
+            }).catch((e) => {
+
+            });
+            this.pool.getConnection((con_error, connection) => {
+                if (con_error) {
+                    console.log('Error gettting pool connection ' + con_error);
+                    throw new Error(con_error);
+                }
+                const sql = `DELETE FROM accounts WHERE account_id = ?`;
+                const params = [account];
+                connection.query(sql, params, (err, results) => {
+                    if (err) {
+                        console.log(sql, err);
+                        throw new Error('Cannot delete account');
+                    }
+                    resolve(results);
+                    connection.release();
+                });
+
+            });
+
+        });
+    }
+
+    private deleteAccountUsers(accountId=0) {
+        return new Promise((resolve, reject) => {
+            let account = this.ID();
+            if (accountId) {
+                account = accountId;
+            }
+            this.pool.getConnection((con_error, connection) => {
+                if (con_error) {
+                    console.log('Error gettting pool connection ' + con_error);
+                    throw new Error(con_error);
+                }
+                const sql = `DELETE FROM users WHERE account_id = ?`;
+                const params = [account];
+                connection.query(sql, params, (err, results) => {
+                    if (err) {
+                        console.log(sql, err);
+                        throw new Error('Cannot delete users in accounts');
+                    }
+                    resolve(results);
+                    connection.release();
+                });
+
+            });
+            
+        });
+
+    }
 
 } // end class

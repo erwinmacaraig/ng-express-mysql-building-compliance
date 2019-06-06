@@ -198,4 +198,13 @@ export class AccountsDataProviderService {
 		}>(`${this.baseUrl}/team/build-trp-peep-list/`, {assignedLocations: locationIdArrStr});
 	}
 
+	permanentlyDeleteAccount(accountId=0) {
+		return this.http.post<{
+			message: string,
+			status: string
+		}>(`${this.baseUrl}/accounts/delete/`, {
+			account:  accountId
+		});
+	}
+
 }

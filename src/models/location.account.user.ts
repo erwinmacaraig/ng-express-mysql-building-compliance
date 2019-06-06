@@ -1198,6 +1198,36 @@ export class LocationAccountUser extends BaseClass {
               });
         });
     }
+
+    public removeListOfUsers(users:Number[]=[]): Promise<any> {
+        return new Promise((resolve, reject) => {
+            if (users.length == 0) {
+                reject('Invalid parameter supplied');
+                return;
+            }
+            const userIds = users.join(',');
+
+            const sql_del = `DELETE FROM location_account_user WHERE user_id IN (${userIds})`;
+            
+            this.pool.getConnection((err, connection) => {
+                if (err) {                    
+                    throw new Error(err);
+                }
+  
+                connection.query(sql_del, [], (error, results) => {
+                  if (error) {
+                      console.log(error);
+                      reject('Error deleting records');
+  
+                  } else {
+                      resolve(true);
+                  }
+                  connection.release();
+                });              
+              });
+        });
+    }
+
     public removeLocation(locationIds=[]){
         return new Promise((resolve, reject) => {
           if (locationIds.length == 0) {
