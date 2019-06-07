@@ -207,4 +207,8 @@ export class AccountsDataProviderService {
 		});
 	}
 
+	generateMyWardenList() {
+		return this.http.get<{warden: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
+	}
+
 }

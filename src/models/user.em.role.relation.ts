@@ -315,6 +315,90 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
+    public getWardenTeamList(locationIds:Number[] = [], accountId = 0, archived = 0, filter={}): Promise<Array<Object>> {
+      return new Promise((resolve, reject) => {
+        if (locationIds.length == 0) {
+          reject('Invalid parameter supplied');
+          return;
+        }
+        let accountClause = '';
+        const params = [archived];
+        let columns = `users.user_id,
+                       users.first_name,
+                       users.last_name,
+                       users.mobility_impaired,
+                       users.last_login,
+                       users.profile_completion,
+                       accounts.account_name,
+                       em_roles.em_roles_id,
+                       em_roles.role_name,                       
+                       user_em_roles_relation.location_id,
+                       locations.is_building,
+                       locations.name AS level,
+                       parent.name AS building`;
+        
+        if ('count' in filter) {
+          columns = `COUNT(*) AS total`;
+        }
+        if (accountId) {
+          accountClause = ` AND users.account_id = ? `;
+          params.push(accountId);
+        }
+        
+        const sql = `SELECT
+            ${columns}
+          FROM
+            user_em_roles_relation
+          INNER JOIN
+            users
+          ON
+            user_em_roles_relation.user_id = users.user_id
+          INNER JOIN
+            accounts
+          ON
+            accounts.account_id = users.account_id
+          INNER JOIN
+            em_roles
+          ON
+            em_roles.em_roles_id = user_em_roles_relation.em_role_id
+          INNER JOIN
+            locations
+          ON
+            locations.location_id = user_em_roles_relation.location_id
+          LEFT JOIN
+            locations AS parent
+          ON
+            locations.parent_id = parent.location_id
+          WHERE
+            users.archived = ?          
+          AND 
+            user_em_roles_relation.location_id IN (${locationIds.join(',')})
+          AND
+            em_roles.is_warden_role = 1 ${accountClause}
+          ORDER BY users.first_name`;
+        
+        this.pool.getConnection((con_err, connection) => {
+          if (con_err) {
+            console.log('Cannot get connection');
+            throw new Error(con_err);
+          }
+          connection.query(sql, params, (error, results) => {
+            if (error) {
+              console.log(error, sql, params);
+              throw new Error(error);
+            }
+            if (results.length > 0) {
+              resolve(results);
+            } else {
+              reject('No results found.');
+            }
+            connection.release();
+          });
+        });
+
+      });
+    }
+
     public getEMRolesOnAccountOnLocation(em_role: number = 0, account_id: number = 0, location_id: number = 0) {
       return new Promise((resolve, reject) => {
         let role_filter = '';

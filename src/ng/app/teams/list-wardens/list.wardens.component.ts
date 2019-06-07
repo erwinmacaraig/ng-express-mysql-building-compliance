@@ -24,6 +24,8 @@ declare var $: any;
 export class ListWardensComponent implements OnInit, OnDestroy {
     public wardenArr = <any>[];
 
+    public myWardenTeam = [];
+    private wardenTeamMembers = [];
     copyOfList = [];
     userData = <any> {};
     showModalLoader = false;
@@ -36,9 +38,6 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         { value : 9, name : 'Warden' },
         { value : 10, name : 'Floor / Area Warden' },
         { value : 11, name : 'Chief Warden' },
-        { value : 12, name : 'Fire Safety Advisor' },
-        { value : 13, name : 'Emergency Planning Committee Member' },
-        { value : 14, name : 'First Aid Officer' },
         { value : 15, name : 'Deputy Chief Warden' },
         { value : 16, name : 'Building Warden' },
         { value : 18, name : 'Deputy Building Warden' }
@@ -111,7 +110,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         private authService : AuthService,
         private router : Router,
         private userService : UserService,
-        private encDecrService : EncryptDecryptService,
+        public encDecrService : EncryptDecryptService,
         private dataProvider: PersonDataProviderService,
         private dashboardService : DashboardPreloaderService,
         private locationService: LocationsService,
@@ -133,11 +132,12 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-
+        /*
         this.courseService.getAllEmRolesTrainings((response) => {
             this.emTrainings = response.data;
         });
-
+        */
+        /*
         this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
             this.locations = response.locations;
             this.locationPagination.pages = response.pagination.pages;
@@ -146,10 +146,11 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 $('.row.filter-container select.location').material_select();
             },500);
         });
+        */
     }
 
     getListData(callBack?){
-
+        /*
         this.userService.queryUsers(this.queries, (response) => {
             this.pagination.total = response.data.pagination.total;
             this.pagination.pages = response.data.pagination.pages;
@@ -202,19 +203,22 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 }
             }
 
-            setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+            
 
             this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
 
             if(callBack){
                 callBack();
             }
-        });
+        }); */
+        return;
     }
 
     ngOnInit(){
         this.subscriptionType = this.userData['subscription']['subscription_type'];
-        this.dashboardService.show();        
+             
+        /*
+        this.dashboardService.show();  
         this.getListData(() => { 
             if(this.pagination.pages > 0){
                 this.pagination.currentPage = 1;
@@ -229,19 +233,24 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 $('.row.filter-container select').material_select();
             }, 100);
         });
+        */
+        this.listWardens();
+        setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+        
     }
 
     ngAfterViewInit(){
         $('.modal').modal({
             dismissible: false
         });
+        /*
         var self = this;
         $('#selectPageUpper').change(function(){
             // console.log($('#selectPageUpper').val());
             self.pageChange($('#selectPageUpper').val());
        });
        
-
+       
         this.accountService.isOnlineTrainingValid((response) => {
             if(response.valid){
                 this.isOnlineTrainingAvailable = true;
@@ -250,13 +259,15 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 $('.row.filter-container select').material_select();
             }, 100);
         });
+        
+        */
 
         $('#modalMobility select').material_select();
         this.filterByEvent();
-        this.locationChangeEvent();
-        this.sortByEvent();
-        this.dashboardService.show();
-        this.bulkManageActionEvent();
+        //this.locationChangeEvent();
+        //this.sortByEvent();
+        //this.dashboardService.show();
+        //this.bulkManageActionEvent();
         this.searchMemberEvent();
     }
 
@@ -289,9 +300,9 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     locationChangeEvent(){
         let __this = this;
-        $('select.location').on('change', function(e){
-            e.preventDefault();
-            e.stopPropagation();
+        $('select.location').on('change', function(){
+            // e.preventDefault();
+            // e.stopPropagation();
             let selected = $('select.location').val();
             __this.dashboardService.show();
             
@@ -319,36 +330,36 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     filterByEvent(){
         let __this = this;
-        $('select.filter-by').on('change', function(e){
+        $('#filter-roles').change(function(e){
             e.preventDefault();
             e.stopPropagation();
-            let selected = $('select.filter-by').val();
-            __this.dashboardService.show();
-            if(parseInt(selected) != 0 && selected != 'pending'){
-                __this.queries.roles = selected;
-            }else{
-                __this.queries.roles = 'frp,trp,users,no_roles';
-                if(selected == 'pending'){
-                    __this.queries.roles += ',pending';
+            let selected = $('#filter-roles').val();
+            console.log(selected);
+            __this.myWardenTeam = [];
+            const choosen = [];
+            
+            if(parseInt(selected, 10) == 0) {
+                __this.myWardenTeam = __this.wardenTeamMembers;
+            } else {
+                for (let warden of __this.wardenTeamMembers) {                    
+                    if (choosen.indexOf(warden['location_id']) == -1) {
+                        console.log('herw with ', warden, warden['role_ids'].indexOf(selected));
+                        if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
+                            choosen.push(warden['location_id']);
+                            __this.myWardenTeam.push(warden);
+                            console.log('pushing', warden);
+                        }
+                    }
                 }
             }
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
+            
+            
+            //
+            // 
+            //
+            /*
+            
+            */
         });    
     }
 
@@ -379,18 +390,21 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         this.searchMemberInput.debounceTime(800)
             .map(event => event.target.value)
             .subscribe((value) => {
-                this.queries.search = value;
-                this.queries.offset = 0;
-                this.loadingTable = true;
-                this.pagination.selection = [];
-                this.getListData(() => { 
-                    for(let i = 1; i<=this.pagination.pages; i++){
-                        this.pagination.selection.push({ 'number' : i });
+                this.myWardenTeam = [];
+                const choosen = [];
+                if (value.length == 0) {
+                 this.myWardenTeam = this.wardenTeamMembers;   
+                } else {
+                    let searchKey = value.toLowerCase();
+                    for (let user of this.wardenTeamMembers) {
+                        if (choosen.indexOf(user['location_id']) == -1) {
+                            if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                                choosen.push(user['location_id']);
+                                this.myWardenTeam.push(user);
+                            }
+                        }
                     }
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
-                    this.loadingTable = false;
-                });
+                }
             });
     }
 
@@ -680,4 +694,17 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(){}
+
+
+    private listWardens() {
+        this.myWardenTeam = [];
+        this.accountService.generateMyWardenList().subscribe((response) => {
+            for (let warden of response.warden) {
+                warden['id_encrypted'] = this.encDecrService.encrypt(warden['user_id']);
+                warden['enc_location_id'] = this.encDecrService.encrypt(warden['location_id']);
+                this.myWardenTeam.push(warden);
+                this.wardenTeamMembers.push(warden);
+            }
+        });
+    }
 }

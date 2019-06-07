@@ -512,7 +512,7 @@ export class TrainingCertification extends BaseClass {
    * @description
    * This method will give you the total number of required trainings only for a given user
    */
-  public getNumberOfTrainings(userIds = [], filter = {}) {
+  public getNumberOfTrainings(userIds = [], filter = {}): Promise<Object> {
     return new Promise((resolve, reject) => {
       const user_trainings = {};
       if (!userIds.length) {
@@ -524,8 +524,8 @@ export class TrainingCertification extends BaseClass {
         filterString += ('pass' in filter) ? ' AND pass = ' + filter['pass'] : ' AND pass = 1';
         filterString +=
         ('current' in filter) ? ` AND DATE_ADD(certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()` : '';
-        if ('training_requirement' in filter && filter['training_requirement'].length) {
-          const training_requirement_str = filter['training_requirement'].join(',');
+        if ('training_requirement' in filter && (filter['training_requirement'] as Number[]).length) {
+          const training_requirement_str = (filter['training_requirement'] as Number[]).join(',');
           filterString += ` AND training_requirement.training_requirement_id IN (${training_requirement_str})`;
         }
         const sql = `SELECT

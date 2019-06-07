@@ -175,6 +175,12 @@ export class TeamRoute extends BaseRoute {
     router.post('/team/build-trp-peep-list/',  new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
         new TeamRoute().buildPeepListForTrp(req, res);
     });
+
+    router.get('/team/get-my-warden-list/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+        new TeamRoute().generateMyWardenList(req, res);
+    });
+
+
 }
 
   /**
@@ -185,6 +191,141 @@ export class TeamRoute extends BaseRoute {
    */
   constructor() {
     super();
+  }
+
+  public async generateMyWardenList(req: AuthRequest, res:Response) {
+
+    let roleOfAccountInLocationObj = {};
+    let accountUserData = [];
+    let accountRoles = [];
+    let list = [];
+    let trpWardenList = [];
+    let frpWardenList = [];
+    const emUsers = new UserEmRoleRelation();
+    const sublocationIds = [];
+    let temp = [];
+    let tempFRP = [];
+    const trainingRequirementsLookup = {};
+    const trainingRequirements = [];
+    const userIds = [];
+    let cert = {};
+
+    try {
+        // determine if you are a building manager or tenant in these locations - response.locations
+        roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
+        
+    } catch(err) {
+        console.log('authenticate route get account role relation in location', err);
+    }
+
+    try {
+        accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
+        for(let data of accountUserData) {
+            if (data['location_id'] in roleOfAccountInLocationObj) {
+                accountRoles.push({
+                    role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                    location_id: data['location_id'],
+                    user_id: req.user.user_id
+                });
+            }
+        }
+    } catch(e) {
+        console.log(' teams route, error getting in location account user data', e);
+    }
+
+    try { 
+        temp = await new TrainingRequirements().allEmRolesTrainings();
+        for (let wardenRole of temp) {
+            if (wardenRole['is_warden_role'] == 1) {
+                trainingRequirementsLookup['em_role_id'] = wardenRole['training_requirement_id'];
+                if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                    trainingRequirements.push(wardenRole['training_requirement_id']);
+                }
+            }
+        }
+    } catch(e) {
+        console.log('Error getting/processing training requirement for role', e);
+
+    }
+
+    for(let role of accountRoles) {
+        if (role['role_id'] == 2) {
+            try {
+                 // get the location and all people that has warden role within the same account
+                temp = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id);
+                trpWardenList = [...temp];
+                temp = [];
+
+            } catch(e) {
+                console.log('Error generating em users from teams route', e);
+                temp = [];
+            }           
+        }
+        if (role['role_id'] == 1) {
+            tempFRP = [];
+            // get sublocation ids
+            sublocationIds.push(role['location_id']);
+            tempFRP = await new Location().getChildren(role['location_id']);
+            temp = [];
+            for (let loc of tempFRP) {
+                sublocationIds.push(loc['location_id']);
+            }
+            // get the location and all people that has warden role for FRP
+            temp = await emUsers.getWardenTeamList(sublocationIds);
+            frpWardenList = [...temp];
+        }
+    }
+    temp = [];
+    list = [...trpWardenList, ...frpWardenList];
+    const listObj = {};
+    for (let item of list) {
+        if (userIds.indexOf(item['user_id']) == -1) {
+            userIds.push(item['user_id']);
+        }
+        let indexStr = `${item['user_id']}-${item['location_id']}`;
+        if (indexStr in listObj) {
+            listObj[indexStr]['roles'].push(item['role_name']);
+            listObj[indexStr]['role_ids'].push(item['em_roles_id']);
+        } else {
+            listObj[indexStr] = {
+                account_name: item['account_name'],
+                building: item['building'],
+                level: item['level'],
+                user_id: item['user_id'],                
+                name: `${item['first_name']} ${item['last_name']}`,
+                last_login: item['last_login'],
+                profile_completion: item['profile_completion'],
+                location_id: item['location_id'],
+                is_building: item['is_building'],
+                role_ids: [item['em_roles_id']],
+                roles: [item['role_name']],
+                training_requirement_id: trainingRequirementsLookup[item['em_roles_id']],
+                training: 0 
+            }; 
+        }
+    }
+
+    cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
+        current: true,
+        training_requirement: trainingRequirements 
+    });
+    console.log(cert);
+    list = [];
+    Object.keys(listObj).forEach( (key) => {
+        if (listObj[key]['user_id'] in cert) {
+            listObj[key]['training'] = 1;
+        }
+        list.push(listObj[key]);
+    });
+
+
+    return res.status(200).send({
+        warden: list,
+        cert: cert
+        
+    });
+
+
   }
 
   public async buildPeepListForTrp(req:AuthRequest, res:Response) {

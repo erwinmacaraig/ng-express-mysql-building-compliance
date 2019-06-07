@@ -32,15 +32,14 @@
 
 	<div class="col l2 m5 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
+			<input type="text" placeholder="Search member name" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
 	</div>
 
 	<div class="col l2 m4 s6">
-		<select class="filter-by">
+		<select class="filter-by" id="filter-roles">
 			<option value="0" selected>Filter By (All)</option>
-            <option value="pending" >Pending</option>
 			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
 		</select>
 	</div>
@@ -118,84 +117,69 @@
 					<th>Last Login</th>
 					<th>Action</th>
 				</tr>
-			</thead>
-			<tbody [hidden]="loadingTable">
-				<tr *ngIf="wardenArr.length == 0">
+            </thead>
+            <!--PLACEHOLDER-->
+			<tbody>
+                <tr *ngIf="myWardenTeam.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
 					</td>
-				</tr>
-				<tr *ngFor="let warden of wardenArr; let i = index">
-					<td>
+                </tr>
+                <tr *ngFor="let warden of myWardenTeam; let i = index">
+                    <td>
+                        <p class="checkbox" >
+                        <input id="location-{{i}}" [disabled]="allAreSelected" [checked]="warden.isselected" class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
+                        <label for="location-{{i}}" ></label>                        
+                        <span>
+                            <a [routerLink]="['/location/view/', warden['enc_location_id']]" *ngIf="warden['is_building'] == 1">
+                                <span *ngIf="warden['building'] != null">{{warden['building']}}, {{warden['level']}}</span>
+                                <span *ngIf="warden['building'] == null">{{warden['level']}}</span>
+                            </a>
 
-						<p class="checkbox" >
-                            <input id="location-{{i}}" [disabled]="allAreSelected" [checked]="warden.isselected" class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
-                            <label for="location-{{i}}" ></label>
-                            <a  (click)="clickMultipleLocation(warden.locations)" *ngIf="warden.locations.length > 1">Multiple locations</a>
-                            <span *ngIf="warden.locations.length == 1">
-                                <a [routerLink]="['/location/view/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] > 0">
-                                    {{warden.locations[0].name}}
-                                </a>
-
-                                <a [routerLink]="['/location/view-sublocation/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] == 0">
-                                    {{warden.locations[0].name}}
-                                </a>
+                            <a [routerLink]="['/location/view-sublocation/', warden['enc_location_id']]" *ngIf="warden['is_building'] == 0">
+                                <span *ngIf="warden['building'] != null">{{warden['building']}}, {{warden['level']}}</span>
+                                <span *ngIf="warden['building'] == null">{{warden['level']}}</span>
+                            </a>
+                        </span>
+                        </p>
+                    </td>
+                    <td>
+                        <div class="text">
+                            <a [routerLink]="['/teams/view-user/', warden['id_encrypted']]">
+                                {{warden['name']}}
+                            </a>
+                        </div>
+                    </td>
+                    <td class="with-image role-name">
+                        <div class="eco-role">
+                            <div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
+                            <span *ngFor="let role of warden.roles; let ri = index;" style="display: block;">
+                                {{role}}
                             </span>
-						</p>
-					</td>
-					<td>
-						<div *ngIf="warden.profile_pic.length > 0" class="image-container lighten-3" [ngClass]="warden.bg_class">
-							<div class="image">
-								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
-							</div>
-						</div>
-						<div class="text">
-							<a [routerLink]="['/teams/view-user/', warden.id_encrypted]">
-								{{warden.first_name}} {{warden.last_name}}
-							</a>
-						</div>
-					</td>
-					<td class="with-image role-name">
-						<div class="eco-role">
-							<!-- <div class="image"></div> -->
-							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
-							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
-								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i>
-							</span>
-						</div>
-					</td>
-					<td>
-                        <span *ngIf="warden.trainings == 0" class="red-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
-                        <span *ngIf="warden.trainings > 0 && warden.trainings < (warden.trids.length + warden.misc_trainings.length)" class="orange-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
-                        <span *ngIf="warden.trainings == (warden.trids.length + warden.misc_trainings.length)" class="green-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
-					</td>
-					<td>
-						{{warden['last_login']}}
-					</td>
-					<td *ngIf="warden.profile_completion == 1">
-						<select (change)="onSelectFromTable($event, warden)">
-							<option value="0" class="blue-text" selected>Manage</option>
-							<option value="view" class="blue-text">View</option>
-							<option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>
+                        </div>
+                    </td>
+                    <td>
+                        <span [ngClass]="{'red-text': warden.training == 0, 'green-text': warden.training == 1}">{{warden.training}}/1</span>
+                    </td>
+                    <td>{{warden['last_login'] | date: 'dd/MM/yyyy'}}</td>
+                    <td *ngIf="warden.profile_completion == 1">                            
+                        <select (change)="onSelectFromTable($event, warden)">
+                            <option value="0" class="blue-text" selected>Manage</option>
+                            <option value="view" class="blue-text">View</option>
+                            <option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>
                             <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
                                 <span *ngIf="warden.mobility_impaired == 0">Add to mobility impaired list</span>
                                 <span *ngIf="warden.mobility_impaired == 1">Remove from mobility impaired list</span>
                             </option>
                             <option value="invite" *ngIf="warden.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
-						</select>
-					</td>
+                        </select>
+                    </td>
                     <td *ngIf="warden.profile_completion == 0"> 
                         <span class="red-text">Pending Profile Completion</span>
                     </td>
-				</tr>
-			</tbody>
-			<tbody [hidden]="!loadingTable">
-				<tr>
-					<td colspan="7" class="center-align">
-						<h6>Fetching records..</h6>
-					</td>
-				</tr>
-			</tbody>
+        
+                </tr>
+            </tbody>
 		</table>
 
 	</div>
