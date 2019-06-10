@@ -1099,24 +1099,43 @@ export class LocationAccountUser extends BaseClass {
 
     public generateUserAccountRoles(accountId=0, location=[]): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const params = [accountId];
+            const params = [];
             if (location.length == 0) {
                 reject('No sublocation');
+                return;                
             }
+            let accountClause = '';
+            if (accountId) {
+                accountClause = ` AND u.account_id = ? `;
+                params.push(accountId);
+
+            }
+            
             let locationIds = location.join(',');
             let sql = `SELECT
                     u.user_id,
                     u.email,
                     u.last_name,
                     u.first_name,
+                    u.mobility_impaired,
+                    u.last_login,
+                    u.profile_completion,
+                    accounts.account_name,
                     l.name,
-                    p.name AS building
+                    l.location_id,
+                    l.is_building,
+                    p.name AS building,
+                    IF(l.parent_id = -1, l.location_id, l.parent_id) AS building_id
                 FROM
                     users u
                 INNER JOIN
                     location_account_user lau
                 ON
                     u.user_id = lau.user_id
+                INNER JOIN
+                    accounts
+                ON
+                    accounts.account_id = u.account_id
                 INNER JOIN
                     locations l
                 ON
@@ -1126,11 +1145,9 @@ export class LocationAccountUser extends BaseClass {
                 ON
                     p.location_id = l.parent_id
                 WHERE
-                    u.account_id = ?
-                AND
                     lau.location_id IN (${locationIds})
                 ORDER BY
-                    u.user_id
+                    u.first_name
             `;
             this.pool.getConnection((error, connection) => {
                 if (error) {

@@ -171,7 +171,7 @@
                                 <span *ngIf="warden.mobility_impaired == 0">Add to mobility impaired list</span>
                                 <span *ngIf="warden.mobility_impaired == 1">Remove from mobility impaired list</span>
                             </option>
-                            <option value="invite" *ngIf="warden.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
+                            <option value="invite" *ngIf="isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
                         </select>
                     </td>
                     <td *ngIf="warden.profile_completion == 0"> 

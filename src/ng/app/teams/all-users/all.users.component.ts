@@ -26,7 +26,8 @@ declare var $: any;
 export class AllUsersComponent implements OnInit, OnDestroy {
 
 	userData = <any> {};
-	listData = [];
+    listData = [];
+    adminTeamMembers = [];
 	selectedToArchive = {
 		first_name : '', last_name : '', parent_data : {}, locations : []
 	};
@@ -35,17 +36,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	selectedFromList = [];
 
 	filters = [
-        { value : 2, name : 'Tenant Responsible' },
-        { value : 8, name : 'General Occupant' },
-        { value : 9, name : 'Warden' },
-        { value : 10, name : 'Floor / Area Warden' },
-        { value : 11, name : 'Chief Warden' },
-        { value : 12, name : 'Fire Safety Advisor' },
-        { value : 13, name : 'Emergency Planning Committee Member' },
-        { value : 14, name : 'First Aid Officer' },
-        { value : 15, name : 'Deputy Chief Warden' },
-        { value : 16, name : 'Building Warden' },
-        { value : 18, name : 'Deputy Building Warden' }
+        { value : 1, name : 'Building Manager' },
+        { value : 2, name : 'Tenant Responsible' }        
     ];
 
 	loadingTable = false;
@@ -70,7 +62,6 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	};
 
     multipleLocations = [];
-
 	searchMemberInput;
 
     options: DatepickerOptions = {
@@ -126,78 +117,13 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         private activatedRoute : ActivatedRoute
 		){
         this.userData = this.authService.getUserData();
-        for(let role of this.userData.roles){
-            if(role.role_id == 1){
-                this.isFRP = true;
-                this.filters.unshift({
-                    value : 1, name : 'Building Manager'
-                });
-            }
-        }
-
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-
-        this.courseService.getAllEmRolesTrainings((response) => {
-            this.emTrainings = response.data;
-        });
-
-        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
-            this.locations = response.locations;
-            this.locationPagination.pages = response.pagination.pages;
-            this.locationPagination.total = response.pagination.total;
-            setTimeout(() => {
-                $('.row.filter-container select.location').material_select();
-            },500);
-        });
-
-        if(this.router.url.indexOf("/teams/list-administrators") > -1){
-            this.isAdministrationsShow = true;
-            this.queries.roles = 'frp,trp';
-        }
-
-        let newFilters = [];
-        if(this.isAdministrationsShow){
-            for(let filter of this.filters){
-                if(filter['value'] == 1 || filter['value'] == 2){
-                    newFilters.push(filter);
-                }
-            }
-
-            this.filters = newFilters;
-        }
-
-        this.paramSub =  this.activatedRoute.queryParams.subscribe((params) => {
-            if(params['archived']){
-                this.showArchived = Boolean(params['archived']);
-                this.queries.archived = 1;
-            }else{
-                this.showArchived = false;
-                this.queries.archived = 0;
-            }
-
-
-            this.dashboardService.show();
-            this.getListData(() => { 
-                if(this.pagination.pages > 0){
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=this.pagination.pages; i++){
-                    this.pagination.selection.push({ 'number' : i });
-                }
-
-                this.dashboardService.hide();
-                setTimeout(() => {
-                    $('.row.filter-container select').material_select();
-                }, 100);
-            });
-        });
+        this.isAdministrationsShow = true;
 	}
 
 	getListData(callBack?){
-
+        /*
 		this.userService.queryUsers(this.queries, (response) => {
 			this.pagination.total = response.data.pagination.total;
 			this.pagination.pages = response.data.pagination.pages;
@@ -260,25 +186,29 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			if(callBack){
 				callBack();
 			}
-		});
+        });
+        */
+       return;
 	}
 
 	ngOnInit(){
-		this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        // this.dashboardService.show();
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        this.listAdminUsers();
+        setTimeout(() => {
+            $('.row.filter-container select').material_select();
+        }, 100);
+
+        
 	}
 
 	ngAfterViewInit(){
 		$('.modal').modal({
 			dismissible: false
         });
-        var self = this;
-        $('#selectPageUpper').change(function(){
-            // console.log($('#selectPageUpper').val());
-            self.pageChange($('#selectPageUpper').val());
-            
-       });
        
-
+       
+        /*
         this.accountService.isOnlineTrainingValid((response) => {
             if(response.valid){
                 this.isOnlineTrainingAvailable = true;
@@ -287,14 +217,16 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 $('.row.filter-container select:not(.location)').material_select();
             }, 100);
         });
+        */
 
         $('#modalMobility select').material_select();
-
+        this.dashboardService.show();
         this.filterByEvent();
 		this.locationChangeEvent();
 		this.sortByEvent();
 		this.bulkManageActionEvent();
-		this.searchMemberEvent();
+        this.searchMemberEvent();
+        
 	}
 
     locationChangeEvent(){
@@ -502,21 +434,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			}
 			this.selectedFromList = temp;
 		}
-
-		/*let checkboxes = $('table tbody input[type="checkbox"]'),
-        countChecked = 0;
-        checkboxes.each((indx, elem) => {
-            if($(elem).prop('checked')){
-                countChecked++;
-            }
-        });
-
-        $('#allLocations').prop('checked', false);
-        this.allAreSelected = false;
-        if(countChecked == checkboxes.length){
-            $('#allLocations').prop('checked', true);
-            this.allAreSelected = true;
-        }*/
+		
 	}
 
 	bulkManageActionEvent(){
@@ -733,6 +651,29 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         this.courseService.sendTrainingInvitation(form, (response) => {
             $('#modalSendInvitation').modal('close');
             this.showModalLoader = false;
+        });
+    }
+
+
+    private listAdminUsers() {
+        this.accountService.generateAdminUserList().subscribe((response) => {
+            console.log(response);
+            for (let user of response.account_users) {
+                user['id_encrypted'] = this.encDecrService.encrypt(user['user_id']);
+                user['enc_location_id'] = this.encDecrService.encrypt(user['location_id']);
+                user['isselected'] = false;
+
+                this.listData.push(user);
+                this.adminTeamMembers.push(user);
+            }
+            this.locations = response.buildings;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select();
+            },500);
+            this.dashboardService.hide();
+        }, (error) => {
+            this.dashboardService.hide();
+            console.log(error);
         });
     }
 

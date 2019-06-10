@@ -184,6 +184,10 @@ export class TeamRoute extends BaseRoute {
         new TeamRoute().generateMyGeneralOccupantList(req, res);
     });
 
+    router.get('/team/get-my-admin-list/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        new TeamRoute().generateMyAdminList(req, res);
+    });
+
 
 
 }
@@ -572,6 +576,167 @@ export class TeamRoute extends BaseRoute {
         cert: cert        
     });
     
+  }
+
+  public async generateMyAdminList(req: AuthRequest, res:Response) {        
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
+        let accountRoles = [];
+        let list = [];
+        let trpList = [];
+        let frpList = [];
+        const emUsers = new UserEmRoleRelation();
+        const sublocationIds = [];
+        let temp = [];
+        let tempFRP = [];
+        const trainingRequirementsLookup = {};
+        const trainingRequirements = [];
+        const userIds = [];
+        let cert = {};
+        let buildingLocations = [];
+        const ctr = []; // this will serve as the container of unique building ids
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
+            
+        } catch(err) {
+            console.log('authenticate route get account role relation in location', err);
+        }
+
+        try {
+            accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
+            for(let data of accountUserData) {
+                if (data['location_id'] in roleOfAccountInLocationObj) {
+                    accountRoles.push({
+                        role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                        location_id: data['location_id'],
+                        user_id: req.user.user_id
+                    });
+                }
+            }
+        } catch(e) {
+            console.log(' teams route, error getting in location account user data', e);
+        }
+        for(let role of accountRoles) { 
+            if (role['role_id'] == 2) { 
+                try {
+                    // get the location and all TRP role in the location with the same account
+                    temp = await new LocationAccountUser().generateUserAccountRoles(req.user.account_id, [role['location_id']]);
+                    trpList = [...temp];
+                    temp = [];
+                } catch(e) {
+                    console.log('Error generating TRP users from teams route', e);
+                    temp = [];
+                }
+                try {
+                    let bldg = await new Location().immediateParent([role['location_id']]);
+                   
+                    for (let b of bldg) {
+                        if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                            ctr.push(b['locId']);
+                            buildingLocations.push({
+                                location_id: b['locId'],
+                                location_name: b['level']
+                            });
+                        } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                            buildingLocations.push({
+                                location_id: b['parent_id'],
+                                location_name: b['buildingName']
+                            });
+                        }
+                    }
+                } catch(e) {
+                    console.log('Error getting immediate parent for sublocation ' + role['location_id']);
+                }   
+            }
+            if (role['role_id'] == 1) {
+                tempFRP = [];
+                // get sublocation ids
+                sublocationIds.push(role['location_id']);
+                tempFRP = await new Location().getChildren(role['location_id']);
+                temp = [];
+                for (let loc of tempFRP) {
+                    sublocationIds.push(loc['location_id']);
+                }
+                try {
+                    // get the location and all TRP role in the location with the same account
+                    temp = await new LocationAccountUser().generateUserAccountRoles(0, sublocationIds);
+                    frpList = [...temp];
+                    temp = [];
+                } catch(e) {
+                    console.log('Error generating account users from teams route', e);
+                    temp = [];
+                }
+                // get locations
+                try {
+                    let bldg = await new Location().immediateParent(sublocationIds);
+                    
+                    for (let b of bldg) {
+                        if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                            ctr.push(b['locId']);
+                            buildingLocations.push({
+                                location_id: b['locId'],
+                                location_name: b['level']
+                            });
+                        } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                            buildingLocations.push({
+                                location_id: b['parent_id'],
+                                location_name: b['buildingName']
+                            });
+                        }
+                    }
+                } catch(e) {
+                    console.log('There was a problem with the list of sublevels in getting the parent', sublocationIds);
+                }
+
+            }
+        }
+        temp = [];
+        list = [...trpList, ...frpList];
+        const listObj = {};
+        for (let item of list) {
+            if (userIds.indexOf(item['user_id']) == -1) {
+                userIds.push(item['user_id']);
+            }
+            let indexStr = `${item['user_id']}-${item['location_id']}`;
+            if (indexStr in listObj) {
+                continue;
+            } else {
+                listObj[indexStr] = {
+                    name: `${item['first_name']} ${item['last_name']}`,                    
+                    user_id: item['user_id'],
+                    email: item['email'],
+                    mobility_impaired: item['mobility_impaired'],
+                    account_name: item['account_name'],                
+                    building: item['building'],
+                    building_id: item['building_id'],
+                    level: item['name'],
+                    last_login: item['last_login'],
+                    profile_completion: item['profile_completion'],
+                    location_id: item['location_id'],
+                    is_building: item['is_building'],
+                    role_ids: [],
+                    roles: []                    
+                }; 
+            }
+        }
+        const accountUsers = await new UserRoleRelation().getManyByUserIds(userIds.join(','));
+        list = [];
+
+        Object.keys(listObj).forEach( (key) => {
+            for (let user of accountUsers) {
+                if (user['user_id'] == listObj[key]['user_id']) {
+                    listObj[key]['roles'].push(defs['notification_role_text'][user['role_id']]);
+                    listObj[key]['role_ids'].push(user['role_id']);                    
+                }
+            }
+            list.push(listObj[key]);
+        });
+
+        return res.status(200).send({
+            account_users: list,
+            buildings: buildingLocations        
+        });
   }
 
   public async buildPeepListForTrp(req:AuthRequest, res:Response) {
