@@ -83,7 +83,7 @@ export class CourseService {
     }
 
     sendTrainingInvitation(form, callBack){
-        this.http.post('/courses/send-training-invitation', form, this.options).subscribe((response) => {
+        this.http.post(this.baseUrl + '/courses/send-training-invitation', form, this.options).subscribe((response) => {
             callBack(response);
         });
     }

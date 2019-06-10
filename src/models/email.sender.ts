@@ -92,8 +92,8 @@ export class EmailSender {
                 CcAddresses: this.options['cc'],
                 BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au', 'mmanclark@evacgroup.com.au', 'dgilmore@evacgroup.com.au']
                 */
-                ToAddresses: this.options['to'],              
-                CcAddresses: this.options['cc'],
+                ToAddresses: [],              
+                CcAddresses: [],
                 BccAddresses: ['emacaraig@evacgroup.com.au','rsantos@evacgroup.com.au']                
                 
             }, 

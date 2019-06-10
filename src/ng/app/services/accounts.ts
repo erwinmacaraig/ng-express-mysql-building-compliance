@@ -208,7 +208,7 @@ export class AccountsDataProviderService {
 	}
 
 	generateMyWardenList() {
-		return this.http.get<{warden: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
+		return this.http.get<{warden: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
 	}
 
 }

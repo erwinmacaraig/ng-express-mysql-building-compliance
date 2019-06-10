@@ -209,7 +209,8 @@ export class TeamRoute extends BaseRoute {
     const trainingRequirements = [];
     const userIds = [];
     let cert = {};
-
+    let buildingLocations = [];
+    const ctr = []; // this will serve as the container of unique building ids
     try {
         // determine if you are a building manager or tenant in these locations - response.locations
         roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
@@ -259,6 +260,26 @@ export class TeamRoute extends BaseRoute {
             } catch(e) {
                 console.log('Error generating em users from teams route', e);
                 temp = [];
+            }
+            try {
+                let bldg = await new Location().immediateParent([role['location_id']]);
+               
+                for (let b of bldg) {
+                    if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                        ctr.push(b['locId']);
+                        buildingLocations.push({
+                            location_id: b['locId'],
+                            location_name: b['level']
+                        });
+                    } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                        buildingLocations.push({
+                            location_id: b['parent_id'],
+                            location_name: b['buildingName']
+                        });
+                    }
+                }
+            } catch(e) {
+                console.log('Error getting immediate parent for sublocation ' + role['location_id']);
             }           
         }
         if (role['role_id'] == 1) {
@@ -273,6 +294,28 @@ export class TeamRoute extends BaseRoute {
             // get the location and all people that has warden role for FRP
             temp = await emUsers.getWardenTeamList(sublocationIds);
             frpWardenList = [...temp];
+
+            // get locations
+            try {
+                let bldg = await new Location().immediateParent(sublocationIds);
+                
+                for (let b of bldg) {
+                    if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                        ctr.push(b['locId']);
+                        buildingLocations.push({
+                            location_id: b['locId'],
+                            location_name: b['level']
+                        });
+                    } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                        buildingLocations.push({
+                            location_id: b['parent_id'],
+                            location_name: b['buildingName']
+                        });
+                    }
+                }
+            } catch(e) {
+                console.log('There was a problem with the list of sublevels in getting the parent', sublocationIds);
+            }
         }
     }
     temp = [];
@@ -288,11 +331,12 @@ export class TeamRoute extends BaseRoute {
             listObj[indexStr]['role_ids'].push(item['em_roles_id']);
         } else {
             listObj[indexStr] = {
-                account_name: item['account_name'],
-                building: item['building'],
-                level: item['level'],
-                user_id: item['user_id'],                
                 name: `${item['first_name']} ${item['last_name']}`,
+                user_id: item['user_id'],
+                mobility_impaired: item['mobility_impaired'],                
+                building: item['building'],
+                building_id: item['building_id'],
+                level: item['level'],
                 last_login: item['last_login'],
                 profile_completion: item['profile_completion'],
                 location_id: item['location_id'],
@@ -300,7 +344,8 @@ export class TeamRoute extends BaseRoute {
                 role_ids: [item['em_roles_id']],
                 roles: [item['role_name']],
                 training_requirement_id: trainingRequirementsLookup[item['em_roles_id']],
-                training: 0 
+                training: 0,
+                account_name: item['account_name'] 
             }; 
         }
     }
@@ -309,7 +354,6 @@ export class TeamRoute extends BaseRoute {
         current: true,
         training_requirement: trainingRequirements 
     });
-    console.log(cert);
     list = [];
     Object.keys(listObj).forEach( (key) => {
         if (listObj[key]['user_id'] in cert) {
@@ -318,11 +362,10 @@ export class TeamRoute extends BaseRoute {
         list.push(listObj[key]);
     });
 
-
+    
     return res.status(200).send({
         warden: list,
-        cert: cert
-        
+        buildings: buildingLocations        
     });
 
 

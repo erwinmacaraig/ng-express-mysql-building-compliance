@@ -335,7 +335,8 @@ export class UserEmRoleRelation extends BaseClass {
                        user_em_roles_relation.location_id,
                        locations.is_building,
                        locations.name AS level,
-                       parent.name AS building`;
+                       parent.name AS building,
+                       IF(locations.parent_id = -1, locations.location_id, locations.parent_id) AS building_id`;
         
         if ('count' in filter) {
           columns = `COUNT(*) AS total`;

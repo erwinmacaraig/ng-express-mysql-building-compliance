@@ -30,7 +30,7 @@
 		</button>
 	</div>
 
-	<div class="col l2 m5 s12">
+	<div class="col l3 m5 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name" id="searchMemberInput">
 			<span class="material-icons">search</span>
@@ -44,10 +44,10 @@
 		</select>
 	</div>
     
-    <div class="col l2 m6 s6 margin-bottom-20">
+    <div class="col l3 m6 s6 margin-bottom-20">
         <select class="location">
             <option value="0" selected>All Locations</option>
-            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.location_name}}</option>
         </select>
     </div>
 	<!-- <div class="col l2 m6 s6">
@@ -69,10 +69,10 @@
 	<div class="col l2 m6 s12" *ngIf="subscriptionType == 'free'">
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
-			<option value="archive" >Archive selected</option>
+            <option value="archive" >Archive selected</option>            
 		</select>
 	</div>
-	<div class="col l2 m6 s6 margin-bottom-20" style="display: inline-block; padding: 0 33px;">
+	<!--<div class="col l2 m6 s6 margin-bottom-20" style="display: inline-block; padding: 0 33px;">
             <div class="inline-block">
                     <button style="
                             display: inline-block;
@@ -96,7 +96,7 @@
                     height: 50px !important;
                     vertical-align: inherit;" class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next</button>
             </div>
-    </div>
+    </div> -->
 </div>
 
 
@@ -119,7 +119,7 @@
 				</tr>
             </thead>
             <!--PLACEHOLDER-->
-			<tbody>
+			<tbody [hidden]="loadingTable">
                 <tr *ngIf="myWardenTeam.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
@@ -249,11 +249,11 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want restore the following users?
+			Are you sure you want archive the following users?
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
-				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
+				<span class="blue-text">{{list.name}}</span>
 			</li>
 		</ul>
 	</div>
@@ -308,7 +308,7 @@
     <form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
     <div class="modal-content">
-        <h5>Mobility Impaired Information For {{selectedPeep.first_name}} {{selectedPeep.last_name}}</h5>
+        <h5>Mobility Impaired Information For {{selectedPeep.name}}</h5>
         <div class="row">
             <div class="col s12 l6 m6">
                 <div class="select-field">
@@ -406,13 +406,13 @@
         <h5>Confirm action</h5>
 
         <div *ngIf="selectedToInvite.length == 1 && !sendInviteToAll && !sendInviteToAllNonCompliant">
-            <h6>Send training invitation to {{selectedToInvite[0].first_name}} {{selectedToInvite[0].last_name}}?</h6>
+            <h6>Send training invitation to {{selectedToInvite[0].name}}?</h6>
         </div>
         <div *ngIf="selectedToInvite.length > 1 && !sendInviteToAll && !sendInviteToAllNonCompliant">
             <h6>Send training invitation to the following:</h6>
             <ul>
                 <li *ngFor="let user of selectedToInvite; let i = index" style="font-size: 14px; margin-bottom: 2px;">
-                    {{i + 1}}.) {{user.first_name}} {{user.last_name}}
+                    {{i + 1}}.) {{user.name}}
                 </li>
             </ul>
         </div>

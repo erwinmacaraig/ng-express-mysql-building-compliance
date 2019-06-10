@@ -147,6 +147,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             },500);
         });
         */
+        
     }
 
     getListData(callBack?){
@@ -216,26 +217,12 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     ngOnInit(){
         this.subscriptionType = this.userData['subscription']['subscription_type'];
-             
-        /*
-        this.dashboardService.show();  
-        this.getListData(() => { 
-            if(this.pagination.pages > 0){
-                this.pagination.currentPage = 1;
-                this.pagination.prevPage = 1;
-            }
-
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
-            }
-            setTimeout(() => {
-                this.dashboardService.hide(); 
-                $('.row.filter-container select').material_select();
-            }, 100);
-        });
-        */
+        this.dashboardService.show();     
         this.listWardens();
-        setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
+        setTimeout(() => {
+            $('.row.filter-container select.filter-by').material_select('update');
+            $('.row.filter-container select').material_select();
+        }, 100);
         
     }
 
@@ -243,31 +230,12 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         $('.modal').modal({
             dismissible: false
         });
-        /*
-        var self = this;
-        $('#selectPageUpper').change(function(){
-            // console.log($('#selectPageUpper').val());
-            self.pageChange($('#selectPageUpper').val());
-       });
-       
-       
-        this.accountService.isOnlineTrainingValid((response) => {
-            if(response.valid){
-                this.isOnlineTrainingAvailable = true;
-            }
-            setTimeout(() => {
-                $('.row.filter-container select').material_select();
-            }, 100);
-        });
-        
-        */
-
         $('#modalMobility select').material_select();
         this.filterByEvent();
-        //this.locationChangeEvent();
+        this.locationChangeEvent();
         //this.sortByEvent();
         //this.dashboardService.show();
-        //this.bulkManageActionEvent();
+        this.bulkManageActionEvent();
         this.searchMemberEvent();
     }
 
@@ -290,9 +258,9 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         checkboxes.each((indx, elem) => {
             let id = $(elem).attr('id'),
             index = id.replace('location-', '');
-            for(let i in this.wardenArr){
+            for(let i in this.myWardenTeam){
                 if(i == index){
-                    this.singleCheckboxChangeEvent(this.wardenArr[i], { target : { checked : elem.checked } } );
+                    this.singleCheckboxChangeEvent(this.myWardenTeam[i], { target : { checked : elem.checked } } );
                 }
             }
         });
@@ -300,31 +268,24 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     locationChangeEvent(){
         let __this = this;
-        $('select.location').on('change', function(){
-            // e.preventDefault();
-            // e.stopPropagation();
+        $('select.location').on('change', function(e){
+            e.preventDefault();
+            e.stopPropagation();
             let selected = $('select.location').val();
             __this.dashboardService.show();
-            
-            __this.queries.location_id = selected;
-            __this.queries.offset = 0;
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
+            __this.myWardenTeam = [];
+            const choosen = [];
+            if(parseInt(selected, 10) == 0) {
+                __this.myWardenTeam = __this.wardenTeamMembers;
+            } else {
+                for (let warden of __this.wardenTeamMembers) {
+                    if (parseInt(warden['building_id'], 10) == parseInt(selected, 10)) {
+                        __this.myWardenTeam.push(warden);
+                    }
                 }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
+            }
+            __this.dashboardService.hide();
+         
         });
     }
 
@@ -347,19 +308,11 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                         if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
                             choosen.push(warden['location_id']);
                             __this.myWardenTeam.push(warden);
-                            console.log('pushing', warden);
+                            
                         }
                     }
                 }
             }
-            
-            
-            //
-            // 
-            //
-            /*
-            
-            */
         });    
     }
 
@@ -368,19 +321,19 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             let selected = $('select.sort-by').val();
 
             if(selected == 'user-name-asc'){
-                this.wardenArr.sort((a, b) => {
+                this.myWardenTeam.sort((a, b) => {
                     if(a.first_name < b.first_name) return -1;
                     if(a.first_name > b.first_name) return 1;
                     return 0;
                 });
             }else if(selected == 'user-name-desc'){
-                this.wardenArr.sort((a, b) => {
+                this.myWardenTeam.sort((a, b) => {
                     if(a.first_name > b.first_name) return -1;
                     if(a.first_name < b.first_name) return 1;
                     return 0;
                 });
             }else{
-                this.wardenArr = this.copyOfList;
+                this.myWardenTeam = this.copyOfList;
             }
         });
     }
@@ -447,10 +400,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     }
 
     singleCheckboxChangeEvent(list, event){
-        let copy = JSON.parse(JSON.stringify(this.selectedFromList));
         if(event.target.checked){
             list.isselected = true;
             this.selectedFromList.push(list);
+            console.log(this.selectedFromList);
         }else{
             let temp = [];
             for(let i in this.selectedFromList){
@@ -460,27 +413,13 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             }
             this.selectedFromList = temp;
         }
-
-        /*let checkboxes = $('table tbody input[type="checkbox"]'),
-        countChecked = 0;
-        checkboxes.each((indx, elem) => {
-            if($(elem).prop('checked')){
-                countChecked++;
-            }
-        });
-
-        $('#allLocations').prop('checked', false);
-        this.allAreSelected = false;
-        if(countChecked == checkboxes.length){
-            $('#allLocations').prop('checked', true);
-            this.allAreSelected = true;
-        }*/
+       
     }
 
     bulkManageActionEvent(){
         $('select.bulk-manage').on('change', () => {
             let sel = $('select.bulk-manage').val();
-
+            console.log(sel);
             if(sel == 'archive'){
                 if(this.selectedFromList.length > 0){
                     $('#modalArchiveBulk').modal('open');
@@ -489,9 +428,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 if(!this.allAreSelected){
                     this.selectedToInvite = [];
                     for(let user of this.selectedFromList){
-                        if(user.sendinvitation){
-                            this.selectedToInvite.push(user);
-                        }
+                        this.selectedToInvite.push(user);
                     }
                     if(this.selectedToInvite.length > 0){
                         $('#modalSendInvitation').modal('open');
@@ -612,7 +549,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
             paramData['user_id'] = this.selectedPeep['user_id'];
 
-            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+            if(this.selectedPeep['mobility_impaired_details'] && this.selectedPeep['mobility_impaired_details'].length > 0) {
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
 
@@ -622,7 +559,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
             this.userService.sendMobilityImpaireInformation(paramData, (response) => {
 
-                for(let user of this.wardenArr){
+                for(let user of this.myWardenTeam){
                     if(user['user_id'] == this.selectedPeep['user_id']){
                         user['mobility_impaired'] = 1;
                         user['mobility_impaired_details'] = response.data;
@@ -632,6 +569,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 f.reset();
                 $('#modalMobility').modal('close');
                 this.showModalLoader = false;
+                this.ngOnInit();
 
             });
         }
@@ -646,7 +584,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         };
         this.userService.markAsHealthy(paramData, (response) => {
 
-            for(let user of this.wardenArr){
+            for(let user of this.myWardenTeam){
                 if(user['user_id'] == this.selectedPeep['user_id']){
                     user['mobility_impaired'] = 0;
                     user['mobility_impaired_details'] = [];
@@ -683,10 +621,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             $('#modalSendInvitation').modal('close');
             this.showModalLoader = false;
             $('#trainingInviteResult').modal('open');
-            for(let i in this.wardenArr){
+            for(let i in this.myWardenTeam){
                 for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.wardenArr[i]['user_id']){
-                        this.wardenArr[i]['isselected'] = false;                        
+                    if(sel.user_id == this.myWardenTeam[i]['user_id']){
+                        this.myWardenTeam[i]['isselected'] = false;                        
                     }
                 }
             }  
@@ -698,13 +636,25 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     private listWardens() {
         this.myWardenTeam = [];
+        this.wardenTeamMembers = [];
         this.accountService.generateMyWardenList().subscribe((response) => {
+            this.loadingTable = true;
             for (let warden of response.warden) {
                 warden['id_encrypted'] = this.encDecrService.encrypt(warden['user_id']);
                 warden['enc_location_id'] = this.encDecrService.encrypt(warden['location_id']);
+                warden['isselected'] = false;
                 this.myWardenTeam.push(warden);
                 this.wardenTeamMembers.push(warden);
             }
+            this.locations = response.buildings;
+            this.loadingTable = false;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select('update');
+            }, 100);
+            this.dashboardService.hide();
+        }, (error) => {
+            this.loadingTable = false;
+            this.dashboardService.hide();
         });
     }
 }
