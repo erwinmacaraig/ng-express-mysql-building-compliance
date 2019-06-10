@@ -29,6 +29,9 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
 
     copyOfList = [];
     userData = <any> {};
+    myGOFRTeam = [];
+    gofrTeamMembers = [];
+
     showModalLoader = false;
     selectedToArchive = {
         first_name : '', last_name : '', parent_data : {},  locations : [], parent_name: '', name: ''
@@ -138,47 +141,13 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.emTrainings = response.data;
         });
 
-        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
-            this.locations = response.locations;
-            this.locationPagination.pages = response.pagination.pages;
-            this.locationPagination.total = response.pagination.total;
-            setTimeout(() => {
-                //$('.row.filter-container select.location').material_select();
-            },500);
-        });
-
-        this.paramSub =  this.activatedRoute.queryParams.subscribe((params) => {
-            if(params['archived']){
-                this.showArchived = Boolean(params['archived']);
-                this.queries.archived = 1;
-            }else{
-                this.showArchived = false;
-                this.queries.archived = 0;
-            }
-
-
-            this.dashboardService.show();
-            this.getListData(() => { 
-                if(this.pagination.pages > 0){
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=this.pagination.pages; i++){
-                    this.pagination.selection.push({ 'number' : i });
-                }
-
-                this.dashboardService.hide();
-                
-                setTimeout(() => {
-                     $('.row.filter-container select').material_select();
-                }, 100);
-            });
-        });
+        
     }
 
     getListData(callBack?){
 
+        return;
+        /*
         this.userService.queryUsers(this.queries, (response) => {
             this.pagination.total = response.data.pagination.total;
             this.pagination.pages = response.data.pagination.pages;
@@ -239,11 +208,14 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
                 callBack();
             }
         });
+        */
     }
 
     ngOnInit(){
         this.subscriptionType = this.userData['subscription']['subscriptionType'];
         this.dashboardService.show();
+        this.listGeneralOccupants();
+
         this.getListData(() => { 
             if(this.pagination.pages > 0){
                 this.pagination.currentPage = 1;
@@ -308,9 +280,9 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         checkboxes.each((indx, elem) => {
             let id = $(elem).attr('id'),
             index = id.replace('location-', '');
-            for(let i in this.wardenArr){
+            for(let i in this.myGOFRTeam){
                 if(i == index){
-                    this.singleCheckboxChangeEvent(this.wardenArr[i], { target : { checked : elem.checked } } );
+                    this.singleCheckboxChangeEvent(this.myGOFRTeam[i], { target : { checked : elem.checked } } );
                 }
             }
         });
@@ -322,63 +294,48 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             e.preventDefault();
             e.stopPropagation();
             let selected = $('select.location').val();
+            console.log('building: ' + selected);
             __this.dashboardService.show();
-            
-            __this.queries.location_id = selected;
-            __this.queries.offset = 0;
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
+            __this.myGOFRTeam = [];
+            const choosen = [];
+            if(parseInt(selected, 10) == 0) {
+                __this.myGOFRTeam = __this.gofrTeamMembers;
+            } else {
+                for (let warden of __this.gofrTeamMembers) {
+                    if (parseInt(warden['building_id'], 10) == parseInt(selected, 10)) {
+                        __this.myGOFRTeam.push(warden);
+                    }
                 }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
+            }
+            __this.dashboardService.hide();
+         
         });
     }
 
     filterByEvent(){
         let __this = this;
-        $('select.filter-by').on('change', function(e){
+        $('#filter-roles').change(function(e){
             e.preventDefault();
             e.stopPropagation();
-            let selected = $('select.filter-by').val();
-            __this.dashboardService.show();
-            if(parseInt(selected) != 0 && selected != 'pending'){
-                __this.queries.roles = selected;
-            }else{
-                __this.queries.roles = 'frp,trp,users,no_roles';
-                if(selected == 'pending'){
-                    __this.queries.roles += ',pending';
+            let selected = $('#filter-roles').val();
+            console.log(selected);
+            __this.myGOFRTeam = [];
+            const choosen = [];
+            
+            if(parseInt(selected, 10) == 0) {
+                __this.myGOFRTeam = __this.gofrTeamMembers;
+            } else {
+                for (let warden of __this.gofrTeamMembers) {                    
+                    if (choosen.indexOf(warden['location_id']) == -1) {                        
+                        if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
+                            choosen.push(warden['location_id']);
+                            __this.myGOFRTeam.push(warden);
+                            
+                        }
+                    }
                 }
             }
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
-        });    
+        });   
     }
 
     sortByEvent(){
@@ -386,19 +343,19 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             let selected = $('select.sort-by').val();
 
             if(selected == 'user-name-asc'){
-                this.wardenArr.sort((a, b) => {
+                this.myGOFRTeam.sort((a, b) => {
                     if(a.first_name < b.first_name) return -1;
                     if(a.first_name > b.first_name) return 1;
                     return 0;
                 });
             }else if(selected == 'user-name-desc'){
-                this.wardenArr.sort((a, b) => {
+                this.myGOFRTeam.sort((a, b) => {
                     if(a.first_name > b.first_name) return -1;
                     if(a.first_name < b.first_name) return 1;
                     return 0;
                 });
             }else{
-                this.wardenArr = this.copyOfList;
+                this.myGOFRTeam = this.copyOfList;
             }
         });
     }
@@ -408,18 +365,23 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         this.searchMemberInput.debounceTime(800)
             .map(event => event.target.value)
             .subscribe((value) => {
-                this.queries.search = value;
-                this.queries.offset = 0;
-                this.loadingTable = true;
-                this.pagination.selection = [];
-                this.getListData(() => { 
-                    for(let i = 1; i<=this.pagination.pages; i++){
-                        this.pagination.selection.push({ 'number' : i });
+                this.myGOFRTeam = [];
+                const choosen = [];
+                if (value.length == 0) {
+                 this.myGOFRTeam = this.gofrTeamMembers;   
+                } else {
+                    let searchKey = value.toLowerCase();
+                    this.loadingTable = true;
+                    for (let user of this.gofrTeamMembers) {
+                        if (choosen.indexOf(user['location_id']) == -1) {
+                            if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                                choosen.push(user['location_id']);
+                                this.myGOFRTeam.push(user);
+                            }
+                        }
                     }
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
                     this.loadingTable = false;
-                });
+                }
             });
     }
 
@@ -480,21 +442,6 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             }
             this.selectedFromList = temp;
         }
-
-        /*let checkboxes = $('table tbody input[type="checkbox"]'),
-        countChecked = 0;
-        checkboxes.each((indx, elem) => {
-            if($(elem).prop('checked')){
-                countChecked++;
-            }
-        });
-
-        $('#allLocations').prop('checked', false);
-        this.allAreSelected = false;
-        if(countChecked == checkboxes.length){
-            $('#allLocations').prop('checked', true);
-            this.allAreSelected = true;
-        }*/
     }
 
     bulkManageActionEvent(){
@@ -509,9 +456,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
                 if(!this.allAreSelected){
                     this.selectedToInvite = [];
                     for(let user of this.selectedFromList){
-                        if(user.sendinvitation){
-                            this.selectedToInvite.push(user);
-                        }
+                        this.selectedToInvite.push(user);
                     }
                     if(this.selectedToInvite.length > 0){
                         $('#modalSendInvitation').modal('open');
@@ -640,7 +585,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
             paramData['user_id'] = this.selectedPeep['user_id'];
 
-            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+            if(this.selectedPeep['mobility_impaired_details'] && this.selectedPeep['mobility_impaired_details'].length > 0){
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
 
@@ -650,7 +595,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
 
             this.userService.sendMobilityImpaireInformation(paramData, (response) => {
 
-                for(let user of this.wardenArr){
+                for(let user of this.myGOFRTeam){
                     if(user['user_id'] == this.selectedPeep['user_id']){
                         user['mobility_impaired'] = 1;
                         user['mobility_impaired_details'] = response.data;
@@ -660,6 +605,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
                 f.reset();
                 $('#modalMobility').modal('close');
                 this.showModalLoader = false;
+                this.ngOnInit();
 
             });
         }
@@ -674,7 +620,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         };
         this.userService.markAsHealthy(paramData, (response) => {
 
-            for(let user of this.wardenArr){
+            for(let user of this.myGOFRTeam){
                 if(user['user_id'] == this.selectedPeep['user_id']){
                     user['mobility_impaired'] = 0;
                     user['mobility_impaired_details'] = [];
@@ -711,10 +657,10 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             $('#modalSendInvitation').modal('close');
             this.showModalLoader = false;
             $('#trainingInviteResult').modal('open');
-            for(let i in this.wardenArr){
+            for(let i in this.myGOFRTeam){
                 for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.wardenArr[i]['user_id']){
-                        this.wardenArr[i]['isselected'] = false;                        
+                    if(sel.user_id == this.myGOFRTeam[i]['user_id']){
+                        this.myGOFRTeam[i]['isselected'] = false;                        
                     }
                 }
             }            
@@ -722,6 +668,35 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(){
-        this.paramSub.unsubscribe();
+        
+    }
+
+    public listGeneralOccupants() {
+        this.myGOFRTeam = [];
+        this.gofrTeamMembers = [];
+
+        this.accountService.generateMyGOFRList().subscribe((response) => {
+            this.loadingTable = true;
+            for (let go of response.gofr) {
+                go['id_encrypted'] = this.encDecrService.encrypt(go['user_id']);
+                go['enc_location_id'] = this.encDecrService.encrypt(go['location_id']);
+                go['isselected'] = false;
+
+                this.myGOFRTeam.push(go);
+                this.gofrTeamMembers.push(go);
+            }
+            this.locations = response.buildings;
+            this.loadingTable = false;
+            console.log(this.locations);
+
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select('update');
+            }, 100);
+            this.dashboardService.hide();
+        }, (error) => {
+            this.loadingTable = false;
+            this.dashboardService.hide();
+        });
+
     }
 }

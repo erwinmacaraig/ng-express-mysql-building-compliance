@@ -211,4 +211,8 @@ export class AccountsDataProviderService {
 		return this.http.get<{warden: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
 	}
 
+	generateMyGOFRList() {
+		return this.http.get<{gofr: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-occupants-list/`);
+	}
+
 }

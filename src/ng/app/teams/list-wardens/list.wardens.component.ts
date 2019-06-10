@@ -75,9 +75,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     datepickerModel : Date;
     isShowDatepicker = false;
     datepickerModelFormatted = '';
-    selectedPeep = {
-        first_name : '', last_name : ''
-    };
+    selectedPeep = {name: ''};
 
     selectedToInvite = [];
 
@@ -132,87 +130,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-        /*
-        this.courseService.getAllEmRolesTrainings((response) => {
-            this.emTrainings = response.data;
-        });
-        */
-        /*
-        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
-            this.locations = response.locations;
-            this.locationPagination.pages = response.pagination.pages;
-            this.locationPagination.total = response.pagination.total;
-            setTimeout(() => {
-                $('.row.filter-container select.location').material_select();
-            },500);
-        });
-        */
         
-    }
-
-    getListData(callBack?){
-        /*
-        this.userService.queryUsers(this.queries, (response) => {
-            this.pagination.total = response.data.pagination.total;
-            this.pagination.pages = response.data.pagination.pages;
-            this.wardenArr = response.data.users;
-
-            let tempRoles = {};
-            for(let i in this.wardenArr){
-                this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
-                this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['user_id']);
-
-                for(let l in this.wardenArr[i]['locations']){
-                    this.wardenArr[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt(this.wardenArr[i]['locations'][l]['location_id']);
-                    if(this.wardenArr[i]['locations'][l]['parent_name'] == null){
-                        this.wardenArr[i]['locations'][l]['parent_name'] = '';
-                    }
-                }
-
-                for(let r in this.wardenArr[i]['roles']){
-                    if( this.wardenArr[i]['roles'][r]['role_name'] ){
-                        if( !tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] ){
-                            tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] = this.wardenArr[i]['roles'][r]['role_name'];
-                        }
-                    }
-                }
-
-                this.wardenArr[i]['sendinvitation'] = false;
-                let hasEcoRole = false;
-                for(let r in this.wardenArr[i]['roles']){
-                    if( this.wardenArr[i]['roles'][r]['role_id'] != 1 && this.wardenArr[i]['roles'][r]['role_id'] != 2 ){
-                        hasEcoRole = true;
-                    }
-                }
-
-                if(hasEcoRole){
-                    this.wardenArr[i]['sendinvitation'] = true;
-                }
-
-                let isSelected = false;
-                this.wardenArr[i]['isselected'] = false;
-                for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.wardenArr[i]['user_id']){
-                        this.wardenArr[i]['isselected'] = true;
-                        isSelected = true;
-                    }
-                }
-
-                if(!isSelected && this.allAreSelected){
-                    this.wardenArr[i]['isselected'] = true;
-                    this.selectedFromList.push(this.wardenArr[i]);
-                }
-            }
-
-            
-
-            this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
-
-            if(callBack){
-                callBack();
-            }
-        }); */
-        return;
+        
     }
 
     ngOnInit(){
@@ -500,9 +419,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
             this.loadingTable = true;
-            this.getListData(() => { 
-                this.loadingTable = false;
-            });
+            
         }
     }
 

@@ -180,6 +180,11 @@ export class TeamRoute extends BaseRoute {
         new TeamRoute().generateMyWardenList(req, res);
     });
 
+    router.get('/team/get-my-occupants-list/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+        new TeamRoute().generateMyGeneralOccupantList(req, res);
+    });
+
+
 
 }
 
@@ -369,6 +374,204 @@ export class TeamRoute extends BaseRoute {
     });
 
 
+  }
+
+  public async generateMyGeneralOccupantList(req: AuthRequest, res:Response) {
+
+      let roleOfAccountInLocationObj = {};
+      let accountUserData = [];
+      let accountRoles = [];
+      let list = [];
+      let trpGOFRList = [];
+      let frpGOFRList = [];
+      const emUsers = new UserEmRoleRelation();
+      const sublocationIds = [];
+      let temp = [];
+      let tempFRP = [];
+      const trainingRequirementsLookup = {};
+      const trainingRequirements = [];
+      const userIds = [];
+      let cert = {};
+      let buildingLocations = [];
+      const ctr = []; // this will serve as the container of unique building ids
+      try {
+        // determine if you are a building manager or tenant in these locations - response.locations
+        roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(
+          req.user.account_id
+        );
+      } catch (err) {
+        console.log(
+          "authenticate route get account role relation in location",
+          err
+        );
+      }
+
+      try {
+        accountUserData = await new LocationAccountUser().getByUserId(
+          req.user.user_id
+        );
+        for (let data of accountUserData) {
+          if (data["location_id"] in roleOfAccountInLocationObj) {
+            accountRoles.push({
+              role_id:
+                roleOfAccountInLocationObj[data["location_id"]]["role_id"],
+              location_id: data["location_id"],
+              user_id: req.user.user_id
+            });
+          }
+        }
+      } catch (e) {
+        console.log(
+          " teams route, error getting in location account user data",
+          e
+        );
+      }
+      try {
+        temp = await new TrainingRequirements().allEmRolesTrainings();
+        for (let wardenRole of temp) {
+          if (wardenRole["em_role_id"] == 8) {
+            trainingRequirementsLookup["em_role_id"] =
+              wardenRole["training_requirement_id"];
+            if (
+              trainingRequirements.indexOf(
+                wardenRole["training_requirement_id"]
+              ) == -1
+            ) {
+              trainingRequirements.push(
+                wardenRole["training_requirement_id"]
+              );
+            }
+          }
+        }
+      } catch (e) {
+        console.log(
+          "Error getting/processing training requirement for role",
+          e
+        );
+      }
+
+    for(let role of accountRoles) {        
+        if (role['role_id'] == 2) {
+            try {
+                // get all general occupant in this level/location belonging to the same account
+                temp = await emUsers.getGOFRTeamList([role['location_id']], req.user.account_id);
+                trpGOFRList = [...temp];
+                temp = [];
+
+            } catch(e) {
+                console.log('Error generating gofr users from teams route', e);
+                temp = [];
+            }
+            try {
+                let bldg = await new Location().immediateParent([role['location_id']]);
+               
+                for (let b of bldg) {
+                    if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                        ctr.push(b['locId']);
+                        buildingLocations.push({
+                            location_id: b['locId'],
+                            location_name: b['level']
+                        });
+                    } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                        buildingLocations.push({
+                            location_id: b['parent_id'],
+                            location_name: b['buildingName']
+                        });
+                    }
+                }
+            } catch(e) {
+                console.log('Error getting immediate parent for sublocation ' + role['location_id']);
+            }
+            
+        }
+        if (role['role_id'] == 1) { 
+            tempFRP = [];
+            // get sublocation ids
+            sublocationIds.push(role['location_id']);
+            tempFRP = await new Location().getChildren(role['location_id']);
+            temp = [];
+            for (let loc of tempFRP) {
+                sublocationIds.push(loc['location_id']);
+            }
+            // get the location and all people that has warden role for FRP
+            temp = await emUsers.getGOFRTeamList(sublocationIds);
+            frpGOFRList = [...temp];
+
+            // get locations
+            try {
+                let bldg = await new Location().immediateParent(sublocationIds);
+                
+                for (let b of bldg) {
+                    if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                        ctr.push(b['locId']);
+                        buildingLocations.push({
+                            location_id: b['locId'],
+                            location_name: b['level']
+                        });
+                    } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                        buildingLocations.push({
+                            location_id: b['parent_id'],
+                            location_name: b['buildingName']
+                        });
+                    }
+                }
+            } catch(e) {
+                console.log('There was a problem with the list of sublevels in getting the parent', sublocationIds);
+            }
+        }
+    }
+
+    temp = [];
+    list = [...trpGOFRList, ...frpGOFRList];
+    const listObj = {};
+    for (let item of list) {
+        if (userIds.indexOf(item['user_id']) == -1) {
+            userIds.push(item['user_id']);
+        }
+        let indexStr = `${item['user_id']}-${item['location_id']}`;
+        if (indexStr in listObj) {
+            listObj[indexStr]['roles'].push(item['role_name']);
+            listObj[indexStr]['role_ids'].push(item['em_roles_id']);
+        } else {
+            listObj[indexStr] = {
+                name: `${item['first_name']} ${item['last_name']}`,
+                user_id: item['user_id'],
+                mobility_impaired: item['mobility_impaired'],                
+                building: item['building'],
+                building_id: item['building_id'],
+                level: item['level'],
+                last_login: item['last_login'],
+                profile_completion: item['profile_completion'],
+                location_id: item['location_id'],
+                is_building: item['is_building'],
+                role_ids: [item['em_roles_id']],
+                roles: [item['role_name']],
+                training_requirement_id: trainingRequirementsLookup[item['em_roles_id']],
+                training: 0,
+                account_name: item['account_name'] 
+            }; 
+        }
+    }
+
+    cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
+        current: true,
+        training_requirement: trainingRequirements 
+    });
+    list = [];
+    Object.keys(listObj).forEach( (key) => {
+        if (listObj[key]['user_id'] in cert) {
+            listObj[key]['training'] = 1;
+        }
+        list.push(listObj[key]);
+    });
+
+    
+    return res.status(200).send({
+        gofr: list,
+        buildings: buildingLocations,
+        cert: cert        
+    });
+    
   }
 
   public async buildPeepListForTrp(req:AuthRequest, res:Response) {

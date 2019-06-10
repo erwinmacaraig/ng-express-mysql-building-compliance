@@ -2,16 +2,6 @@
 	<div class="col l12 m12 s12">
 		<h4> <span *ngIf="showArchived">Archived</span> General Occupant </h4>
 		<div class="right-actions">
-			<!-- <div class="switch-container">
-				<div class="text">Show only not compliant</div>
-				<div class="switch">
-					<input type="checkbox">
-					<div class="yes">Yes</div>
-					<div class="no">No</div>
-					<div class="highlight"></div>
-					<div class="background"></div>
-				</div>
-			</div> -->
 			<div class="archived-container">
 				<a  [routerLink]="['/teams/list-general-occupant']" [queryParams]="{ 'archived' : true }" *ngIf="!showArchived">
 					<div class="image"></div>
@@ -28,7 +18,7 @@
 </div>
 
 <div class="row filter-container">
-	<div class="col l2 m6 s12" *ngIf="!showArchived">
+	<div class="col l3 m6 s12" *ngIf="!showArchived">
 		<button class="btn orange waves-effect waves-light btn-add-warden" [routerLink]="['/teams/add-general-occupant']">
 			<div class="image"></div>
 			Add General Occupant
@@ -37,33 +27,18 @@
 
 	<div class="col l4 m6 s12">
 		<div class="search-field">
-			<input type="text" placeholder="Search member name or email" id="searchMemberInput">
+			<input type="text" placeholder="Search member name" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
-	</div>
-
-	<!-- <div class="col l2 m4 s6">
-		<select class="filter-by">
-			<option value="0" selected>Filter By (All)</option>
-            <option value="pending" >Pending</option>
-			<option value="{{filter.value}}" *ngFor="let filter of filters;">{{filter.name}}</option>
-		</select>
-	</div> -->
+	</div>	
     
-    <div class="col l2 m6 s12">
+    <div class="col l3 m6 s12">
         <select class="location">
             <option value="0" selected>All Locations</option>
-            <!--<option value="-1">Users with no assigned location</option>-->
-            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.location_name}}</option>
         </select>
     </div>
-	<!-- <div class="col l2 m6 s6">
-        <select class="sort-by">
-            <option value="0" selected>Sort By</option>
-            <option value="user-name-desc">User Name Descending</option>
-            <option value="user-name-asc">User Name Ascending</option>
-        </select>
-    </div> -->
+	
 	<div class="col l2 m6 s12" *ngIf="subscriptionType != 'free'">
 		<select class="bulk-manage">
             <option value="0" selected>Manage Action</option>            
@@ -81,7 +56,7 @@
 			<option value="archive" *ngIf="showArchived">Restore selected</option>
 		</select>
     </div>
-    <div class="col l2 m6 s6 margin-bottom-20" style="display: inline-block; padding: 0 33px;">
+    <!--<div class="col l2 m6 s6 margin-bottom-20" style="display: inline-block; padding: 0 33px;">
             <div class="inline-block">
                     <button style="
                             display: inline-block;
@@ -97,7 +72,7 @@
                 <select class="browser-default" #selectPageUpper id="selectPageUpper" (ngModelChange)="pageChange(selectPageUpper.value)">
                     <option [selected]="(pagination.currentPage ==sel.number) == true" *ngFor="let sel of pagination.selection" [value]="sel.number">{{sel.number}}</option>
                 </select>
-                <!--<span style="color: black;">{{pagination.currentPage}}</span>-->
+                
             </div>
             <div class="inline-block">
                     <button style="display: inline-block;
@@ -106,7 +81,7 @@
                     height: 50px !important;
                     vertical-align: inherit;" class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next</button>
             </div>
-    </div>
+    </div> -->
     
 </div>
 
@@ -130,74 +105,61 @@
 				</tr>
 			</thead>
 			<tbody [hidden]="loadingTable">
-				<tr *ngIf="wardenArr.length == 0">
+				<tr *ngIf="myGOFRTeam.length == 0">
 					<td colspan="6" class="center">
 						<h6>No record found</h6>
 					</td>
 				</tr>
-				<tr *ngFor="let warden of wardenArr; let i = index">
+				<tr *ngFor="let warden of myGOFRTeam; let i = index">
 					<td>
 
 						<p class="checkbox" >
                             <input id="location-{{i}}" [disabled]="allAreSelected" [checked]="warden.isselected" class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(warden, $event)"  >
                             <label for="location-{{i}}" ></label>
-                            <a  (click)="clickMultipleLocation(warden.locations)" *ngIf="warden.locations.length > 1">Multiple locations</a>
-                            <span *ngIf="warden.locations.length == 1">
-                                <a [routerLink]="['/location/view/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] > 0">
-                                    {{warden.locations[0].name}}
+                            <span>
+                                <a [routerLink]="['/location/view/', warden['enc_location_id']]" *ngIf="warden['is_building'] == 1">
+                                    <span *ngIf="warden['building'] != null">{{warden['building']}}, {{warden['level']}}</span>
+                                    <span *ngIf="warden['building'] == null">{{warden['level']}}</span>
                                 </a>
-
-                                <a [routerLink]="['/location/view-sublocation/', warden.locations[0]['enc_location_id']]" *ngIf="warden.locations[0]['sublocations_count'] == 0">
-                                    {{warden.locations[0].name}}
+    
+                                <a [routerLink]="['/location/view-sublocation/', warden['enc_location_id']]" *ngIf="warden['is_building'] == 0">
+                                    <span *ngIf="warden['building'] != null">{{warden['building']}}, {{warden['level']}}</span>
+                                    <span *ngIf="warden['building'] == null">{{warden['level']}}</span>
                                 </a>
                             </span>
 						</p>
 					</td>
 					<td>
-						<div *ngIf="warden.profile_pic.length > 0" class="image-container lighten-3" [ngClass]="warden.bg_class">
-							<div class="image">
-								<img *ngIf="warden.profile_pic.length > 0" [src]="warden.profile_pic"  >
-							</div>
-						</div>
 						<div class="text">
-							<a [routerLink]="['/teams/view-user/', warden.id_encrypted]">
-								{{warden.first_name}} {{warden.last_name}}
-							</a>
-						</div>
+                            <a [routerLink]="['/teams/view-user/', warden['id_encrypted']]">
+                                {{warden['name']}}
+                            </a>
+                        </div>
 					</td>
 					<td class="with-image role-name">
 						<div class="eco-role">
-							<!-- <div class="image"></div> -->
-							<div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
-							<span *ngFor="let role of warden.roles; let ri = index;" class="name">
-								{{role.role_name}}<i *ngIf=" warden.roles.length - 1 != ri ">,</i>
-							</span>
-						</div>
+                            <div *ngIf="warden.mobility_impaired == 1" class="impaired"></div>
+                            <span *ngFor="let role of warden.roles; let ri = index;" style="display: block;">
+                                {{role}}
+                            </span>
+                        </div>
 					</td>
-					<td *ngIf="warden.locations.length">
-                        <span *ngIf="warden.trainings == 0" class="red-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
-                        <span *ngIf="warden.trainings > 0 && warden.trainings < (warden.trids.length + warden.misc_trainings.length)" class="orange-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
-                        <span *ngIf="warden.trainings == (warden.trids.length + warden.misc_trainings.length)" class="green-text">{{warden.trainings}} / {{warden.trids.length + warden.misc_trainings.length}}</span>
-                    </td>
-                    <td *ngIf="!warden.locations.length">
-                        &nbsp;
-                    </td>
 					<td>
-						{{warden['last_login']}}
-					</td>
-					<td *ngIf="warden.profile_completion == 1">
-						<select (change)="onSelectFromTable($event, warden)">
-							<option value="0" class="blue-text" selected>Manage</option>
-							<option value="view" class="blue-text">View</option>
-                            <option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId" *ngIf="!showArchived">Archive</option>
-							<option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId" *ngIf="showArchived">Restore</option>
-                            <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" *ngIf="!showArchived">
+                        <span [ngClass]="{'red-text': warden.training == 0, 'green-text': warden.training == 1}">{{warden.training}}/1</span>
+                    </td>
+					<td>{{warden['last_login'] | date: 'dd/MM/yyyy'}}</td>
+					<td *ngIf="warden.profile_completion == 1">                            
+                        <select (change)="onSelectFromTable($event, warden)">
+                            <option value="0" class="blue-text" selected>Manage</option>
+                            <option value="view" class="blue-text">View</option>
+                            <option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>
+                            <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
                                 <span *ngIf="warden.mobility_impaired == 0">Add to mobility impaired list</span>
                                 <span *ngIf="warden.mobility_impaired == 1">Remove from mobility impaired list</span>
                             </option>
-                            <option value="invite" *ngIf="warden.sendinvitation && isOnlineTrainingAvailable && !showArchived" class="blue-text">Send invitation</option>
-						</select>
-					</td>
+                            <option value="invite" *ngIf="warden.sendinvitation && isOnlineTrainingAvailable" class="blue-text">Send invitation</option>
+                        </select>
+                    </td>
                     <td *ngIf="warden.profile_completion == 0"> 
                         <span class="red-text">Pending Profile Completion</span>
                     </td>
@@ -205,7 +167,7 @@
 			</tbody>
 			<tbody [hidden]="!loadingTable">
 				<tr>
-					<td colspan="7" class="center-align">
+					<td colspan="6" class="center-align">
 						<h6>Fetching records..</h6>
 					</td>
 				</tr>
@@ -253,7 +215,7 @@
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
 			Are you sure you want to <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>
-			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
+			<span class="blue-text">{{selectedToArchive.name}}</span>
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
@@ -285,7 +247,7 @@
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
-				<span class="blue-text">{{list.first_name}} {{list.last_name}}</span>
+				<span class="blue-text">{{list.name}}</span>
 			</li>
 		</ul>
 	</div>
@@ -342,7 +304,7 @@
     <form #formMobility="ngForm" (submit)="modalPeepFormSubmit(formMobility, $event)" [hidden]="showModalLoader">
 
     <div class="modal-content">
-        <h5>Mobility Impaired Information For {{selectedPeep.first_name}} {{selectedPeep.last_name}}</h5>
+        <h5>Mobility Impaired Information For {{selectedPeep.name}}</h5>
         <div class="row">
             <div class="col s12 l6 m6">
                 <div class="select-field">
@@ -411,7 +373,7 @@
     <div class="modal-content">
         <h5>Confirm action</h5>
 
-        <h6>Mark {{selectedPeep.first_name}} {{selectedPeep.last_name}} as Healthy</h6>
+        <h6>Mark {{selectedPeep.name}} as Healthy</h6>
     </div>
 
     <div class="modal-footer" [hidden]="showModalLoader">
@@ -446,7 +408,7 @@
             <h6>Send training invitation to the following:</h6>
             <ul>
                 <li *ngFor="let user of selectedToInvite; let i = index" style="font-size: 14px; margin-bottom: 2px;">
-                    {{i + 1}}.) {{user.first_name}} {{user.last_name}}
+                    {{i + 1}}.) {{user.name}}
                 </li>
             </ul>
         </div>
