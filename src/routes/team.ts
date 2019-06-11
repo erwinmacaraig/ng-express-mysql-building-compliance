@@ -621,7 +621,7 @@ export class TeamRoute extends BaseRoute {
             if (role['role_id'] == 2) { 
                 try {
                     // get the location and all TRP role in the location with the same account
-                    temp = await new LocationAccountUser().generateUserAccountRoles(req.user.account_id, [role['location_id']]);
+                    temp = await new LocationAccountUser().generateUserAccountRoles(req.user.account_id, [role['location_id']], '0');
                     trpList = [...temp];
                     temp = [];
                 } catch(e) {
@@ -660,7 +660,7 @@ export class TeamRoute extends BaseRoute {
                 }
                 try {
                     // get the location and all TRP role in the location with the same account
-                    temp = await new LocationAccountUser().generateUserAccountRoles(0, sublocationIds);
+                    temp = await new LocationAccountUser().generateUserAccountRoles(0, sublocationIds, '0');
                     frpList = [...temp];
                     temp = [];
                 } catch(e) {

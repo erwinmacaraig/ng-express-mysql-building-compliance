@@ -136,6 +136,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     ngOnInit(){
         this.subscriptionType = this.userData['subscription']['subscription_type'];
+        if (this.userData['account_has_online_training'] == 1) {
+            this.isOnlineTrainingAvailable = true;
+        }
+        
         this.dashboardService.show();     
         this.listWardens();
         setTimeout(() => {

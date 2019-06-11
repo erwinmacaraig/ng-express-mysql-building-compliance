@@ -34,7 +34,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
 
     showModalLoader = false;
     selectedToArchive = {
-        first_name : '', last_name : '', parent_data : {},  locations : [], parent_name: '', name: ''
+        name: ''
     };
     selectedFromList = [];
 
@@ -83,7 +83,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     isShowDatepicker = false;
     datepickerModelFormatted = '';
     selectedPeep = {
-        first_name : '', last_name : ''
+       name: ''
     };
 
     selectedToInvite = [];
@@ -144,114 +144,19 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         
     }
 
-    getListData(callBack?){
-
-        return;
-        /*
-        this.userService.queryUsers(this.queries, (response) => {
-            this.pagination.total = response.data.pagination.total;
-            this.pagination.pages = response.data.pagination.pages;
-            this.wardenArr = response.data.users;
-
-            let tempRoles = {};
-            for(let i in this.wardenArr){
-                this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
-                this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['user_id']);
-
-                for(let l in this.wardenArr[i]['locations']){
-                    this.wardenArr[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt(this.wardenArr[i]['locations'][l]['location_id']);
-                    if(this.wardenArr[i]['locations'][l]['parent_name'] == null){
-                        this.wardenArr[i]['locations'][l]['parent_name'] = '';
-                    }
-                }
-
-                for(let r in this.wardenArr[i]['roles']){
-                    if( this.wardenArr[i]['roles'][r]['role_name'] ){
-                        if( !tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] ){
-                            tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] = this.wardenArr[i]['roles'][r]['role_name'];
-                        }
-                    }
-                }
-
-                this.wardenArr[i]['sendinvitation'] = false;
-                let hasEcoRole = false;
-                for(let r in this.wardenArr[i]['roles']){
-                    if( this.wardenArr[i]['roles'][r]['role_id'] != 1 && this.wardenArr[i]['roles'][r]['role_id'] != 2 ){
-                        hasEcoRole = true;
-                    }
-                }
-
-                if(hasEcoRole){
-                    this.wardenArr[i]['sendinvitation'] = true;
-                }
-
-                let isSelected = false;
-                this.wardenArr[i]['isselected'] = false;
-                for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.wardenArr[i]['user_id']){
-                        this.wardenArr[i]['isselected'] = true;
-                        isSelected = true;
-                    }
-                }
-
-                if(!isSelected && this.allAreSelected){
-                    this.wardenArr[i]['isselected'] = true;
-                    this.selectedFromList.push(this.wardenArr[i]);
-                }
-            }
-
-            setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
-
-            this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
-
-            if(callBack){
-                callBack();
-            }
-        });
-        */
-    }
-
     ngOnInit(){
         this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        if (this.userData['account_has_online_training'] == 1) {
+            this.isOnlineTrainingAvailable = true;
+        }
         this.dashboardService.show();
         this.listGeneralOccupants();
-
-        this.getListData(() => { 
-            if(this.pagination.pages > 0){
-                this.pagination.currentPage = 1;
-                this.pagination.prevPage = 1;
-            }
-
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
-            }
-            setTimeout(() => {
-                this.dashboardService.hide(); 
-                $('.row.filter-container select').material_select();
-            }, 100);
-        });
     }
 
     ngAfterViewInit(){
         $('.modal').modal({
             dismissible: false
         });
-
-        var self = this;
-        $('#selectPageUpper').change(function(){
-            // console.log($('#selectPageUpper').val());
-            self.pageChange($('#selectPageUpper').val());
-       });
-
-        this.accountService.isOnlineTrainingValid((response) => {
-            if(response.valid){
-                this.isOnlineTrainingAvailable = true;
-            }
-            setTimeout(() => {
-                $('.row.filter-container select').material_select();
-            }, 1000);
-        });
-
         $('#modalMobility select').material_select();
         this.filterByEvent();
         this.locationChangeEvent();
@@ -259,11 +164,6 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         this.dashboardService.show();
         this.bulkManageActionEvent();
         this.searchMemberEvent();
-    }
-
-    generateRandomBGClass(){
-        let colors = ["red", "blue", "yellow", "orange", "green", "purple", "pink"];
-        return colors[ Math.floor( Math.random() * colors.length) ];
     }
 
     selectAllCheckboxEvent(event){
@@ -418,7 +318,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.dashboardService.show();
             this.ngOnInit();
             this.selectedToArchive = {
-                first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
+                name: ''
             };
         };
         if(!this.showArchived){
@@ -500,45 +400,6 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.userService.archiveUsers(arrIds, cb);
         }else{
             this.userService.unArchiveUsers(arrIds, cb);
-        }
-    }
-
-    pageChange(type){
-
-        let changeDone = false;
-        switch (type) {
-            case "prev":
-                if(this.pagination.currentPage > 1){
-                    this.pagination.currentPage = this.pagination.currentPage - 1;
-                    changeDone = true;
-                }
-                break;
-
-            case "next":
-                if(this.pagination.currentPage < this.pagination.pages){
-                    this.pagination.currentPage = this.pagination.currentPage + 1;
-                    changeDone = true;
-                }
-                break;
-            
-            default:
-                if(this.pagination.prevPage != parseInt(type)){
-                    this.pagination.currentPage = parseInt(type);
-                    $("#selectPageUpper option[value='20']").attr("selected", "selected");
-                    changeDone = true;
-                }
-                break;
-        }
-
-        if(changeDone){
-            this.pagination.prevPage = parseInt(type);
-            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
-            this.loadingTable = true;
-            this.getListData(() => { 
-                this.loadingTable = false;
-                
-            });
         }
     }
 

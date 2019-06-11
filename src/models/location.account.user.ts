@@ -1097,7 +1097,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public generateUserAccountRoles(accountId=0, location=[]): Promise<Array<object>> {
+    public generateUserAccountRoles(accountId=0, location=[], archived?): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
             const params = [];
             if (location.length == 0) {
@@ -1109,6 +1109,11 @@ export class LocationAccountUser extends BaseClass {
                 accountClause = ` AND u.account_id = ? `;
                 params.push(accountId);
 
+            }
+            let archivedClause = '';
+            if (archived) {
+                archivedClause = ` AND u.archived = ? `;
+                params.push(archived);
             }
             
             let locationIds = location.join(',');
@@ -1146,6 +1151,8 @@ export class LocationAccountUser extends BaseClass {
                     p.location_id = l.parent_id
                 WHERE
                     lau.location_id IN (${locationIds})
+                    ${accountClause}
+                    ${archivedClause}
                 ORDER BY
                     u.first_name
             `;
