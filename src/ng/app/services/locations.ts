@@ -321,4 +321,8 @@ export class LocationsService {
     public permanentlyDeleteLocation(locationId) {
         return this.http.post(`${this.baseUrl}/location/delete/`, {location_id: locationId});
     }
+
+    public listLocationsForAccountUser() {
+        return this.http.get<{message: string, locations: Object[]}>(`${this.baseUrl}/location/list-account-user-locations/`);
+    }
 }

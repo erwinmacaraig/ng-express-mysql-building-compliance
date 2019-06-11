@@ -625,7 +625,7 @@ export class UserEmRoleRelation extends BaseClass {
         });
     }
 
-    public getWardensInLocationIds(locationIds, archived?, accountid?){
+    public getWardensInLocationIds(locationIds, archived?, accountid?, distinct?){
         archived = (archived) ? archived : 0;
 
         return new Promise((resolve, reject) => {
@@ -647,6 +647,10 @@ export class UserEmRoleRelation extends BaseClass {
                 sql_load += ` AND l.location_id IN (${locationIds}) `;
             }
 
+            if (distinct) {
+              sql_load += ` GROUP BY u.user_id `;
+            }
+            console.log(sql_load);
             this.pool.getConnection((err, connection) => {
                 if (err) {
                     throw new Error(err);

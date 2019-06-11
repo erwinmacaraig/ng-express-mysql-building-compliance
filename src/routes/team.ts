@@ -639,6 +639,7 @@ export class TeamRoute extends BaseRoute {
                                 location_name: b['level']
                             });
                         } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                            ctr.push(b['parent_id']);
                             buildingLocations.push({
                                 location_id: b['parent_id'],
                                 location_name: b['buildingName']
@@ -679,6 +680,7 @@ export class TeamRoute extends BaseRoute {
                                 location_name: b['level']
                             });
                         } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                            ctr.push(b['parent_id']);
                             buildingLocations.push({
                                 location_id: b['parent_id'],
                                 location_name: b['buildingName']

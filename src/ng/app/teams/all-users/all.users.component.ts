@@ -202,11 +202,12 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 } else {
                     let searchKey = value.toLowerCase();
                     for (let user of this.adminTeamMembers) {
+                        if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(user['location_id']);
+                            this.listData.push(user);
+                        }
                         if (choosen.indexOf(user['location_id']) == -1) {
-                            if (user['name'].toLowerCase().search(searchKey) !== -1) {
-                                choosen.push(user['location_id']);
-                                this.listData.push(user);
-                            }
+                            
                         }
                     }
                 }

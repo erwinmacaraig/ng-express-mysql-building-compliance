@@ -273,11 +273,9 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 } else {
                     let searchKey = value.toLowerCase();
                     for (let user of this.wardenTeamMembers) {
-                        if (choosen.indexOf(user['location_id']) == -1) {
-                            if (user['name'].toLowerCase().search(searchKey) !== -1) {
-                                choosen.push(user['location_id']);
-                                this.myWardenTeam.push(user);
-                            }
+                        if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(user['location_id']);
+                            this.myWardenTeam.push(user);
                         }
                     }
                 }

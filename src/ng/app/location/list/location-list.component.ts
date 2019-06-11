@@ -178,6 +178,11 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
             
         });
+        this.locationService.listLocationsForAccountUser().subscribe((response) => {
+            console.log(response);
+        }, (error) => {
+            console.log(error);
+        })
 	}
 
 	getLocationsForListing(callback){

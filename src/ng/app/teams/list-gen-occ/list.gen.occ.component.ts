@@ -273,11 +273,12 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
                     let searchKey = value.toLowerCase();
                     this.loadingTable = true;
                     for (let user of this.gofrTeamMembers) {
+                        if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(user['location_id']);
+                            this.myGOFRTeam.push(user);
+                        }
                         if (choosen.indexOf(user['location_id']) == -1) {
-                            if (user['name'].toLowerCase().search(searchKey) !== -1) {
-                                choosen.push(user['location_id']);
-                                this.myGOFRTeam.push(user);
-                            }
+                            
                         }
                     }
                     this.loadingTable = false;

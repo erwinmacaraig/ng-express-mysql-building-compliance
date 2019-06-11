@@ -159,7 +159,7 @@ export class MobilityImpairedModel extends BaseClass {
 		});
     }
 
-    public getImpairedUsersInLocationIds(locationIds, accountId, archived?){
+    public getImpairedUsersInLocationIds(locationIds, accountId, archived?): Promise<Array<Object>>{
         if(!archived){
             archived = 0;
         }
