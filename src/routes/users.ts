@@ -4162,13 +4162,70 @@ export class UsersRoute extends BaseRoute {
     //////
 	public async getLocationsTenants(req: AuthRequest, res: Response, next: NextFunction) {
         const location_id = req.params.location_id;
+        const locationData = await new Location(location_id).load();
+        let parent = locationData['parent_id'];
+
+        if (locationData['parent_id'] == -1) {
+            parent = locationData['location_id']
+        }
         const locationAccountUserObj = new LocationAccountUser();
         let canLoginTenants = {};
         // Determine role of user
         const userRoleRel = new UserRoleRelation();
-        const role = await userRoleRel.getByUserId(req.user.user_id, true);
+        let role = await userRoleRel.getByUserId(req.user.user_id, true);
 
-        if (role == defs['Manager'] || req.user.evac_role == 'admin') {
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
+        let accountRoles = [];
+        let tempArr = [];
+        const trainingRequirementsLookup = {};
+        const trainingRequirements = [];
+        let userIds = [];
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
+            
+        } catch(err) {
+            console.log('authenticate route get account role relation in location', err);
+        }
+    
+        try {
+            accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
+            for(let data of accountUserData) {
+                if (data['location_id'] in roleOfAccountInLocationObj) {
+                    if (parent == data['location_id']) {
+                        // this checks for FRP user that is why I have gotten the info for parent id
+                        role = roleOfAccountInLocationObj[data['location_id']]['role_id']; 
+                    } else if (locationData['location_id'] == data['location_id']) {
+                        // this checks for TRP
+                        role = roleOfAccountInLocationObj[data['location_id']]['role_id']; 
+                    }
+                    
+                }
+            }
+        } catch(e) {
+            console.log(' teams route, error getting in location account user data', e);
+        }
+
+        try { 
+            tempArr = await new TrainingRequirements().allEmRolesTrainings();
+            for (let wardenRole of tempArr) {
+                if (wardenRole['is_warden_role'] == 1) {
+                    trainingRequirementsLookup['em_role_id'] = wardenRole['training_requirement_id'];
+                    if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                        trainingRequirements.push(wardenRole['training_requirement_id']);
+                    }
+                }
+            }
+        } catch(e) {
+            console.log('Error getting/processing training requirement for role', e);
+    
+        }
+
+
+
+        // || req.user.evac_role == 'admin'
+        if (role == defs['Manager']) {
             let accountIds = [];            
             const location = new Location();
             const accounts = await location.getAllAccountsInLocation(location_id);
@@ -4183,7 +4240,7 @@ export class UsersRoute extends BaseRoute {
                 };
             }
             try {
-                const tenants =  await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, accountIds);
+                const tenants =  await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, accountIds, '0');
                 for (let id of accountIds) {
                     if ((id in tenants)) {
                         canLoginTenants[id]['trp'] = tenants[id]['trp'];
@@ -4198,7 +4255,7 @@ export class UsersRoute extends BaseRoute {
         } else {
             // listing of roles is implemented here because we are only listing roles on a sub location                    
             try {
-                canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, [req.user.account_id]);
+                canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, [req.user.account_id], '0');
             } catch(e) {
                 const accntObj = new Account(req.user.account_id);
                 const accntDetails = await accntObj.load();
@@ -4222,19 +4279,52 @@ export class UsersRoute extends BaseRoute {
           // get all wardens for this location on this account
           const EMRole = new UserEmRoleRelation();
           const trainingCert = new TrainingCertification();
-          let temp;
+          let temp = {};
+          userIds = [];
           try {
             temp =
             await EMRole.getEMRolesOnAccountOnLocation(
-              defs['em_roles']['WARDEN'],
+              -99,
               canLoginTenantArr[i]['account_id'],
               location_id
-            );
+            );            
+            for ( let user of temp['raw']) {
+                if (userIds.indexOf(user['user_id']) == -1) {
+                    userIds.push(user['user_id']);
+                }
+            }
+            const cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
+                current: true,
+                training_requirement: trainingRequirements 
+            });
+            let total_passed = 0;
+            for ( let user of temp['raw']) { 
+                if (user['user_id'] in cert) {
+                    total_passed += 1;
+                    user['passed'] = true;                    
+                }
+            }
             canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
             canLoginTenantArr[i]['wardens'] = temp['raw'];
+           
+            let tempPercentage = Math.round((total_passed / temp['users'].length) * 100);
+            let tempPercentageStr = '0%';
+            if (tempPercentage > 0) {
+              tempPercentageStr =  tempPercentage.toFixed(0).toString() + '%';
+            }
+            
+            canLoginTenantArr[i]['trained_wardens'] = {
+                'total_passed': total_passed,
+                'passed': total_passed,
+                'percentage': tempPercentageStr
+            };
+
+
+            /*
             tempWardenUsers = tempWardenUsers.concat(temp['users']);
             trainedWardensObj = await
             trainingCert.getEMRUserCertifications(temp['users'], {'em_role_id': defs['em_roles']['WARDEN']});
+            */
           } catch (e) {
             console.log('users route getLocationsTenants()',e);
             temp = {};
@@ -4244,10 +4334,10 @@ export class UsersRoute extends BaseRoute {
               'total_passed': 0,
               'passed': [],
               'failed': [],
-              'percentage': ''
+              'percentage': '0%'
             };
           }
-
+        /*
           try {
             temp = null; // reset
             temp =
@@ -4276,7 +4366,7 @@ export class UsersRoute extends BaseRoute {
               'percentage': ''
             };
           }
-
+         
           let tempPercentage = Math.round(((trainedWardensObj['passed'].length + trainedFloorWardensObj['passed']) / (tempWardenUsers.length + tempFloorWardenUsers.length)) * 100);
           let tempPercentageStr = '0%';
           if (tempPercentage > 0) {
@@ -4290,6 +4380,7 @@ export class UsersRoute extends BaseRoute {
             'total_passed': trainedWardensObj['passed'].length + trainedFloorWardensObj['passed'],
             'percentage':  tempPercentageStr
           };
+           */
         }
 
         return canLoginTenantArr;

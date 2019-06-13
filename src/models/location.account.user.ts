@@ -698,7 +698,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public listRolesOnLocation(role: number = 0, location_id: number = 0, accountIds = []) {
+    public listRolesOnLocation(role: number = 0, location_id: number = 0, accountIds = [], archived?): Promise<Object> {
       return new Promise((resolve, reject) => {
         const resultSetObj = {};
         let role_filter = '';
@@ -712,18 +712,21 @@ export class LocationAccountUser extends BaseClass {
         if (!location_id) {
           reject('Cannot get info without location id');
         }
-        
+        let archivedClause = '';
+        if (archived) {
+            archivedClause = ` AND users.archived = ${archived}`;
+        }
         const sql_get_list = `SELECT
-        accounts.account_name,
+                      accounts.account_name,
                       users.first_name,
                       users.last_name,
                       location_account_user.*
-         FROM location_account_user
-         INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
-        INNER JOIN users ON users.user_id = location_account_user.user_id
-        INNER JOIN accounts ON accounts.account_id = users.account_id
+                FROM location_account_user        
+                INNER JOIN users ON users.user_id = location_account_user.user_id                
+                INNER JOIN accounts ON accounts.account_id = users.account_id
+                INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
           WHERE
-          location_account_user.location_id = ?
+          location_account_user.location_id = ? ${archivedClause}
           ${role_filter}
             `;
         // console.log(sql_get_list);

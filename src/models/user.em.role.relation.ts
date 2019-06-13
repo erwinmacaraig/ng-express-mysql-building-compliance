@@ -481,10 +481,16 @@ export class UserEmRoleRelation extends BaseClass {
       });
     }
 
-    public getEMRolesOnAccountOnLocation(em_role: number = 0, account_id: number = 0, location_id: number = 0) {
+    public getEMRolesOnAccountOnLocation(em_role: number = 0, account_id: number = 0, location_id: number = 0): Promise<Object> {
       return new Promise((resolve, reject) => {
         let role_filter = '';
-        if (em_role) {
+        let innerJoinClause = '';
+        if (em_role == -1) {
+          innerJoinClause = ` INNER JOIN em_roles ON em_roles.em_roles_id = user_em_roles_relation.em_role_id`;
+          role_filter = ` AND em_roles.is_warden_role = 1 `;
+        } else if (em_role == -99) {
+          role_filter = ` AND em_role_id IN (9, 10) `
+        } else if (em_role && em_role > 0) {
           role_filter = ` AND em_role_id = ${em_role}`;
         }
         if (!account_id || !location_id) {
@@ -502,12 +508,13 @@ export class UserEmRoleRelation extends BaseClass {
                   users
                 ON
                   user_em_roles_relation.user_id = users.user_id
+                ${innerJoinClause}
                 WHERE
                   users.account_id = ?
                 AND
                   location_id = ? AND users.archived = 0
                 ${role_filter}`;
-
+        
         this.pool.getConnection((err, connection) => {
             if (err) {
                 throw new Error(err);
@@ -650,7 +657,7 @@ export class UserEmRoleRelation extends BaseClass {
             if (distinct) {
               sql_load += ` GROUP BY u.user_id `;
             }
-            console.log(sql_load);
+            //console.log(sql_load);
             this.pool.getConnection((err, connection) => {
                 if (err) {
                     throw new Error(err);

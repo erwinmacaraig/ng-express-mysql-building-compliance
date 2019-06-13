@@ -134,17 +134,13 @@
                                 {{tenant.account_name}}
                             </td>
                             <td>
-              <span *ngFor="let t of tenant['trp']" [ngStyle]="{'display': 'block'}">
-                  {{ t }}
-              </span>
+                                <span *ngFor="let t of tenant['trp']" [ngStyle]="{'display': 'block'}">
+                                    {{ t }}
+                                </span>
                             </td>
-            <!--
-            <td>
-                                {{tenant.warden_benchmarking}}
-            </td>
-          -->
-                            <td>
-                                {{tenant.total_wardens}}
+            
+                            <td><a  (click)="viewWardenList(tenant['wardens'])" class="blue-text"> {{tenant.total_wardens}} </a>
+                               
                             </td>
                             <td class="with-bar">
                                 <div class="text">{{tenant.trained_wardens.percentage}}</div>
@@ -323,5 +319,36 @@
 
 	</div>
 </div>
+
+<div id="modalWardenList" class="modal">
+    <div class="modal-content">
+      <table id="tblWardens" class="striped">
+              <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Compliant</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  <tr *ngFor="let warden of selectedWardenList">                     
+                      <td style="border: none">
+                          <span class="blue-text">{{warden.first_name}} {{warden.last_name}}</span>
+                      </td>
+                      
+                      <td style="border: none">
+                         <span *ngIf="warden.passed; else noncompliant">Compliant</span>
+                         <ng-template #noncompliant><span>Non-Compliant</span></ng-template>
+                    </td>
+            
+                  </tr>
+              </tbody>
+      </table>
+      <br />
+      <div class="button-container right-align" >
+          <button  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Close</button>
+      </div>
+    </div>
+  
+  </div>
 
 <div preloader></div>
