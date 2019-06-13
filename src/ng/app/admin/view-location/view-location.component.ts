@@ -113,6 +113,8 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
           this.accountIdParam = observer['accntId'];
         }
         this.adminService.getLocationDetails(this.locationId).subscribe((response) => {
+          this.people = [];
+          let peopleCtr = [];
           this.location_details = response['data']['details'];
           this.isArchived = response['data']['details']['archived'];
           this.sublocations = response['data']['children'];
@@ -135,7 +137,11 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
             this.complianceLocation = this.traversal['location_id'];
           }
           Object.keys(response['data']['people']).forEach((key) => {
-            this.people.push(response['data']['people'][key]);
+            if (peopleCtr.indexOf(key) == -1) {
+              peopleCtr.push(key);
+              this.people.push(response['data']['people'][key]);
+            }
+            
           });
     
           if(this.sublocations.length == 0 && this.location_details.is_building == 1) {
