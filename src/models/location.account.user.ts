@@ -1159,6 +1159,7 @@ export class LocationAccountUser extends BaseClass {
                 ORDER BY
                     u.first_name
             `;
+            
             this.pool.getConnection((error, connection) => {
                 if (error) {
                     throw Error(error);
@@ -1277,6 +1278,80 @@ export class LocationAccountUser extends BaseClass {
           });
         });
       }
+
+      public getMobilityImpairedAccountUserTeamList(locationIds:Number[], accountId = 0, archived = 0, filter={}): Promise<Array<Object>> {
+        return new Promise((resolve, reject) => {
+                
+          if (locationIds.length == 0) {
+            reject('Invalid parameter supplied for function getGOFRTeamList() function call');
+            return;
+          }
+          let accountClause = '';
+          const params = [archived];
+          if (accountId) {
+            accountClause = ` AND users.account_id = ? `;
+            params.push(accountId);
+          }
+  
+          const sql = `SELECT
+              users.user_id,
+              users.first_name,
+              users.last_name,
+              users.mobility_impaired,
+              users.last_login,
+              users.profile_completion,
+              accounts.account_name, 
+              location_account_user.location_id,
+              locations.is_building,
+              locations.name AS level,
+              parent.name AS building,
+              IF(locations.parent_id = -1, locations.location_id, locations.parent_id) AS building_id
+          FROM
+              location_account_user
+          INNER JOIN
+              users
+          ON
+              location_account_user.user_id = users.user_id
+          INNER JOIN
+              accounts
+          ON
+              accounts.account_id = users.account_id          
+          INNER JOIN
+              locations
+          ON
+              locations.location_id = location_account_user.location_id
+          LEFT JOIN
+              locations AS parent
+          ON
+              locations.parent_id = parent.location_id
+          WHERE
+              users.archived = ? AND users.mobility_impaired = 1          
+          AND 
+              location_account_user.location_id IN (${locationIds.join(',')})
+           ${accountClause}
+          ORDER BY users.first_name
+          `;
+          this.pool.getConnection((con_err, connection) => {
+            if (con_err) {
+              console.log('Cannot get connection');
+              throw new Error(con_err);
+            }
+            connection.query(sql, params, (error, results) => {
+              if (error) {
+                console.log(error, sql, params);
+                throw new Error(error);
+              }
+              if (results.length > 0) {
+                resolve(results);
+              } else {
+                reject('No results found.');
+              }
+              connection.release();
+            });
+          });
+  
+        });
+      }      
 
 
 }

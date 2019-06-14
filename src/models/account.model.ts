@@ -1153,11 +1153,11 @@ export class Account extends BaseClass {
                     resolve(results);
                     connection.release();
                 });
-
-            });
-            
+            });            
         });
 
     }
+
+
 
 } // end class

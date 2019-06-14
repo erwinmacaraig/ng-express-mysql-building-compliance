@@ -57,7 +57,8 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
     sundry_attendance_record: Array<PaperAttendanceDocument> = [];
     eco_attendance_record: Array<PaperAttendanceDocument> = [];
     chief_warden_attendance_record: Array<PaperAttendanceDocument> = [];
-	userData = <any> {};
+    userData = <any> {};
+    tenants_gofr = [];
     isFRP = false;
     isTRP = false;
     complianceSublocations = [];
@@ -665,30 +666,15 @@ export class ViewComplianceComponent implements OnInit, OnDestroy{
         $('#modalEvacDiagramList').modal('open');
     }
 
-    public viewEmUsers(locationId, type){
-        let queries = {
-            roles: type,
-            impaired: null,
-            type: 'client',
-            offset: 0,
-            limit: 1000,
-            archived: 0,
-            pagination: true,
-            user_training: true,
-            users_locations: true,
-            search: '',
-            online_trainings: true,
-            location_id : locationId 
-        };
+    public viewEmUsers(locationId) { 
 
-        this.userService.queryUsers(queries, (response) => {
-            this.tenants = response.data.users;
-            $('#modalWardenList').modal('open');
+        this.userService.getGofrInLocation(locationId).subscribe((response) => {
+            this.tenants_gofr = response.data;
+            $('#modalGofrList').modal('open');
+        }, (error) => {
+            console.log(error);
         });
 
-        // this.userService.queryUsers({
-            
-        // })
     }
 
     showModalUploadDocs(shortCode){

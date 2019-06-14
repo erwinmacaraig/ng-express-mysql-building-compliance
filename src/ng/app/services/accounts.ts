@@ -219,4 +219,8 @@ export class AccountsDataProviderService {
 		return this.http.get<{account_users: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-admin-list/`);
 	}
 
+	generatePeepList() {
+		return this.http.get<{users: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-peep-list/`);
+	}
+
 }

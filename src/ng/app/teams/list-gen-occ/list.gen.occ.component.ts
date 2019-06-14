@@ -95,8 +95,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     sendInviteToAllNonCompliant = false;
 
     isOnlineTrainingAvailable = false;
-
-    isFRP = false;
+    
     locations = <any> [];
     locationPagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
@@ -128,19 +127,8 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     ) {
 
         this.userData = this.authService.getUserData();        
-        for(let role of this.userData.roles){
-            if(role.role_id == 1){
-                this.isFRP = true;
-            }
-        }
-
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-
-        this.courseService.getAllEmRolesTrainings((response) => {
-            this.emTrainings = response.data;
-        });
-
         
     }
 
@@ -151,6 +139,9 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         }
         this.dashboardService.show();
         this.listGeneralOccupants();
+        setTimeout(() => {
+            $('.row.filter-container select').material_select();
+        }, 100);
     }
 
     ngAfterViewInit(){

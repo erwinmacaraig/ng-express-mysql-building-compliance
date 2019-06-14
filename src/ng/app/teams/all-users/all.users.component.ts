@@ -95,7 +95,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnInit(){
-        // this.dashboardService.show();
+        
         this.subscriptionType = this.userData['subscription']['subscriptionType'];
         if (this.userData['account_has_online_training'] == 1) {
             this.isOnlineTrainingAvailable = true;
@@ -476,7 +476,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 
 
     private listAdminUsers() {
-        
+        this.dashboardService.show();
         this.accountService.generateAdminUserList().subscribe((response) => {
             this.listData = [];
             this.adminTeamMembers = [];

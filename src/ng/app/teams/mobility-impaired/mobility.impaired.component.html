@@ -34,7 +34,7 @@
     <div class="col l3 m6 s6 margin-bottom-20">
         <select class="location">
             <option value="0" selected>All Locations</option>
-            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.name}}</option>
+            <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.location_name}}</option>
         </select>
     </div>
 
@@ -88,24 +88,20 @@
                         <p class="checkbox" >
                             <input id="location-{{i}}"  class="filled-in" type="checkbox" (change)="singleCheckboxChangeEvent(peep, $event)" [disabled]="allAreSelected" [checked]="peep.isselected"  >
                             <label for="location-{{i}}" ></label>
-                            <a  (click)="clickMultipleLocation(peep.locations)" *ngIf="peep.locations.length > 1">Multiple locations</a>
-                            <span *ngIf="peep.locations.length == 1">
-                                <a [routerLink]="['/location/view/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] > 0">
-                                    {{peep.locations[0].name}}
-                                </a>
-
-                                <a [routerLink]="['/location/view-sublocation/', peep.locations[0]['enc_location_id']]" *ngIf="peep.locations[0]['sublocations_count'] == 0">
-                                    {{peep.locations[0].name}}
-                                </a>
-                            </span>
+                            <span>
+								<a [routerLink]="['/location/view/', peep['enc_location_id']]" *ngIf="peep['is_building'] == 1">
+									<span *ngIf="peep['building'] != null">{{peep['building']}}, {{peep['level']}}</span>
+									<span *ngIf="peep['building'] == null">{{peep['level']}}</span>
+								</a>
+	
+								<a [routerLink]="['/location/view-sublocation/', peep['enc_location_id']]" *ngIf="peep['is_building'] == 0">
+									<span *ngIf="peep['building'] != null">{{peep['building']}}, {{peep['level']}}</span>
+									<span *ngIf="peep['building'] == null">{{peep['level']}}</span>
+								</a>
+							</span>
                         </p>
 					</td>
 					<td>
-						<div class="image-container lighten-3" [ngClass]="peep.bg_class" *ngIf="peep.profile_pic.length > 0">
-							<div class="image">
-								<img *ngIf="peep.profile_pic.length > 0" [src]="peep.profile_pic"  >
-							</div>
-						</div>
 						<div class="text">
 							<a *ngIf="peep.user_id" [routerLink]="['/teams/view-user/', peep.id_encrypted]">
 								{{peep.first_name}} {{peep.last_name}}
@@ -121,17 +117,14 @@
 						*ngIf="peep.mobility_impaired_details.length == 0" >Complete peep information</a>
 						<span *ngIf="!peep.user_id"> Waiting for user validation </span>
 					</td>
-					<!-- <td class="trainings">
-						<div class="percent">0%</div>
-						<div class="bar"></div>
-					</td> -->
+					
 					<td>
-						<span *ngIf="peep.mobility_impaired_details[0]">{{peep.mobility_impaired_details[0].date_created}}</span>
+						<span *ngIf="peep.mobility_impaired_details[0]">{{peep.mobility_impaired_details[0].date_created | date: 'dd/MM/yyyy'}}</span>
 						<span *ngIf="!peep.mobility_impaired_details[0]"> - </span>
 					</td>
 					<td>
 						<span *ngIf="!peep.id_encrypted">processing</span>
-						<span *ngIf="peep.id_encrypted">{{peep.last_login}}</span>
+						<span *ngIf="peep.id_encrypted">{{peep.last_login | date: 'dd/MM/yyyy'}}</span>
 					</td>
 					<td *ngIf="peep.profile_completion == 1">
 						<select (change)="onSelectFromTable($event, peep)" >
@@ -322,7 +315,7 @@
                 <li *ngFor="let loc of multipleLocations;">
                     <input type="radio" ngModel name="location_id" id="rad-{{loc.location_id}}" value="{{loc.location_id}}" />
                     <label for="rad-{{loc.location_id}}">
-                        {{loc.name}}
+                        {{loc.location_name}}
                     </label>
                 </li>
             </ul>
