@@ -134,7 +134,11 @@ export class ReportsRoute extends BaseRoute {
 
         router.post('/reports/warden-list', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
           new ReportsRoute().generateWardenReport(req, res);
-        })
+        });
+
+        router.get('/reports/warden-trainings/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+           new ReportsRoute().generateWardenTrainingReports(req, res);
+        });
 
        router.get('/reports/pdf-activity-report/:locids/:limit/:account/:userid/:isadmin', (req: AuthRequest, res:Response) => {
            req.body['offset'] = 0;
@@ -232,6 +236,10 @@ export class ReportsRoute extends BaseRoute {
            new ReportsRoute().generateWardenReport(req, res, false, true);
        });
 
+       
+
+
+
     }
 
    /**
@@ -239,6 +247,183 @@ export class ReportsRoute extends BaseRoute {
     * process reporting info for a given root location
     */
    
+    public async generateWardenTrainingReports(req: AuthRequest, res:Response) {
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
+        let accountRoles = [];
+        let list = [], final_list = [];
+        let trpWardenList = [], trpGofrTeamList = [];
+        let frpWardenList = [];
+        const emUsers = new UserEmRoleRelation();
+        const sublocationIds = [];
+        let temp = [];
+        let tempFRP = [];
+        const trainingRequirementsLookup = {};
+        const trainingRequirements = [];
+        const userIds = [];
+        let cert = [];
+        let buildingLocations = [];
+        const ctr = []; // this will serve as the container of unique building ids
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
+            
+        } catch(err) {
+            console.log('authenticate route get account role relation in location', err);
+        }
+    
+        try {
+            accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
+            for(let data of accountUserData) {
+                if (data['location_id'] in roleOfAccountInLocationObj) {
+                    accountRoles.push({
+                        role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                        location_id: data['location_id'],
+                        user_id: req.user.user_id
+                    });
+                }
+            }
+        } catch(e) {
+            console.log(' teams route, error getting in location account user data', e);
+        }
+        // get all training requirements, we will soon filter this out
+        try { 
+            temp = await new TrainingRequirements().allEmRolesTrainings();
+            for (let wardenRole of temp) {
+                //if (wardenRole['is_warden_role'] == 1) {
+                    trainingRequirementsLookup[wardenRole['em_role_id']] = wardenRole['training_requirement_id'];
+                    if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                        trainingRequirements.push(wardenRole['training_requirement_id']);
+                    }
+                //}
+            }
+        } catch(e) {
+            console.log('Error getting/processing training requirement for role', e);
+    
+        }
+        for(let role of accountRoles) {
+            if (role['role_id'] == 2) {
+                try {
+                     // get the location and all people that has warden role within the same account
+                    temp = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id);
+                    for (let warden of temp) {
+                        trpWardenList.push(warden);
+                    }
+                    let gofrTemp = await emUsers.getGOFRTeamList([role['location_id']], req.user.account_id);
+                    for (let gofr of gofrTemp) {
+                        trpGofrTeamList.push(gofr);
+                    }
+                } catch(e) {
+                    console.log('Error generating em users from teams route for TRP user', e, role['location_id']);
+                    temp = [];
+                }
+                try {
+                    let bldg = await new Location().immediateParent([role['location_id']]);
+                   
+                    for (let b of bldg) {
+                        if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                            ctr.push(b['locId']);
+                            buildingLocations.push({
+                                location_id: b['locId'],
+                                location_name: b['level']
+                            });
+                        } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                            buildingLocations.push({
+                                location_id: b['parent_id'],
+                                location_name: b['buildingName']
+                            });
+                        }
+                    }
+                } catch(e) {
+                    console.log('Error getting immediate parent for sublocation ' + role['location_id']);
+                }           
+            }
+        }
+        list = [...trpWardenList, ...frpWardenList, ...trpGofrTeamList];
+        const listObj = {};
+        for (let item of list) {
+            if (userIds.indexOf(item['user_id']) == -1) {
+                userIds.push(item['user_id']);
+            }
+            let indexStr = `${item['user_id']}-${item['location_id']}-${item['em_roles_id']}`;
+            
+            listObj[indexStr] = {
+                name: `${item['first_name']} ${item['last_name']}`,
+                email: item['email'],
+                user_id: item['user_id'],
+                mobility_impaired: item['mobility_impaired'],                
+                building: item['building'],
+                building_id: item['building_id'],
+                level: item['level'],                
+                location_id: item['location_id'],
+                is_building: item['is_building'],
+                role_id: item['em_roles_id'],
+                role: item['role_name'],
+                training_requirement_id: trainingRequirementsLookup[item['em_roles_id']],
+                training: 0,
+                training_obj: {
+                    certifications_id: 0,
+                    training_requirement_id: 0,
+                    course_method: '',
+                    user_id: '',
+                    certification_date: '',
+                    pass: 0,
+                    expiry_date: '',
+                    status: 'Not taken'
+                },
+                account_name: item['account_name'] 
+            }; 
+            
+        }
+        /*
+        cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
+            current: true,
+            training_requirement: trainingRequirements 
+        });
+        */
+       console.log(trainingRequirements, userIds);
+       try {
+            cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+       } catch (e) {
+            console.log(e);
+       }
+        
+       
+        /*
+        
+        const nonCompliantUsers = [];
+        if (listObj[key]['user_id'] in cert) {
+                listObj[key]['training'] = 1;
+            }
+        */       
+        Object.keys(listObj).forEach( (key) => {
+            for (let c of cert) {
+                /*console.log(listObj[key]['user_id'] == c['user_id']);
+                console.log(trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']);
+                */
+                if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {
+                    listObj[key]['training_obj'] = c;
+                    if (c['status'] == 'valid') {
+                        listObj[key]['training'] = 1;
+                    }
+                    continue;
+                }
+            }
+            final_list.push(listObj[key]);
+            
+        });
+       console.log('==========================================================');
+       return res.status(200).send({
+           cert: cert,
+           obj: listObj,
+           list: final_list,
+           buildings: buildingLocations
+       });
+
+
+
+        
+    }
 
     public async generateWardenReport(req: AuthRequest, res: Response, toPdf?, toCsv?){
       let

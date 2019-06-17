@@ -90,7 +90,7 @@
             <table class="striped">
                 <thead>
                     <tr class="grey darken-5 white-text">
-                        <th>Region</th>
+                        <!--<th>Region</th>-->
                         <th>Building</th>
                         <th>Sublocation</th>
                         <th>Account</th>
@@ -103,26 +103,38 @@
                 </thead>
                 <tbody [hidden]="!loadingTable">
                     <tr>
-                        <td colspan="9" class="center">
+                        <td colspan="8" class="center">
                             <h6>Loading records...</h6>
                         </td>
                     </tr>
                 </tbody>
                 <tbody [hidden]="loadingTable">
                     <tr *ngIf="results.length == 0">
-                        <td colspan="9" class="center">
+                        <td colspan="8" class="center">
                             <h6>No result found</h6>
                         </td>
                     </tr>
                     <tr *ngFor="let re of results">
-                        <td>{{re.region}}</td>
-                        <td>{{re.building}}</td>
-                        <td>{{re.sublocation}}</td>
+                        <!--<td>{{re.region}}</td>-->
+                        <td><span *ngIf="re.building == null && re.is_building == 1">{{re.level}}</span>
+                            <span *ngIf="re.building != null">{{re.building}}</span>
+                        </td>
+                        <td><span *ngIf="re.building == null && re.is_building == 1">&nbsp;</span>
+                            <span *ngIf="re.building != null">{{re.level}}</span>
+                        </td>
                         <td>{{re.account_name}}</td>
-                        <td>{{re.first_name}} {{re.last_name}}</td>
+                        <td>{{re.name}}</td>
                         <td>{{re.email}}</td>
-                        <td>{{re.role_name}}</td>
+                        <td>{{re.role}}</td>
                         <td>
+                            <span *ngIf="re.training == 1" class="blue-text">Compliant</span>
+                            <span *ngIf="re.training == 0" class="grey-text">
+                                Not Compliant
+                                
+                                <small *ngIf="re.training_obj['status'] == 'expired'">(Expired)</small>
+                                <small *ngIf="re.training_obj['status'] == 'Not taken'">(Not Taken)</small>
+                            </span>
+                            <!--
                             <span *ngIf="re.status == 'valid' && re.pass == 1 " class="blue-text">Compliant</span>
                             <span *ngIf="re.status != 'valid' || re.pass == 0 " class="grey-text">
                                 Not Compliant
@@ -130,8 +142,9 @@
                                 <small *ngIf="re.status == 'expired'">(Expired)</small>
                                 <small *ngIf="re.status == 'not taken'">(Not Taken)</small>
                             </span>
+                        -->
                         </td>
-                        <td>{{re.certification_date_formatted}}</td>
+                        <td>{{re.training_obj['expiry_date'] | date: 'dd/MM/yyyy'}}</td>
                     </tr>
                 </tbody>
             </table>

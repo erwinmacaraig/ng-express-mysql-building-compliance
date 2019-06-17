@@ -88,14 +88,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
             this.arrLocationIds = this.locationId.toString().split('-');
 
-        	this.getLocationReport((response) => {
-                this.dashboardPreloader.hide();
-                if(response.data.length > 0){
-                    this.pagination.currentPage = 1;
-                }
-
-                // this.generateReportDataForExport();
-            });
+        	this.getLocationReport();
         });
 
         let qParams = undefined;
@@ -141,6 +134,9 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
 	ngOnInit() {
         this.subscriptionType = this.userData['subscription']['subscriptionType'];
+
+        
+
 	}
 
 	ngAfterViewInit(){
@@ -163,7 +159,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
             this.queries.offset = 0;
             this.loadingTable = true;
-
+            /*
             this.getLocationReport((response:any) => {
                 this.loadingTable = false;
                 if(response.data.length > 0){
@@ -173,6 +169,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                     this.pagination.currentPage = 0;
                 }
             });
+            */
 
         });
 
@@ -286,9 +283,20 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         }
     }
 
-	getLocationReport(callBack?, forExport?){
+	getLocationReport(callBack?, forExport?){        
         this.queries.location_id = this.locationId;
-		this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
+        this.reportService.generateWardenTrainingReport().subscribe((response) => {
+            console.log(response);
+            this.results = response['list'];
+            this.loadingTable = false;
+            this.dashboardPreloader.hide();
+        }, (error) => {
+            console.log(error);
+            this.loadingTable = false;
+            this.dashboardPreloader.hide();
+        });
+
+		/*this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
             if(!forExport){
     			this.results = response['data'];
                 this.backupResults = JSON.parse( JSON.stringify(this.results) );
@@ -303,7 +311,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.loadingTable = false;
             }
             callBack(response);
-        });
+        }); */
 	}
 
 	printResult(){
