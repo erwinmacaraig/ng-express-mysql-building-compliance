@@ -25,39 +25,39 @@ export class CourseService {
     }
 
     getCourses(callBack){
-        this.http.get('/courses/get-all').subscribe((res) => {
+        this.http.get(this.baseUrl+'/courses/get-all').subscribe((res) => {
             callBack(res);
         });
     }
 
     getTrainingRequirements(callBack){
-        this.http.get('/courses/get-training-requirements').subscribe((res) => {
+        this.http.get(this.baseUrl+'/courses/get-training-requirements').subscribe((res) => {
             callBack(res);
         });
     }
 
     getCourseUserRelation(){
-        return this.http.get('/courses/get-course-user-ralation');
+        return this.http.get(this.baseUrl+'/courses/get-course-user-ralation');
     }
 
     saveAccountCourses(data, callBack){
-        this.http.post('/courses/save-account-courses', data).subscribe((res) => {
+        this.http.post(this.baseUrl+'/courses/save-account-courses', data).subscribe((res) => {
             callBack(res);
         });
     }
 
     disableUsersFromCourses(data, callBack){
-        this.http.post('/courses/disable-users-from-courses', data).subscribe((res) => {
+        this.http.post(this.baseUrl+'/courses/disable-users-from-courses', data).subscribe((res) => {
             callBack(res);
         });
     }
 
     myCourses(userId){
-        return this.http.get('/courses/my-courses/'+userId);
+        return this.http.get(this.baseUrl+'/courses/my-courses/'+userId);
     }
 
     getCountsBuildingTrainings(callBack){
-        this.http.get('/courses/counts-building-trainings').subscribe((res) => {
+        this.http.get(this.baseUrl+'/courses/counts-building-trainings').subscribe((res) => {
             callBack(res);
         });
     }
@@ -67,7 +67,7 @@ export class CourseService {
     }
 
     getAllEmRolesTrainings(callBack){
-        this.http.get('/courses/get-all-em-trainings').subscribe((res) => {
+        this.http.get(this.baseUrl+'/courses/get-all-em-trainings').subscribe((res) => {
             callBack(res);
         }, err => {
             console.log(JSON.parse(err.error));

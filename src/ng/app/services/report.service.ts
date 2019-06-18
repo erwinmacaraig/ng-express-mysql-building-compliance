@@ -53,8 +53,13 @@ export class ReportService {
         return this.http.post(this.baseUrl + '/reports/warden-list', formData, this.options);
     }
 
-    public generateWardenTrainingReport() {
-        return this.http.get(`${this.baseUrl}/reports/warden-trainings/`);
+    public generateWardenTrainingReport(formData={}, options?) {
+        if (options) {
+            return this.http.post(`${this.baseUrl}/reports/warden-trainings/`, formData, {observe: 'response',
+            responseType: 'arraybuffer'});
+        }
+        return this.http.post(`${this.baseUrl}/reports/warden-trainings/`, formData);
+        
     }
 
 }

@@ -136,7 +136,7 @@ export class ReportsRoute extends BaseRoute {
           new ReportsRoute().generateWardenReport(req, res);
         });
 
-        router.get('/reports/warden-trainings/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
+        router.post('/reports/warden-trainings/', new MiddlewareAuth().authenticate, (req:AuthRequest, res:Response) => {
            new ReportsRoute().generateWardenTrainingReports(req, res);
         });
 
@@ -253,7 +253,7 @@ export class ReportsRoute extends BaseRoute {
         let accountRoles = [];
         let list = [], final_list = [];
         let trpWardenList = [], trpGofrTeamList = [];
-        let frpWardenList = [];
+        let frpWardenList = [], frpGofrTeamList = [];
         const emUsers = new UserEmRoleRelation();
         const sublocationIds = [];
         let temp = [];
@@ -263,7 +263,23 @@ export class ReportsRoute extends BaseRoute {
         const userIds = [];
         let cert = [];
         let buildingLocations = [];
+
+        let convertDataToFile = req.body.convert;
+
+        const location_id = req.body.location_id;
         const ctr = []; // this will serve as the container of unique building ids
+        let ids = [];
+        if (location_id == 0) { 
+            ids = Object.keys(roleOfAccountInLocationObj);
+        } else {
+             temp = location_id.split('-');
+             for (let id of temp) {
+                 ids.push(parseInt(id, 10));
+             }
+        }
+
+        temp = [];
+        
         try {
             // determine if you are a building manager or tenant in these locations - response.locations
             roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
@@ -271,16 +287,27 @@ export class ReportsRoute extends BaseRoute {
         } catch(err) {
             console.log('authenticate route get account role relation in location', err);
         }
-    
+        
         try {
             accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
             for(let data of accountUserData) {
-                if (data['location_id'] in roleOfAccountInLocationObj) {
-                    accountRoles.push({
-                        role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
-                        location_id: data['location_id'],
-                        user_id: req.user.user_id
-                    });
+                if (location_id == 0) {
+                    if (data['location_id'] in roleOfAccountInLocationObj) {
+                        accountRoles.push({
+                            role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                            location_id: data['location_id'],
+                            user_id: req.user.user_id
+                        });
+                    }
+                } else {
+                    if (data['location_id'] in roleOfAccountInLocationObj && ids.indexOf(data['location_id']) != -1) {
+                        accountRoles.push({
+                            role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                            location_id: data['location_id'],
+                            user_id: req.user.user_id
+                        });
+                    }
+
                 }
             }
         } catch(e) {
@@ -301,6 +328,9 @@ export class ReportsRoute extends BaseRoute {
             console.log('Error getting/processing training requirement for role', e);
     
         }
+
+        
+
         for(let role of accountRoles) {
             if (role['role_id'] == 2) {
                 try {
@@ -309,13 +339,18 @@ export class ReportsRoute extends BaseRoute {
                     for (let warden of temp) {
                         trpWardenList.push(warden);
                     }
+                    
+                } catch(e) {
+                    console.log('Error generating em users from teams route for TRP user', e, role['location_id']);
+                    temp = [];
+                }
+                try {
                     let gofrTemp = await emUsers.getGOFRTeamList([role['location_id']], req.user.account_id);
                     for (let gofr of gofrTemp) {
                         trpGofrTeamList.push(gofr);
                     }
                 } catch(e) {
-                    console.log('Error generating em users from teams route for TRP user', e, role['location_id']);
-                    temp = [];
+                    console.log('Error generating gofr users from teams route for TRP user', e, role['location_id']);                    
                 }
                 try {
                     let bldg = await new Location().immediateParent([role['location_id']]);
@@ -338,8 +373,58 @@ export class ReportsRoute extends BaseRoute {
                     console.log('Error getting immediate parent for sublocation ' + role['location_id']);
                 }           
             }
+            if (role['role_id'] == 1) {
+                tempFRP = [];
+                // get sublocation ids
+                sublocationIds.push(role['location_id']);
+                tempFRP = await new Location().getChildren(role['location_id']);
+                temp = [];
+                for (let loc of tempFRP) {
+                    sublocationIds.push(loc['location_id']);
+                }
+                try {
+                    // get the location and all people that has warden role for FRP
+                    temp = await emUsers.getGOFRTeamList(sublocationIds);            
+                    for (let go of temp) {
+                        frpGofrTeamList.push(go);
+                    }
+                } catch (e) {
+                    console.log(e, 'Error getting gofr users for location');
+                }
+                try {
+                    let tempWarden = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id);
+                    for (let warden of tempWarden) {
+                        frpWardenList.push(warden);
+                    }
+                }  catch (e) {
+                    console.log(e, 'Error getting warden users for location');
+                }
+                // get locations
+                try {
+                    let bldg = await new Location().immediateParent(sublocationIds);
+                    
+                    for (let b of bldg) {
+                        if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                            ctr.push(b['locId']);
+                            buildingLocations.push({
+                                location_id: b['locId'],
+                                location_name: b['level']
+                            });
+                        } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                            buildingLocations.push({
+                                location_id: b['parent_id'],
+                                location_name: b['buildingName']
+                            });
+                        }
+                    }
+                } catch(e) {
+                    console.log('There was a problem with the list of sublevels in getting the parent', sublocationIds);
+                } 
+
+            }
+
         }
-        list = [...trpWardenList, ...frpWardenList, ...trpGofrTeamList];
+        list = [...trpWardenList, ...frpWardenList, ...trpGofrTeamList, ...frpGofrTeamList];
         const listObj = {};
         for (let item of list) {
             if (userIds.indexOf(item['user_id']) == -1) {
@@ -375,27 +460,13 @@ export class ReportsRoute extends BaseRoute {
             }; 
             
         }
-        /*
-        cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
-            current: true,
-            training_requirement: trainingRequirements 
-        });
-        */
-       console.log(trainingRequirements, userIds);
-       try {
-            cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
-       } catch (e) {
-            console.log(e);
-       }
         
-       
-        /*
-        
-        const nonCompliantUsers = [];
-        if (listObj[key]['user_id'] in cert) {
-                listObj[key]['training'] = 1;
-            }
-        */       
+        console.log(trainingRequirements, userIds);
+        try {
+                cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+        } catch (e) {
+                console.log(e);
+        }
         Object.keys(listObj).forEach( (key) => {
             for (let c of cert) {
                 /*console.log(listObj[key]['user_id'] == c['user_id']);
@@ -412,13 +483,121 @@ export class ReportsRoute extends BaseRoute {
             final_list.push(listObj[key]);
             
         });
-       console.log('==========================================================');
-       return res.status(200).send({
-           cert: cert,
-           obj: listObj,
-           list: final_list,
-           buildings: buildingLocations
-       });
+       
+        if (req.body.convert) {
+            let tblData = {
+                title : 'Training Report',
+                data : [], 
+                headers : ["Building", "Sublocation", "Account", "User", "Email", "Role", "Status", "Date"]
+            };
+            for (let item of final_list) {
+                let theBuilding = item['building'];
+                let theLevel = item['level'];
+                if (item['building'] == null && item['is_building'] == 1) {
+                    theBuilding = item['level'];
+                    theLevel = '';
+                }
+                let statusDesc = '';
+                if (item['training'] == 1) {
+                    statusDesc = 'Compliant';
+                } else {
+                    statusDesc = 'Not Compliant';                        
+                    if (item['training_obj']['status'] == 'expired') {
+                        statusDesc += ' (Expired) ';
+                    } else if (item['training_obj']['status'] == 'Not taken') {
+                        statusDesc += ' (Not Taken) ';
+                    }
+                }
+                let expDate = '';
+                try {
+                    expDate = moment(item['training_obj']['expiry_date']).format('DD/MM/YYYY');
+                    if (expDate == 'Invalid date') {
+                        expDate = '';
+                    }
+                } catch(e) {
+                    expDate = '';
+                }
+                tblData.data.push([theBuilding, theLevel, item['account_name'], item['name'], item['email'], item['role'], statusDesc, expDate]);
+                
+            }
+            if (convertDataToFile=='csv') {
+                let response = {
+                    'tables': []
+                }               
+                let csvData = '';
+                csvData = tblData.title;
+                csvData += '\n';
+
+                csvData += tblData.headers.join(',');
+                csvData += '\n';
+                for(let d of tblData.data){
+                    d.forEach((item, index) => {
+                      if(typeof item == 'boolean' || typeof item == 'number'){
+                        item = item.toString();
+                      }else if(item == null){
+                        item = '';
+                      }
+                      d[index] =  item.replace(/,/g, ' ');
+                    });
+                    csvData += d.join(',');
+                    csvData += '\n';
+                }
+                return res.status(200).send({
+                    csv_data: csvData
+                 });
+
+
+
+            } else if (convertDataToFile=='pdf') {
+                let timestamp = new Date().getTime(), 
+                    doc:PDFDocument = new PDFDocumentWithTables({
+                    margins : {
+                        top:25, left:25, right:25, bottom:25
+                        }
+                    }),
+                    DIR = __dirname + '/../public/temp/';
+                let 
+                    filename = 'training_report_' + moment().format('DD-MM-YYYY')+'.pdf',
+                    filepath = DIR + filename,
+                    writeStream = fs.createWriteStream(filepath);
+                doc.pipe(writeStream);
+                doc.image( __dirname + '/../public/assets/images/ec_logo.png', 25, 15, { width: 200, height: 60 });
+                doc.moveDown(4);
+                
+                doc.table({
+                    title : tblData.title,
+                    headers: tblData.headers,
+                    rows: tblData.data
+                    },
+                    {
+                    prepareHeader: () => doc.font('Helvetica').fontSize(9),
+                    prepareRow: (row, i) => doc.font('Helvetica').fontSize(6)
+                });
+                
+                doc.end();
+                writeStream.on('finish', function(){
+                    fs.readFile(filepath, "utf8", function(err, data){
+                        if(err) throw err;
+        
+                        let file = fs.createReadStream(filepath);
+                        let stat = fs.statSync(filepath);
+        
+                        res.setHeader('Content-Length', stat.size);
+                        res.setHeader('Content-Type', 'application/pdf');
+                        res.setHeader('Content-Disposition', 'attachment; filename='+ filename);
+                        file.pipe(res);
+                    });
+                });
+            }
+        } else {
+            return res.status(200).send({
+                cert: cert,
+                obj: listObj,
+                list: final_list,
+                buildings: buildingLocations
+             });
+        }
+        
 
 
 

@@ -678,7 +678,7 @@ export class TrainingCertification extends BaseClass {
               console.log(sql_listing);
               throw Error('Cannot query users for training report');
             }
-            console.log('Results ', results);
+            
             resolve(results);
             connection.release();
           });
