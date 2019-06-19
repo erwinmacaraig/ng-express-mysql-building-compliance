@@ -13,11 +13,11 @@
                         <option value="{{loc.location_id}}" class="select-location-option id-{{loc.location_id}}" *ngFor="let loc of rootLocationsFromDb" >{{loc.name}}</option>
                     </select>
                 </div>
-                -->
+                
                 <div style="display: inline-block; margin-left: 3px; margin-right: 15px;">
                     <button [routerLink]="['/reports', 'choose']" type="button" class="btn blue waves-effect waves-light">Back</button>
                 </div>
-
+                -->
 
                 <div class="search-field no-print">
                     <input type="text" placeholder="Search member name" id="searchMemberInput" #searchMember>

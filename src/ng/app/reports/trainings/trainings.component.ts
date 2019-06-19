@@ -27,7 +27,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     @ViewChild('printContainer') printContainer : ElementRef;
 	userData = {};
 	rootLocationsFromDb = [];
-	results = [];
+    results = [];
+    private reportsData = [];
 	backupResults = [];
 	routeSubs;
     locationId = 0;
@@ -95,21 +96,41 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             this.arrLocationIds = this.locationId.toString().split('-');            
         	this.getLocationReport();
         });
-        
-
-       
-        
-        
 
 	}
 
 	ngAfterViewInit(){
-         
-        
-        
-        
-       
-	}
+        this.print = new PrintService({
+            content : this.printContainer.nativeElement.outerHTML
+        });
+        this.filterByCompliance();
+        this.searchUser();
+    }
+    
+    filterByCompliance() {
+
+        let self = this;
+        $('#selectCompliant').on('change', (e) => {
+            let compliant = parseInt($('#selectCompliant').val());
+            console.log(compliant);
+            if (self.results.length == 0) {
+                self.results = self.reportsData;
+            }            
+            let copy = self.results;
+            self.results = [];
+            if (compliant == -1) {
+                self.results = self.reportsData;
+            } else {
+                for (let user of copy) {
+                    if (parseInt(user['training'],10) == compliant) {
+                        self.results.push(user);
+                    }
+                }
+            }
+            
+            
+        }).material_select();
+    }
 
     generateReportDataForExport(){
         this.pdfLoader = true;
@@ -136,6 +157,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
             location_id: this.arrLocationIds.join('-')
         }).subscribe((response) => {            
             this.results = response['list'];
+            this.reportsData = response['list'];
             this.loadingTable = false;
             this.dashboardPreloader.hide();
         }, (error) => {
@@ -152,22 +174,6 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 	}
 
     pdfExport(aPdf, printContainer) {
-        /*
-        let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
-        compliant = this.queries.compliant,
-        trainingId = this.queries.training_id,
-        method = this.queries.course_method,
-        search = (this.searchMember.nativeElement.value.trim().length == 0) ? ' ' : this.searchMember.nativeElement.value;
-        
-        a.href = environment.backendUrl + "/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
-        a.target = "_blank";
-        document.body.appendChild(a);
-
-        a.click();
-
-        a.remove();
-        */
        this.reportService.generateWardenTrainingReport({
         location_id: this.arrLocationIds.join('-'),
         convert: 'pdf'
@@ -197,29 +203,31 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
     ngOnDestroy(){
         this.routeSubs.unsubscribe();
-        //this.searchSub.unsubscribe();
+        this.searchSub.unsubscribe();
     }
 
     searchUser() {
-
         this.searchSub =  Observable.fromEvent(this.searchMember.nativeElement, 'keyup').debounceTime(800).subscribe((event: KeyboardEvent) => {
-            const searchKey = (<HTMLInputElement>event.target).value;
-            // console.log(searchKey);
             this.loadingTable = true;
+            $('#selectCompliant').val('-1').material_select();
 
-            this.queries.searchKey = searchKey;
-            this.reportService.getLocationTrainingReport(this.queries).subscribe((response: any) => {
-                this.results = response['data'];
-                this.backupResults = JSON.parse( JSON.stringify(this.results) );
-                this.pagination.pages = response.pagination.pages;
-                this.pagination.total = response.pagination.total;
-                this.pagination.selection = [];
-                for (let i = 1; i <= this.pagination.pages; i++) {
-                  this.pagination.selection.push({ 'number' : i });
-                }
+            const searchKey = (<HTMLInputElement>event.target).value;
+            this.results = [];
+            console.log(searchKey);
+            if (searchKey.length == 0) {
+                this.results = this.reportsData;
                 this.loadingTable = false;
-            });
-
+                
+            } else {
+                let key = searchKey.toLocaleLowerCase();
+                for (let user of this.reportsData) {
+                    if(user['name'].toLowerCase().search(key) !== -1) {
+                        this.results.push(user);
+                    }
+                } 
+                this.loadingTable = false;
+            }
+            
         });
     }
 

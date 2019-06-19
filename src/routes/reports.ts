@@ -329,10 +329,32 @@ export class ReportsRoute extends BaseRoute {
     
         }
 
-        
+        console.log(accountRoles);
 
         for(let role of accountRoles) {
             if (role['role_id'] == 2) {
+                let bldg = [];
+                try {
+                    bldg = await new Location().immediateParent([role['location_id']]);
+                   
+                    for (let b of bldg) {
+                        if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
+                            ctr.push(b['locId']);
+                            buildingLocations.push({
+                                location_id: b['locId'],
+                                location_name: b['level']
+                            });
+                        } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
+                            buildingLocations.push({
+                                location_id: b['parent_id'],
+                                location_name: b['buildingName']
+                            });
+                        }
+                    }
+                } catch(e) {
+                    console.log('Error getting immediate parent for sublocation ' + role['location_id']);
+                }
+
                 try {
                      // get the location and all people that has warden role within the same account
                     temp = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id);
@@ -352,26 +374,7 @@ export class ReportsRoute extends BaseRoute {
                 } catch(e) {
                     console.log('Error generating gofr users from teams route for TRP user', e, role['location_id']);                    
                 }
-                try {
-                    let bldg = await new Location().immediateParent([role['location_id']]);
-                   
-                    for (let b of bldg) {
-                        if (b['buildingId'] == null && ctr.indexOf(b['locId']) == -1) {
-                            ctr.push(b['locId']);
-                            buildingLocations.push({
-                                location_id: b['locId'],
-                                location_name: b['level']
-                            });
-                        } else if (b['buildingId'] != null && ctr.indexOf(b['parent_id']) == -1) {                        
-                            buildingLocations.push({
-                                location_id: b['parent_id'],
-                                location_name: b['buildingName']
-                            });
-                        }
-                    }
-                } catch(e) {
-                    console.log('Error getting immediate parent for sublocation ' + role['location_id']);
-                }           
+                         
             }
             if (role['role_id'] == 1) {
                 tempFRP = [];
