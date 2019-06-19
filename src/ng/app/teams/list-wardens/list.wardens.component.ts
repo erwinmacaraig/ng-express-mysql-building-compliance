@@ -225,14 +225,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             if(parseInt(selected, 10) == 0) {
                 __this.myWardenTeam = __this.wardenTeamMembers;
             } else {
-                for (let warden of __this.wardenTeamMembers) {                    
-                    if (choosen.indexOf(warden['location_id']) == -1) {
-                        console.log('herw with ', warden, warden['role_ids'].indexOf(selected));
-                        if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
-                            choosen.push(warden['location_id']);
-                            __this.myWardenTeam.push(warden);
-                            
-                        }
+                for (let warden of __this.wardenTeamMembers) {
+                    if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
+                        choosen.push(warden['location_id']);
+                        __this.myWardenTeam.push(warden);                        
                     }
                 }
             }

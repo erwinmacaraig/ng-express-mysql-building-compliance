@@ -458,6 +458,79 @@ export class UsersRoute extends BaseRoute {
           new UsersRoute().getLocationsGofr(req, res);
       });
 
+      router.get('/users/location-listing/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new UsersRoute().getAccountUserLocations(req, res);
+      });
+
+
+    }
+
+    public async getAccountUserLocations(req: AuthRequest, res: Response) {
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
+        let trpLocations  = [], frpLocations = [];
+        let allLocations = [];
+        let locationIds = [];
+        let locationObj = new Location();
+        // Determine role of the account 
+        try {            
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);            
+        } catch(err) {
+            console.log('authenticate route get account role relation in location', err);
+        }
+        try {
+            accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
+            console.log(accountUserData);
+            for(let data of accountUserData) {
+                if (data['location_id'] in roleOfAccountInLocationObj) {
+                    locationIds.push(data['location_id']);
+                }                
+                if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Tenant']) {
+                    trpLocations.push(data['location_id']);
+                    
+                } else if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Manager']) {
+                    frpLocations.push(data['location_id']);
+                }
+            }
+        } catch(e) {
+            console.log(' teams route, error getting in location account user data', e);
+        }
+        console.log(locationIds);
+        // get parent location details for trpLocations
+        let locationArr = [];
+        let uniqLoc = [];
+        try {
+            locationArr = await locationObj.immediateParent(locationIds);
+            for (let loc of locationArr) {
+                let buildingId = 0;
+                let buildingName = '';
+                if (loc['buildingId'] == null) {                    
+                    buildingId = loc['locId'];
+                    buildingName = loc['level'];
+                    
+                } else {
+                    buildingId = loc['buildingId'];
+                    buildingName = `${loc['level']}, ${loc['buildingName']}`;
+                }
+
+                allLocations.push({
+                    location_id: loc['locId'],
+                    building_id: buildingId,
+                    building_name: buildingName
+                });
+            }
+
+        } catch(e) {
+            locationArr = [];
+            console.log(e);
+        }
+        
+
+        return res.status(200).send({
+            trp_locations: trpLocations,
+            frp_locations: frpLocations,
+            locations: allLocations
+        });
 
     }
 

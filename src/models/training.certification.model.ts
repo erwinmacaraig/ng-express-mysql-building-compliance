@@ -668,7 +668,7 @@ export class TrainingCertification extends BaseClass {
           ORDER BY
             certifications.user_id, certifications.certifications_id DESC`;
 
-        console.log(sql_listing);
+        //console.log(sql_listing);
         this.pool.getConnection((err, connection) => {
           if (err) {                    
             throw new Error(err);

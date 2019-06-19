@@ -1671,7 +1671,7 @@ const defs = require('../config/defs.json');
         } catch (e) {
             console.log('Getting the account role for a location error');
         }
-        console.log(roleOfAccountInLocationObj);
+        // console.log(roleOfAccountInLocationObj);
         try {
             accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
             for(let data of accountUserData) {

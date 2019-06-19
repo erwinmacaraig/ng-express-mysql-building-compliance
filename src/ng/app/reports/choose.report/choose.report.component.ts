@@ -6,6 +6,7 @@ import { MessageService } from '../../services/messaging.service';
 import { ReportService } from '../../services/report.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { LocationsService } from '../../services/locations';
+import { UserService } from '../../services/users';
 import { Observable } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -16,7 +17,7 @@ declare var $ : any;
     selector : 'app-choose-report-component',
     templateUrl : './choose.report.component.html',
     styleUrls : [ './choose.report.component.css' ],
-    providers : [ ReportService, EncryptDecryptService, LocationsService ]
+    providers : [ ReportService, EncryptDecryptService, LocationsService, UserService ]
 })
 
 export class ChooseReportComponent implements OnInit, OnDestroy {
@@ -32,7 +33,7 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
     isFrp = false;
     isTrp = false;
-
+    public userLocations = [];
     queries = {
         offset :  0,
         limit : 10,
@@ -79,7 +80,8 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
         private messageService: MessageService,
         private reportService: ReportService,
         private encryptDecrypt: EncryptDecryptService,
-        private locationService: LocationsService
+        private locationService: LocationsService,
+        private userService: UserService
         ) {
 
         this.userData = this.authService.getUserData();
@@ -105,6 +107,12 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit(){
+        this.userService.listUserAccountLocations().subscribe((response) => {
+            console.log(response);
+            this.userLocations = response['locations'];
+        }, (error) => {
+
+        });
     }
 
     getLocationsForListing(callback){
@@ -264,11 +272,24 @@ export class ChooseReportComponent implements OnInit, OnDestroy {
 
                     this.selectedReport.searching = true;
                     searchContainer.addClass('active');
-                    this.queries.search = val;
+
+                    let searchKey = val.toLowerCase();
+                    for (let loc of this.userLocations) {
+                        if (loc['building_name'].toLowerCase().search(searchKey) !== -1) {
+                            this.selectedReport.searches.push(loc);
+                        }
+                    }
+                    this.selectedReport.searching = false;
+
+                    //this.selectedReport.searches = this.userLocations;
+                    //this.queries.search = val;
+                    /*
                     this.getLocationsForListing((response) => {
                         this.selectedReport.searching = false;
                         this.selectedReport.searches = response.locations;
                     });
+                    */
+                   
                 });
 
         });

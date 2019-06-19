@@ -403,5 +403,12 @@ export class UserService {
 	getGofrInLocation(locId){
 		return this.http.get<{message: string, data: Object[]}>(this.baseUrl+"/users/get-gofr/"+locId);
 		
-    }
+	}
+	listUserAccountLocations() {
+		return this.http.get<{
+			trp_locations: number[],
+			frp_locations: number[],
+			locations: object[]
+		}>(`${this.baseUrl}/users/location-listing/`);
+	}
 }

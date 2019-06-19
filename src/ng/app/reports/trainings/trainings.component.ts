@@ -103,6 +103,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         this.print = new PrintService({
             content : this.printContainer.nativeElement.outerHTML
         });
+        $('#selectCompliant').material_select();
         this.filterByCompliance();
         this.searchUser();
     }
@@ -111,24 +112,30 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
 
         let self = this;
         $('#selectCompliant').on('change', (e) => {
+            
+            self.dashboardPreloader.show();
+            self.loadingTable =  true;
             let compliant = parseInt($('#selectCompliant').val());
-            console.log(compliant);
+            let copy = [];            
             if (self.results.length == 0) {
                 self.results = self.reportsData;
             }            
-            let copy = self.results;
+            
             self.results = [];
             if (compliant == -1) {
                 self.results = self.reportsData;
             } else {
-                for (let user of copy) {
+                
+                for (let user of self.reportsData) {                    
                     if (parseInt(user['training'],10) == compliant) {
                         self.results.push(user);
                     }
                 }
             }
-            
-            
+            setTimeout(() => {
+                self.dashboardPreloader.hide();
+                this.loadingTable = false;
+            }, 500);
         }).material_select();
     }
 

@@ -235,11 +235,6 @@ export class ReportsRoute extends BaseRoute {
            req.body['eco_role_ids'] = req.params.roleids;
            new ReportsRoute().generateWardenReport(req, res, false, true);
        });
-
-       
-
-
-
     }
 
    /**
@@ -329,8 +324,6 @@ export class ReportsRoute extends BaseRoute {
     
         }
 
-        console.log(accountRoles);
-
         for(let role of accountRoles) {
             if (role['role_id'] == 2) {
                 let bldg = [];
@@ -395,7 +388,7 @@ export class ReportsRoute extends BaseRoute {
                     console.log(e, 'Error getting gofr users for location');
                 }
                 try {
-                    let tempWarden = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id);
+                    let tempWarden = await emUsers.getWardenTeamList(sublocationIds);
                     for (let warden of tempWarden) {
                         frpWardenList.push(warden);
                     }
@@ -464,7 +457,7 @@ export class ReportsRoute extends BaseRoute {
             
         }
         
-        console.log(trainingRequirements, userIds);
+        
         try {
                 cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
         } catch (e) {
@@ -472,9 +465,7 @@ export class ReportsRoute extends BaseRoute {
         }
         Object.keys(listObj).forEach( (key) => {
             for (let c of cert) {
-                /*console.log(listObj[key]['user_id'] == c['user_id']);
-                console.log(trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']);
-                */
+                
                 if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {
                     listObj[key]['training_obj'] = c;
                     if (c['status'] == 'valid') {
