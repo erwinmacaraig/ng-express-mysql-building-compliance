@@ -471,7 +471,7 @@ export class ReportsRoute extends BaseRoute {
                     if (c['status'] == 'valid') {
                         listObj[key]['training'] = 1;
                     }
-                    continue;
+                    break;
                 }
             }
             final_list.push(listObj[key]);

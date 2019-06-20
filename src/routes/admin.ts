@@ -2983,10 +2983,12 @@ export class AdminRoute extends BaseRoute {
             },
             data : <any>[],
             message : '',
+            test: []
         },
         accountId = (req.body.account_id) ? req.body.account_id : 0,
         type = (req.body.type) ? req.body.type : '';
 
+        
         if(type.trim().length > 0){
             let data = <any> await this.getUsersAndPaginations(req);
             response['data'] = data.users;
@@ -3012,6 +3014,109 @@ export class AdminRoute extends BaseRoute {
                     } 
                     
                 }
+                //===============================================
+                // 1. determine if account or location
+                //=================
+                let account_id = req.body.account_id;
+                let location_id = req.body.location_id;  
+                let allUsers = [];  
+                let allLocationIds = [];
+                const emUsers = new UserEmRoleRelation();
+                let uniqUserArray = []; //user-role-location
+                let trainingRequirementsLookup = {};
+                const trainingRequirements = [];
+                const userIds = [];
+                let cert = [];
+                //=================
+                try { 
+                  let temp = await new TrainingRequirements().allEmRolesTrainings();
+                  for (let wardenRole of temp) {                      
+                      trainingRequirementsLookup[wardenRole['em_role_id']] = wardenRole['training_requirement_id'];
+                      if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                          trainingRequirements.push(wardenRole['training_requirement_id']);
+                      }                    
+                  }
+                } catch(e) {
+                    console.log('Error getting/processing training requirement for role', e);          
+                }
+
+                if(location_id) {
+                  // get all users with warden roles in this location
+                  allLocationIds.push(location_id);
+                  //get all sublocations
+                  let temp = await new Location().getChildren(location_id);
+                  for (let loc of temp) {
+                    allLocationIds.push(loc['location_id']);
+                  }
+                  try {
+                    // get the location and all people that has warden role for FRP
+                    let emUsers = await new UserEmRoleRelation().getGOFRTeamList(allLocationIds);            
+                    for (let go of emUsers) {
+                        let uniqIndex = `${go['user_id']}-${go['em_roles_id']}-${go['location_id']}`;
+                        if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                          uniqUserArray.push(uniqIndex);
+                          go['training_requirement_id'] = trainingRequirementsLookup[go['em_roles_id']];
+                          go['training'] = 0;
+                          go['course_method'] = '';
+                          go['certification_date'] = '';
+                          go['expiry_date'] = '';
+                          go['status'] = 'Not taken';
+                          allUsers.push(go);
+                        }
+                        if (userIds.indexOf(go['user_id']) == -1) {
+                          userIds.push(go['user_id']);
+                        }
+                    }
+                  } catch (e) {
+                      console.log(e, 'Error getting gofr users for location');
+                  }
+
+                  try {
+                    let tempWarden = await new UserEmRoleRelation().getWardenTeamList(allLocationIds);
+                    for (let warden of tempWarden) {
+                      let uniqIndex = `${warden['user_id']}-${warden['em_roles_id']}-${warden['location_id']}`;
+                      if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                        uniqUserArray.push(uniqIndex);
+                        warden['training_requirement_id'] = trainingRequirementsLookup[warden['em_roles_id']];
+                        warden['training'] = 0;
+                        warden['course_method'] = '';
+                        warden['certification_date'] = '';
+                        warden['expiry_date'] = '';
+                        warden['status'] = 'Not taken';
+                        allUsers.push(warden);
+                      }
+                      if (userIds.indexOf(warden['user_id']) == -1) {
+                        userIds.push(warden['user_id']);
+                      }
+                    }
+                  } catch (e) {
+                    console.log(e, 'Error getting warden users for location');
+                  }
+                  try {
+                    cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+                  } catch (e) {
+                    console.log(e);
+                  }
+                  for(let user of allUsers) {
+                    for (let c of cert) {
+                      if (user['user_id'] == c['user_id'] && trainingRequirementsLookup[user['em_roles_id']] == c['training_requirement_id']) {
+                        if (c['status'] == 'valid') {
+                          user['training'] = 1;
+                        }
+                        user['course_method'] = c['course_method'];
+                        user['certification_date'] = c['certification_date'];
+                        user['expiry_date'] = c['expiry_date'];
+                        user['status'] = c['status'];
+                        break;
+                      }
+                    }
+                  }
+                  response['test'] = allUsers;
+                } else {
+
+                }
+            
+
             }else if(type == 'face'){
                 let
                 allAccountIds = [],
