@@ -480,7 +480,7 @@ export class UsersRoute extends BaseRoute {
         }
         try {
             accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
-            console.log(accountUserData);
+            //console.log(accountUserData);
             for(let data of accountUserData) {
                 if (data['location_id'] in roleOfAccountInLocationObj) {
                     locationIds.push(data['location_id']);

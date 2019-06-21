@@ -3027,6 +3027,7 @@ export class AdminRoute extends BaseRoute {
                 const trainingRequirements = [];
                 const userIds = [];
                 let cert = [];
+                let certUniq = []; //user-role-training
                 //=================
                 try { 
                   let temp = await new TrainingRequirements().allEmRolesTrainings();
@@ -3061,6 +3062,7 @@ export class AdminRoute extends BaseRoute {
                           go['certification_date'] = '';
                           go['expiry_date'] = '';
                           go['status'] = 'Not taken';
+                          go['certifications_id'] = 0;
                           allUsers.push(go);
                         }
                         if (userIds.indexOf(go['user_id']) == -1) {
@@ -3083,6 +3085,7 @@ export class AdminRoute extends BaseRoute {
                         warden['certification_date'] = '';
                         warden['expiry_date'] = '';
                         warden['status'] = 'Not taken';
+                        warden['certifications_id'] = 0;
                         allUsers.push(warden);
                       }
                       if (userIds.indexOf(warden['user_id']) == -1) {
@@ -3097,20 +3100,27 @@ export class AdminRoute extends BaseRoute {
                   } catch (e) {
                     console.log(e);
                   }
+                  
                   for(let user of allUsers) {
-                    for (let c of cert) {
-                      if (user['user_id'] == c['user_id'] && trainingRequirementsLookup[user['em_roles_id']] == c['training_requirement_id']) {
-                        if (c['status'] == 'valid') {
-                          user['training'] = 1;
+                    // console.log(`${user['user_id']}-${user['em_roles_id']}-${user['location_id']}`);
+                    let indexUniq = `${user['user_id']}-${user['em_roles_id']}-${trainingRequirementsLookup[user['em_roles_id']]}`;                     
+                    for (let c of cert) {                                                                                 
+                      if (certUniq.indexOf(indexUniq) == -1) {
+                        if (user['user_id'] == c['user_id'] && trainingRequirementsLookup[user['em_roles_id']] == c['training_requirement_id']) {
+                          certUniq.push(indexUniq);                          
+                          if (c['status'] == 'valid') {
+                            user['training'] = 1;
+                          }
+                          user['certifications_id'] = c['certifications_id'];
+                          user['course_method'] = c['course_method'];
+                          user['certification_date'] = c['certification_date'];
+                          user['expiry_date'] = c['expiry_date'];
+                          user['status'] = c['status'];  
                         }
-                        user['course_method'] = c['course_method'];
-                        user['certification_date'] = c['certification_date'];
-                        user['expiry_date'] = c['expiry_date'];
-                        user['status'] = c['status'];
-                        break;
                       }
                     }
                   }
+                  
                   response['test'] = allUsers;
                 } else {
 

@@ -457,22 +457,25 @@ export class ReportsRoute extends BaseRoute {
             
         }
         
-        
+        let certUniq = [];
         try {
                 cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
         } catch (e) {
                 console.log(e);
         }
         Object.keys(listObj).forEach( (key) => {
+            let indexUniq = `${listObj[key]['user_id']}-${listObj[key]['role_id']}-${trainingRequirementsLookup[listObj[key]['user_id']]}`;
             for (let c of cert) {
-                
-                if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {
-                    listObj[key]['training_obj'] = c;
-                    if (c['status'] == 'valid') {
-                        listObj[key]['training'] = 1;
+                if (certUniq.indexOf(indexUniq) == -1) {
+                    if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {
+                        certUniq.push(indexUniq); 
+                        listObj[key]['training_obj'] = c;
+                        if (c['status'] == 'valid') {
+                            listObj[key]['training'] = 1;
+                        }                        
                     }
-                    break;
-                }
+                }                
+                
             }
             final_list.push(listObj[key]);
             
