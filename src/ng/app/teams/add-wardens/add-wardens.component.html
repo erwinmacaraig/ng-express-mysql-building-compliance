@@ -26,8 +26,7 @@
 					<tr>
 						<th>First Name</th>
 						<th>Last Name</th>
-						<th>Email</th>
-						<!-- <th>Account Role</th> -->
+						<th>Email</th>						
 						<th>ECO Role</th>
 						<th>Location</th>
 						<th>Contact Information</th>
@@ -69,11 +68,7 @@
                             </ng-multiselect-dropdown>
 						</td>
 						<td style="width: 300px;">
-							
-							
 							<a  [class.disabled]="user.selected_roles == 0" class="blue-text" (click)="showLocationSelection(user)"> {{user.location_name}} </a>
-							
-							
 							<input type="hidden" name="selectedLocation{{i}}" [(ngModel)]="user.account_location_id" required pattern="[1-9][0-9]*">
 						</td>
 						<td class="with-remove">
@@ -163,9 +158,6 @@
 </div>
 
 <div id="modalLocations" class="modal modal-sublocations">
-
-
-
 	<div class="modal-content">
 		<h5>Select Location</h5>
 

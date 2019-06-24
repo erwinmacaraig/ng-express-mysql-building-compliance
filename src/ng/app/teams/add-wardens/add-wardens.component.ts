@@ -117,6 +117,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
+        this.dashboardPreloaderService.show(); 
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
@@ -126,15 +127,14 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                             role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
                         });
                     }
-                }
-                this.dashboardPreloaderService.show();
+                }                
             }, (err) => {
-                this.dashboardPreloaderService.show();
+                
                 console.log('Server Error. Unable to get the list');
             }
         );
 
-       this.dashboardPreloaderService.show();     
+           
         
         this.userService.listUserAccountLocations().subscribe((response) => {
             this.locations = response.hierarchy;
@@ -144,6 +144,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             this.addMoreRow();
 
             console.log(response.hierarchy);
+        }, (err) => {
+            this.dashboardPreloaderService.hide(); 
         });
 
         
@@ -168,47 +170,8 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
     }
 
     onSelectRole($event, iterator, elem){
-
         this.selectedUser = this.addedUsers[iterator];
-
         console.log(this.selectedUser);
-    }
-
-    filterLocationForSelectedValue(){
-        let selected = {};
-        let loopAddKey = (data, mainParent?) => {
-            for(let i in data){
-                if(typeof mainParent === 'undefined'){
-                    mainParent = JSON.parse(JSON.stringify(data[i]));
-                }else if(mainParent.location_id != data[i]['location_id'] && data[i]['parent_id'] == -1){
-                    mainParent = JSON.parse(JSON.stringify(data[i]));
-                }
-
-                if(this.paramLocIdEnc.length > 0){
-                    if(this.paramLocId == data[i]['location_id']){
-                        if('location_id' in mainParent){
-                            selected = mainParent;
-                        }else{
-                            selected = data[i];
-                        }
-                    }
-                }
-
-                if(mainParent){
-                    data[i]['main_parent'] = (mainParent.location_id != data[i]['location_id']) ? mainParent : {};
-                }else{
-                    data[i]['main_parent'] = {};
-                }
-
-                if(data[i]['sublocations'].length > 0){
-                    loopAddKey(data[i]['sublocations'], mainParent);
-                }
-            }
-        };
-
-        loopAddKey(this.locations);
-
-        return [selected];
     }
 
     showModalInvite(){
@@ -356,8 +319,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                     try {
                         if(d.sublocations.length > 0){
                             let related = findRelatedName(d.sublocations);
-                            for(let i in related){
-                                
+                            for(let i in related) {
                                 related[i]['name'] = `${related[i]['name']}, ${d['name']}`;
                                 results.push(related[i]);                                
                             }

@@ -26,8 +26,7 @@
 					<tr>
 						<th>First Name</th>
 						<th>Last Name</th>
-						<th>Email</th>
-						<!-- <th>Account Role</th> -->
+						<th>Email</th>						
 						<th>ECO Role</th>
 						<th>Location</th>
 						<th>Contact Information</th>
@@ -53,13 +52,7 @@
                             </div>
                             <input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" required
                             pattern='^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$'>
-						</td>
-						<!-- <td >
-							<select required [(ngModel)]="user.role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
-								<option value="0" selected>Select Account Role</option>
-								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
-							</select>
-						</td> -->
+						</td>						
 						<td >
 							<ng-multiselect-dropdown
                                 #thisDropDown
@@ -164,15 +157,12 @@
 </div>
 
 <div id="modalLocations" class="modal modal-sublocations">
-
-
-
 	<div class="modal-content">
 		<h5>Select Location</h5>
 
 		<div class="search-container" >
 			<div class="input-container">
-				<input type="text" placeholder="Search Level" #modalSearchLocation  >
+				<input type="text" placeholder="Enter building location to search for level" #modalSearchLocation  >
 			</div>
 			<div class="icon-container">
 				<img src="assets/images/locations/search_icon.png" alt="">
@@ -183,7 +173,45 @@
 
 			<div class="list-region" >
 				<p *ngIf="locations.length == 0">No location found</p>
-				<ul class="locations"></ul>
+				<ul class="locations">
+					<ng-container *ngFor="let loc of locations">
+						<li class="list-division" id="{{loc.location_id}}" *ngIf="loc['responsibility']">
+							<div class="name-radio-plus">
+								<div class="input">
+									<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{loc.location_id}}" (click)="chooseLocation(loc.location_id, loc.name)">
+									<label for="check-{{loc.location_id}}">{{loc.name}}</label>
+									<ul *ngIf="loc.sublocations" style="padding-left: 20px; max-height: 153px; overflow: auto;">
+											<li *ngFor="let sub of loc.sublocations" class="list-division" id="{{sub.location_id}}">
+												<div class="name-radio-plus">
+													<div class="input">
+														<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{sub.location_id}}" (click)="chooseLocation(sub.location_id, loc.name, sub.name)">
+														<label for="check-{{sub.location_id}}">{{sub.name}}</label>
+													</div>
+												</div>	
+											</li>
+										</ul>
+								</div>
+							</div>							
+						</li>
+						<li class="list-division" style="margin-top: 8px;" id="{{loc.location_id}}" *ngIf="!loc['responsibility']">
+							<div class="name-radio-plus">
+								<span class="loc-name-no-responsibility">{{loc.name}}</span>
+								<ul *ngIf="loc.sublocations" style="padding-left: 20px; max-height: 153px; overflow: auto;">
+										<li *ngFor="let sub of loc.sublocations" class="list-division" id="{{sub.location_id}}">
+											<div class="name-radio-plus">
+												<div class="input">
+													<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{sub.location_id}}" (click)="chooseLocation(sub.location_id, loc.name, sub.name)">
+													<label for="check-{{sub.location_id}}">{{sub.name}}</label>
+												</div>
+											</div>	
+										</li>
+									</ul>
+							</div>
+						</li>
+
+					</ng-container>
+
+				</ul>
 
                 <!-- <ul *ngIf="locations.length > 0" class="">
                     <li *ngFor="let location of locations" class="list-division" [id]="location.location_id" >
@@ -201,7 +229,7 @@
 
 			<div class="button-container center">
 				<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
-				<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLocValid" *ngIf="locations.length > 0"> Submit </button>
+				<!--<button type="submit" class="btn orange waves-effect waves-light" *ngIf="locations.length > 0"> Submit </button>-->
 			</div>
 
 		</form>
