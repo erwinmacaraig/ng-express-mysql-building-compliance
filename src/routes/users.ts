@@ -472,6 +472,10 @@ export class UsersRoute extends BaseRoute {
         let allLocations = [];
         let locationIds = [];
         let locationObj = new Location();
+        let locationHierarchy = [];
+        let hierarchyObj = {};
+        let buildingForTrpUniqCtr:{[index:number]: Object} = {};
+        let buildingForFRPUniqCtr = [];
         // Determine role of the account 
         try {            
             roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);            
@@ -484,14 +488,42 @@ export class UsersRoute extends BaseRoute {
             for(let data of accountUserData) {
                 if (data['location_id'] in roleOfAccountInLocationObj) {
                     locationIds.push(data['location_id']);
-                }                
-                if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Tenant']) {
-                    trpLocations.push(data['location_id']);
-                    
-                } else if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Manager']) {
-                    frpLocations.push(data['location_id']);
                 }
+                if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Manager']) {
+                    frpLocations.push(data['location_id']);
+                    let temp = await new Location(data['location_id']).load();
+                    temp['responsibility'] = 'FRP'; 
+                    temp['sublocations'] = [];
+                    temp['sublocations'] = await new Location().getChildren(data['location_id']);
+                    locationHierarchy.push(temp);
+                } else if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Tenant']) {
+                    trpLocations.push(data['location_id']);
+                    let locLevel = await new Location(data['location_id']).load();
+                    locLevel['responsibility'] = 'TRP';                   
+                    if (frpLocations.indexOf(locLevel['parent_id']) == -1) {
+                        if (locLevel['parent_id'] != -1) {
+                            if ( !(locLevel['parent_id'] in  buildingForTrpUniqCtr )) {
+                                buildingForTrpUniqCtr[locLevel['parent_id']] = {
+                                    name: locLevel['parent'],
+                                    location_id: locLevel['parent_id'],
+                                    sublocations: [locLevel]
+        
+                                };
+                            } else {
+                                buildingForTrpUniqCtr[locLevel['parent_id']]['sublocations'].push(locLevel);
+                            }
+                            
+                        } else {
+                            locationHierarchy.push(locLevel);
+                        }
+                    }
+                    
+                    
+                } 
             }
+            Object.keys(buildingForTrpUniqCtr).forEach((key) => {
+                locationHierarchy.push(buildingForTrpUniqCtr[key]);
+            })
         } catch(e) {
             console.log(' teams route, error getting in location account user data', e);
         }
@@ -504,19 +536,23 @@ export class UsersRoute extends BaseRoute {
             for (let loc of locationArr) {
                 let buildingId = 0;
                 let buildingName = '';
+                let name = '';
                 if (loc['buildingId'] == null) {                    
                     buildingId = loc['locId'];
                     buildingName = loc['level'];
+                    name = loc['level'];
                     
                 } else {
                     buildingId = loc['buildingId'];
                     buildingName = `${loc['level']}, ${loc['buildingName']}`;
+                    name = loc['buildingName'];
                 }
 
                 allLocations.push({
                     location_id: loc['locId'],
+                    name: name,
                     building_id: buildingId,
-                    building_name: buildingName
+                    building_name: buildingName                    
                 });
             }
 
@@ -524,12 +560,11 @@ export class UsersRoute extends BaseRoute {
             locationArr = [];
             console.log(e);
         }
-        
-
         return res.status(200).send({
             trp_locations: trpLocations,
             frp_locations: frpLocations,
-            locations: allLocations
+            locations: allLocations,
+            hierarchy: locationHierarchy
         });
 
     }

@@ -94,7 +94,7 @@ export class EmailSender {
                 /*
                 ToAddresses: [],              
                 CcAddresses: [],
-                BccAddresses: ['emacaraig@evacgroup.com.au','rsantos@evacgroup.com.au', 'mmanclark@evacgroup.com.au']                
+                BccAddresses: ['emacaraig@evacgroup.com.au','rsantos@evacgroup.com.au', 'dgilmore@evacgroup.com.au']                
                 */
                 
             }, 

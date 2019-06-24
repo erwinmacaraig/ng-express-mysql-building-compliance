@@ -408,7 +408,8 @@ export class UserService {
 		return this.http.get<{
 			trp_locations: number[],
 			frp_locations: number[],
-			locations: object[]
+			locations: object[],
+			hierarchy: object[]
 		}>(`${this.baseUrl}/users/location-listing/`);
 	}
 }

@@ -481,6 +481,12 @@ a.disabled{
     overflow-y: auto;
 }
 
+.loc-name-no-responsibility {
+    height: 22px;
+    padding-left: 20px;
+    
+}
+
 @media only screen
   and (max-width: 1440px) {
     #modalInvite,

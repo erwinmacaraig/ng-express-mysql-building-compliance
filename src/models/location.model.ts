@@ -16,7 +16,7 @@ export class Location extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = `
                 SELECT 
-                l.*,
+                l.*, p.name as parent,
                 IF(p.is_building = 1, 1, 0) parent_is_building,
                 IF( ( SELECT COUNT(c.location_id) as count FROM locations c WHERE c.parent_id = l.location_id AND c.is_building = 1  ) > 0, 1, 0 ) as has_child_building
                 FROM locations l 
