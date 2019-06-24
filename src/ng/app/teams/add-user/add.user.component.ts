@@ -139,41 +139,9 @@ export class AddUserComponent implements OnInit, OnDestroy {
         }
         if(this.userRole == 1 || this.userRole == 2){
             this.selectRolesDropdown.push({
-                role_id : 2, role_name : 'Tenant'
+                role_id : 2, role_name : 'Tenant Responsible Person'
             });
         }
-
-        // get ECO Roles from db
-        this.dataProvider.buildECORole().subscribe((roles) => {
-            this.ecoRoles = roles;
-            for(let i in roles){
-                if(roles[i]['em_roles_id'] != 12){
-                    this.accountRoles.push({
-                        role_id : roles[i]['em_roles_id'],
-                        role_name : roles[i]['role_name']
-                    });
-
-                    this.selectRolesDropdown.push({
-                        role_id : roles[i]['em_roles_id'], role_name : roles[i]['role_name']
-                    });
-                }
-            }
-
-            if(this.paramRole.length > 0){
-                let newAccRole = [];
-                for(let i in this.accountRoles){
-                    if(this.accountRoles[i]['selected']){
-                        newAccRole.push(this.accountRoles[i]);
-                    }
-                }
-
-                this.accountRoles = newAccRole;
-            }
-        }, (err) => {
-            console.log('Server Error. Unable to get the list');
-        }
-        );
-
         this.dashboardPreloaderService.show();
 
         this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response:any) => {
@@ -351,22 +319,26 @@ export class AddUserComponent implements OnInit, OnDestroy {
         for (const loc of this.locations) {
             if (count <= maxDisplay) {
                 let ul = ``;
-                if(loc.sublocations.length > 0){
-                    ul += buildChildList(loc.sublocations);
-                }
-                let $li = $(`
-                <li class="list-division" id="${loc.location_id}">
-                    <div class="name-radio-plus">
-                        <div class="input">
-                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
-                            <label for="check-${loc.location_id}">${loc.name}</label>
+                try {
+                    if(loc.sublocations.length > 0){
+                        ul += buildChildList(loc.sublocations);
+                    }
+                    let $li = $(`
+                    <li class="list-division" id="${loc.location_id}">
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
+                                <label for="check-${loc.location_id}">${loc.name}</label>
+                            </div>
                         </div>
-                    </div>
-                    ${ul}
-                </li>`);
-
-                ulModal.append($li);
-                count++;
+                        ${ul}
+                    </li>`);
+    
+                    ulModal.append($li);
+                    count++;
+                } catch(e) {
+                    console.log('No sublocation');
+                }
             }
         }
     }

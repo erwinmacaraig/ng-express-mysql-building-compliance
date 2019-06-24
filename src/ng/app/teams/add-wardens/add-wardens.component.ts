@@ -335,22 +335,26 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         for (const loc of this.locations) {
             if (count <= maxDisplay) {
                 let ul = ``;
-                if(loc.sublocations.length > 0){
-                    ul += buildChildList(loc.sublocations);
-                }
-                let $li = $(`
-                <li class="list-division" id="${loc.location_id}">
-                    <div class="name-radio-plus">
-                        <div class="input">
-                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
-                            <label for="check-${loc.location_id}">${loc.name}</label>
+                try {
+                    if(loc.sublocations.length > 0){
+                        ul += buildChildList(loc.sublocations);
+                    }
+                    let $li = $(`
+                    <li class="list-division" id="${loc.location_id}">
+                        <div class="name-radio-plus">
+                            <div class="input">
+                                <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
+                                <label for="check-${loc.location_id}">${loc.name}</label>
+                            </div>
                         </div>
-                    </div>
-                    ${ul}
-                </li>`);
-
-                ulModal.append($li);
-                count++;
+                        ${ul}
+                    </li>`);
+    
+                    ulModal.append($li);
+                    count++;
+                } catch(e) {
+                    console.log(e);
+                }
             }
         }
     }
