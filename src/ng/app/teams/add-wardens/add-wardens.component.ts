@@ -43,13 +43,6 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
         contact_number : '',
         mobile_number : '',
         selected_roles : [],
-        new_account : {
-            valid : false,
-            name : '',
-            trp : {
-                firstname : '', lastname : '', email : ''
-            }
-        },
         errors : {}
     };
     public isSearchResult = false;

@@ -143,19 +143,18 @@ export class AddUserComponent implements OnInit, OnDestroy {
             });
         }
         this.dashboardPreloaderService.show();
-
-        this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response:any) => {
-            this.locations = JSON.parse( JSON.stringify( response.locations ) );
-            this.locationsCopy = JSON.parse( JSON.stringify( response.locations ) );
+        this.userService.listUserAccountLocations().subscribe((response) => {
+            this.locations = response.hierarchy;
+            this.locationsCopy = response.hierarchy;
 
             this.dashboardPreloaderService.hide();
             this.addMoreRow();
-        });
 
-        this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
-            this.buildings = response.data.buildings;
-            this.levels = response.data.levels;
+            console.log(response.hierarchy);
+        }, (err) => {
+            this.dashboardPreloaderService.hide(); 
         });
+        
     }
 
     ngAfterViewInit(){
@@ -254,13 +253,7 @@ export class AddUserComponent implements OnInit, OnDestroy {
         }, 700);
     }
 
-    onChangeDropDown(event){
-        if(event.currentTarget.checked){
-            $( $(event.currentTarget).parents('.list-division')[0] ).addClass('show-drop-down');
-        }else{
-            $( $(event.currentTarget).parents('.list-division')[0] ).removeClass('show-drop-down');
-        }
-    }
+    
 
     removeAddedUser(index){
         let newList = [];
@@ -272,92 +265,22 @@ export class AddUserComponent implements OnInit, OnDestroy {
         this.addedUsers = newList;
     }
 
-    filterLocationsToDisplayByUserRole(user, data){
-        let resp = [],
-            copy = JSON.parse(JSON.stringify(data));
-
-        return JSON.parse( JSON.stringify( this.locationsCopy ) );
-    }
-
-    buildLocationsListInModal(){
-        const ulModal = $('#modalLocations ul.locations');
-        ulModal.html('');
-        $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
-            $('#modalLocations')[0].scrollTop = 0;
-            this.formLocValid = true;
-        });
-
-        let maxDisplay = 25,
-            count = 1,
-            buildChildList = (locations) => {
-                let ul = ``;
-
-                if(locations.length > 0){
-                    ul += '<ul style="padding-left: 20px; max-height: 153px; overflow: auto;">';
-                    for(let loc of locations){
-                        let subUl = (loc.sublocations.length > 0) ? buildChildList(loc.sublocations) : '';
-                        ul += `
-                            <li class="list-division" id="${loc.location_id}">
-                                <div class="name-radio-plus">
-                                    <div class="input">
-                                        <input required type="radio" name="selectLocation" loc-name="${loc.name}" value="${loc.location_id}" id="check-${loc.location_id}">
-                                        <label for="check-${loc.location_id}">${loc.name}</label>
-                                    </div>
-                                </div>
-
-                                ${subUl}
-                            </li>
-                        `;
-                    }
-                    ul += '</ul>';
-                }
-
-                return ul;
-
-            };
-
-        for (const loc of this.locations) {
-            if (count <= maxDisplay) {
-                let ul = ``;
-                try {
-                    if(loc.sublocations.length > 0){
-                        ul += buildChildList(loc.sublocations);
-                    }
-                    let $li = $(`
-                    <li class="list-division" id="${loc.location_id}">
-                        <div class="name-radio-plus">
-                            <div class="input">
-                                <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
-                                <label for="check-${loc.location_id}">${loc.name}</label>
-                            </div>
-                        </div>
-                        ${ul}
-                    </li>`);
     
-                    ulModal.append($li);
-                    count++;
-                } catch(e) {
-                    console.log('No sublocation');
-                }
-            }
-        }
-    }
+
+    
 
     changeRoleEvent(user) {
         user.location_name = 'Select Location';
         user.location_id = 0;
         user.account_location_id = 0;
         this.selectedUser = user;
-        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
-        this.buildLocationsListInModal();
+        
     }
 
     showLocationSelection(user) {
         this.selectedUser = user;
-        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
-        this.buildLocationsListInModal();
         $('#modalLocations').modal('open');
-        this.formLocValid = false;
+       
     }
 
     submitSelectLocationModal(form, event){
@@ -449,30 +372,37 @@ export class AddUserComponent implements OnInit, OnDestroy {
             this.formLocValid = false;
             let value = event['target'].value.trim().toLowerCase();
             value = value.replace(/[^a-zA-Z 0-9]/g, "");
-            let seenSubLocIndex = [];
-            const seenIndex = [];
-
+                            
             let findRelatedName = (data) => {
                 let results = [];
                 for(let d of data){
                     let name = d.name.trim().toLowerCase();
                     name = name.replace(/[^a-zA-Z 0-9]/g, "");
-                    if(name.indexOf(value) > -1){
-                        d['sublocations'] = [];
+                    if(name.indexOf(value) > -1){                        
+                        //d['sublocations'] = [];
+                        //console.log(d);
                         results.push(d);
                     }
-                    if(d.sublocations.length > 0){
-                        let related = findRelatedName(d.sublocations);
-                        for(let i in related){
-                            results.push(related[i]);
+                    try {
+                        if(d.sublocations.length > 0){
+                            let related = findRelatedName(d.sublocations);
+                            for(let i in related) {
+                                related[i]['name'] = `${related[i]['name']}, ${d['name']}`;
+                                results.push(related[i]);                                
+                            }
                         }
+
+                    } catch(e) {
+                        console.log('No sublocation');
                     }
+                    
                 }
 
                 return results;
             };
 
             if(value.length > 0){
+                
                 let found = findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
                 let finalResults = [],
                     ids = [];
@@ -485,15 +415,22 @@ export class AddUserComponent implements OnInit, OnDestroy {
                 this.locations = finalResults;
             }else{
                 this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+                
             }
-
-            this.buildLocationsListInModal();
         });
     }
 
     ngOnDestroy(){
         this.routeSub.unsubscribe();
         this.searchModalLocationSubs.unsubscribe();
+    }
+    chooseLocation(locationId=0, buildingName = '', locationName='') {        
+        this.selectedUser['account_location_id'] = locationId;
+        this.selectedUser['location_name'] = `${buildingName} ${locationName}`;            
+        $('#modalLocations').modal('close');
+        this.modalSearchLocation.nativeElement.value = '';
+       
+        
     }
 
 

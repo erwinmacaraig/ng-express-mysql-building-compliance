@@ -2,17 +2,6 @@
 <div class="row row-add-mobility-impaired-form">
 	<div class="col m12 l12 s12 top-title-button">
 		<h4 class="title left">Add Mobility Impaired</h4>
-        
-        <!-- <app-import-csv-button class="right"></app-import-csv-button> -->
-
-		<!-- <button class="btn btn-flat right" (click)="showModalCSV()" style="width: 250px;">
-            <div class="image csv-wardens"></div>
-            <div class="text" style="width: 175px;">Add Mobility Impaired by CSV Upload</div>
-        </button> -->
-		<!-- <button class="btn btn-flat right" (click)="showModalInvite()" style="margin-right: 20px;">
-			<div class="image invite-wardens"></div>
-			<div class="text">Invite Mobility Impaired by Email</div>
-		</button> -->
 	</div>
 </div>
 
@@ -26,8 +15,6 @@
 						<th>First Name</th>
 						<th>Last Name</th>
 						<th>Email</th>
-						<!-- <th>Account Role</th> -->
-						<!-- <th>Role</th> -->
 						<th>Location</th>
 						<th>Contact Information</th>
 					</tr>
@@ -52,12 +39,6 @@
 							</div>
                             <input type="text" [(ngModel)]="user.email" placeholder="Email" name="email{{i}}" pattern='^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$' required>
 						</td>
-						<!-- <td >
-							<select required [(ngModel)]="user.role_id" name="accountRole{{i}}" (change)="onSelectedAccountRole(i)">
-								<option value="0" selected>Select Account Role</option>
-								<option *ngFor="let role of accountRoles" [value]="role.role_id"> {{ role.role_name }}</option>
-							</select>
-						</td> -->
 						<!--<td >
 							 <select required [(ngModel)]="user.account_role_id" name="accountRole{{i}}" pattern="[1-9][0-9]*">
 											<option value="0" selected disabled>Select Role</option>
@@ -107,15 +88,12 @@
 </div>
 
 <div id="modalLocations" class="modal modal-sublocations">
-
-
-
 	<div class="modal-content">
 		<h5>Select Location</h5>
 
 		<div class="search-container" >
 			<div class="input-container">
-				<input type="text" placeholder="Search Level" #modalSearchLocation  >
+				<input type="text" placeholder="Enter building location to search for level" #modalSearchLocation  >
 			</div>
 			<div class="icon-container">
 				<img src="assets/images/locations/search_icon.png" alt="">
@@ -124,10 +102,47 @@
 
 		<form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)" id="formLoc">
 
-            <div class="list-region">
-                <p *ngIf="locations.length == 0">No location found</p>
+			<div class="list-region" >
+				<p *ngIf="locations.length == 0">No location found</p>
+				<ul class="locations">
+					<ng-container *ngFor="let loc of locations">
+						<li class="list-division" id="{{loc.location_id}}" *ngIf="loc['responsibility']">
+							<div class="name-radio-plus">
+								<div class="input">
+									<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{loc.location_id}}" (click)="chooseLocation(loc.location_id, loc.name)">
+									<label for="check-{{loc.location_id}}">{{loc.name}}</label>
+									<ul *ngIf="loc.sublocations" style="padding-left: 20px; max-height: 153px; overflow: auto;">
+											<li *ngFor="let sub of loc.sublocations" class="list-division" id="{{sub.location_id}}">
+												<div class="name-radio-plus">
+													<div class="input">
+														<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{sub.location_id}}" (click)="chooseLocation(sub.location_id, loc.name, sub.name)">
+														<label for="check-{{sub.location_id}}">{{sub.name}}</label>
+													</div>
+												</div>	
+											</li>
+										</ul>
+								</div>
+							</div>							
+						</li>
+						<li class="list-division" style="margin-top: 8px;" id="{{loc.location_id}}" *ngIf="!loc['responsibility']">
+							<div class="name-radio-plus">
+								<span class="loc-name-no-responsibility">{{loc.name}}</span>
+								<ul *ngIf="loc.sublocations" style="padding-left: 20px; max-height: 153px; overflow: auto;">
+										<li *ngFor="let sub of loc.sublocations" class="list-division" id="{{sub.location_id}}">
+											<div class="name-radio-plus">
+												<div class="input">
+													<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{sub.location_id}}" (click)="chooseLocation(sub.location_id, loc.name, sub.name)">
+													<label for="check-{{sub.location_id}}">{{sub.name}}</label>
+												</div>
+											</div>	
+										</li>
+									</ul>
+							</div>
+						</li>
 
-                <ul class="locations"></ul>
+					</ng-container>
+
+				</ul>
 
                 <!-- <ul *ngIf="locations.length > 0" class="">
                     <li *ngFor="let location of locations" class="list-division" [id]="location.location_id" >
@@ -141,36 +156,14 @@
                         </div>
                     </li>
                 </ul> -->
-            </div>
+			</div>
 
-            <div class="button-container center">
-                <a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
-                <button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLocValid" *ngIf="locations.length > 0"> Submit </button>
-            </div>
+			<div class="button-container center">
+				<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+				<!--<button type="submit" class="btn orange waves-effect waves-light" *ngIf="locations.length > 0"> Submit </button>-->
+			</div>
 
-        </form>
+		</form>
 
 	</div>
 </div>
-
-<div id="modalInvite" class="modal">
-  <form #invitefrm="ngForm">
-    <div class="modal-content">
-      <div class="header-container center">
-        <div class="image invite-wardens"></div>
-        <div class="text" style="width: 50%;">Invite Wardens by Email</div>
-      </div>
-
-      <div class="center">
-        <p style="font-size: 16px;">Add email address separated by ","</p>
-        <textarea placeholder="Emails here" [(ngModel)]="bulkEmailInvite" name="inviteTxtArea"></textarea>
-      </div>
-
-      <div class="button-container center">
-        <button class="btn grey lighten-1 waves-effect waves-light modal-trigger modal-close"> Cancel </button>
-        <button class="btn orange waves-effect waves-light" (click)="sendInviteOnClick()"> Submit </button>
-      </div>
-    </div>
-  </form>
-</div>
-

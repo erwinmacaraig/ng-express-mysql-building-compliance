@@ -117,17 +117,13 @@
 	</div>
 </div>
 
-
 <div id="modalLocations" class="modal modal-sublocations">
-
-
-
 	<div class="modal-content">
 		<h5>Select Location</h5>
 
 		<div class="search-container" >
 			<div class="input-container">
-				<input type="text" placeholder="Search Location" #modalSearchLocation  >
+				<input type="text" placeholder="Enter building location to search for level" #modalSearchLocation  >
 			</div>
 			<div class="icon-container">
 				<img src="assets/images/locations/search_icon.png" alt="">
@@ -136,35 +132,60 @@
 
 		<form #formLoc (submit)="submitSelectLocationModal(formLoc, $event)" id="formLoc">
 
-    		<div class="list-region">
-    			<p *ngIf="locations.length == 0">No location found</p>
+			<div class="list-region" >
+				<p *ngIf="locations.length == 0">No location found</p>
+				<ul class="locations">
+					<ng-container *ngFor="let loc of locations">
+						<li class="list-division" id="{{loc.location_id}}" *ngIf="loc['responsibility']">
+							<div class="name-radio-plus">
+								<div class="input">
+									<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{loc.location_id}}" (click)="chooseLocation(loc.location_id, loc.name)">
+									<label for="check-{{loc.location_id}}">{{loc.name}}</label>
+									<ul *ngIf="loc.sublocations" style="padding-left: 20px; max-height: 153px; overflow: auto;">
+											<li *ngFor="let sub of loc.sublocations" class="list-division" id="{{sub.location_id}}">
+												<div class="name-radio-plus">
+													<div class="input">
+														<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{sub.location_id}}" (click)="chooseLocation(sub.location_id, loc.name, sub.name)">
+														<label for="check-{{sub.location_id}}">{{sub.name}}</label>
+													</div>
+												</div>	
+											</li>
+										</ul>
+								</div>
+							</div>							
+						</li>
+						<li class="list-division" style="margin-top: 8px;" id="{{loc.location_id}}" *ngIf="!loc['responsibility']">
+							<div class="name-radio-plus">
+								<span class="loc-name-no-responsibility">{{loc.name}}</span>
+								<ul *ngIf="loc.sublocations" style="padding-left: 20px; max-height: 153px; overflow: auto;">
+										<li *ngFor="let sub of loc.sublocations" class="list-division" id="{{sub.location_id}}">
+											<div class="name-radio-plus">
+												<div class="input">
+													<input type="radio" name="selectLocation" value="{{loc.location_id}}" id="check-{{sub.location_id}}" (click)="chooseLocation(sub.location_id, loc.name, sub.name)">
+													<label for="check-{{sub.location_id}}">{{sub.name}}</label>
+												</div>
+											</div>	
+										</li>
+									</ul>
+							</div>
+						</li>
 
-                <ul class="locations"></ul>
+					</ng-container>
 
-                <!-- <ul *ngIf="locations.length > 0" class="">
-                    <li *ngFor="let location of locations" class="list-division" [id]="location.location_id" >
-                        <div class="name-radio-plus">
-                            <div class="input">
-                                <input ngModel required type="radio" name="selectLocation" [value]="location.location_id" [id]="'check-'+location.location_id"   >
-                                <label [for]="'check-'+location.location_id">
-                                    {{location.name}}
-                                </label>
-                            </div>
-                        </div>
-                    </li>
-                </ul> -->
-    		</div>
+				</ul>
 
-    		<div class="button-container center">
-    			<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
-    			<button type="submit" class="btn orange waves-effect waves-light" [disabled]="!formLocValid" *ngIf="locations.length > 0"> Submit </button>
-    		</div>
+               
+			</div>
+
+			<div class="button-container center">
+				<a class="btn grey lighten-1 waves-effect waves-light" (click)="cancelLocationModal()"> Cancel </a>
+				
+			</div>
 
 		</form>
 
 	</div>
 </div>
-
 
 <div id="modalInvite" class="modal">
   <form #invitefrm="ngForm">
