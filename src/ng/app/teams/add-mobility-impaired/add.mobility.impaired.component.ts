@@ -275,4 +275,6 @@ export class AddMobilityImpairedComponent implements OnInit, OnDestroy {
         
         
     }
+
+    submitSelectLocationModal(form, event){}
 }

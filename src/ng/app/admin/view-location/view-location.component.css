@@ -80,7 +80,7 @@ background-color:#f1f1f1;
 .mid-nav{
     border-bottom: 1px solid #cacaca;
     padding: 0px;
-    margin-bottom: 20px;  
+    margin-bottom: 5px;  
 }
 
 .mid-nav ul{
@@ -289,4 +289,41 @@ table tr td.with-image .impaired{
 
 .hover-back-button .backbutton > *{
     font-size: 25px;
+}
+
+.filter-container {
+    height: 50px !important;
+    margin-bottom: 20px;
+}
+
+.search-field{
+    background-color: #f0f0f0;
+    padding: 0px 20px;
+    border-radius: 5px;
+    height: 50px;
+    vertical-align: bottom;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.search-field input{
+    margin: 3px 14px 0px 0px !important;
+    padding: 0px;
+    display: inline-block;
+    width: 90%;
+    border-bottom: 0px;
+}
+
+.search-field input:focus{
+    border-bottom: 0px;
+    box-shadow: none;
+}
+
+.search-field .material-icons{
+    width: 23px;
+    height: 27px;
+    background-position: 30.5% 35.7%;
+    position: absolute;
+    top: 29%;
+    right: 4%;
 }

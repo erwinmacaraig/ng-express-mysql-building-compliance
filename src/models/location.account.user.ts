@@ -355,7 +355,8 @@ export class LocationAccountUser extends BaseClass {
               ON
                 accounts.account_id = u.account_id
               WHERE
-                  lau.location_id IN (${ids})`;
+                  lau.location_id IN (${ids})
+              AND u.archived = 0`;
             
             this.pool.getConnection((err, connection) => {
               if (err) {                    

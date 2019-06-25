@@ -1099,23 +1099,28 @@ export class AdminRoute extends BaseRoute {
         if (user['user_id'] in people) {
           if (user['em_role_id']) {
             people[user['user_id']]['em_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['em_role_id']);
           }
           if (user['role_id']) {
             people[user['user_id']]['account_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['role_id']);
           }
         } else {
           people[user['user_id']] = {
             name: `${user['first_name']} ${user['last_name']}`,
             user_id: user['user_id'],
             account_name: user['account_name'],
-            account_role: [],
-            em_role: []
+            account_role: [],            
+            em_role: [],
+            role_ids: []
           };
           if (user['em_role_id']) {
             people[user['user_id']]['em_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['em_role_id']);            
           }
           if (user['role_id']) {
             people[user['user_id']]['account_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['role_id']);             
           }
         }
       }
