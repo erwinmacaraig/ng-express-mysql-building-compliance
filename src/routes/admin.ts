@@ -1353,8 +1353,9 @@ export class AdminRoute extends BaseRoute {
       // the relationship of the account to the location
 
       // For Account as Building Manager / Tenant
-      const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(req.params.accountId);
+      // const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(req.params.accountId);
       let roleOfAccountInLocationObj = {};
+      /*
       for (let role of roleOfAccountInLocationArr) {
         let account_role = '';
         let role_id = 0;
@@ -1370,16 +1371,24 @@ export class AdminRoute extends BaseRoute {
           account_role: account_role
         };
       }
+      */
       allUsers = await account.generateAdminAccountUsers(req.params.accountId, selectedUsers);
+      try {            
+        roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.params.accountId);            
+      } catch(err) {
+          console.log('authenticate route get account role relation in location', err);
+      }
+
       for (let i = 0; i < allUsers.length; i++) {
         if (allUsers[i]['location_id'] in roleOfAccountInLocationObj) {
           allUsers[i]['role_id'] = roleOfAccountInLocationObj[allUsers[i]['location_id']]['role_id'];
           allUsers[i]['account_role'] = roleOfAccountInLocationObj[allUsers[i]['location_id']]['account_role'];
         } else {
-          allUsers[i]['role_id'] = 1;
-          allUsers[i]['account_role'] = 'FRP';
+          // allUsers[i]['role_id'] = 1;
+          // allUsers[i]['account_role'] = 'FRP';
         }
       }
+
       allUsers = allUsers.concat(await account.generateAdminEMUsers(req.params.accountId, selectedUsers));
       // console.log(allUsers);
       const accountUsers = [];
@@ -3254,16 +3263,26 @@ export class AdminRoute extends BaseRoute {
         userRoleModel = new User(),
         userLocationAndRoles = new User(),
         accountModel = new Account();
-        try{
+        let roleOfAccountInLocationObj = {};
+        try {
             user = await userModel.load();
             user['last_login'] = moment(user['last_login']).format('MMM. DD, YYYY hh:mm A');
             accountModel.setID(user['account_id'])
             account = await accountModel.load();
             // since this is account users, it should be taken note that we need to determine
             // the relationship of the account to the location
+            try {            
+              roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(user['account_id']);            
+            } catch(err) {
+                console.log('authenticate route get account role relation in location', err);
+            }
+
+
+
+
             // For Account as Building Manager / Tenant
+            /*
             const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(user['account_id']);
-            let roleOfAccountInLocationObj = {};
             for (let role of roleOfAccountInLocationArr) {
               let account_role = '';
               let role_id = 0;
@@ -3279,17 +3298,22 @@ export class AdminRoute extends BaseRoute {
                 account_role: account_role
               };
             }
+            */
 
-            const userAccountInfo = await accountModel.generateAdminAccountUsers(user['account_id'], [user['user_id']]);
-            for (let i = 0; i < userAccountInfo.length; i++) {
-              if (userAccountInfo[i]['location_id'] in roleOfAccountInLocationObj) {
-                userAccountInfo[i]['role_id'] = roleOfAccountInLocationObj[userAccountInfo[i]['location_id']]['role_id'];
-                userAccountInfo[i]['account_role'] = roleOfAccountInLocationObj[userAccountInfo[i]['location_id']]['account_role'];
+            let userAccountInfo = [], userAccountRoles = [];
+            userAccountRoles  = await accountModel.generateAdminAccountUsers(user['account_id'], [user['user_id']]);          
+            for (let i = 0; i < userAccountRoles.length; i++) {
+              if (userAccountRoles[i]['location_id'] in roleOfAccountInLocationObj) {
+                userAccountRoles[i]['role_id'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['role_id'];
+                userAccountRoles[i]['account_role'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['account_role'];
+                userAccountInfo.push(userAccountRoles[i]);
               } else {
-                userAccountInfo[i]['role_id'] = 1;
-                userAccountInfo[i]['account_role'] = 'FRP';
+                //userAccountInfo[i]['role_id'] = 1;
+                //userAccountInfo[i]['account_role'] = 'FRP';
+                //userAccountInfo.splice(i,1);
               }
             }
+            
             const userEmergencyInfo = await accountModel.generateAdminEMUsers(user['account_id'], [user['user_id']]);           
             const locationRoles = [];
             const locationRolesObj = {};
@@ -3334,6 +3358,7 @@ export class AdminRoute extends BaseRoute {
             // response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
             response.data['trainings'] = [];
         }catch(e){
+          console.log(e);
             response.message = 'No user found';
         }
 

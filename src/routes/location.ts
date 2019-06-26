@@ -1665,6 +1665,7 @@ const defs = require('../config/defs.json');
             response.locations = [];
             console.log('There was an error getting the list of parent locations', e);
         }
+        
         try {
             // determine if you are a building manager or tenant in these locations - response.locations
             roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);            

@@ -188,4 +188,17 @@ export class ComplianceService {
         });
     }
 
+    public locationComplianceSupportDetails(location_id=0) {
+        return this.http.post<{
+            sublocation_count: number,
+            num_tenants: number,
+            warden: object[],
+            wardenUserIds: number[],
+            mobility_impaired: object[],
+            mobilityImpairedIds: number[],
+            tenants: object[],
+            fetchingComplianceSupport: boolean
+        }>(`${this.baseUrl}/compliance/location/supporting-details/`, {location_id: location_id});
+    }
+
 }
