@@ -27,7 +27,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
     @ViewChild('formMobility') formMobility : NgForm;
     @ViewChild('durationDate') durationDate : ElementRef;
     userData = <any> {};
-    listData = [];
+    listData = [];    
+    private injuredTeamMembers = [];
     selectedToArchive = {
         first_name : '', last_name : '', parent_data : {}, locations : []
     };
@@ -134,85 +135,36 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
-        this.courseService.getAllEmRolesTrainings((response) => {
-            this.emTrainings = response.data;
-        });
+        
 
-        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
-            this.locations = response.locations;
-            this.locationPagination.pages = response.pagination.pages;
-            this.locationPagination.total = response.pagination.total;
-            setTimeout(() => {
-                $('.row.filter-container select.location').material_select();
-            },500);
-        });
+        
     }
 
-    getListData(callBack?){
+    getListData() {
+        this.listData = [];
+        this.injuredTeamMembers = [];
 
-        this.userService.queryUsers(this.queries, (response) => {
-            this.pagination.total = response.data.pagination.total;
-            this.pagination.pages = response.data.pagination.pages;
-            this.listData = response.data.users;
-
-            let tempRoles = {};
-            
-            for(let i in this.listData){
-                this.listData[i]['bg_class'] = this.generateRandomBGClass();
-                this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
-
-                for(let l in this.listData[i]['locations']){
-                    if(this.listData[i]['locations'][l]['parent_name'] == null){
-                        this.listData[i]['locations'][l]['parent_name'] = '';
-                    }
-
-                    this.listData[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt( this.listData[i]['locations'][l]['location_id'] );
-                }
-
-                for(let r in this.listData[i]['roles']){
-                    if( this.listData[i]['roles'][r]['role_name'] ){
-                        if( !tempRoles[ this.listData[i]['roles'][r]['role_name'] ] ){
-                            tempRoles[ this.listData[i]['roles'][r]['role_name'] ] = this.listData[i]['roles'][r]['role_name'];
-                        }
-                    }
-                }
-
-                this.listData[i]['sendinvitation'] = false;
-                let hasEcoRole = false;
-                for(let r in this.listData[i]['roles']){
-                    if( this.listData[i]['roles'][r]['role_id'] != 1 && this.listData[i]['roles'][r]['role_id'] != 2 ){
-                        hasEcoRole = true;
-                    }
-                }
-
-                if(hasEcoRole){
-                    this.listData[i]['sendinvitation'] = true;
-                }
-
-                let isSelected = false;
-                this.listData[i]['isselected'] = false;
-                for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.listData[i]['user_id']){
-                        this.listData[i]['isselected'] = true;
-                        isSelected = true;
-                    }
-                }
-
-                if(!isSelected && this.allAreSelected){
-                    this.listData[i]['isselected'] = true;
-                    this.selectedFromList.push(this.listData[i]);
-                }
-
+        this.accountService.generatePeepList().subscribe((response) => {
+            for (let user of response.users) {                
+                user['id_encrypted'] = this.encDecrService.encrypt(user['user_id']);
+                user['enc_location_id'] = this.encDecrService.encrypt(user['location_id']);
+                user['isselected'] = false;
+                this.listData.push(user);
+                this.injuredTeamMembers.push(user);
             }
+            this.locations = response.buildings;
+            this.loadingTable = false;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select('update');
+            }, 100);
+            this.dashboardService.hide();
+        }, (error) => {
+            console.log(error);
+            this.dashboardService.hide();
+        }); 
 
-            setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
 
-            this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
-
-            if(callBack){
-                callBack();
-            }
-        });
+        
     }
 
     ngOnInit(){
@@ -223,21 +175,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 this.router.navigate(['/teams', 'list-general-occupant']);
             }, 5000);
         } else {
-            this.getListData(() => { 
-                if(this.pagination.pages > 0){
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
-                }
-    
-                for(let i = 1; i<=this.pagination.pages; i++){
-                    this.pagination.selection.push({ 'number' : i });
-                }
-    
-                this.dashboardService.hide();
-            });
-        } 
-
-        
+            this.getListData();
+        }        
     }
 
     ngAfterViewInit(){
@@ -288,62 +227,47 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             e.stopPropagation();
             let selected = $('select.location').val();
             __this.dashboardService.show();
-            
-            __this.queries.location_id = selected;
-            __this.queries.offset = 0;
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
+            __this.listData = [];
+            const choosen = [];
+            if(parseInt(selected, 10) == 0) {
+                __this.listData = __this.injuredTeamMembers;
+            } else {
+                for (let warden of __this.injuredTeamMembers) {
+                    if (parseInt(warden['building_id'], 10) == parseInt(selected, 10)) {
+                        __this.listData.push(warden);
+                    }
                 }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
+            }
+            __this.dashboardService.hide();
+         
         });
     }
 
     filterByEvent(){
         let __this = this;
-        $('select.filter-by').on('change', function(e){
+        $('#filter-roles').change(function(e){
             e.preventDefault();
             e.stopPropagation();
-            let selected = $('select.filter-by').val();
-            __this.dashboardService.show();
-            if(parseInt(selected) != 0 && selected != 'pending'){
-                __this.queries.roles = selected;
-            }else{
-                __this.queries.roles = 'frp,trp,users,no_roles';
-                if(selected == 'pending'){
-                    __this.queries.roles += ',pending';
+            let selected = $('#filter-roles').val();
+            console.log(selected);
+            __this.listData = [];
+            const choosen = [];
+            
+            if(parseInt(selected, 10) == 0) {
+                __this.listData = __this.injuredTeamMembers;
+            } else {
+                for (let warden of __this.injuredTeamMembers) {                    
+                    if (choosen.indexOf(warden['location_id']) == -1) {
+                        console.log('herw with ', warden, warden['role_ids'].indexOf(selected));
+                        if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
+                            choosen.push(warden['location_id']);
+                            __this.listData.push(warden);
+                            
+                        }
+                    }
                 }
             }
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
-        }); 
+        });  
     }
 
     sortByEvent(){
@@ -373,19 +297,21 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         this.searchMemberInput.debounceTime(800)
             .map(event => event.target.value)
             .subscribe((value) => {
-                this.queries.search = value;
-                this.queries.offset = 0;
-                this.loadingTable = true;
-                this.pagination.selection = [];
-                this.getListData(() => { 
-                    for(let i = 1; i<=this.pagination.pages; i++){
-                        this.pagination.selection.push({ 'number' : i });
+                this.listData = [];
+                const choosen = [];
+                if (value.length == 0) {
+                 this.listData = this.injuredTeamMembers;   
+                } else {
+                    let searchKey = value.toLowerCase();
+                    for (let user of this.injuredTeamMembers) {
+                        if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(user['location_id']);
+                            this.listData.push(user);
+                        }
                     }
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
-                    this.loadingTable = false;
-                });
+                }
             });
+        
     }
 
     ngOnDestroy(){}
@@ -430,7 +356,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             this.selectedToArchive = {
                 first_name : '', last_name : '', parent_data : {}, locations : []
             };
-            this.getListData(() => { this.dashboardService.hide(); });
+            this.getListData();
         });
     }
 
@@ -498,9 +424,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 if(!this.allAreSelected){
                     this.selectedToInvite = [];
                     for(let user of this.selectedFromList){
-                        if(user.sendinvitation){
-                            this.selectedToInvite.push(user);
-                        }
+                        this.selectedToInvite.push(user);
                     }
                     if(this.selectedToInvite.length > 0){
                         $('#modalSendInvitation').modal('open');
@@ -537,7 +461,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
             this.selectedFromList = [];
-            this.getListData(() => { this.dashboardService.hide(); });
+            this.getListData();
         });
     }
 
@@ -572,9 +496,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
             this.loadingTable = true;
-            this.getListData(() => { 
-                this.loadingTable = false;
-            });
+            this.getListData();
         }
     }
 
@@ -606,11 +528,9 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 id = (attr == 'user') ? thisLink.attr('user_id') : thisLink.attr('user_invitations_id'),
                 peep = {};
 
-            for(let i in this.copyOfList){
-                if( this.copyOfList[i]['user_id'] == id && attr == 'user' ){
-                    peep = this.copyOfList[i];
-                }else if( this.copyOfList[i]['user_invitations_id'] == id && attr == 'invited' ){
-                    peep = this.copyOfList[i];
+            for(let i in this.listData){
+                if( this.listData[i]['user_id'] == id && attr == 'user' ){
+                    peep = this.listData[i];
                 }
             }
 
@@ -697,9 +617,7 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 f.reset();
                 $('#modalMobility').modal('close');
                 this.showModalLoader = false;
-                this.getListData(() => {                     
-                    this.loadingTable = false; 
-                });
+                this.getListData();
 
                 
 

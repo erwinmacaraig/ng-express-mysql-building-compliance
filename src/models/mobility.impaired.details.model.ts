@@ -34,7 +34,7 @@ export class MobilityImpairedModel extends BaseClass {
 		});
 	}
 
-	public getMany(arrWhere) {
+	public getMany(arrWhere): Promise<Array<Object>> {
 		return new Promise((resolve, reject) => {
 			let sql_load = 'SELECT * FROM mobility_impaired_details ';
 
@@ -59,10 +59,11 @@ export class MobilityImpairedModel extends BaseClass {
 
         connection.query(sql_load, (error, results, fields) => {
           if (error) {
-            return console.log(error);
+            console.log(error, sql_load);
+
           }
-          this.dbData = results;
-          resolve(this.dbData);
+          
+          resolve(results);
           connection.release();
         });
         
@@ -159,7 +160,7 @@ export class MobilityImpairedModel extends BaseClass {
 		});
     }
 
-    public getImpairedUsersInLocationIds(locationIds, accountId, archived?){
+    public getImpairedUsersInLocationIds(locationIds, accountId, archived?): Promise<Array<Object>>{
         if(!archived){
             archived = 0;
         }

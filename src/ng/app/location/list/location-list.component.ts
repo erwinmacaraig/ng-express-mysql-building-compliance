@@ -10,14 +10,16 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ComplianceService } from '../../services/compliance.service';
 import { AuthService } from '../../services/auth.service';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subject } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import { isArray } from 'util';
+import 'rxjs/add/operator/takeUntil';
+
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
 import { UserService } from '../../services/users';
 import { MessageService } from '../../services/messaging.service';
+import { Subscription } from 'rxjs/Subscription';
 
 declare var $: any;
 @Component({
@@ -46,6 +48,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	selectedArchive = {
 		length : 0
 	};
+
+    private myLocations = [];
 
 	modalArchiveBulk = {
 		loader : false
@@ -102,6 +106,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
         location_id : 0
     };
 
+    miscDetails = {};
+    complianceSubs:Subscription[] = [];
+    protected ngUnsubscribe: Subject<void> = new Subject<void>();
     constructor (
       private platformLocation: PlatformLocation,
       private http: HttpClient,
@@ -171,16 +178,123 @@ export class LocationListComponent implements OnInit, OnDestroy {
                 }
             }
 
-            this.ngAfterViewInit();
+            //this.ngAfterViewInit();
 
-            console.log('params', params);
-            console.log('queries', this.queries);
+            //console.log('params', params);
+            //console.log('queries', this.queries);
 
             
         });
+        
 	}
 
-	getLocationsForListing(callback){
+	getLocationsForListing(callback?){
+        this.locations = [];
+        
+        this.userService.listUserAccountLocations().subscribe((response) => {
+            let bldgCtr = [];
+            for(let loc of response.locations) {                
+                if (bldgCtr.indexOf(loc['building_id']) == -1) {                    
+                    bldgCtr.push(loc['building_id']);
+                    loc['fetchingCompliance'] = true;                    
+                    loc['compliance_percentage'] = 0;                    
+                    loc['parent_id'] =  this.encryptDecrypt.encrypt(loc['building_id']);
+                    this.locations.push(loc);                    
+                }
+                this.complianceService.locationComplianceSupportDetails(loc['location_id']).subscribe((resp) => {
+                    let oldWardens = [];
+                    let oldImpaired = [];
+                    
+                    if (loc['building_id'] in this.miscDetails) {
+                        let  combiWardens = [];
+                        let combiImpaired = [];
+                        oldWardens = (this.miscDetails[loc['building_id']]['wardenUserIds'] as Array<number>).concat(resp.wardenUserIds);
+                        for (let warden of oldWardens) {
+                            if (combiWardens.indexOf(warden) == -1) {
+                                combiWardens.push(warden);
+                            }
+                        }
+
+                        oldImpaired = (this.miscDetails[loc['building_id']]['mobilityImpairedIds'] as Array<number>).concat(resp.mobilityImpairedIds)
+                        for (let impaired of oldImpaired) {
+                            if (combiImpaired.indexOf(impaired) == -1) {
+                                combiImpaired.push(impaired);
+                            }
+                        }
+                        for(let warden of (resp.warden as Array<object>)) {
+                            (this.miscDetails[loc['building_id']]['warden'] as Array<object>).push(warden);
+                        }
+                        
+                        this.miscDetails[loc['building_id']]['mobility_impaired'] = combiImpaired.length;
+                        this.miscDetails[loc['building_id']]['mobilityImpairedIds'] = combiImpaired;
+
+                        this.miscDetails[loc['building_id']]['num_wardens'] = combiWardens.length;
+                        this.miscDetails[loc['building_id']]['wardenUserIds'] = combiWardens;                        
+                        this.miscDetails[loc['building_id']]['sublocation_count'] += 1;
+                        
+
+                    } else {                        
+                        this.miscDetails[loc['building_id']] = {
+                            sublocation_count: resp.sublocation_count,
+                            num_tenants: resp.num_tenants,
+                            warden:  resp.warden,
+                            num_wardens:  resp.wardenUserIds.length,
+                            wardenUserIds: resp.wardenUserIds,
+                            mobility_impaired: resp.mobilityImpairedIds.length,
+                            mobilityImpairedIds: resp.mobilityImpairedIds
+                        }
+                    }    
+
+                    
+                }, (error) => {
+                    this.miscDetails[loc['building_id']] = {
+                        sublocation_count: 0,
+                        num_tenants: 0,
+                        warden: [],
+                        num_wardens:  0,
+                        wardenUserIds: [],
+                        mobility_impaired: 0,
+                        mobilityImpairedIds: []
+                    }
+                    console.log(error);
+                });
+                
+            }
+            let complianceSubCtr = 0;
+            for (let loc of this.locations) {
+                this.complianceService.getBuildingLocationCompliance(loc['building_id'])
+                .takeUntil(this.ngUnsubscribe)
+                .subscribe((compRes) => {
+                    loc['fetchingCompliance'] = false;
+                    loc['compliance_percentage'] = compRes['percent'];
+                    loc['compliance'] = compRes['data'];
+                    this.myLocations.push(loc);
+                    setTimeout(() => {
+                        $('select.select-from-row option').prop('disabled', false);
+                        $('select.select-from-row').material_select();
+                    }, 200);
+                });
+                /*
+                this.complianceService.getLocationsLatestCompliance(loc['building_id'], (compRes) => {
+                    loc['fetchingCompliance'] = false;
+                    loc['compliance_percentage'] = compRes.percent;
+                    loc['compliance'] = compRes.data;
+                    this.myLocations.push(loc);
+                    setTimeout(() => {
+                        $('select.select-from-row option').prop('disabled', false);
+                        $('select.select-from-row').material_select();
+                    }, 200);
+                });
+                */
+            }            
+            this.messageService.sendMessage({ 'breadcrumbs' : [] });
+            
+            callback();
+        }, (error) => {
+            console.log(error);
+            this.preloaderService.hide();
+        }); /*
+
 		this.locationService.getParentLocationsForListingPaginated(this.queries, (response) => {
 
             this.pagination.total = response.pagination.total;
@@ -258,7 +372,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
             }
 
     		callback(response);
-    	});
+        });
+        */
 	}
 
 	ngAfterViewInit(){
@@ -270,9 +385,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
 		$('.modal').modal({
 			dismissible: false
-		});
-
-        this.getLocationsForListing((response) => {
+        });
+        
+        this.getLocationsForListing(() => {
 
             if(this.pagination.pages > 0){
                 this.pagination.currentPage = 1;
@@ -287,6 +402,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
               this.router.navigate(['/location', 'search']);
             }
         });
+        
 
 
 		this.selectRowEvent();
@@ -344,9 +460,11 @@ export class LocationListComponent implements OnInit, OnDestroy {
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
             this.loadingTable = true;
+            /*
             this.getLocationsForListing(() => {
                 this.loadingTable = false;
             });
+            */
         }
     }
 
@@ -553,12 +671,29 @@ export class LocationListComponent implements OnInit, OnDestroy {
             this.queries.sort = val;
             this.queries.offset = 0;
             this.loadingTable = true;
-            this.getLocationsForListing((response) => {
-                this.pagination.total = response.pagination.total;
-                this.pagination.pages = response.pagination.pages;
-                this.pagination.currentPage = 1;
-                this.loadingTable = false;
-            });
+            console.log(val);
+            if (val == 'name-asc') {
+                this.locations.sort((a, b) => {
+                    if(a.name < b.name) return -1;
+                    if(a.name > b.name) return 1;
+                    return 0;
+                }); 
+            } else if (val == 'name-desc') {
+                this.locations.sort((a, b) => {
+                    if(a.name > b.name) return -1;
+                    if(a.name < b.name) return 1;
+                    return 0;
+                });
+            } else {
+                this.locations = this.myLocations;
+            }
+            this.loadingTable = false;
+            //this.getLocationsForListing(() => {
+                //this.pagination.total = response.pagination.total;
+                //this.pagination.pages = response.pagination.pages;
+                //this.pagination.currentPage = 1;
+                //this.loadingTable = false;
+            //});
 		});
 	}
 
@@ -573,16 +708,33 @@ export class LocationListComponent implements OnInit, OnDestroy {
             thisClass.queries.sort = $('.sort-by select').val();
             thisClass.loadingTable = true;
             thisClass.queries.showparentonly = false;
-            thisClass.getLocationsForListing((response) => {
+            console.log(this.myLocations);
+            this.locations = [];
+            let searchKey = (this.inputSearch.nativeElement['value'] as string).toLowerCase() ;
+            if (searchKey.length == 0) {
+                this.locations = this.myLocations;
+            } else {
+                for (let loc of this.myLocations) {
+                    if (loc['name'].toLowerCase().search(searchKey) !== -1) {
+                        this.locations.push(loc);
+                    }
+                }
+            }
+            thisClass.loadingTable = false;
+            
 
-                thisClass.pagination.total = response.pagination.total;
-                thisClass.pagination.pages = response.pagination.pages;
-                thisClass.pagination.currentPage = 1;
+            
+            /*
+            thisClass.getLocationsForListing(() => {
+
+                //thisClass.pagination.total = response.pagination.total;
+                //thisClass.pagination.pages = response.pagination.pages;
+                //thisClass.pagination.currentPage = 1;
                 thisClass.queries.showparentonly = true;
 
                 thisClass.loadingTable = false;
-            });
-            console.log(thisClass.queries);
+            }); */
+            //console.log(thisClass.queries);
         });
 	}
 
@@ -631,16 +783,34 @@ export class LocationListComponent implements OnInit, OnDestroy {
 	}
 
     viewWardenList(location){
+        console.log(this.miscDetails);
+        let ctr = [];
+        this.viewWardens = [];        
+        let tempWardens = (this.miscDetails[location]['warden'] as object[]);
+        for (let warden of tempWardens) {
+            if (ctr.indexOf(warden['user_id']) == -1) {
+                ctr.push(warden['user_id']);
+                this.viewWardens.push(warden);
+            }
+        }
+        $('#modalWardenList').modal({ dismissible : false });
+        $('#modalWardenList').modal('open');
+        /*
         console.log(location);
         this.viewWardens = location.wardens;
         $('#modalWardenList').modal({ dismissible : false });
         $('#modalWardenList').modal('open');
+        */
+
     }
 
 	ngOnDestroy(){
 		this.mutationOversable.disconnect();
         this.searchSubs.unsubscribe();
         this.routerSubs.unsubscribe();
+
+        this.ngUnsubscribe.next();
+        this.ngUnsubscribe.complete();
 	}
 
 	getInitial(name:String){

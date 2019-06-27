@@ -95,6 +95,11 @@ export class ComplianceService {
             });
     }
 
+    public getBuildingLocationCompliance(building_id=0) {
+        return this.http.post(this.baseUrl + '/compliance/locations-latest-compliance', {location_id: building_id});
+			
+    }
+
     public getSublocationsEvacDiagrams(form, callBack){
         this.http.post(this.baseUrl + '/compliance/get-sublocations-evac-diagrams', form)
             .subscribe(res => {
@@ -186,6 +191,19 @@ export class ComplianceService {
             account: accountId,
             responsibilty_id: responsibility
         });
+    }
+
+    public locationComplianceSupportDetails(location_id=0) {
+        return this.http.post<{
+            sublocation_count: number,
+            num_tenants: number,
+            warden: object[],
+            wardenUserIds: number[],
+            mobility_impaired: object[],
+            mobilityImpairedIds: number[],
+            tenants: object[],
+            fetchingComplianceSupport: boolean
+        }>(`${this.baseUrl}/compliance/location/supporting-details/`, {location_id: location_id});
     }
 
 }

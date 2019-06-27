@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, AfterViewInit, Input} from '@angular/core';
+import { Component, OnInit, OnDestroy, AfterViewInit, Input, ElementRef, ViewChild} from '@angular/core';
 import { ActivatedRoute, Params, Router } from '@angular/router';
 import { NgForm } from '@angular/forms';
 
@@ -6,6 +6,9 @@ import { AdminService } from './../../services/admin.service';
 import { LocationsService } from './../../services/locations';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { Subscription } from 'rxjs/Rx';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+import 'rxjs/add/operator/catch';
 
 declare var $: any;
 declare var moment: any;
@@ -18,11 +21,15 @@ declare var moment: any;
 })
 
 export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDestroy {
+  @ViewChild('roleSelector') roleSelectorDrp: ElementRef;
+  @ViewChild('searchMemberInput') searchMember: ElementRef;
   locationId: number;
   tab: any;
   message = '';
   people: Object[] = [];
+  private users = [];
   accounts: Object[] = [];
+  searchMemberInput;
   private isArchived = 0;
   location_details = <any> {
     location_id: 0,
@@ -57,7 +64,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
   activeLink = '';
   subRouter: Subscription;
   paramSub:Subscription;
-
+  tempUsersCopy = [];
   constructor(
     private route: ActivatedRoute,
     public adminService: AdminService,
@@ -100,6 +107,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
       this.accounts = [];
       this.traversal = {};
       this.people = [];
+     
 
       this.subRouter = this.route.queryParams.subscribe((observer) => {
         this.activeLink = (observer['active']) ? observer['active'] : '';
@@ -113,6 +121,9 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
           this.accountIdParam = observer['accntId'];
         }
         this.adminService.getLocationDetails(this.locationId).subscribe((response) => {
+          this.people = [];
+          this.users = [];
+          let peopleCtr = [];
           this.location_details = response['data']['details'];
           this.isArchived = response['data']['details']['archived'];
           this.sublocations = response['data']['children'];
@@ -135,7 +146,12 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
             this.complianceLocation = this.traversal['location_id'];
           }
           Object.keys(response['data']['people']).forEach((key) => {
-            this.people.push(response['data']['people'][key]);
+            if (peopleCtr.indexOf(key) == -1) {
+              peopleCtr.push(key);
+              this.people.push(response['data']['people'][key]);
+              this.users.push(response['data']['people'][key]);
+            }
+            
           });
     
           if(this.sublocations.length == 0 && this.location_details.is_building == 1) {
@@ -176,12 +192,15 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
     $('.modal').modal({
       dismissible: false
     });
+    this.searchMemberEvent();
 
   }
 
   ngOnDestroy() {
     this.paramSub.unsubscribe();
     this.subRouter.unsubscribe();
+    
+    
   }
 
   archiveLocation(e) {
@@ -210,8 +229,7 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
 
   }
 
-  public updateInfo(f: NgForm) {
-    
+  public updateInfo(f: NgForm) {    
     this.locationService.updateLocationDetails(f.value).subscribe((response) => {
       this.message = 'Location details updated.';
       $('#modalConfirm').modal('open');
@@ -221,6 +239,42 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
     });
 
   }
+
+  filterByRole(e) {
+    this.people = [];
+    let searchRoleId = parseInt(e.target.value, 10);
+    this.searchMember.nativeElement.value = '';
+    if (searchRoleId == 0) {
+      this.people = this.users;
+    } else {
+      for (let u of this.users) {
+        if ( (u['role_ids'] as number[]).indexOf(searchRoleId) != -1) {
+          this.people.push(u);
+        }
+      }
+    }
+  }
+
+  searchMemberEvent(){
+    this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+    this.searchMemberInput.debounceTime(800)
+        .map(event => event.target.value)
+        .subscribe((value) => {          
+            this.tempUsersCopy = this.people;
+            this.people = [];
+            if (value.length == 0) {
+             this.people = this.users;
+             this.roleSelectorDrp.nativeElement.value = '0';
+            } else {
+                let searchKey = value.toLowerCase();                
+                for (let user of this.tempUsersCopy) {
+                    if (user['name'].toLowerCase().search(searchKey) !== -1) {                        
+                        this.people.push(user);
+                    }                    
+                }                
+            }
+        });
+}
 
 
 }

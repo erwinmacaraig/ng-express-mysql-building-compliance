@@ -662,6 +662,18 @@ table tbody tr td .progress .determinate{
     width: 35%;
 }
 
+#tblWardens > thead {
+    background-color: #3a3a3a;
+    color: #ffffff !important;
+    font-weight: unset;
+    font-size: 14px;
+    letter-spacing: 0.03em
+}
+
+#tblWardens > table tbody tr td {
+    border: none;
+}
+
 @media only screen and (max-width: 1400px) {
     #modalAddNewTenant{
         width: 50% !important;

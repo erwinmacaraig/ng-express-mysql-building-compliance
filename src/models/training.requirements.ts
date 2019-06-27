@@ -183,6 +183,7 @@ export class TrainingRequirements extends BaseClass {
                     emt.em_role_id,
                     tr.training_requirement_id,
                     tr.training_requirement_name,
+                    em.is_warden_role,
                     tr.num_months_valid
                 FROM em_role_training_requirements emt
                 INNER JOIN em_roles em ON emt.em_role_id = em.em_roles_id

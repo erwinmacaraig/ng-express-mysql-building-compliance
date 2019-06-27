@@ -704,7 +704,7 @@ export class Account extends BaseClass {
                     ORDER BY
                     users.user_id;
                 `;
-
+                
                 connection.query(sql_all, [account], (error, results) => {
                     if (error) {
                         console.log('account.model.getAllEMRolesOnThisAccount', error, sql_all);
@@ -1153,11 +1153,11 @@ export class Account extends BaseClass {
                     resolve(results);
                     connection.release();
                 });
-
-            });
-            
+            });            
         });
 
     }
+
+
 
 } // end class

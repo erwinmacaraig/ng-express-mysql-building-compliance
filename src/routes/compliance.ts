@@ -201,6 +201,113 @@ const request = require('request');
         router.post('/compliance/retrieve-paper-attendance-file-records/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response, next: NextFunction) => {
             new ComplianceRoute().getPaperAttendanceRecord(req, res, next);
         });
+
+        router.post('/compliance/location/supporting-details/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new ComplianceRoute().locationComplianceSupportDetails(req, res);
+        });
+    }
+
+    public async locationComplianceSupportDetails(req: AuthRequest, res: Response) {
+        const location_id = req.body.location_id;
+        //const building_id = req.body.building_id;
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
+        const emUsers = new UserEmRoleRelation();
+        const data = {
+            location: location_id,
+            sublocation_count: 0,
+            num_tenants: 0,
+            warden: [],
+            wardenUserIds: [],
+            mobility_impaired: [],
+            mobilityImpairedIds: [],
+            tenants: [],
+            fetchingComplianceSupport: true
+        };
+        const ctr = []; // this will serve as the container of unique building ids
+        let role = 0;
+        try {
+            // determine the role of account in location
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
+            
+        } catch(err) {
+            console.log('authenticate route get account role relation in location', err);
+        }
+        try {
+            accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
+            for(let data of accountUserData) {
+                if (location_id == data['location_id'] && data['location_id'] in roleOfAccountInLocationObj) {
+                    role = roleOfAccountInLocationObj[location_id]['role_id'];
+                    break;
+                }
+            }
+        } catch(e) {
+            console.log(' teams route, error getting in location account user data', e);
+        }
+        if (role == defs['Tenant']) {
+            data.sublocation_count = 1;
+            try {
+                data.warden = await emUsers.getWardenTeamList([location_id], req.user.account_id);
+            } catch(e) {
+                console.log(e, 'Error getting warden for location: ' + location_id);
+            }
+            try {
+                data.mobility_impaired = await emUsers.getMobilityImpairedTeamList([location_id], req.user.account_id);
+            } catch(e) {
+                console.log(e,'Error getting impaired list for location: ' + location_id);
+            }
+            
+            
+            data.num_tenants = 1;
+
+            
+        } else if (role == defs['Manager']) {
+            let sublocationIds = [];
+            let temp = await new Location().getChildren(location_id);
+            for (let loc of temp) {
+                sublocationIds.push(loc['location_id']);
+            }
+            data.sublocation_count = sublocationIds.length;
+            sublocationIds.push(location_id);
+            try {
+                data.warden = await emUsers.getWardenTeamList(sublocationIds);
+            } catch(e) {
+                console.log(e, 'Error getting warden for locations: ' + sublocationIds.join(','));
+            }
+            try {
+                data.mobility_impaired = await emUsers.getMobilityImpairedTeamList(sublocationIds);
+            } catch(e) {
+                console.log(e, 'Error getting impaired list for locations: ' + sublocationIds.join(','));
+            }
+            try {
+                data.tenants = await new LocationAccountRelation().getTenantAccountsInLocations(sublocationIds);
+                data.num_tenants = data.tenants.length;
+            } catch(e) {
+                console.log(e, 'Error getting tenant list for locations: ' + sublocationIds.join(','));            
+            }
+
+
+        }
+        let wardenUserIds = [];
+        let mobilityImpairedIds = [];
+        for (let warden of data.warden) {
+            if (wardenUserIds.indexOf(warden['user_id']) == -1) {
+                wardenUserIds.push(warden['user_id']);
+            }
+        }
+        for (let impaired of data.mobility_impaired) {
+            if (mobilityImpairedIds.indexOf(impaired['user_id']) == -1) {
+                mobilityImpairedIds.push(impaired['user_id']);
+            }
+        }
+        data.wardenUserIds = wardenUserIds;
+        data.mobilityImpairedIds = mobilityImpairedIds;
+
+
+        res.status(200).send(data);
+
+
+
     }
 
     public async getPaperAttendanceRecord(req: AuthRequest, res: Response, next: NextFunction) {

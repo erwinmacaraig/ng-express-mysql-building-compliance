@@ -10,9 +10,10 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { CourseService } from '../../services/course';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { Router, NavigationEnd  } from '@angular/router';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subject } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import 'rxjs/add/operator/takeUntil';
 
 import { DonutService } from '../../services/donut';
 import { ComplianceService } from '../../services/compliance.service';
@@ -88,6 +89,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
     isAllComplianceLoaded = false;
     KPIStexts = <any>{};
     selectedLocsFromSearch = {};
+    protected ngUnsubscribe: Subject<void> = new Subject<void>();
 
 	constructor(
 		private authService : AuthService,
@@ -96,7 +98,8 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 		private dashboardService : DashboardPreloaderService,
 		private locationService: LocationsService,
 		private encryptDecrypt : EncryptDecryptService,
-        private complianceService : ComplianceService
+        private complianceService : ComplianceService,
+        private userService: UserService
 		){
 
 		this.userData = this.authService.getUserData();
@@ -111,6 +114,43 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             this.colors.push(complianceColors[i]);
         }
 
+        this.userService.listUserAccountLocations().subscribe((response) => {
+            let bldgCtr = [];
+            
+            for(let loc of response.locations) {
+                if (bldgCtr.indexOf(loc['building_id']) == -1) {
+                    bldgCtr.push(loc['building_id']);
+                    loc['fetchingCompliance'] = true;
+                    loc['compliance_percentage'] = 0;
+                    loc['enc_parent_id'] =  this.encryptDecrypt.encrypt(loc['building_id']);
+                    this.locations.push(loc);
+                }
+            }
+            for (let loc of this.locations) {
+                /*
+                this.complianceService.getLocationsLatestCompliance(loc['building_id'], (compRes) => {
+                    loc['fetchingCompliance'] = false;
+                    loc['compliance_percentage'] = compRes.percent;
+                    loc['compliance'] = compRes.data;
+                });
+                */
+            
+                this.complianceService.getBuildingLocationCompliance(loc['building_id']).takeUntil(this.ngUnsubscribe).subscribe((compRes) => {
+                    loc['fetchingCompliance'] = false;
+                    loc['compliance_percentage'] = compRes['percent'];
+                    loc['compliance'] = compRes['data'];
+                });
+            
+            }
+            if(this.locations.length > 0){
+                this.pagination.currentPage = 1;
+            }
+
+            this.showPlansLoader = false;
+            
+
+        });
+        /*
         this.getLocationsForListing((response:any) => {
             this.locations = response.locations;
             for(let loc of this.locations) {
@@ -144,7 +184,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 
             this.showPlansLoader = false;
         });
-
+        */
 		this.courseService.getCountsBuildingTrainings((response) => {
 			this.accountTrainings.total_users = response.data.total_users;
 			this.accountTrainings.total_users_trained = response.data.total_users_trained;
@@ -164,6 +204,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
 		});
 
         this.getTotalComplianceRating();
+        
 	}
 
     updateMyComplianceRate(){
@@ -569,7 +610,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     loc['fetchingCompliance'] = true;
                     loc['compliance_percentage'] = 0;
                 }
-
+                /*
                 for(let loc of this.locations){
                     this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
                         loc['fetchingCompliance'] = false;
@@ -577,12 +618,15 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                         loc['compliance'] = compRes.data;
                     });
                 }
+                */
+               
                 this.showPlansLoader = false;
             });
         }
     }
 
 	ngOnDestroy(){
-
+        this.ngUnsubscribe.next();
+        this.ngUnsubscribe.complete();
 	}
 }

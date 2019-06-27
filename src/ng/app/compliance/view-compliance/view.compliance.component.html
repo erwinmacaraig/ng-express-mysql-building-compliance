@@ -1517,20 +1517,17 @@
     <table class="striped table">
 			<thead>
 				<tr>
-					<!-- <th>Date</th> -->
+					
 					<th>Account</th>
           <th>TRP Name</th>
           <th>No of wardens</th>
           <th>Wardens</th>
-          <!--
-					<th style="width: 10%;">No of new wardens added</th>
-          <th style="width: 10%;">Action</th>
-          -->
+          
 				</tr>
 			</thead>
 			<tbody *ngIf="tenants">
 				<tr *ngFor="let tenant of tenants">
-					<!-- <td>n/a</td> -->
+					
 					<td>
 						<span class="blue-text">{{tenant.account_name}}</span>
 					</td>
@@ -1541,16 +1538,14 @@
 						{{tenant.wardens.length}}
           </td>
           <td>
-              <span *ngFor="let warden of tenant.wardens">{{warden.first_name}} {{warden.last_name}}<br /></span>
+			  <span *ngFor="let warden of tenant.wardens">{{warden.first_name}} {{warden.last_name}} 
+					<span *ngIf="warden.passed; else noncompliant">(Compliant)</span>
+					<ng-template #noncompliant><span>(Non-compliant)</span></ng-template>
+					<br />
+			  </span>
+			  
           </td>
-          <!--
-					<td style="padding: 2px;">
-						<a  class=" ">
-							<img src="/assets/images/download_ico_blue.png"  >
-            </a>
-
-          </td>
-           -->
+          
 				</tr>
 			</tbody>
     </table>
@@ -1561,6 +1556,46 @@
   </div>
 
 </div>
+
+<div id="modalGofrList" class="modal">
+	<div class="modal-content">
+	  <table class="striped table">
+			  <thead>
+				  <tr>
+					<th>Account</th>
+					<th>TRP Name</th>
+					<th>No of Gen. Occupants</th>
+					<th>General Occupants</th>			
+				  </tr>
+			  </thead>
+			  <tbody *ngIf="tenants_gofr">
+				  <tr *ngFor="let tenant of tenants_gofr">
+						<td>
+							<span class="blue-text">{{tenant.account_name}}</span>
+						</td>
+						<td>
+							<span *ngFor="let t of tenant.trp">{{t}}<br /></span>
+						</td>
+						<td>
+						  {{tenant.gofr.length}}
+					 	</td>
+						<td>
+							<span *ngFor="let go of tenant.gofr">{{go.first_name}} {{go.last_name}}
+								<span *ngIf="go.passed; else noncompliantgo">(Compliant)</span>
+								<ng-template #noncompliantgo><span>(Non-compliant)</span></ng-template>	
+								<br />
+							</span>
+						</td>			
+				  </tr>
+			  </tbody>
+	  </table>
+	  <br />
+	  <div class="button-container right-align" >
+		  <button  class="modal-action modal-close waves-effect waves-light btn grey lighten-1 btn-flat">Close</button>
+	  </div>
+	</div>
+  
+  </div>
 
 
 <div class="modal" id="modalManageUpload" style="overflow: visible;"  >

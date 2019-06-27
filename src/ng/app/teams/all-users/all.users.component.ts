@@ -26,26 +26,16 @@ declare var $: any;
 export class AllUsersComponent implements OnInit, OnDestroy {
 
 	userData = <any> {};
-	listData = [];
-	selectedToArchive = {
-		first_name : '', last_name : '', parent_data : {}, locations : []
-	};
+    listData = [];
+    adminTeamMembers = [];
+	selectedToArchive = { name: '' };
 	showModalLoader = false;
 	copyOfList = [];
 	selectedFromList = [];
 
 	filters = [
-        { value : 2, name : 'Tenant Responsible' },
-        { value : 8, name : 'General Occupant' },
-        { value : 9, name : 'Warden' },
-        { value : 10, name : 'Floor / Area Warden' },
-        { value : 11, name : 'Chief Warden' },
-        { value : 12, name : 'Fire Safety Advisor' },
-        { value : 13, name : 'Emergency Planning Committee Member' },
-        { value : 14, name : 'First Aid Officer' },
-        { value : 15, name : 'Deputy Chief Warden' },
-        { value : 16, name : 'Building Warden' },
-        { value : 18, name : 'Deputy Building Warden' }
+        { value : 1, name : 'Building Manager' },
+        { value : 2, name : 'Tenant Responsible' }        
     ];
 
 	loadingTable = false;
@@ -53,24 +43,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	pagination = {
 		pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
 	};
-
-	queries = {
-		roles : 'frp,trp,users',
-		impaired : null,
-		type : 'client',
-		offset :  0,
-		limit : 10,
-		archived : 0,
-		pagination : true,
-		user_training : true,
-		users_locations : true,
-		search : '',
-        online_trainings : true,
-        location_id : 0
-	};
-
     multipleLocations = [];
-
 	searchMemberInput;
 
     options: DatepickerOptions = {
@@ -82,7 +55,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     isShowDatepicker = false;
     datepickerModelFormatted = '';
     selectedPeep = {
-        first_name : '', last_name : ''
+        name: ''
     };
 
     selectedToInvite = [];
@@ -100,16 +73,6 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     locationPagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
     };
-    locationQueries = {
-        offset :  0,
-        limit : 20,
-        search : '',
-        sort : '',
-        archived : 0,
-        showparentonly: false,
-        parent_id : 0
-    };
-
     isAdministrationsShow = false;
     showArchived = false;
     subscriptionType = 'free';
@@ -126,175 +89,35 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         private activatedRoute : ActivatedRoute
 		){
         this.userData = this.authService.getUserData();
-        for(let role of this.userData.roles){
-            if(role.role_id == 1){
-                this.isFRP = true;
-                this.filters.unshift({
-                    value : 1, name : 'Building Manager'
-                });
-            }
-        }
-
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-
-        this.courseService.getAllEmRolesTrainings((response) => {
-            this.emTrainings = response.data;
-        });
-
-        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
-            this.locations = response.locations;
-            this.locationPagination.pages = response.pagination.pages;
-            this.locationPagination.total = response.pagination.total;
-            setTimeout(() => {
-                $('.row.filter-container select.location').material_select();
-            },500);
-        });
-
-        if(this.router.url.indexOf("/teams/list-administrators") > -1){
-            this.isAdministrationsShow = true;
-            this.queries.roles = 'frp,trp';
-        }
-
-        let newFilters = [];
-        if(this.isAdministrationsShow){
-            for(let filter of this.filters){
-                if(filter['value'] == 1 || filter['value'] == 2){
-                    newFilters.push(filter);
-                }
-            }
-
-            this.filters = newFilters;
-        }
-
-        this.paramSub =  this.activatedRoute.queryParams.subscribe((params) => {
-            if(params['archived']){
-                this.showArchived = Boolean(params['archived']);
-                this.queries.archived = 1;
-            }else{
-                this.showArchived = false;
-                this.queries.archived = 0;
-            }
-
-
-            this.dashboardService.show();
-            this.getListData(() => { 
-                if(this.pagination.pages > 0){
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=this.pagination.pages; i++){
-                    this.pagination.selection.push({ 'number' : i });
-                }
-
-                this.dashboardService.hide();
-                setTimeout(() => {
-                    $('.row.filter-container select').material_select();
-                }, 100);
-            });
-        });
-	}
-
-	getListData(callBack?){
-
-		this.userService.queryUsers(this.queries, (response) => {
-			this.pagination.total = response.data.pagination.total;
-			this.pagination.pages = response.data.pagination.pages;
-			this.listData = response.data.users;
-
-			let tempRoles = {};
-			
-			for(let i in this.listData){
-				this.listData[i]['bg_class'] = this.generateRandomBGClass();
-				this.listData[i]['id_encrypted'] = this.encDecrService.encrypt(this.listData[i]['user_id']);
-
-				for(let l in this.listData[i]['locations']){
-					if(this.listData[i]['locations'][l]['parent_name'] == null){
-						this.listData[i]['locations'][l]['parent_name'] = '';
-					}
-
-                    this.listData[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt( this.listData[i]['locations'][l]['location_id'] );
-				}
-
-				for(let r in this.listData[i]['roles']){
-					if( this.listData[i]['roles'][r]['role_name'] ){
-						if( !tempRoles[ this.listData[i]['roles'][r]['role_name'] ] ){
-							tempRoles[ this.listData[i]['roles'][r]['role_name'] ] = this.listData[i]['roles'][r]['role_name'];
-						}
-					}
-				}
-
-                this.listData[i]['sendinvitation'] = false;
-                let hasEcoRole = false;
-                for(let r in this.listData[i]['roles']){
-                    if( this.listData[i]['roles'][r]['role_id'] != 1 && this.listData[i]['roles'][r]['role_id'] != 2 ){
-                        hasEcoRole = true;
-                    }
-                }
-
-                if(hasEcoRole){
-                    this.listData[i]['sendinvitation'] = true;
-                }
-
-                let isSelected = false;
-                this.listData[i]['isselected'] = false;
-                for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.listData[i]['user_id']){
-                        this.listData[i]['isselected'] = true;
-                        isSelected = true;
-                    }
-                }
-
-                if(!isSelected && this.allAreSelected){
-                    this.listData[i]['isselected'] = true;
-                    this.selectedFromList.push(this.listData[i]);
-                }
-
-			}
-
-			setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
-
-			this.copyOfList = JSON.parse( JSON.stringify(this.listData) );
-
-			if(callBack){
-				callBack();
-			}
-		});
+        this.isAdministrationsShow = true;
 	}
 
 	ngOnInit(){
-		this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
+        if (this.userData['account_has_online_training'] == 1) {
+            this.isOnlineTrainingAvailable = true;
+        }
+        this.listAdminUsers();
+        setTimeout(() => {
+            $('.row.filter-container select').material_select();
+        }, 100);
+        
 	}
 
 	ngAfterViewInit(){
 		$('.modal').modal({
 			dismissible: false
         });
-        var self = this;
-        $('#selectPageUpper').change(function(){
-            // console.log($('#selectPageUpper').val());
-            self.pageChange($('#selectPageUpper').val());
-            
-       });
-       
-
-        this.accountService.isOnlineTrainingValid((response) => {
-            if(response.valid){
-                this.isOnlineTrainingAvailable = true;
-            }
-            setTimeout(() => {
-                $('.row.filter-container select:not(.location)').material_select();
-            }, 100);
-        });
-
         $('#modalMobility select').material_select();
-
         this.filterByEvent();
 		this.locationChangeEvent();
 		this.sortByEvent();
 		this.bulkManageActionEvent();
-		this.searchMemberEvent();
+        this.searchMemberEvent();
+        
 	}
 
     locationChangeEvent(){
@@ -304,69 +127,45 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             e.stopPropagation();
             let selected = $('select.location').val();
             __this.dashboardService.show();
-            
-            __this.queries.location_id = selected;
-            __this.queries.offset = 0;
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
+            __this.listData = [];
+            const choosen = [];
+            if(parseInt(selected, 10) == 0) {
+                __this.listData = __this.adminTeamMembers;
+            } else {
+                for (let warden of __this.adminTeamMembers) {
+                    if (parseInt(warden['building_id'], 10) == parseInt(selected, 10)) {
+                        __this.listData.push(warden);
+                    }
                 }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
+            }
+            __this.dashboardService.hide();
+         
         });
     }
 
 	filterByEvent(){
         let __this = this;
-		$('select.filter-by').off('change').on('change', function(){
-			let selected = $('select.filter-by').val();
-            __this.dashboardService.show();
-			if(parseInt(selected) != 0 && selected != 'pending'){
-				__this.queries.roles = selected;
-			}else{
-
-                if(__this.isAdministrationsShow){
-				    __this.queries.roles = 'frp,trp';
-                }else{
-                    __this.queries.roles = 'frp,trp,users';
+		$('#filter-roles').change(function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            let selected = $('#filter-roles').val();
+            console.log(selected);
+            __this.listData = [];
+            const choosen = [];
+            
+            if(parseInt(selected, 10) == 0) {
+                __this.listData = __this.adminTeamMembers;
+            } else {
+                for (let warden of __this.adminTeamMembers) {                    
+                    if (choosen.indexOf(warden['location_id']) == -1) {                       
+                        if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
+                            choosen.push(warden['location_id']);
+                            __this.listData.push(warden);                            
+                        }
+                    }
                 }
-                if(selected == 'pending'){
-                    __this.queries.roles += ',pending';
-                }else if(selected == 'no_roles'){
-                    __this.queries.roles += ',no_roles';
-                }
-			}
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.queries.offset = 0;
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
-		});
+            }
+        });
 	}
 
 	sortByEvent(){
@@ -392,33 +191,32 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	searchMemberEvent(){
-		this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
-		this.searchMemberInput.debounceTime(800)
-			.map(event => event.target.value)
-			.subscribe((value) => {
-				this.queries.search = value;
-				this.queries.offset = 0;
-				this.loadingTable = true;
-				this.pagination.selection = [];
-				this.getListData(() => { 
-					for(let i = 1; i<=this.pagination.pages; i++){
-						this.pagination.selection.push({ 'number' : i });
-					}
-					this.pagination.currentPage = 1;
-					this.pagination.prevPage = 1;
-					this.loadingTable = false;
-				});
-			});
+        this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+        this.searchMemberInput.debounceTime(800)
+            .map(event => event.target.value)
+            .subscribe((value) => {
+                this.listData = [];
+                const choosen = [];
+                if (value.length == 0) {
+                 this.listData = this.adminTeamMembers;   
+                } else {
+                    let searchKey = value.toLowerCase();
+                    for (let user of this.adminTeamMembers) {
+                        if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(user['location_id']);
+                            this.listData.push(user);
+                        }
+                        if (choosen.indexOf(user['location_id']) == -1) {
+                            
+                        }
+                    }
+                }
+            });
 	}
 
 	ngOnDestroy(){
-        this.paramSub.unsubscribe();
+        
     }
-
-	generateRandomBGClass(){
-		let colors = ["red", "blue", "yellow", "orange", "green", "purple", "pink"];
-		return colors[ Math.floor( Math.random() * colors.length) ];
-	}
 
 	onSelectFromTable(event, list){
 		let selected = event.target.value;
@@ -453,10 +251,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
-            this.selectedToArchive = {
-                first_name : '', last_name : '', parent_data : {}, locations : []
-            };
-            this.getListData(() => { this.dashboardService.hide(); });
+            this.selectedToArchive = { name: ''};
+            this.listAdminUsers();
         };
 
         if(!this.showArchived){
@@ -502,21 +298,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 			}
 			this.selectedFromList = temp;
 		}
-
-		/*let checkboxes = $('table tbody input[type="checkbox"]'),
-        countChecked = 0;
-        checkboxes.each((indx, elem) => {
-            if($(elem).prop('checked')){
-                countChecked++;
-            }
-        });
-
-        $('#allLocations').prop('checked', false);
-        this.allAreSelected = false;
-        if(countChecked == checkboxes.length){
-            $('#allLocations').prop('checked', true);
-            this.allAreSelected = true;
-        }*/
+		
 	}
 
 	bulkManageActionEvent(){
@@ -530,9 +312,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 if(!this.allAreSelected){
                     this.selectedToInvite = [];
                     for(let user of this.selectedFromList){
-                        if(user.sendinvitation){
-                            this.selectedToInvite.push(user);
-                        }
+                        this.selectedToInvite.push(user);
                     }
                     if(this.selectedToInvite.length > 0){
                         $('#modalSendInvitation').modal('open');
@@ -569,7 +349,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
             this.selectedFromList = [];
-            this.getListData(() => { this.dashboardService.hide(); });
+            this.listAdminUsers();
         };
 
         if(!this.showArchived){
@@ -578,48 +358,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             this.userService.unArchiveUsers(arrIds, cb);
         }
 
-	}
-
-	pageChange(type){
-
-		let changeDone = false; console.log(type);
-		switch (type) {
-			case "prev":
-				if(this.pagination.currentPage > 1){
-					this.pagination.currentPage = this.pagination.currentPage - 1;
-					changeDone = true;
-				}
-				break;
-
-			case "next":
-				if(this.pagination.currentPage < this.pagination.pages){
-					this.pagination.currentPage = this.pagination.currentPage + 1;
-					changeDone = true;
-				}
-				break;
-			
-			default:
-				if(this.pagination.prevPage != parseInt(type)){
-                    this.pagination.currentPage = parseInt(type);
-                    
-					changeDone = true;
-				}
-				break;
-		}
-
-		if(changeDone){
-			this.pagination.prevPage = parseInt(type);
-			let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-			this.queries.offset = offset;
-			this.loadingTable = true;
-			this.getListData(() => { 
-                this.loadingTable = false;
-                $("#selectPageUpper option[value='" + this.pagination.currentPage  +"']").attr("selected", "selected");
-
-			});
-		}
-    }
-    
+	}  
     clickMultipleLocation(locations){
         this.multipleLocations = locations;
         $('#modalSelectMultipleLocations').modal('open');
@@ -663,10 +402,9 @@ export class AllUsersComponent implements OnInit, OnDestroy {
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
             paramData['user_id'] = this.selectedPeep['user_id'];
 
-            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+            if(this.selectedPeep['mobility_impaired_details'] && this.selectedPeep['mobility_impaired_details'].length > 0){
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
-
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val();
 
             this.showModalLoader = true;
@@ -733,6 +471,31 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         this.courseService.sendTrainingInvitation(form, (response) => {
             $('#modalSendInvitation').modal('close');
             this.showModalLoader = false;
+        });
+    }
+
+
+    private listAdminUsers() {
+        this.dashboardService.show();
+        this.accountService.generateAdminUserList().subscribe((response) => {
+            this.listData = [];
+            this.adminTeamMembers = [];
+            for (let user of response.account_users) {
+                user['id_encrypted'] = this.encDecrService.encrypt(user['user_id']);
+                user['enc_location_id'] = this.encDecrService.encrypt(user['location_id']);
+                user['isselected'] = false;
+
+                this.listData.push(user);
+                this.adminTeamMembers.push(user);
+            }
+            this.locations = response.buildings;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select();
+            },500);
+            this.dashboardService.hide();
+        }, (error) => {
+            this.dashboardService.hide();
+            console.log(error);
         });
     }
 

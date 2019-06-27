@@ -340,7 +340,7 @@ export class CourseRoute extends BaseRoute {
         account = {},
         nominatorModel = new User(req.user.user_id),
         nominator = <any> {};
-
+        console.log(req.body);
         try {
             nominator = await nominatorModel.load();
         } catch (e) {}
@@ -354,10 +354,11 @@ export class CourseRoute extends BaseRoute {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id);
             } else if (ids.length > 0) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccount(req.user.account_id, { user_ids : ids.join(',') });
+                
             } else if (non_compliant) {
                 users = <any> await accountModel.getAllEMRolesOnThisAccountNotCompliant(req.user.account_id);
             }
-           
+            
             for(let user of users) {
                 user['trainings'] = [];
                 user['account'] = account;
@@ -416,7 +417,7 @@ export class CourseRoute extends BaseRoute {
             multiTokenModel = new Token();
 
         try{
-            let tokens = await multiTokenModel.getAllByUserId(user.user_id);
+            let tokens:any = await multiTokenModel.getAllByUserId(user.user_id);
             for(let t in tokens){
                 if(tokens[t]['action'] == 'forgot-password'){
                     let tokenDelete = new Token(tokens[t]['token_id']);

@@ -41,13 +41,6 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
         contact_number : '',
         mobile_number : '',
         selected_roles : [],
-        new_account : {
-            valid : false,
-            name : '',
-            trp : {
-                firstname : '', lastname : '', email : ''
-            }
-        },
         errors : {}
     };
 
@@ -115,24 +108,8 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngOnInit() {
-        this.accountRoles = [{
-            role_id: 3,
-            role_name: 'User'
-        },
-        {
-            role_id: 2,
-            role_name: 'Tenant'
-        }
-        ];
-        this.userRole = this.authService.getHighestRankRole();
-        if (this.userRole == 1) {
-            this.accountRoles.push({
-                role_id: 1,
-                role_name: 'Building Manager'
-            });
-        }
-
+    ngOnInit() {        
+        this.dashboardPreloaderService.show();
         // get ECO Roles from db
         this.dataProvider.buildECORole().subscribe((roles) => {
                 this.ecoRoles = roles;
@@ -149,27 +126,26 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
                     }
                 }
                 this.userProperty.selected_roles.push(this.selectRoleDropDownGenOct);
-                this.dashboardPreloaderService.show();
+                
             }, (err) => {
-                this.dashboardPreloaderService.show();
+                this.dashboardPreloaderService.hide(); 
                 console.log('Server Error. Unable to get the list');
             }
         );
 
-        // this.dashboardPreloaderService.show();
-
-        this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response:any) => {
-            this.locations = JSON.parse( JSON.stringify( response.locations ) );
-            this.locationsCopy = JSON.parse( JSON.stringify( response.locations ) );
+        
+        this.userService.listUserAccountLocations().subscribe((response) => {
+            this.locations = response.hierarchy;
+            this.locationsCopy = response.hierarchy;
 
             this.dashboardPreloaderService.hide();
             this.addMoreRow();
-        });
 
-        this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
-            this.buildings = response.data.buildings;
-            this.levels = response.data.levels;
+            console.log(response.hierarchy);
+        }, (err) => {
+            this.dashboardPreloaderService.hide(); 
         });
+        
     }
 
     ngAfterViewInit(){
@@ -191,47 +167,8 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
     }
 
     onSelectRole($event, iterator, elem){
-
         this.selectedUser = this.addedUsers[iterator];
-
         console.log(this.selectedUser);
-    }
-
-    filterLocationForSelectedValue(){
-        let selected = {};
-        let loopAddKey = (data, mainParent?) => {
-            for(let i in data){
-                if(typeof mainParent === 'undefined'){
-                    mainParent = JSON.parse(JSON.stringify(data[i]));
-                }else if(mainParent.location_id != data[i]['location_id'] && data[i]['parent_id'] == -1){
-                    mainParent = JSON.parse(JSON.stringify(data[i]));
-                }
-
-                if(this.paramLocIdEnc.length > 0){
-                    if(this.paramLocId == data[i]['location_id']){
-                        if('location_id' in mainParent){
-                            selected = mainParent;
-                        }else{
-                            selected = data[i];
-                        }
-                    }
-                }
-
-                if(mainParent){
-                    data[i]['main_parent'] = (mainParent.location_id != data[i]['location_id']) ? mainParent : {};
-                }else{
-                    data[i]['main_parent'] = {};
-                }
-
-                if(data[i]['sublocations'].length > 0){
-                    loopAddKey(data[i]['sublocations'], mainParent);
-                }
-            }
-        };
-
-        loopAddKey(this.locations);
-
-        return [selected];
     }
 
     showModalInvite(){
@@ -257,34 +194,6 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
         },300);
     }
 
-    onSelectedAccountRole(srcId: number) {
-        let r = this.addWardenForm.controls['accountRole' + srcId].value * 1;
-        this.ecoDisplayRoles[srcId] = [];
-        switch(r) {
-            case 1:
-            case 2:
-            this.ecoDisplayRoles[srcId] = this.ecoRoles;
-            break;
-            case 3:
-            for ( let r of this.ecoRoles ) {
-                if (r.is_warden_role == 1) {
-                    (this.ecoDisplayRoles[srcId]).push(r);
-                }
-            }
-            break;
-
-        }
-        console.log(this.ecoDisplayRoles);
-    }
-
-    onChangeDropDown(event){
-        if(event.currentTarget.checked){
-            $( $(event.currentTarget).parents('.list-division')[0] ).addClass('show-drop-down');
-        }else{
-            $( $(event.currentTarget).parents('.list-division')[0] ).removeClass('show-drop-down');
-        }
-    }
-
     removeAddedUser(index){
         let newList = [];
         for(let i=0; i<=this.addedUsers.length; i++){
@@ -295,90 +204,17 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
         this.addedUsers = newList;
     }
 
-    filterLocationsToDisplayByUserRole(user, data){
-        let resp = [],
-            copy = JSON.parse(JSON.stringify(data));
-            
-        return JSON.parse( JSON.stringify( this.locationsCopy ) );
-    }
-
-    buildLocationsListInModal(){
-        const ulModal = $('#modalLocations ul.locations');
-        ulModal.html('');
-        $('body').off('click.radio').on('click.radio', 'input[type="radio"][name="selectLocation"]', () => {
-            $('#modalLocations')[0].scrollTop = 0;
-            this.formLocValid = true;
-        });
-
-        let maxDisplay = 25,
-            count = 1,
-            buildChildList = (locations) => {
-                let ul = ``;
-
-                if(locations.length > 0){
-                    ul += '<ul style="padding-left: 20px; max-height: 153px; overflow: auto;">';
-                    for(let loc of locations){
-                        let subUl = (loc.sublocations.length > 0) ? buildChildList(loc.sublocations) : '';
-                        
-                        ul += `
-                            <li class="list-division" id="${loc.location_id}">
-                                <div class="name-radio-plus">
-                                    <div class="input">
-                                        <input required type="radio" name="selectLocation" loc-name="${loc.name}" value="${loc.location_id}" id="check-${loc.location_id}">
-                                        <label for="check-${loc.location_id}">${loc.name}</label>
-                                    </div>
-                                </div>
-
-                                ${subUl}
-                            </li>
-                        `;
-                    }
-                    ul += '</ul>';
-                }
-
-                return ul;
-
-            };
-
-        for (const loc of this.locations) {
-            if (count <= maxDisplay) {
-                let ul = ``;
-                if(loc.sublocations.length > 0){
-                    ul += buildChildList(loc.sublocations);
-                }
-                let $li = $(`
-                <li class="list-division" id="${loc.location_id}">
-                    <div class="name-radio-plus">
-                        <div class="input">
-                            <input required type="radio" name="selectLocation" value="${loc.location_id}" loc-name="${loc.name}" id="check-${loc.location_id}">
-                            <label for="check-${loc.location_id}">${loc.name}</label>
-                        </div>
-                    </div>
-                    ${ul}
-                </li>`);
-
-                ulModal.append($li);
-                count++;
-            }
-        }
-    }
 
     changeRoleEvent(user){
         user.location_name = 'Select Location';
         user.location_id = 0;
         user.account_location_id = 0;
         this.selectedUser = user;
-        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
-        this.buildLocationsListInModal();
     }
 
     showLocationSelection(user){
-        this.selectedUser = user;
-        this.locations = this.filterLocationsToDisplayByUserRole(user, JSON.parse(JSON.stringify(this.locationsCopy)));
-        this.buildLocationsListInModal();
-        $('#modalLocations').modal('open');
-        // $('#modalPreloadedLocations').modal('open');
-        this.formLocValid = false;
+        this.selectedUser = user;        
+        $('#modalLocations').modal('open');        
     }
 
     submitSelectLocationModal(form, event){
@@ -427,7 +263,7 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
         this.userService.createBulkUsers(this.addedUsers, (response) => {
           this.addedUsers = response.data;
           if(this.addedUsers.length == 0){
-              this.router.navigate(["/teams/list-wardens"]);
+              this.router.navigate(["/teams/list-general-occupant"]);
           }
         });
       }
@@ -461,30 +297,37 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
             this.formLocValid = false;
             let value = event['target'].value.trim().toLowerCase();
             value = value.replace(/[^a-zA-Z 0-9]/g, "");
-            let seenSubLocIndex = [];
-            const seenIndex = [];
-
+                            
             let findRelatedName = (data) => {
                 let results = [];
                 for(let d of data){
                     let name = d.name.trim().toLowerCase();
                     name = name.replace(/[^a-zA-Z 0-9]/g, "");
-                    if(name.indexOf(value) > -1){
-                        d['sublocations'] = [];
+                    if(name.indexOf(value) > -1){                        
+                        //d['sublocations'] = [];
+                        //console.log(d);
                         results.push(d);
                     }
-                    if(d.sublocations.length > 0){
-                        let related = findRelatedName(d.sublocations);
-                        for(let i in related){
-                            results.push(related[i]);
+                    try {
+                        if(d.sublocations.length > 0){
+                            let related = findRelatedName(d.sublocations);
+                            for(let i in related) {
+                                related[i]['name'] = `${related[i]['name']}, ${d['name']}`;
+                                results.push(related[i]);                                
+                            }
                         }
+
+                    } catch(e) {
+                        console.log('No sublocation');
                     }
+                    
                 }
 
                 return results;
             };
 
             if(value.length > 0){
+                
                 let found = findRelatedName( JSON.parse(JSON.stringify(this.locationsCopy)) );
                 let finalResults = [],
                     ids = [];
@@ -497,14 +340,23 @@ export class TeamsAddGeneralOccupantComponent implements OnInit, OnDestroy {
                 this.locations = finalResults;
             }else{
                 this.locations = JSON.parse(JSON.stringify(this.locationsCopy));
+                
             }
-
-            this.buildLocationsListInModal();
         });
     }
 
     ngOnDestroy(){
         this.searchModalLocationSubs.unsubscribe();
     }
+
+    chooseLocation(locationId=0, buildingName = '', locationName='') {        
+        this.selectedUser['account_location_id'] = locationId;
+        this.selectedUser['location_name'] = `${buildingName} ${locationName}`;            
+        $('#modalLocations').modal('close');
+        this.modalSearchLocation.nativeElement.value = '';
+        
+        
+    }
+
 
 }

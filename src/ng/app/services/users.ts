@@ -399,4 +399,17 @@ export class UserService {
 	permanentlyDeleteUser(userId=0) {
 		return this.http.post(`${this.baseUrl}/users/delete-permanently/`, {user: userId});
 	}
+
+	getGofrInLocation(locId){
+		return this.http.get<{message: string, data: Object[]}>(this.baseUrl+"/users/get-gofr/"+locId);
+		
+	}
+	listUserAccountLocations() {
+		return this.http.get<{
+			trp_locations: number[],
+			frp_locations: number[],
+			locations: object[],
+			hierarchy: object[]
+		}>(`${this.baseUrl}/users/location-listing/`);
+	}
 }

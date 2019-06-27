@@ -14,6 +14,7 @@ import { PrintService } from '../../services/print.service';
 
 declare var $: any;
 // declare var jsPDF: any;
+import * as FileSaver from 'file-saver';
 
 @Component({
 	selector : 'app-trainings-compliance-component',
@@ -26,7 +27,8 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     @ViewChild('printContainer') printContainer : ElementRef;
 	userData = {};
 	rootLocationsFromDb = [];
-	results = [];
+    results = [];
+    private reportsData = [];
 	backupResults = [];
 	routeSubs;
     locationId = 0;
@@ -75,10 +77,15 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         private courseService : CourseService,
         private exportToCSV : ExportToCSV
 		) {
-
 		this.userData = this.authService.getUserData();
+	}
+
+	ngOnInit() {
+        this.dashboardPreloader.show();       
+        this.subscriptionType = this.userData['subscription']['subscriptionType'];
         
-		this.routeSubs = this.activatedRoute.params.subscribe((params) => {
+
+        this.routeSubs = this.activatedRoute.params.subscribe((params) => {
             this.locationId = this.encryptDecrypt.decrypt( params.locationId );
 
             if(params.accountId){
@@ -86,150 +93,51 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
                 this.queries.account_id = this.accountId;
             }
 
-            this.arrLocationIds = this.locationId.toString().split('-');
-
-        	this.getLocationReport((response) => {
-                this.dashboardPreloader.hide();
-                if(response.data.length > 0){
-                    this.pagination.currentPage = 1;
-                }
-
-                // this.generateReportDataForExport();
-            });
+            this.arrLocationIds = this.locationId.toString().split('-');            
+        	this.getLocationReport();
         });
 
-        let qParams = undefined;
-        if(this.userData['evac_role'] == 'admin'){
-            qParams = {
-                'account_id' : this.accountId
-            };
-        }
-        this.reportService.getParentLocationsForReporting(qParams).subscribe((response) => {
-            this.rootLocationsFromDb = response['data'];
-
-            setTimeout(() => {
-
-                if(this.locationId == 0){
-                    $('#selectLocation option[value="0"]').prop('selected', true);
-                }else{
-                    $('#selectLocation option[value="0"]').prop('selected', false);
-                    for(let i in this.arrLocationIds){
-                        $('#selectLocation option[value="'+this.arrLocationIds[i]+'"]').prop('selected', true);
-                    }
-                }
-
-                $('#selectLocation').material_select(() => {
-                    let values = $('#selectLocation').val(),
-                        urlparam = '';
-
-                    urlparam = values.join('-');
-                });
-            },100);
-        });
-
-        this.courseService.getTrainingRequirements((response) => {
-            this.trainingRequirements = response.data;
-
-            let selectFilter = $('#selectFilter');
-            for(let training of this.trainingRequirements){
-                selectFilter.append(' <option value="training-'+training.training_requirement_id+'">'+training.training_requirement_name+'</option> ');
-            }
-
-            selectFilter.material_select();
-        });
-	}
-
-	ngOnInit() {
-        this.subscriptionType = this.userData['subscription']['subscriptionType'];
 	}
 
 	ngAfterViewInit(){
-        this.searchUser();
-		$('#selectFilter').off('change.filter').on('change.filter', () => {
-
-			let selVal = $('#selectFilter').val();
-            if(selVal == 'offline'){
-                this.queries.course_method = 'offline';
-            }else if(selVal == 'online'){
-                this.queries.course_method = 'online';
-            }else if(selVal.indexOf('training-') > -1){
-                let trainingId = selVal.replace('training-', '');
-                this.queries.training_id = trainingId;
-            }else{
-                this.queries.course_method = 'none';
-                this.queries.training_id = 0;
-            }
-
-
-            this.queries.offset = 0;
-            this.loadingTable = true;
-
-            this.getLocationReport((response:any) => {
-                this.loadingTable = false;
-                if(response.data.length > 0){
-                    this.pagination.currentPage = 1;
-                    this.totalCountResult = response.pagination.total;
-                }else{
-                    this.pagination.currentPage = 0;
-                }
-            });
-
-        });
-
-        $('body').off('close.location').on('close.location', '.select-wrapper.select-location input.select-dropdown', (e) => {
-            e.preventDefault();
-            let values = $('#selectLocation').val(),
-                urlparam = '';
-
-            urlparam = values.join('-');
-
-            if( this.arrLocationIds.join('-') != urlparam ){
-                if(values.indexOf('0') > -1){
-                    $('#selectLocation option').prop('selected', false);
-                    $('#selectLocation option[value="0"]').prop('selected', true);
-                    $('#selectLocation').material_select();
-                    urlparam = '0';
-                }
-
-                this.queries.offset = 0;
-                this.loadingTable = true;
-                this.dashboardPreloader.show();
-
-                if(this.userData['evac_role'] == 'admin'){
-                    this.router.navigate(['/admin/trainings-report/' + this.encryptDecrypt.encrypt(urlparam) + "/" + this.encryptDecrypt.encrypt(this.accountId) ]);
-                }else{
-                    this.router.navigate(['/reports/trainings/' + this.encryptDecrypt.encrypt(urlparam) ]);
-                }
-            }
-
-        });
-
-        $('#selectCompliant').off('change.compliant').on('change.compliant', () => {
-            this.queries.compliant = parseInt($('#selectCompliant').val());
-            this.queries.offset = 0;
-            this.loadingTable = true;
-
-            this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
-              this.results = response['data'];
-              this.backupResults = JSON.parse( JSON.stringify(this.results) );
-              this.pagination.pages = response.pagination.pages;
-              this.pagination.total = response.pagination.total;
-
-              this.pagination.selection = [];
-              for(let i = 1; i<=this.pagination.pages; i++){
-                  this.pagination.selection.push({ 'number' : i });
-              }
-              this.loadingTable = false;
-            });
-        }).material_select();
-
-
         this.print = new PrintService({
             content : this.printContainer.nativeElement.outerHTML
         });
+        $('#selectCompliant').material_select();
+        this.filterByCompliance();
+        this.searchUser();
+    }
+    
+    filterByCompliance() {
 
-        this.dashboardPreloader.show();
-	}
+        let self = this;
+        $('#selectCompliant').on('change', (e) => {
+            
+            self.dashboardPreloader.show();
+            self.loadingTable =  true;
+            let compliant = parseInt($('#selectCompliant').val());
+            let copy = [];            
+            if (self.results.length == 0) {
+                self.results = self.reportsData;
+            }            
+            
+            self.results = [];
+            if (compliant == -1) {
+                self.results = self.reportsData;
+            } else {
+                
+                for (let user of self.reportsData) {                    
+                    if (parseInt(user['training'],10) == compliant) {
+                        self.results.push(user);
+                    }
+                }
+            }
+            setTimeout(() => {
+                self.dashboardPreloader.hide();
+                this.loadingTable = false;
+            }, 500);
+        }).material_select();
+    }
 
     generateReportDataForExport(){
         this.pdfLoader = true;
@@ -248,100 +156,56 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         this.queries.nofilter_except_location = false;
     }
 
-    pageChange(type){
+    
 
-        let changeDone = false;
-        switch (type) {
-            case "prev":
-                if(this.pagination.currentPage > 1){
-                    this.pagination.currentPage = this.pagination.currentPage - 1;
-                    changeDone = true;
-                }
-                break;
-
-            case "next":
-                if(this.pagination.currentPage < this.pagination.pages){
-                    this.pagination.currentPage = this.pagination.currentPage + 1;
-                    changeDone = true;
-                }
-                break;
-
-            default:
-                if(this.pagination.prevPage != parseInt(type)){
-                    this.pagination.currentPage = parseInt(type);
-                    changeDone = true;
-                }
-                break;
-        }
-
-        if(changeDone){
-            this.pagination.prevPage = parseInt(type);
-            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
-            this.loadingTable = true;
-
-            this.getLocationReport((response:any) => {
-                this.loadingTable = false;
-            });
-        }
-    }
-
-	getLocationReport(callBack?, forExport?){
+	getLocationReport(callBack?, forExport?){        
         this.queries.location_id = this.locationId;
-		this.reportService.getLocationTrainingReport(this.queries).subscribe((response:any) => {
-            if(!forExport){
-    			this.results = response['data'];
-                this.backupResults = JSON.parse( JSON.stringify(this.results) );
-                this.pagination.pages = response.pagination.pages;
-                this.pagination.total = response.pagination.total;
-
-                this.pagination.selection = [];
-                for (let i = 1; i<=this.pagination.pages; i++){
-                    this.pagination.selection.push({ 'number' : i });
-                }
-
-                this.loadingTable = false;
-            }
-            callBack(response);
+        this.reportService.generateWardenTrainingReport({
+            location_id: this.arrLocationIds.join('-')
+        }).subscribe((response) => {            
+            this.results = response['list'];
+            this.reportsData = response['list'];
+            this.loadingTable = false;
+            this.dashboardPreloader.hide();
+        }, (error) => {
+            console.log(error);
+            this.loadingTable = false;
+            this.dashboardPreloader.hide();
         });
+
+		
 	}
 
 	printResult(){
         this.print.print(this.printContainer.nativeElement.outerHTML);
 	}
 
-    pdfExport(aPdf, printContainer){
-        let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
-        compliant = this.queries.compliant,
-        trainingId = this.queries.training_id,
-        method = this.queries.course_method,
-        search = (this.searchMember.nativeElement.value.trim().length == 0) ? ' ' : this.searchMember.nativeElement.value;
-        
-        a.href = environment.backendUrl + "/reports/pdf-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
-        a.target = "_blank";
-        document.body.appendChild(a);
-
-        a.click();
-
-        a.remove();
+    pdfExport(aPdf, printContainer) {
+       this.reportService.generateWardenTrainingReport({
+        location_id: this.arrLocationIds.join('-'),
+        convert: 'pdf'
+        }, true).subscribe((data) => {
+            const blob = new Blob([data['body']], {type: 'application/pdf'}); 
+            let timestamp = new Date().getTime();
+            FileSaver.saveAs(blob, `training_report_${timestamp}.pdf`);
+        }, (error) => {
+            console.log(error);
+        });
     }
 
     csvExport(){
-        let a = document.createElement("a"),
-        accntId = (this.accountId) ? this.accountId : this.userData["accountId"],
-        compliant = this.queries.compliant,
-        trainingId = this.queries.training_id,
-        method = this.queries.course_method,
-        search = (this.searchMember.nativeElement.value.trim().length == 0) ? ' ' : this.searchMember.nativeElement.value;
-
-        a.href = environment.backendUrl + "/reports/csv-location-trainings/"+this.locationId+"/"+this.totalCountResult+"/"+accntId+"/"+this.userData["userId"]+"/"+search+"/"+trainingId+"/"+method+"/"+compliant;
-        a.target = "_blank";
-        document.body.appendChild(a);
-
-        a.click();
-
-        a.remove();
+        
+       let a = document.createElement("a");
+       this.reportService.generateWardenTrainingReport({
+        location_id: this.arrLocationIds.join('-'),
+        convert: 'csv'
+        }).subscribe((response) => {
+            const blob = new Blob([response['csv_data']], {type: 'application/octet-stream'});
+            let timestamp = new Date().getTime();
+            FileSaver.saveAs(blob, `training_report_${timestamp}.csv`);
+        }, (error) => {
+            console.log(error);
+        });
     }
 
     ngOnDestroy(){
@@ -350,25 +214,27 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     }
 
     searchUser() {
-
         this.searchSub =  Observable.fromEvent(this.searchMember.nativeElement, 'keyup').debounceTime(800).subscribe((event: KeyboardEvent) => {
-            const searchKey = (<HTMLInputElement>event.target).value;
-            // console.log(searchKey);
             this.loadingTable = true;
+            $('#selectCompliant').val('-1').material_select();
 
-            this.queries.searchKey = searchKey;
-            this.reportService.getLocationTrainingReport(this.queries).subscribe((response: any) => {
-                this.results = response['data'];
-                this.backupResults = JSON.parse( JSON.stringify(this.results) );
-                this.pagination.pages = response.pagination.pages;
-                this.pagination.total = response.pagination.total;
-                this.pagination.selection = [];
-                for (let i = 1; i <= this.pagination.pages; i++) {
-                  this.pagination.selection.push({ 'number' : i });
-                }
+            const searchKey = (<HTMLInputElement>event.target).value;
+            this.results = [];
+            console.log(searchKey);
+            if (searchKey.length == 0) {
+                this.results = this.reportsData;
                 this.loadingTable = false;
-            });
-
+                
+            } else {
+                let key = searchKey.toLocaleLowerCase();
+                for (let user of this.reportsData) {
+                    if(user['name'].toLowerCase().search(key) !== -1) {
+                        this.results.push(user);
+                    }
+                } 
+                this.loadingTable = false;
+            }
+            
         });
     }
 

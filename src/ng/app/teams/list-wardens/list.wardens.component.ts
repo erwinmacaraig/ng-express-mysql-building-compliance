@@ -24,6 +24,8 @@ declare var $: any;
 export class ListWardensComponent implements OnInit, OnDestroy {
     public wardenArr = <any>[];
 
+    public myWardenTeam = [];
+    private wardenTeamMembers = [];
     copyOfList = [];
     userData = <any> {};
     showModalLoader = false;
@@ -36,9 +38,6 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         { value : 9, name : 'Warden' },
         { value : 10, name : 'Floor / Area Warden' },
         { value : 11, name : 'Chief Warden' },
-        { value : 12, name : 'Fire Safety Advisor' },
-        { value : 13, name : 'Emergency Planning Committee Member' },
-        { value : 14, name : 'First Aid Officer' },
         { value : 15, name : 'Deputy Chief Warden' },
         { value : 16, name : 'Building Warden' },
         { value : 18, name : 'Deputy Building Warden' }
@@ -76,9 +75,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     datepickerModel : Date;
     isShowDatepicker = false;
     datepickerModelFormatted = '';
-    selectedPeep = {
-        first_name : '', last_name : ''
-    };
+    selectedPeep = {name: ''};
 
     selectedToInvite = [];
 
@@ -111,7 +108,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         private authService : AuthService,
         private router : Router,
         private userService : UserService,
-        private encDecrService : EncryptDecryptService,
+        public encDecrService : EncryptDecryptService,
         private dataProvider: PersonDataProviderService,
         private dashboardService : DashboardPreloaderService,
         private locationService: LocationsService,
@@ -133,129 +130,34 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
         this.datepickerModel = moment().add(1, 'days').toDate();
         this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
-
-        this.courseService.getAllEmRolesTrainings((response) => {
-            this.emTrainings = response.data;
-        });
-
-        this.locationService.getParentLocationsForListingPaginated(this.locationQueries, (response) => {
-            this.locations = response.locations;
-            this.locationPagination.pages = response.pagination.pages;
-            this.locationPagination.total = response.pagination.total;
-            setTimeout(() => {
-                $('.row.filter-container select.location').material_select();
-            },500);
-        });
-    }
-
-    getListData(callBack?){
-
-        this.userService.queryUsers(this.queries, (response) => {
-            this.pagination.total = response.data.pagination.total;
-            this.pagination.pages = response.data.pagination.pages;
-            this.wardenArr = response.data.users;
-
-            let tempRoles = {};
-            for(let i in this.wardenArr){
-                this.wardenArr[i]['bg_class'] = this.generateRandomBGClass();
-                this.wardenArr[i]['id_encrypted'] = this.encDecrService.encrypt(this.wardenArr[i]['user_id']);
-
-                for(let l in this.wardenArr[i]['locations']){
-                    this.wardenArr[i]['locations'][l]['enc_location_id'] = this.encDecrService.encrypt(this.wardenArr[i]['locations'][l]['location_id']);
-                    if(this.wardenArr[i]['locations'][l]['parent_name'] == null){
-                        this.wardenArr[i]['locations'][l]['parent_name'] = '';
-                    }
-                }
-
-                for(let r in this.wardenArr[i]['roles']){
-                    if( this.wardenArr[i]['roles'][r]['role_name'] ){
-                        if( !tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] ){
-                            tempRoles[ this.wardenArr[i]['roles'][r]['role_name'] ] = this.wardenArr[i]['roles'][r]['role_name'];
-                        }
-                    }
-                }
-
-                this.wardenArr[i]['sendinvitation'] = false;
-                let hasEcoRole = false;
-                for(let r in this.wardenArr[i]['roles']){
-                    if( this.wardenArr[i]['roles'][r]['role_id'] != 1 && this.wardenArr[i]['roles'][r]['role_id'] != 2 ){
-                        hasEcoRole = true;
-                    }
-                }
-
-                if(hasEcoRole){
-                    this.wardenArr[i]['sendinvitation'] = true;
-                }
-
-                let isSelected = false;
-                this.wardenArr[i]['isselected'] = false;
-                for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.wardenArr[i]['user_id']){
-                        this.wardenArr[i]['isselected'] = true;
-                        isSelected = true;
-                    }
-                }
-
-                if(!isSelected && this.allAreSelected){
-                    this.wardenArr[i]['isselected'] = true;
-                    this.selectedFromList.push(this.wardenArr[i]);
-                }
-            }
-
-            setTimeout(() => { $('.row.filter-container select.filter-by').material_select('update'); }, 100);
-
-            this.copyOfList = JSON.parse( JSON.stringify(this.wardenArr) );
-
-            if(callBack){
-                callBack();
-            }
-        });
+        
+        
     }
 
     ngOnInit(){
         this.subscriptionType = this.userData['subscription']['subscription_type'];
-        this.dashboardService.show();        
-        this.getListData(() => { 
-            if(this.pagination.pages > 0){
-                this.pagination.currentPage = 1;
-                this.pagination.prevPage = 1;
-            }
-
-            for(let i = 1; i<=this.pagination.pages; i++){
-                this.pagination.selection.push({ 'number' : i });
-            }
-            setTimeout(() => {
-                this.dashboardService.hide(); 
-                $('.row.filter-container select').material_select();
-            }, 100);
-        });
+        if (this.userData['account_has_online_training'] == 1) {
+            this.isOnlineTrainingAvailable = true;
+        }
+        
+        this.dashboardService.show();     
+        this.listWardens();
+        setTimeout(() => {
+            $('.row.filter-container select.filter-by').material_select('update');
+            $('.row.filter-container select').material_select();
+        }, 100);
+        
     }
 
     ngAfterViewInit(){
         $('.modal').modal({
             dismissible: false
         });
-        var self = this;
-        $('#selectPageUpper').change(function(){
-            // console.log($('#selectPageUpper').val());
-            self.pageChange($('#selectPageUpper').val());
-       });
-       
-
-        this.accountService.isOnlineTrainingValid((response) => {
-            if(response.valid){
-                this.isOnlineTrainingAvailable = true;
-            }
-            setTimeout(() => {
-                $('.row.filter-container select').material_select();
-            }, 100);
-        });
-
         $('#modalMobility select').material_select();
         this.filterByEvent();
         this.locationChangeEvent();
-        this.sortByEvent();
-        this.dashboardService.show();
+        //this.sortByEvent();
+        //this.dashboardService.show();
         this.bulkManageActionEvent();
         this.searchMemberEvent();
     }
@@ -279,9 +181,9 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         checkboxes.each((indx, elem) => {
             let id = $(elem).attr('id'),
             index = id.replace('location-', '');
-            for(let i in this.wardenArr){
+            for(let i in this.myWardenTeam){
                 if(i == index){
-                    this.singleCheckboxChangeEvent(this.wardenArr[i], { target : { checked : elem.checked } } );
+                    this.singleCheckboxChangeEvent(this.myWardenTeam[i], { target : { checked : elem.checked } } );
                 }
             }
         });
@@ -294,61 +196,42 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             e.stopPropagation();
             let selected = $('select.location').val();
             __this.dashboardService.show();
-            
-            __this.queries.location_id = selected;
-            __this.queries.offset = 0;
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
+            __this.myWardenTeam = [];
+            const choosen = [];
+            if(parseInt(selected, 10) == 0) {
+                __this.myWardenTeam = __this.wardenTeamMembers;
+            } else {
+                for (let warden of __this.wardenTeamMembers) {
+                    if (parseInt(warden['building_id'], 10) == parseInt(selected, 10)) {
+                        __this.myWardenTeam.push(warden);
+                    }
                 }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
+            }
+            __this.dashboardService.hide();
+         
         });
     }
 
     filterByEvent(){
         let __this = this;
-        $('select.filter-by').on('change', function(e){
+        $('#filter-roles').change(function(e){
             e.preventDefault();
             e.stopPropagation();
-            let selected = $('select.filter-by').val();
-            __this.dashboardService.show();
-            if(parseInt(selected) != 0 && selected != 'pending'){
-                __this.queries.roles = selected;
-            }else{
-                __this.queries.roles = 'frp,trp,users,no_roles';
-                if(selected == 'pending'){
-                    __this.queries.roles += ',pending';
+            let selected = $('#filter-roles').val();
+            console.log(selected);
+            __this.myWardenTeam = [];
+            const choosen = [];
+            
+            if(parseInt(selected, 10) == 0) {
+                __this.myWardenTeam = __this.wardenTeamMembers;
+            } else {
+                for (let warden of __this.wardenTeamMembers) {
+                    if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
+                        choosen.push(warden['location_id']);
+                        __this.myWardenTeam.push(warden);                        
+                    }
                 }
             }
-
-            __this.pagination = {
-                pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-            };
-
-            __this.getListData(() => { 
-                if(__this.pagination.pages > 0){
-                    __this.pagination.currentPage = 1;
-                    __this.pagination.prevPage = 1;
-                }
-
-                for(let i = 1; i<=__this.pagination.pages; i++){
-                    __this.pagination.selection.push({ 'number' : i });
-                }
-
-                __this.dashboardService.hide();
-            });
         });    
     }
 
@@ -357,19 +240,19 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             let selected = $('select.sort-by').val();
 
             if(selected == 'user-name-asc'){
-                this.wardenArr.sort((a, b) => {
+                this.myWardenTeam.sort((a, b) => {
                     if(a.first_name < b.first_name) return -1;
                     if(a.first_name > b.first_name) return 1;
                     return 0;
                 });
             }else if(selected == 'user-name-desc'){
-                this.wardenArr.sort((a, b) => {
+                this.myWardenTeam.sort((a, b) => {
                     if(a.first_name > b.first_name) return -1;
                     if(a.first_name < b.first_name) return 1;
                     return 0;
                 });
             }else{
-                this.wardenArr = this.copyOfList;
+                this.myWardenTeam = this.copyOfList;
             }
         });
     }
@@ -379,18 +262,19 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         this.searchMemberInput.debounceTime(800)
             .map(event => event.target.value)
             .subscribe((value) => {
-                this.queries.search = value;
-                this.queries.offset = 0;
-                this.loadingTable = true;
-                this.pagination.selection = [];
-                this.getListData(() => { 
-                    for(let i = 1; i<=this.pagination.pages; i++){
-                        this.pagination.selection.push({ 'number' : i });
+                this.myWardenTeam = [];
+                const choosen = [];
+                if (value.length == 0) {
+                 this.myWardenTeam = this.wardenTeamMembers;   
+                } else {
+                    let searchKey = value.toLowerCase();
+                    for (let user of this.wardenTeamMembers) {
+                        if (user['name'].toLowerCase().search(searchKey) !== -1) {
+                            choosen.push(user['location_id']);
+                            this.myWardenTeam.push(user);
+                        }
                     }
-                    this.pagination.currentPage = 1;
-                    this.pagination.prevPage = 1;
-                    this.loadingTable = false;
-                });
+                }
             });
     }
 
@@ -433,10 +317,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     }
 
     singleCheckboxChangeEvent(list, event){
-        let copy = JSON.parse(JSON.stringify(this.selectedFromList));
         if(event.target.checked){
             list.isselected = true;
             this.selectedFromList.push(list);
+            console.log(this.selectedFromList);
         }else{
             let temp = [];
             for(let i in this.selectedFromList){
@@ -446,27 +330,13 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             }
             this.selectedFromList = temp;
         }
-
-        /*let checkboxes = $('table tbody input[type="checkbox"]'),
-        countChecked = 0;
-        checkboxes.each((indx, elem) => {
-            if($(elem).prop('checked')){
-                countChecked++;
-            }
-        });
-
-        $('#allLocations').prop('checked', false);
-        this.allAreSelected = false;
-        if(countChecked == checkboxes.length){
-            $('#allLocations').prop('checked', true);
-            this.allAreSelected = true;
-        }*/
+       
     }
 
     bulkManageActionEvent(){
         $('select.bulk-manage').on('change', () => {
             let sel = $('select.bulk-manage').val();
-
+            console.log(sel);
             if(sel == 'archive'){
                 if(this.selectedFromList.length > 0){
                     $('#modalArchiveBulk').modal('open');
@@ -475,9 +345,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 if(!this.allAreSelected){
                     this.selectedToInvite = [];
                     for(let user of this.selectedFromList){
-                        if(user.sendinvitation){
-                            this.selectedToInvite.push(user);
-                        }
+                        this.selectedToInvite.push(user);
                     }
                     if(this.selectedToInvite.length > 0){
                         $('#modalSendInvitation').modal('open');
@@ -549,9 +417,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
             this.queries.offset = offset;
             this.loadingTable = true;
-            this.getListData(() => { 
-                this.loadingTable = false;
-            });
+            
         }
     }
 
@@ -598,7 +464,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             paramData['duration_date'] = moment(this.datepickerModel).format('YYYY-MM-DD');
             paramData['user_id'] = this.selectedPeep['user_id'];
 
-            if(this.selectedPeep['mobility_impaired_details'].length > 0){
+            if(this.selectedPeep['mobility_impaired_details'] && this.selectedPeep['mobility_impaired_details'].length > 0) {
                 paramData['mobility_impaired_details_id'] = this.selectedPeep['mobility_impaired_details'][0]['mobility_impaired_details_id'];
             }
 
@@ -608,7 +474,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
             this.userService.sendMobilityImpaireInformation(paramData, (response) => {
 
-                for(let user of this.wardenArr){
+                for(let user of this.myWardenTeam){
                     if(user['user_id'] == this.selectedPeep['user_id']){
                         user['mobility_impaired'] = 1;
                         user['mobility_impaired_details'] = response.data;
@@ -618,6 +484,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 f.reset();
                 $('#modalMobility').modal('close');
                 this.showModalLoader = false;
+                this.ngOnInit();
 
             });
         }
@@ -632,7 +499,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         };
         this.userService.markAsHealthy(paramData, (response) => {
 
-            for(let user of this.wardenArr){
+            for(let user of this.myWardenTeam){
                 if(user['user_id'] == this.selectedPeep['user_id']){
                     user['mobility_impaired'] = 0;
                     user['mobility_impaired_details'] = [];
@@ -669,10 +536,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             $('#modalSendInvitation').modal('close');
             this.showModalLoader = false;
             $('#trainingInviteResult').modal('open');
-            for(let i in this.wardenArr){
+            for(let i in this.myWardenTeam){
                 for(let sel of this.selectedFromList){
-                    if(sel.user_id == this.wardenArr[i]['user_id']){
-                        this.wardenArr[i]['isselected'] = false;                        
+                    if(sel.user_id == this.myWardenTeam[i]['user_id']){
+                        this.myWardenTeam[i]['isselected'] = false;                        
                     }
                 }
             }  
@@ -680,4 +547,29 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(){}
+
+
+    private listWardens() {
+        this.myWardenTeam = [];
+        this.wardenTeamMembers = [];
+        this.accountService.generateMyWardenList().subscribe((response) => {
+            this.loadingTable = true;
+            for (let warden of response.warden) {
+                warden['id_encrypted'] = this.encDecrService.encrypt(warden['user_id']);
+                warden['enc_location_id'] = this.encDecrService.encrypt(warden['location_id']);
+                warden['isselected'] = false;
+                this.myWardenTeam.push(warden);
+                this.wardenTeamMembers.push(warden);
+            }
+            this.locations = response.buildings;
+            this.loadingTable = false;
+            setTimeout(() => {
+                $('.row.filter-container select.location').material_select('update');
+            }, 100);
+            this.dashboardService.hide();
+        }, (error) => {
+            this.loadingTable = false;
+            this.dashboardService.hide();
+        });
+    }
 }

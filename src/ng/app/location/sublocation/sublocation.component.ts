@@ -36,6 +36,7 @@ export class SublocationComponent implements OnInit, OnDestroy {
     isTrp = false;
     role = 100;
     encryptedID;
+    selectedWardenList = [];
     locationID = 0;
     locationData = {
       google_photo_url: '',
@@ -285,6 +286,12 @@ export class SublocationComponent implements OnInit, OnDestroy {
         this.routeSubs.unsubscribe();
         this.routeQuerySubs.unsubscribe();
         // this.mutationOversable.disconnect();
+    }
+
+    public viewWardenList(warden = []) {
+        this.selectedWardenList = [];
+        this.selectedWardenList = warden;
+        $('#modalWardenList').modal('open');
     }
 
 }

@@ -459,7 +459,7 @@ const md5 = require('md5');
 					if(answerData['answer'] == md5(answer)){
 
 						let currentDate = moment(),
-						expirationDate = currentDate.add(1, 'day'),
+						expirationDate = currentDate.add(21, 'day'),
 						expDateFormat = expirationDate.format('YYYY-MM-DD HH:mm:ss'),
 						saveData = {
 							user_id : answerData['user_id'],

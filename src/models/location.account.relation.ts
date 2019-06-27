@@ -729,4 +729,50 @@ export class LocationAccountRelation extends BaseClass {
         });
     }
 
+    public getTenantAccountsInLocations(locationIds = []): Promise<Array<Object>> {        
+        return new Promise((resolve, reject) => {
+            if (locationIds.length == 0) {
+                reject('Invalid input parameter - locationIds');
+                return;
+            } 
+            let sql = `SELECT
+                accounts.account_id,
+                accounts.account_name,
+                location_account_relation.location_id,
+                location_account_relation.responsibility
+            FROM
+                location_account_relation
+            INNER JOIN
+                accounts
+            ON
+                location_account_relation.account_id = accounts.account_id
+            WHERE
+                location_account_relation.location_id IN (${locationIds.join(',')})
+            AND
+                location_account_relation.responsibility = 'Tenant' 
+            GROUP BY
+                accounts.account_id               
+            `;
+            this.pool.getConnection((error, connection) => {
+                if (error) {                    
+                    throw new Error(error);
+                }
+                connection.query(sql, [], (error, results, fields) => {
+                    if (error) {
+                      console.log(error, sql);
+                      throw new Error('Error getting tenant in locations');
+                    }
+                    if (results.length > 0) {
+                        resolve(results);
+                    } else {
+                        reject('No tenant found.');
+                    }
+                    connection.release();
+                      
+                  });
+
+            });
+        });
+    }
+
 }

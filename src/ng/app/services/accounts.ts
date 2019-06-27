@@ -207,4 +207,20 @@ export class AccountsDataProviderService {
 		});
 	}
 
+	generateMyWardenList() {
+		return this.http.get<{warden: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
+	}
+
+	generateMyGOFRList() {
+		return this.http.get<{gofr: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-occupants-list/`);
+	}
+
+	generateAdminUserList() {
+		return this.http.get<{account_users: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-admin-list/`);
+	}
+
+	generatePeepList() {
+		return this.http.get<{users: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-peep-list/`);
+	}
+
 }

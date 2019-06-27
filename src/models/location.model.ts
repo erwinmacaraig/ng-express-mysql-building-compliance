@@ -16,7 +16,7 @@ export class Location extends BaseClass {
         return new Promise((resolve, reject) => {
             const sql_load = `
                 SELECT 
-                l.*,
+                l.*, p.name as parent,
                 IF(p.is_building = 1, 1, 0) parent_is_building,
                 IF( ( SELECT COUNT(c.location_id) as count FROM locations c WHERE c.parent_id = l.location_id AND c.is_building = 1  ) > 0, 1, 0 ) as has_child_building
                 FROM locations l 
@@ -1532,4 +1532,48 @@ export class Location extends BaseClass {
             });
         });
     }
+
+    public immediateParent(subLevels: Number[] = []): Promise<Array<Object>> {
+        return new Promise((resolve, reject) => {
+            if (subLevels.length == 0) {
+                reject('Invalid parameter supplied in function immediateParent() call');
+                return;
+            }
+            let sql = `
+                SELECT
+                    locations.location_id as locId,
+                    locations.name AS level,
+                    locations.parent_id,
+                    building.name AS buildingName,
+                    building.location_id AS buildingId
+                FROM
+                    locations
+                LEFT JOIN
+                    locations AS building
+                ON
+                    locations.parent_id = building.location_id
+                WHERE
+                    locations.location_id IN (${subLevels.join(',')});
+            `;
+            this.pool.getConnection((conn_err, connection) => {
+                if (conn_err) {
+                    throw new Error('Cannot get connection');
+                }
+                connection.query(sql, [], (error, results) => {
+                    if (error) {
+                        console.log(error, sql);
+                        throw new Error('Error in execution');
+                    }
+                    if (results.length > 0) {
+                        resolve(results);                        
+                    } else {
+                        reject('No immediate parent can be found');
+                    }
+                    connection.release();
+                });
+            });
+        });
+    }
+
+    
 }

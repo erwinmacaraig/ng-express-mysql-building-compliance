@@ -355,7 +355,8 @@ export class LocationAccountUser extends BaseClass {
               ON
                 accounts.account_id = u.account_id
               WHERE
-                  lau.location_id IN (${ids})`;
+                  lau.location_id IN (${ids})
+              AND u.archived = 0`;
             
             this.pool.getConnection((err, connection) => {
               if (err) {                    
@@ -698,7 +699,7 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public listRolesOnLocation(role: number = 0, location_id: number = 0, accountIds = []) {
+    public listRolesOnLocation(role: number = 0, location_id: number = 0, accountIds = [], archived?): Promise<Object> {
       return new Promise((resolve, reject) => {
         const resultSetObj = {};
         let role_filter = '';
@@ -712,18 +713,21 @@ export class LocationAccountUser extends BaseClass {
         if (!location_id) {
           reject('Cannot get info without location id');
         }
-        
+        let archivedClause = '';
+        if (archived) {
+            archivedClause = ` AND users.archived = ${archived}`;
+        }
         const sql_get_list = `SELECT
-        accounts.account_name,
+                      accounts.account_name,
                       users.first_name,
                       users.last_name,
                       location_account_user.*
-         FROM location_account_user
-         INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
-        INNER JOIN users ON users.user_id = location_account_user.user_id
-        INNER JOIN accounts ON accounts.account_id = users.account_id
+                FROM location_account_user        
+                INNER JOIN users ON users.user_id = location_account_user.user_id                
+                INNER JOIN accounts ON accounts.account_id = users.account_id
+                INNER JOIN user_role_relation ON user_role_relation.user_id = location_account_user.user_id
           WHERE
-          location_account_user.location_id = ?
+          location_account_user.location_id = ? ${archivedClause}
           ${role_filter}
             `;
         // console.log(sql_get_list);
@@ -1097,26 +1101,50 @@ export class LocationAccountUser extends BaseClass {
         });
     }
 
-    public generateUserAccountRoles(accountId=0, location=[]): Promise<Array<object>> {
+    public generateUserAccountRoles(accountId=0, location=[], archived?): Promise<Array<object>> {
         return new Promise((resolve, reject) => {
-            const params = [accountId];
+            const params = [];
             if (location.length == 0) {
                 reject('No sublocation');
+                return;                
             }
+            let accountClause = '';
+            if (accountId) {
+                accountClause = ` AND u.account_id = ? `;
+                params.push(accountId);
+
+            }
+            let archivedClause = '';
+            if (archived) {
+                archivedClause = ` AND u.archived = ? `;
+                params.push(archived);
+            }
+            
             let locationIds = location.join(',');
             let sql = `SELECT
                     u.user_id,
                     u.email,
                     u.last_name,
                     u.first_name,
+                    u.mobility_impaired,
+                    u.last_login,
+                    u.profile_completion,
+                    accounts.account_name,
                     l.name,
-                    p.name AS building
+                    l.location_id,
+                    l.is_building,
+                    p.name AS building,
+                    IF(l.parent_id = -1, l.location_id, l.parent_id) AS building_id
                 FROM
                     users u
                 INNER JOIN
                     location_account_user lau
                 ON
                     u.user_id = lau.user_id
+                INNER JOIN
+                    accounts
+                ON
+                    accounts.account_id = u.account_id
                 INNER JOIN
                     locations l
                 ON
@@ -1126,12 +1154,13 @@ export class LocationAccountUser extends BaseClass {
                 ON
                     p.location_id = l.parent_id
                 WHERE
-                    u.account_id = ?
-                AND
                     lau.location_id IN (${locationIds})
+                    ${accountClause}
+                    ${archivedClause}
                 ORDER BY
-                    u.user_id
+                    u.first_name
             `;
+            
             this.pool.getConnection((error, connection) => {
                 if (error) {
                     throw Error(error);
@@ -1250,6 +1279,80 @@ export class LocationAccountUser extends BaseClass {
           });
         });
       }
+
+      public getMobilityImpairedAccountUserTeamList(locationIds:Number[], accountId = 0, archived = 0, filter={}): Promise<Array<Object>> {
+        return new Promise((resolve, reject) => {
+                
+          if (locationIds.length == 0) {
+            reject('Invalid parameter supplied for function getGOFRTeamList() function call');
+            return;
+          }
+          let accountClause = '';
+          const params = [archived];
+          if (accountId) {
+            accountClause = ` AND users.account_id = ? `;
+            params.push(accountId);
+          }
+  
+          const sql = `SELECT
+              users.user_id,
+              users.first_name,
+              users.last_name,
+              users.mobility_impaired,
+              users.last_login,
+              users.profile_completion,
+              accounts.account_name, 
+              location_account_user.location_id,
+              locations.is_building,
+              locations.name AS level,
+              parent.name AS building,
+              IF(locations.parent_id = -1, locations.location_id, locations.parent_id) AS building_id
+          FROM
+              location_account_user
+          INNER JOIN
+              users
+          ON
+              location_account_user.user_id = users.user_id
+          INNER JOIN
+              accounts
+          ON
+              accounts.account_id = users.account_id          
+          INNER JOIN
+              locations
+          ON
+              locations.location_id = location_account_user.location_id
+          LEFT JOIN
+              locations AS parent
+          ON
+              locations.parent_id = parent.location_id
+          WHERE
+              users.archived = ? AND users.mobility_impaired = 1          
+          AND 
+              location_account_user.location_id IN (${locationIds.join(',')})
+           ${accountClause}
+          ORDER BY users.first_name
+          `;
+          this.pool.getConnection((con_err, connection) => {
+            if (con_err) {
+              console.log('Cannot get connection');
+              throw new Error(con_err);
+            }
+            connection.query(sql, params, (error, results) => {
+              if (error) {
+                console.log(error, sql, params);
+                throw new Error(error);
+              }
+              if (results.length > 0) {
+                resolve(results);
+              } else {
+                reject('No results found.');
+              }
+              connection.release();
+            });
+          });
+  
+        });
+      }      
 
 
 }

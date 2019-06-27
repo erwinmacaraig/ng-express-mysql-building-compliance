@@ -17,7 +17,7 @@
             </li>
             <li *ngFor="let loc of selectedReport.searches" [hidden]="selectedReport.searching" (click)="clickSelectLocation(loc, thisCheckbox)">
                 <input type="checkbox" class="filled-in" id="loc-{{loc.location_id}}" #thisCheckbox [checked]="isLocationSelected(loc)"  />
-                <label for="loc-{{loc.location_id}}"> {{loc.name}} </label>
+                <label for="loc-{{loc.location_id}}"> {{loc.building_name}} </label>
             </li>
         </ul>
     </div>
@@ -150,7 +150,7 @@
         <h5 class="red-text" *ngIf="selectedReport.allloc">All Locations</h5>
 
         <div class="tags" *ngFor="let loc of selectedReport.locations" [hidden]="loc == 0">
-            <div class="text">{{loc.name}}</div>
+            <div class="text">{{loc.building_name}}</div>
             <div class="icon">
                 <a  (click)="removeFromSelected(loc)"> <i class="material-icons red-text" >close</i> </a>
             </div>

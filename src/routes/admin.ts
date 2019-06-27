@@ -1099,23 +1099,28 @@ export class AdminRoute extends BaseRoute {
         if (user['user_id'] in people) {
           if (user['em_role_id']) {
             people[user['user_id']]['em_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['em_role_id']);
           }
           if (user['role_id']) {
             people[user['user_id']]['account_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['role_id']);
           }
         } else {
           people[user['user_id']] = {
             name: `${user['first_name']} ${user['last_name']}`,
             user_id: user['user_id'],
             account_name: user['account_name'],
-            account_role: [],
-            em_role: []
+            account_role: [],            
+            em_role: [],
+            role_ids: []
           };
           if (user['em_role_id']) {
             people[user['user_id']]['em_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['em_role_id']);            
           }
           if (user['role_id']) {
             people[user['user_id']]['account_role'].push(user['role_name']);
+            people[user['user_id']]['role_ids'].push(user['role_id']);             
           }
         }
       }
@@ -1348,8 +1353,9 @@ export class AdminRoute extends BaseRoute {
       // the relationship of the account to the location
 
       // For Account as Building Manager / Tenant
-      const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(req.params.accountId);
+      // const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(req.params.accountId);
       let roleOfAccountInLocationObj = {};
+      /*
       for (let role of roleOfAccountInLocationArr) {
         let account_role = '';
         let role_id = 0;
@@ -1365,16 +1371,24 @@ export class AdminRoute extends BaseRoute {
           account_role: account_role
         };
       }
+      */
       allUsers = await account.generateAdminAccountUsers(req.params.accountId, selectedUsers);
+      try {            
+        roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.params.accountId);            
+      } catch(err) {
+          console.log('authenticate route get account role relation in location', err);
+      }
+
       for (let i = 0; i < allUsers.length; i++) {
         if (allUsers[i]['location_id'] in roleOfAccountInLocationObj) {
           allUsers[i]['role_id'] = roleOfAccountInLocationObj[allUsers[i]['location_id']]['role_id'];
           allUsers[i]['account_role'] = roleOfAccountInLocationObj[allUsers[i]['location_id']]['account_role'];
         } else {
-          allUsers[i]['role_id'] = 1;
-          allUsers[i]['account_role'] = 'FRP';
+          // allUsers[i]['role_id'] = 1;
+          // allUsers[i]['account_role'] = 'FRP';
         }
       }
+
       allUsers = allUsers.concat(await account.generateAdminEMUsers(req.params.accountId, selectedUsers));
       // console.log(allUsers);
       const accountUsers = [];
@@ -2983,10 +2997,12 @@ export class AdminRoute extends BaseRoute {
             },
             data : <any>[],
             message : '',
+            test: []
         },
         accountId = (req.body.account_id) ? req.body.account_id : 0,
         type = (req.body.type) ? req.body.type : '';
 
+        
         if(type.trim().length > 0){
             let data = <any> await this.getUsersAndPaginations(req);
             response['data'] = data.users;
@@ -3012,6 +3028,119 @@ export class AdminRoute extends BaseRoute {
                     } 
                     
                 }
+                //===============================================
+                // 1. determine if account or location
+                //=================
+                let account_id = req.body.account_id;
+                let location_id = req.body.location_id;  
+                let allUsers = [];  
+                let allLocationIds = [];
+                const emUsers = new UserEmRoleRelation();
+                let uniqUserArray = []; //user-role-location
+                let trainingRequirementsLookup = {};
+                const trainingRequirements = [];
+                const userIds = [];
+                let cert = [];
+                let certUniq = []; //user-role-training
+                //=================
+                try { 
+                  let temp = await new TrainingRequirements().allEmRolesTrainings();
+                  for (let wardenRole of temp) {                      
+                      trainingRequirementsLookup[wardenRole['em_role_id']] = wardenRole['training_requirement_id'];
+                      if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                          trainingRequirements.push(wardenRole['training_requirement_id']);
+                      }                    
+                  }
+                } catch(e) {
+                    console.log('Error getting/processing training requirement for role', e);          
+                }
+
+                if(location_id) {
+                  // get all users with warden roles in this location
+                  allLocationIds.push(location_id);
+                  //get all sublocations
+                  let temp = await new Location().getChildren(location_id);
+                  for (let loc of temp) {
+                    allLocationIds.push(loc['location_id']);
+                  }
+                  try {
+                    // get the location and all people that has warden role for FRP
+                    let emUsers = await new UserEmRoleRelation().getGOFRTeamList(allLocationIds);            
+                    for (let go of emUsers) {
+                        let uniqIndex = `${go['user_id']}-${go['em_roles_id']}-${go['location_id']}`;
+                        if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                          uniqUserArray.push(uniqIndex);
+                          go['training_requirement_id'] = trainingRequirementsLookup[go['em_roles_id']];
+                          go['training'] = 0;
+                          go['course_method'] = '';
+                          go['certification_date'] = '';
+                          go['expiry_date'] = '';
+                          go['status'] = 'Not taken';
+                          go['certifications_id'] = 0;
+                          allUsers.push(go);
+                        }
+                        if (userIds.indexOf(go['user_id']) == -1) {
+                          userIds.push(go['user_id']);
+                        }
+                    }
+                  } catch (e) {
+                      console.log(e, 'Error getting gofr users for location');
+                  }
+
+                  try {
+                    let tempWarden = await new UserEmRoleRelation().getWardenTeamList(allLocationIds);
+                    for (let warden of tempWarden) {
+                      let uniqIndex = `${warden['user_id']}-${warden['em_roles_id']}-${warden['location_id']}`;
+                      if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                        uniqUserArray.push(uniqIndex);
+                        warden['training_requirement_id'] = trainingRequirementsLookup[warden['em_roles_id']];
+                        warden['training'] = 0;
+                        warden['course_method'] = '';
+                        warden['certification_date'] = '';
+                        warden['expiry_date'] = '';
+                        warden['status'] = 'Not taken';
+                        warden['certifications_id'] = 0;
+                        allUsers.push(warden);
+                      }
+                      if (userIds.indexOf(warden['user_id']) == -1) {
+                        userIds.push(warden['user_id']);
+                      }
+                    }
+                  } catch (e) {
+                    console.log(e, 'Error getting warden users for location');
+                  }
+                  try {
+                    cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+                  } catch (e) {
+                    console.log(e);
+                  }
+                  
+                  for(let user of allUsers) {
+                    // console.log(`${user['user_id']}-${user['em_roles_id']}-${user['location_id']}`);
+                    let indexUniq = `${user['user_id']}-${user['em_roles_id']}-${trainingRequirementsLookup[user['em_roles_id']]}`;                     
+                    for (let c of cert) {                                                                                 
+                      if (certUniq.indexOf(indexUniq) == -1) {
+                        if (user['user_id'] == c['user_id'] && trainingRequirementsLookup[user['em_roles_id']] == c['training_requirement_id']) {
+                          certUniq.push(indexUniq);                          
+                          if (c['status'] == 'valid') {
+                            user['training'] = 1;
+                          }
+                          user['certifications_id'] = c['certifications_id'];
+                          user['course_method'] = c['course_method'];
+                          user['certification_date'] = c['certification_date'];
+                          user['expiry_date'] = c['expiry_date'];
+                          user['status'] = c['status'];  
+                        }
+                      }
+                    }
+                  }
+                  
+                  response['test'] = allUsers;
+                } else {
+
+                }
+            
+
             }else if(type == 'face'){
                 let
                 allAccountIds = [],
@@ -3134,16 +3263,26 @@ export class AdminRoute extends BaseRoute {
         userRoleModel = new User(),
         userLocationAndRoles = new User(),
         accountModel = new Account();
-        try{
+        let roleOfAccountInLocationObj = {};
+        try {
             user = await userModel.load();
             user['last_login'] = moment(user['last_login']).format('MMM. DD, YYYY hh:mm A');
             accountModel.setID(user['account_id'])
             account = await accountModel.load();
             // since this is account users, it should be taken note that we need to determine
             // the relationship of the account to the location
+            try {            
+              roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(user['account_id']);            
+            } catch(err) {
+                console.log('authenticate route get account role relation in location', err);
+            }
+
+
+
+
             // For Account as Building Manager / Tenant
+            /*
             const roleOfAccountInLocationArr = await new LocationAccountRelation().getByAccountId(user['account_id']);
-            let roleOfAccountInLocationObj = {};
             for (let role of roleOfAccountInLocationArr) {
               let account_role = '';
               let role_id = 0;
@@ -3159,17 +3298,22 @@ export class AdminRoute extends BaseRoute {
                 account_role: account_role
               };
             }
+            */
 
-            const userAccountInfo = await accountModel.generateAdminAccountUsers(user['account_id'], [user['user_id']]);
-            for (let i = 0; i < userAccountInfo.length; i++) {
-              if (userAccountInfo[i]['location_id'] in roleOfAccountInLocationObj) {
-                userAccountInfo[i]['role_id'] = roleOfAccountInLocationObj[userAccountInfo[i]['location_id']]['role_id'];
-                userAccountInfo[i]['account_role'] = roleOfAccountInLocationObj[userAccountInfo[i]['location_id']]['account_role'];
+            let userAccountInfo = [], userAccountRoles = [];
+            userAccountRoles  = await accountModel.generateAdminAccountUsers(user['account_id'], [user['user_id']]);          
+            for (let i = 0; i < userAccountRoles.length; i++) {
+              if (userAccountRoles[i]['location_id'] in roleOfAccountInLocationObj) {
+                userAccountRoles[i]['role_id'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['role_id'];
+                userAccountRoles[i]['account_role'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['account_role'];
+                userAccountInfo.push(userAccountRoles[i]);
               } else {
-                userAccountInfo[i]['role_id'] = 1;
-                userAccountInfo[i]['account_role'] = 'FRP';
+                //userAccountInfo[i]['role_id'] = 1;
+                //userAccountInfo[i]['account_role'] = 'FRP';
+                //userAccountInfo.splice(i,1);
               }
             }
+            
             const userEmergencyInfo = await accountModel.generateAdminEMUsers(user['account_id'], [user['user_id']]);           
             const locationRoles = [];
             const locationRolesObj = {};
@@ -3214,6 +3358,7 @@ export class AdminRoute extends BaseRoute {
             // response.data['trainings'] = <any> await trainingModel.getCertificatesByInUsersId([user['user_id']]);
             response.data['trainings'] = [];
         }catch(e){
+          console.log(e);
             response.message = 'No user found';
         }
 
