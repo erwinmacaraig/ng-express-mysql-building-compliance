@@ -214,6 +214,7 @@ const request = require('request');
         let accountUserData = [];
         const emUsers = new UserEmRoleRelation();
         const data = {
+            location: location_id,
             sublocation_count: 0,
             num_tenants: 0,
             warden: [],
@@ -269,12 +270,12 @@ const request = require('request');
             data.sublocation_count = sublocationIds.length;
             sublocationIds.push(location_id);
             try {
-                data.warden = await emUsers.getWardenTeamList(sublocationIds, req.user.account_id);
+                data.warden = await emUsers.getWardenTeamList(sublocationIds);
             } catch(e) {
                 console.log(e, 'Error getting warden for locations: ' + sublocationIds.join(','));
             }
             try {
-                data.mobility_impaired = await emUsers.getMobilityImpairedTeamList(sublocationIds, req.user.account_id);
+                data.mobility_impaired = await emUsers.getMobilityImpairedTeamList(sublocationIds);
             } catch(e) {
                 console.log(e, 'Error getting impaired list for locations: ' + sublocationIds.join(','));
             }

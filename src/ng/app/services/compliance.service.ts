@@ -95,6 +95,11 @@ export class ComplianceService {
             });
     }
 
+    public getBuildingLocationCompliance(building_id=0) {
+        return this.http.post(this.baseUrl + '/compliance/locations-latest-compliance', {location_id: building_id});
+			
+    }
+
     public getSublocationsEvacDiagrams(form, callBack){
         this.http.post(this.baseUrl + '/compliance/get-sublocations-evac-diagrams', form)
             .subscribe(res => {

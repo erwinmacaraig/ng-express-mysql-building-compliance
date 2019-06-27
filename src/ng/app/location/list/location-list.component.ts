@@ -10,10 +10,11 @@ import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ComplianceService } from '../../services/compliance.service';
 import { AuthService } from '../../services/auth.service';
-import { Observable } from 'rxjs/Rx';
+import { Observable, Subject } from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
-import { isArray } from 'util';
+import 'rxjs/add/operator/takeUntil';
+
 import { Countries } from '../../models/country.model';
 import { Timezone } from '../../models/timezone';
 import { UserService } from '../../services/users';
@@ -107,7 +108,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
 
     miscDetails = {};
     complianceSubs:Subscription[] = [];
-
+    protected ngUnsubscribe: Subject<void> = new Subject<void>();
     constructor (
       private platformLocation: PlatformLocation,
       private http: HttpClient,
@@ -261,7 +262,19 @@ export class LocationListComponent implements OnInit, OnDestroy {
             }
             let complianceSubCtr = 0;
             for (let loc of this.locations) {
-                
+                this.complianceService.getBuildingLocationCompliance(loc['building_id'])
+                .takeUntil(this.ngUnsubscribe)
+                .subscribe((compRes) => {
+                    loc['fetchingCompliance'] = false;
+                    loc['compliance_percentage'] = compRes['percent'];
+                    loc['compliance'] = compRes['data'];
+                    this.myLocations.push(loc);
+                    setTimeout(() => {
+                        $('select.select-from-row option').prop('disabled', false);
+                        $('select.select-from-row').material_select();
+                    }, 200);
+                });
+                /*
                 this.complianceService.getLocationsLatestCompliance(loc['building_id'], (compRes) => {
                     loc['fetchingCompliance'] = false;
                     loc['compliance_percentage'] = compRes.percent;
@@ -272,6 +285,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
                         $('select.select-from-row').material_select();
                     }, 200);
                 });
+                */
             }            
             this.messageService.sendMessage({ 'breadcrumbs' : [] });
             
@@ -794,6 +808,9 @@ export class LocationListComponent implements OnInit, OnDestroy {
 		this.mutationOversable.disconnect();
         this.searchSubs.unsubscribe();
         this.routerSubs.unsubscribe();
+
+        this.ngUnsubscribe.next();
+        this.ngUnsubscribe.complete();
 	}
 
 	getInitial(name:String){
