@@ -5,6 +5,9 @@ import { AdminService } from './../../services/admin.service';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { ExportToCSV } from '../../services/export.to.csv';
 import { Observable } from 'rxjs';
+import * as Rx from 'rxjs/Rx';
+import 'rxjs/add/operator/map';
+
 declare var moment: any;
 declare var $: any;
 
@@ -24,7 +27,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     searchAccountSubs;
     searchLocationsSubs;
-
+    searchMemberInput:any;
     searchedAccounts = [];
     searchedLocations = [];
 
@@ -46,7 +49,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : [], limit : 25, offset : 0
     };
-
+    private reportDataOnTraining = [];
     reportType = '';
     exportData = <any> [];
     csvLoader = true;
@@ -67,14 +70,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.searchAccountEvent();
         this.searchLocationEvent();
         this.dismissSearchEvent();
-
-        /*this.inpAllLocs.nativeElement.addEventListener('change', (event:any) => {
-            let elemsLocs = this.getInputSearchLoaderElems(this.searchLocationContainer.nativeElement);
-            if(event.target.checked){
-                this.selectedLocation = {};
-                elemsLocs.input.value = '';
-            }
-        });*/
+        this.searchMemberEvent();        
     }
 
     clickSelectFromSearch(type, data, event, parent?){
@@ -216,19 +212,25 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 if(this.reportType == 'training'){
                     this.hideTrainingReport = false;
                     this.trainingReportData = response.data;
+                    this.reportDataOnTraining = response.data;
+                    this.hidePagination = true;
                 }else if(this.reportType == 'location'){
                     this.hideLocationReport = false;
                     this.locationReportData = response.data;
+                    this.hidePagination = false;
                 }else if(this.reportType == 'account'){
                     this.hideAccountReport = false;
                     this.accountReportData = response.data;
+                    this.hidePagination = false;
                 }else if(this.reportType == 'face'){
                     this.hideFaceToFaceReport = false;
                     this.faceToFaceReportData = response.data;
+                    this.hidePagination = false;
                 }
 
                 this.pagination.currentPage = 1;
-                this.hidePagination = false;
+
+                
                 this.pagination.pages = response.pagination.pages;
                 this.pagination.total = response.pagination.total;
                 this.pagination.selection = [];
@@ -359,11 +361,23 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
             for(let log of this.exportData){
                 if(this.reportType == 'training'){
+                    /*
                     let 
                     locNames = (log.locations.length > 1) ? 'Multiple'  : log.locations.join(', '),
                     roles = log.roles.join(', ');
 
                     csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, log.email, log.status, roles, log.expiry_date_formatted ];
+                   */ 
+                   let locNames = '';
+                   //log.building + ' ' + log.level;
+                   if (log.building) {
+                       locNames = log.building + ' ' + log.level;
+                   } else {
+                       locNames = log.level;
+                   } 
+                   log.full_name = log.first_name + ' ' + log.last_name;
+                   let expiry_date = (log.expiry_date == '') ? '': moment(log.expiry_date).format('DD/MM/YYYY')
+                   csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, log.email, log.status, log.role_name, expiry_date ];
                 }else if(this.reportType == 'location'){
                     let
                     locNames = (log.locations.length > 1) ? 'Multiple'  : log.locations.join(', '),
@@ -397,4 +411,114 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
 
         document.querySelector('body').removeEventListener('click', this.clickBodyEvent);
     }
+
+    private convertToCSV(objArr) {
+        let array = typeof objArr != 'object' ? JSON.parse(objArr): objArr;
+        if(this.reportType == 'training'){
+            let csvData = '';
+            csvData += 'Training Report';
+            csvData += '\r\n';
+            let headers = ['Location', 'Account', 'Name', 'Email', 'Training Status', 'Role', 'Expiration Date'];
+            csvData += headers.join(',');
+            csvData += '\r\n';
+
+            //iterate each row of the array
+            for(let row of objArr) {
+                let temp = [];
+                for (let col of row) {
+                    temp.push(col);
+                }
+                csvData += temp.join(',');
+                csvData += '\r\n';
+            }
+            return csvData;
+        }
+
+    }
+
+    private searchMemberEvent(){
+        this.searchMemberInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberInput'), 'input');
+        this.searchMemberInput.debounceTime(800)
+            .map(event => event.target.value)
+            .subscribe((value) => {
+                this.trainingReportData = [];                
+                if (value.length == 0) {
+                 this.trainingReportData = this.reportDataOnTraining;   
+                } else {
+                    let searchKey = value.toLowerCase();
+                    
+                    for (let user of this.reportDataOnTraining) {
+                        let full_name = `${user['first_name']} ${user['last_name']}`;
+                        if (full_name.toLowerCase().search(searchKey) !== -1) {                            
+                            this.trainingReportData.push(user);
+                        }
+                        
+                    }
+                    
+                }
+            });
+    }
+
+    public sortTraining(e) {
+        let val = e.target.value;
+        console.log(val);
+        if ( val == 'name-asc') {
+            this.trainingReportData.sort((a, b) => {
+                if(a.first_name < b.first_name) return -1;
+                if(a.first_name > b.first_name) return 1;
+                return 0;
+            }); 
+        } else if (val == 'name-desc') {
+            this.trainingReportData.sort((a, b) => {
+                if(a.first_name > b.first_name) return -1;
+                if(a.first_name < b.first_name) return 1;
+                return 0;
+            });
+        } else if (val == 'account-asc') {
+            this.trainingReportData.sort((a, b) => {
+                if(a.account_name < b.account_name) return -1;
+                if(a.account_name > b.account_name) return 1;
+                return 0;
+            });
+        } else if (val == 'account-desc') {
+            this.trainingReportData.sort((a, b) => {
+                if(a.account_name > b.account_name) return -1;
+                if(a.account_name < b.account_name) return 1;
+                return 0;
+            });
+        } else {
+            this.trainingReportData = this.trainingReportData;
+        }
+    }
+    public filterByCompliance(e) {
+        let val = e.target.value;
+        console.log(val);
+        this.trainingReportData = [];        
+        if (val == -1) {
+            this.trainingReportData = this.reportDataOnTraining;
+        } else {
+            for (let user of this.reportDataOnTraining) {
+                if (parseInt(user['training'],10) === parseInt(val, 10) ) {
+                    this.trainingReportData.push(user);
+                }
+            }
+        }
+    }
+
+    public filterByRole(e) {
+        let val = parseInt(e.target.value);
+        console.log(val);
+        this.trainingReportData = []; 
+        if (val == 0) {
+            this.trainingReportData = this.reportDataOnTraining;
+        } else {
+            for (let user of this.reportDataOnTraining) {
+                if (parseInt(user['em_roles_id'],10) === val) {
+                    this.trainingReportData.push(user);
+                }
+            }
+        }
+    }
+
+
 }

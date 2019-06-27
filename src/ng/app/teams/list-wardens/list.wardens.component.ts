@@ -38,6 +38,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         { value : 9, name : 'Warden' },
         { value : 10, name : 'Floor / Area Warden' },
         { value : 11, name : 'Chief Warden' },
+        { value : 13, name : 'Emergency Planning Committee Member' },
+        { value : 14, name : 'First Aid Officer' },
         { value : 15, name : 'Deputy Chief Warden' },
         { value : 16, name : 'Building Warden' },
         { value : 18, name : 'Deputy Building Warden' }

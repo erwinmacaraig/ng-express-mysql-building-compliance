@@ -3013,6 +3013,8 @@ export class AdminRoute extends BaseRoute {
             }
 
             if(type == 'training'){
+              response['data'] = [];
+              /*
                 for(let user of data.users){
                     let
                     trainCertModel = new TrainingCertification(),
@@ -3027,7 +3029,7 @@ export class AdminRoute extends BaseRoute {
                       user['expiry_date_formatted'] = (certificates.length > 0) ? (expDate.isValid()) ?  expDate.format('DD/MM/YYYY') : '' : '';
                     } 
                     
-                }
+                }*/
                 //===============================================
                 // 1. determine if account or location
                 //=================
@@ -3109,37 +3111,60 @@ export class AdminRoute extends BaseRoute {
                   } catch (e) {
                     console.log(e, 'Error getting warden users for location');
                   }
-                  try {
-                    cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
-                  } catch (e) {
-                    console.log(e);
-                  }
                   
-                  for(let user of allUsers) {
-                    // console.log(`${user['user_id']}-${user['em_roles_id']}-${user['location_id']}`);
-                    let indexUniq = `${user['user_id']}-${user['em_roles_id']}-${trainingRequirementsLookup[user['em_roles_id']]}`;                     
-                    for (let c of cert) {                                                                                 
-                      if (certUniq.indexOf(indexUniq) == -1) {
-                        if (user['user_id'] == c['user_id'] && trainingRequirementsLookup[user['em_roles_id']] == c['training_requirement_id']) {
-                          certUniq.push(indexUniq);                          
-                          if (c['status'] == 'valid') {
-                            user['training'] = 1;
-                          }
-                          user['certifications_id'] = c['certifications_id'];
-                          user['course_method'] = c['course_method'];
-                          user['certification_date'] = c['certification_date'];
-                          user['expiry_date'] = c['expiry_date'];
-                          user['status'] = c['status'];  
+                  
+                  
+                } else {
+                  // account
+                  // 1. get all warden and gofr from em_user_relation
+                  let emUsers = await new UserEmRoleRelation().getUsersByAccountId(account_id);
+                  for (let user of emUsers) {
+                    let uniqIndex = `${user['user_id']}-${user['em_roles_id']}-${user['location_id']}`;
+                    if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                      uniqUserArray.push(uniqIndex);
+                      user['training_requirement_id'] = trainingRequirementsLookup[user['em_roles_id']];
+                      user['training'] = 0;
+                      user['course_method'] = '';
+                      user['certification_date'] = '';
+                      user['expiry_date'] = '';
+                      user['status'] = 'Not taken';
+                      user['certifications_id'] = 0;
+                      allUsers.push(user);
+                    }
+                    if (userIds.indexOf(user['user_id']) == -1) {
+                      userIds.push(user['user_id']);
+                    }
+                  }
+
+
+                }
+                try {
+                  cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+                } catch (e) {
+                  console.log(e);
+                }
+                
+                for(let user of allUsers) {
+                  // console.log(`${user['user_id']}-${user['em_roles_id']}-${user['location_id']}`);
+                  let indexUniq = `${user['user_id']}-${user['em_roles_id']}-${trainingRequirementsLookup[user['em_roles_id']]}`;                     
+                  for (let c of cert) {                                                                                 
+                    if (certUniq.indexOf(indexUniq) == -1) {
+                      if (user['user_id'] == c['user_id'] && trainingRequirementsLookup[user['em_roles_id']] == c['training_requirement_id']) {
+                        certUniq.push(indexUniq);                          
+                        if (c['status'] == 'valid') {
+                          user['training'] = 1;
                         }
+                        user['certifications_id'] = c['certifications_id'];
+                        user['course_method'] = c['course_method'];
+                        user['certification_date'] = c['certification_date'];
+                        user['expiry_date'] = c['expiry_date'];
+                        user['status'] = c['status'];  
                       }
                     }
                   }
-                  
-                  response['test'] = allUsers;
-                } else {
-
                 }
-            
+                
+                response['data'] = allUsers;            
 
             }else if(type == 'face'){
                 let
