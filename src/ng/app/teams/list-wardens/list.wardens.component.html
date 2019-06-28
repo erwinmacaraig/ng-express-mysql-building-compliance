@@ -159,7 +159,14 @@
                         </div>
                     </td>
                     <td>
-                        <span [ngClass]="{'red-text': warden.training == 0, 'green-text': warden.training == 1}">{{warden.training}}/1</span>
+                        <div *ngIf="warden['training_requirement_id']; else noTrainingRequired">
+                                <span [ngClass]="{'red-text': warden.training == 0, 'green-text': warden.training == 1}">{{warden.training}}/1</span>
+                        </div>
+                        <ng-template #noTrainingRequired>
+                            <span class="grey-text"><small>No training required</small></span>
+                        </ng-template>
+                        
+                        
                     </td>
                     <td>{{warden['last_login'] | date: 'dd/MM/yyyy'}}</td>
                     <td *ngIf="warden.profile_completion == 1">                            

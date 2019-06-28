@@ -209,7 +209,14 @@
                     <td>{{training.account_name}}</td>
                     <td>{{training.first_name}} {{training.last_name}}</td>
                     <td>{{training.email}}</td>
-                    <td>{{training.status}}</td>
+                    <td>
+                        <span *ngIf="training.training == 1" class="blue-text">Compliant</span>
+                        <span *ngIf="training.training == 0" class="grey-text">
+                            Not Compliant                                
+                            <small *ngIf="training['status'] == 'expired'">(Expired)</small>
+                            <small *ngIf="training['status'] == 'Not taken'">(Not Taken)</small>
+                        </span>
+                    </td>
                     <td>{{ training.role_name }}</td>
                     <td><span *ngIf="training.expiry_date.length > 0">{{training.expiry_date | date: 'dd/MM/yyyy'}}</span></td>
                 </tr>

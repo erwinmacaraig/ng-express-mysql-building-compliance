@@ -388,7 +388,7 @@ export class TeamRoute extends BaseRoute {
     const trainingRequirementsLookup = {};
     const trainingRequirements = [];
     const userIds = [];
-    let cert = {};
+    let cert = [];
     let buildingLocations = [];
     const ctr = []; // this will serve as the container of unique building ids
     try {
@@ -418,7 +418,7 @@ export class TeamRoute extends BaseRoute {
         temp = await new TrainingRequirements().allEmRolesTrainings();
         for (let wardenRole of temp) {
             if (wardenRole['is_warden_role'] == 1) {
-                trainingRequirementsLookup['em_role_id'] = wardenRole['training_requirement_id'];
+                trainingRequirementsLookup[wardenRole['em_role_id']] = wardenRole['training_requirement_id'];
                 if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
                     trainingRequirements.push(wardenRole['training_requirement_id']);
                 }
@@ -515,10 +515,34 @@ export class TeamRoute extends BaseRoute {
         if (userIds.indexOf(item['user_id']) == -1) {
             userIds.push(item['user_id']);
         }
+        let indexStr = `${item['user_id']}-${item['location_id']}-${item['em_roles_id']}`;
+        
+        listObj[indexStr] = {
+            name: `${item['first_name']} ${item['last_name']}`,
+            user_id: item['user_id'],
+            mobility_impaired: item['mobility_impaired'],                
+            building: item['building'],
+            building_id: item['building_id'],
+            level: item['level'],
+            last_login: item['last_login'],
+            profile_completion: item['profile_completion'],
+            location_id: item['location_id'],
+            is_building: item['is_building'],
+            role_id: item['em_roles_id'],
+            roles: [item['role_name']],
+            training_requirement_id: trainingRequirementsLookup[item['em_roles_id']],
+            training: 0,
+            account_name: item['account_name']
+        };
+        
+        /*
         let indexStr = `${item['user_id']}-${item['location_id']}`;
         if (indexStr in listObj && (listObj[indexStr]['role_ids'].indexOf(item['em_roles_id']) == -1) ) {
             listObj[indexStr]['roles'].push(item['role_name']);
             listObj[indexStr]['role_ids'].push(item['em_roles_id']);
+            if ((listObj[indexStr]['role_ids']['training_requirement_id'] as Array<Number>).indexOf(trainingRequirementsLookup[item['em_roles_id']]) == -1) {
+                (listObj[indexStr]['role_ids']['training_requirement_id'] as Array<Number>).push(trainingRequirementsLookup[item['em_roles_id']]);
+            }
         } else {
             listObj[indexStr] = {
                 name: `${item['first_name']} ${item['last_name']}`,
@@ -533,13 +557,13 @@ export class TeamRoute extends BaseRoute {
                 is_building: item['is_building'],
                 role_ids: [item['em_roles_id']],
                 roles: [item['role_name']],
-                training_requirement_id: trainingRequirementsLookup[item['em_roles_id']],
+                training_requirement_id: [trainingRequirementsLookup[item['em_roles_id']]],
                 training: 0,
                 account_name: item['account_name'] 
             }; 
-        }
+        }*/
     }
-
+    /*
     cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
         current: true,
         training_requirement: trainingRequirements 
@@ -551,7 +575,31 @@ export class TeamRoute extends BaseRoute {
         }
         list.push(listObj[key]);
     });
-
+    */
+    try {
+        cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+    } catch (e) {
+        console.log(e);
+    }
+    let certUniq = [];
+    list = [];
+    Object.keys(listObj).forEach( (key) => {
+        let indexUniq = `${listObj[key]['user_id']}-${listObj[key]['role_id']}-${trainingRequirementsLookup[listObj[key]['role_id']]}`;
+        
+        for (let c of cert) {            
+            if (certUniq.indexOf(indexUniq) == -1) {                                 
+                if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {                    
+                    certUniq.push(indexUniq);
+                    if (c['status'] == 'valid') {
+                        listObj[key]['training'] = 1;
+                        listObj[key]['certifications_id'] = c['certifications_id'];
+                    }
+                }
+            }
+        }
+        list.push(listObj[key]);
+        
+    });
     
     return res.status(200).send({
         warden: list,
@@ -614,7 +662,7 @@ export class TeamRoute extends BaseRoute {
         temp = await new TrainingRequirements().allEmRolesTrainings();
         for (let wardenRole of temp) {
           if (wardenRole["em_role_id"] == 8) {
-            trainingRequirementsLookup["em_role_id"] =
+            trainingRequirementsLookup[wardenRole["em_role_id"]] =
               wardenRole["training_requirement_id"];
             if (
               trainingRequirements.indexOf(

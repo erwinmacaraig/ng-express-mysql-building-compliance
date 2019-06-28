@@ -222,14 +222,13 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             let selected = $('#filter-roles').val();
             console.log(selected);
             __this.myWardenTeam = [];
-            const choosen = [];
+            
             
             if(parseInt(selected, 10) == 0) {
                 __this.myWardenTeam = __this.wardenTeamMembers;
             } else {
                 for (let warden of __this.wardenTeamMembers) {
-                    if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
-                        choosen.push(warden['location_id']);
+                    if (warden['role_id'] == (parseInt(selected, 10))) {
                         __this.myWardenTeam.push(warden);                        
                     }
                 }

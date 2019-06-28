@@ -376,8 +376,19 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                        locNames = log.level;
                    } 
                    log.full_name = log.first_name + ' ' + log.last_name;
+                   let training_status = '';
+                   if (log.training == 1) {
+                        training_status = 'Compliant';
+                   } else {
+                       training_status = 'Not Compliant';
+                       if (log.status == 'expired') {
+                           training_status += ' (Expired) ';
+                       } else if (log.status == 'Not taken') {
+                        training_status += ' (Not Taken) ';
+                       }
+                   }
                    let expiry_date = (log.expiry_date == '') ? '': moment(log.expiry_date).format('DD/MM/YYYY')
-                   csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, log.email, log.status, log.role_name, expiry_date ];
+                   csvData[ getLength() ] = [ locNames, log.account_name, log.full_name, log.email, training_status, log.role_name, expiry_date ];
                 }else if(this.reportType == 'location'){
                     let
                     locNames = (log.locations.length > 1) ? 'Multiple'  : log.locations.join(', '),
