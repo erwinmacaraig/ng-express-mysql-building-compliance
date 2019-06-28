@@ -426,7 +426,6 @@ export class TeamRoute extends BaseRoute {
         }
     } catch(e) {
         console.log('Error getting/processing training requirement for role', e);
-
     }
     
     let successIds = [];
