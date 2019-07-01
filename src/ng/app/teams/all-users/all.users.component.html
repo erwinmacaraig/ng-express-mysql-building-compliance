@@ -173,7 +173,20 @@
 	</div>
 
 </div>
+<div class="row">
+    <div class="col l12 m12 s12 col-buttons right-align">
+        <button class="btn orange btn-compliance-rating">
+            <div class="text">
+                Showing records
+            </div>
+            <div class="white center">
+                {{ listData.length }} 
+            </div>
+            <div class="text"> of {{total_records}}</div>
+        </button>
 
+    </div>
+</div>
 <div id="modalArchive" class="modal">
 	<div class="modal-content center" [hidden]="!showModalLoader">
 		<div class="preloader-wrapper active">

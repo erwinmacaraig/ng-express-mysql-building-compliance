@@ -26,6 +26,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     public myWardenTeam = [];
     private wardenTeamMembers = [];
+    public total_records = 0;
     copyOfList = [];
     userData = <any> {};
     showModalLoader = false;
@@ -386,46 +387,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.selectedFromList = [];
         });
     }
-
-    pageChange(type){
-
-        let changeDone = false;
-        switch (type) {
-            case "prev":
-                if(this.pagination.currentPage > 1){
-                    this.pagination.currentPage = this.pagination.currentPage - 1;
-                    changeDone = true;
-                }
-                break;
-
-            case "next":
-                if(this.pagination.currentPage < this.pagination.pages){
-                    this.pagination.currentPage = this.pagination.currentPage + 1;
-                    changeDone = true;
-                }
-                break;
-            
-            default:
-                if(this.pagination.prevPage != parseInt(type)){
-                    this.pagination.currentPage = parseInt(type);
-                    changeDone = true;
-                }
-                break;
-        }
-
-        if(changeDone){
-            this.pagination.prevPage = parseInt(type);
-            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
-            this.loadingTable = true;
-            
-        }
-    }
-
-    clickMultipleLocation(locations){
-        this.multipleLocations = locations;
-        $('#modalSelectMultipleLocations').modal('open');
-    }
+    
 
     submitSelectFromMultipleLocations(form){
         if(form.valid){
@@ -561,6 +523,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 warden['isselected'] = false;
                 this.myWardenTeam.push(warden);
                 this.wardenTeamMembers.push(warden);
+                this.total_records = this.wardenTeamMembers.length;
             }
             this.locations = response.buildings;
             this.loadingTable = false;

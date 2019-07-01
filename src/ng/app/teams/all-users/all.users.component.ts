@@ -32,6 +32,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	showModalLoader = false;
 	copyOfList = [];
 	selectedFromList = [];
+    public total_records = 0;
 
 	filters = [
         { value : 1, name : 'Building Manager' },
@@ -488,6 +489,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 this.listData.push(user);
                 this.adminTeamMembers.push(user);
             }
+            this.total_records = this.adminTeamMembers.length;
             this.locations = response.buildings;
             setTimeout(() => {
                 $('.row.filter-container select.location').material_select();

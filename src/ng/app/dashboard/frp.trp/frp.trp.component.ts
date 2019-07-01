@@ -145,7 +145,8 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             if(this.locations.length > 0){
                 this.pagination.currentPage = 1;
             }
-
+            this.complianceTextTwo = this.locations.length;
+            this.complianceTextTwoDefault = this.complianceTextTwo;
             this.showPlansLoader = false;
             
 
@@ -257,8 +258,9 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                     });
                 }
 
-                this.complianceTextTwo = response.locationIds.length;
-                this.complianceTextTwoDefault = this.complianceTextTwo;
+                //this.complianceTextTwo = response.locationIds.length;
+                
+                //this.complianceTextTwoDefault = this.complianceTextTwo;
             }else{
                 this.complianceChart.options.elements.center.text = '00%';
                 this.complianceChart.update();

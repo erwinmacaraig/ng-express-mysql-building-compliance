@@ -34,7 +34,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
     locationId = 0;
     accountId = 0;
 	arrLocationIds = [];
-
+    public total_records = 0;
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
     };
@@ -165,6 +165,7 @@ export class ReportsTrainingsComponent implements OnInit, OnDestroy {
         }).subscribe((response) => {            
             this.results = response['list'];
             this.reportsData = response['list'];
+            this.total_records = this.reportsData.length;
             this.loadingTable = false;
             this.dashboardPreloader.hide();
         }, (error) => {

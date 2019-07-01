@@ -29,8 +29,8 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     copyOfList = [];
     userData = <any> {};
     myGOFRTeam = [];
-    gofrTeamMembers = [];
-
+    private gofrTeamMembers = [];
+    public total_records = 0;
     showModalLoader = false;
     selectedToArchive = {
         name: ''
@@ -539,7 +539,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             }
             this.locations = response.buildings;
             this.loadingTable = false;
-            console.log(this.locations);
+            this.total_records = this.gofrTeamMembers.length;
 
             setTimeout(() => {
                 $('.row.filter-container select.location').material_select('update');

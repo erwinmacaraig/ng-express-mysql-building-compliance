@@ -240,13 +240,14 @@ export class CourseRoute extends BaseRoute {
 	public async getCountsBuildingTrainings(req: AuthRequest, res: Response){
 		let response = {
 			data : {
-				users : <any> [],
+				users : {},
 				emUserCerts : <any> [],
 				requiredTrainings : <any> [],
 				total_users : 0,
 				total_users_trained : 0,
 				locations : [],
-				em_roles : {}
+                em_roles : {},
+                trained_users_info: {}
 			},
 			message : ''
 		},
@@ -256,7 +257,7 @@ export class CourseRoute extends BaseRoute {
 		locations = <any> [],
         responseLocations = [];
         const trainingCertModel = new TrainingCertification();
-
+        /*
 		try {
             // FRP & TRP
             const userRoleModel = new UserRoleRelation();
@@ -321,6 +322,7 @@ export class CourseRoute extends BaseRoute {
         } catch (e) {
             console.log('course route endpoint getCountsBuildingTrainings', e);
         }
+        */
         //************************************************* */
         let roleOfAccountInLocationObj = {};
         let accountUserData = [];
@@ -478,7 +480,64 @@ export class CourseRoute extends BaseRoute {
                 }
             } 
         }
+        const list = [...frpGoList, ...frpWardenList];
+        // naming condition is frp because ideally FRP can have this info in the dashboard
+        try { 
+            let temp = await new TrainingRequirements().allEmRolesTrainings();
+            for (let wardenRole of temp) {            
+                trainingRequirementsLookup[wardenRole['em_role_id']] = wardenRole['training_requirement_id'];
+                if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                    trainingRequirements.push(wardenRole['training_requirement_id']);
+                }            
+            }
+        } catch(e) {
+            console.log('Error getting/processing training requirement for role', e);
+        }
+        let cert = [];
+        try {
+            cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+        } catch (e) {
+            console.log(e);
+        }
+        const listObj = {};
+        for (let user of list) {
+            let indexStr = `${user['user_id']}-${user['location_id']}-${user['em_roles_id']}`;
+            listObj[indexStr] = {
+                name: `${user['first_name']} ${user['last_name']}`,
+                user_id: user['user_id'],
+                role_id: user['em_roles_id'],
+                training_requirement_id: trainingRequirementsLookup[user['em_roles_id']],
+                training: 0,
+                certifications_id: 0
+            };
+        }
+        const final_list = [];
+        let certUniq = [];
+        let passedCtrArr = [];
+        Object.keys(listObj).forEach( (key) => {
+            let indexUniq = `${listObj[key]['user_id']}-${listObj[key]['role_id']}-${trainingRequirementsLookup[listObj[key]['role_id']]}`;
+            
+            for (let c of cert) {            
+                if (certUniq.indexOf(indexUniq) == -1) {                                 
+                    if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {                    
+                        certUniq.push(indexUniq);
+                        if (c['status'] == 'valid') {                            
+                            listObj[key]['training'] = 1;
+                            listObj[key]['certifications_id'] = c['certifications_id'];
+                            if (passedCtrArr.indexOf(listObj[key]['user_id']) == -1) {
+                                passedCtrArr.push(listObj[key]['user_id']);
+                            }
+                        }
+                    }
+                }
+            }
+            final_list.push(listObj[key]);
+            
+        });
+        response.data.total_users_trained = passedCtrArr.length;
+        response.data.trained_users_info = passedCtrArr;
         response.data.total_users = userIds.length;
+        response.data.users = listObj;
         if (wardens.length) {
             response.data.em_roles[defs['em_roles']['WARDEN']] = {
                 'total': wardens.length,
