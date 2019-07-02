@@ -62,10 +62,12 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
     ngOnInit() {
         this.dashboard.show();
         this.accounts = [];
+        this.locationRoles = [];
         this.paramSub = this.route.params.subscribe((params: Params) => {
             this.userId = +params['userId'];
             this.adminService.getUserInformation(this.userId).subscribe((response:any) => {
                 try {
+                    this.locationRoles = [];
                     if(Object.keys(response.data.user).length > 0){
                         this.userData = response.data.user;
                         this.originalAccountId = response.data.user.account_id;
