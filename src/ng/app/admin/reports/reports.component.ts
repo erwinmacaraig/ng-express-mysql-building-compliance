@@ -28,6 +28,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
     searchAccountSubs;
     searchLocationsSubs;
     searchMemberInput:any;
+    searchMemberinLocationInput:any;
     searchedAccounts = [];
     searchedLocations = [];
 
@@ -50,6 +51,7 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : [], limit : 25, offset : 0
     };
     private reportDataOnTraining = [];
+    private reportDataOnLocation = [];
     reportType = '';
     exportData = <any> [];
     csvLoader = true;
@@ -70,7 +72,8 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
         this.searchAccountEvent();
         this.searchLocationEvent();
         this.dismissSearchEvent();
-        this.searchMemberEvent();        
+        this.searchMemberEvent();
+        this.searchMemberOnLocationEvent();        
     }
 
     clickSelectFromSearch(type, data, event, parent?){
@@ -217,7 +220,8 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 }else if(this.reportType == 'location'){
                     this.hideLocationReport = false;
                     this.locationReportData = response.data;
-                    this.hidePagination = false;
+                    this.reportDataOnLocation = response.data;
+                    this.hidePagination = true;
                 }else if(this.reportType == 'account'){
                     this.hideAccountReport = false;
                     this.accountReportData = response.data;
@@ -469,12 +473,37 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 }
             });
     }
+    private searchMemberOnLocationEvent() {
+        this.searchMemberinLocationInput = Rx.Observable.fromEvent(document.querySelector('#searchMemberOnLocationInput'), 'input');
+        this.searchMemberinLocationInput.debounceTime(800)
+            .map(event => event.target.value)
+            .subscribe((value) => {
+                this.locationReportData = [];                
+                if (value.length == 0) {
+                 this.locationReportData = this.reportDataOnLocation;   
+                } else {
+                    let searchKey = value.toLowerCase();
+                    
+                    for (let user of this.reportDataOnLocation) {
+                        let full_name = `${user['first_name']} ${user['last_name']}`;
+                        if (full_name.toLowerCase().search(searchKey) !== -1) {                            
+                            this.locationReportData.push(user);
+                        }                        
+                    }                    
+                }
+            });
+    }
 
     public sortTraining(e) {
         let val = e.target.value;
         console.log(val);
         if ( val == 'name-asc') {
             this.trainingReportData.sort((a, b) => {
+                if(a.first_name < b.first_name) return -1;
+                if(a.first_name > b.first_name) return 1;
+                return 0;
+            });
+            this.locationReportData.sort((a, b) => {
                 if(a.first_name < b.first_name) return -1;
                 if(a.first_name > b.first_name) return 1;
                 return 0;
@@ -485,8 +514,18 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 if(a.first_name < b.first_name) return 1;
                 return 0;
             });
+            this.locationReportData.sort((a, b) => {
+                if(a.first_name > b.first_name) return -1;
+                if(a.first_name < b.first_name) return 1;
+                return 0;
+            });
         } else if (val == 'account-asc') {
             this.trainingReportData.sort((a, b) => {
+                if(a.account_name < b.account_name) return -1;
+                if(a.account_name > b.account_name) return 1;
+                return 0;
+            });
+            this.locationReportData.sort((a, b) => {
                 if(a.account_name < b.account_name) return -1;
                 if(a.account_name > b.account_name) return 1;
                 return 0;
@@ -497,8 +536,14 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
                 if(a.account_name < b.account_name) return 1;
                 return 0;
             });
+            this.locationReportData.sort((a, b) => {
+                if(a.account_name > b.account_name) return -1;
+                if(a.account_name < b.account_name) return 1;
+                return 0;
+            });
         } else {
-            this.trainingReportData = this.trainingReportData;
+            this.trainingReportData = this.reportDataOnTraining;
+            this.locationReportData = this.reportDataOnLocation;
         }
     }
     public filterByCompliance(e) {
@@ -530,6 +575,22 @@ export class AdminReportsComponent implements OnInit, AfterViewInit, OnDestroy {
             }
         }
     }
+
+    public filterByRoleOnLocation(e) {
+        let val = parseInt(e.target.value);
+        console.log(val);
+        this.locationReportData = []; 
+        if (val == 0) {
+            this.locationReportData = this.reportDataOnLocation;
+        } else {
+            for (let user of this.reportDataOnLocation) {
+                if (parseInt(user['em_roles_id'],10) === val) {
+                    this.locationReportData.push(user);
+                }
+            }
+        }
+    }
+
 
 
 }

@@ -3191,7 +3191,64 @@ export class AdminRoute extends BaseRoute {
                 for(let user of data.users){
                     user['cc_emails'] = emails.join(', ');
                 }
+            } else if (type == 'location') {
+              response['data'] = [];
+              let account_id = req.body.account_id;
+              let location_id = req.body.location_id;
+              let allLocationIds = [];
+              let uniqUserArray = [];
+              let allUsers = []; 
+              if (location_id) {
+                // get all users with warden roles in this location
+                allLocationIds.push(location_id);
+                //get all sublocations
+                let temp = await new Location().getChildren(location_id);
+                for (let loc of temp) {
+                  allLocationIds.push(loc['location_id']);
+                }
+                
+                try {
+                  // get the location and all people that has warden role for FRP
+                  let emUsers = await new UserEmRoleRelation().getGOFRTeamList(allLocationIds);            
+                  for (let go of emUsers) {
+                      let uniqIndex = `${go['user_id']}-${go['em_roles_id']}-${go['location_id']}`;
+                      if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                        uniqUserArray.push(uniqIndex);                        
+                        allUsers.push(go);
+                      }
+                      
+                  }
+                } catch (e) {
+                    console.log(e, 'Error getting gofr users for location');
+                }
+                try {
+                  let tempWarden = await new UserEmRoleRelation().getWardenTeamList(allLocationIds);
+                  for (let warden of tempWarden) {
+                    let uniqIndex = `${warden['user_id']}-${warden['em_roles_id']}-${warden['location_id']}`;
+                    if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                      uniqUserArray.push(uniqIndex);                      
+                      allUsers.push(warden);
+                    }
+                    
+                  }
+                } catch (e) {
+                  console.log(e, 'Error getting warden users for location');
+                }
+
+
+              } else {
+                let emUsers = await new UserEmRoleRelation().getUsersByAccountId(account_id);
+                for (let user of emUsers) {
+                  let uniqIndex = `${user['user_id']}-${user['em_roles_id']}-${user['location_id']}`;
+                  if (uniqUserArray.indexOf(uniqIndex) == -1) {
+                    uniqUserArray.push(uniqIndex);                    
+                    allUsers.push(user);
+                  }
+                }
+              }
+              response['data'] = allUsers; 
             }
+            
 
             response.pagination.total = data.pagination.total;
             response.pagination.pages = data.pagination.pages;

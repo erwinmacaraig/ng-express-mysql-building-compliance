@@ -127,14 +127,6 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
                 }
             }
             for (let loc of this.locations) {
-                /*
-                this.complianceService.getLocationsLatestCompliance(loc['building_id'], (compRes) => {
-                    loc['fetchingCompliance'] = false;
-                    loc['compliance_percentage'] = compRes.percent;
-                    loc['compliance'] = compRes.data;
-                });
-                */
-            
                 this.complianceService.getBuildingLocationCompliance(loc['building_id']).takeUntil(this.ngUnsubscribe).subscribe((compRes) => {
                     loc['fetchingCompliance'] = false;
                     loc['compliance_percentage'] = compRes['percent'];
@@ -151,41 +143,7 @@ export class FrpTrpDashboardComponent implements OnInit, AfterViewInit, OnDestro
             
 
         });
-        /*
-        this.getLocationsForListing((response:any) => {
-            this.locations = response.locations;
-            for(let loc of this.locations) {
-                if (loc['is_building'] == 1) {
-                    loc['fetchingCompliance'] = true;
-                    loc['compliance_percentage'] = 0;
-                } else {
-                    loc['fetchingCompliance'] = false;
-                }
-
-                
-            }
-
-            for(let loc of this.locations){
-                if (loc['is_building'] == 1) {
-                    console.log(`requesting ${loc.location_id}`);
-                    this.complianceService.getLocationsLatestCompliance(loc.location_id, (compRes) => {
-                        loc['fetchingCompliance'] = false;
-                        loc['compliance_percentage'] = compRes.percent;
-                        loc['compliance'] = compRes.data;
-                    });
-                } else {
-                    console.log(`Skipping ${loc.location_id}`);
-                }
-
-            }
-
-            if(this.locations.length > 0){
-                this.pagination.currentPage = 1;
-            }
-
-            this.showPlansLoader = false;
-        });
-        */
+        
 		this.courseService.getCountsBuildingTrainings((response) => {
 			this.accountTrainings.total_users = response.data.total_users;
 			this.accountTrainings.total_users_trained = response.data.total_users_trained;

@@ -754,14 +754,14 @@ a:hover{
     margin-top: 7px;
 }
 .filenotfoundalert.error{
-    background-color: #c62828;
+    background-color: #ffd700;
     color: #fff;
     height: 40px;
 
 }
 #modalfilenotfound, #modaluploadfailed {
-    max-height: 25% !important;
-    overflow-y: hidden !important ;
+    max-height: 30% !important;
+    
 }
 #modalfilenotfound .modal-content {
     height: 205px !important;
