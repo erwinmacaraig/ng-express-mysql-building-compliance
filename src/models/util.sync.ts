@@ -119,7 +119,7 @@ export class UtilsSync {
           const opts = {
             from : '',
             fromName : 'EvacConnect',
-            to : ['adelfin@evacgroup.com.au'],
+            to : [],
             cc: ['emacaraig@evacgroup.com.au'],
             body: '',
             attachments: [],

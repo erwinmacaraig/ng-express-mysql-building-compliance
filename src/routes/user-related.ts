@@ -497,9 +497,9 @@ export class UserRelatedRoute extends BaseRoute {
       });
     };
 
-    const blacklistedEmails = new BlacklistedEmails(),
-      isBlacked = blacklistedEmails.isEmailBlacklisted(req.body.email);
-
+    const blacklistedEmails = new BlacklistedEmails();
+      //isBlacked = blacklistedEmails.isEmailBlacklisted(req.body.email);
+    const isBlacked = false;
     if(!isBlacked){
       const userEmail = new User();
       userEmail.getByEmail(req.body.email).then(
