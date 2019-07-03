@@ -752,12 +752,7 @@ export class CourseRoute extends BaseRoute {
                 await userRole.getByUserId(user.user_id);
                 hasFrpTrpRole = true;
             }catch(e){}
-
-            // redirectUrlFRP = 'https://'+req.get('host') + '/teams/view-user/'+userIdEnc,
-            /*
-            redirectUrlWarden = 'https://'+req.get('host') + '/trainings/new-training',
-            redirectUrlFRP = 'https://'+req.get('host') + '/trainings/new-training',
-            */
+            
             let
             stringUserData = JSON.stringify(loginResponse.data),
             userIdEnc = CryptoJS.AES.encrypt(''  + user.user_id + '', 'NifLed').toString().split('/').join('___'),            

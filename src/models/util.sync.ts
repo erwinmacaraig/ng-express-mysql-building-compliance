@@ -112,8 +112,8 @@ export class UtilsSync {
             users_fullname : data['first_name']+' '+data['last_name'],
             account_name : data['account_name'],
             location_name : data['parent'] ?  `${data['parent']} ${data['name']}` : `${data['name']}`,
-            yes_link : 'http://' + data['host'] + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
-            no_link : 'http://' + data['host'] + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
+            yes_link : 'https://' + data['host'] + '/accounts/verify-notified-user/?token=' + encodeURIComponent(strToken),
+            no_link : 'https://' + data['host'] + '/accounts/query-notified-user/?token=' + encodeURIComponent(strToken),
             role : data['role_text']
           }
           const opts = {

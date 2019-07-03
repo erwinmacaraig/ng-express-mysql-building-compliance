@@ -91,12 +91,6 @@ export class EmailSender {
                 ToAddresses: this.options['to'],              
                 CcAddresses: this.options['cc'],
                 BccAddresses: ['emacaraig@evacgroup.com.au', 'rsantos@evacgroup.com.au']
-                /*
-                ToAddresses: [],              
-                CcAddresses: [],
-                BccAddresses: ['emacaraig@evacgroup.com.au','rsantos@evacgroup.com.au', 'dgilmore@evacgroup.com.au']                
-                */
-                
             }, 
             Source: "'EvacConnect' <" + defs['ADMIN_EMAIL'] + ">'",
             Message: {
