@@ -291,7 +291,7 @@ export class TrainingCertification extends BaseClass {
   public checkAndUpdateTrainingCert(certData: object = {}) {
     return new Promise((resolve, reject) => {
       let sql_where_filter = 'WHERE 1=1';
-      console.log(certData);
+      //console.log(certData);
       sql_where_filter += ('training_requirement_id' in certData) ?
         ` AND certifications.training_requirement_id = ${certData['training_requirement_id']}` : '';
 
@@ -668,7 +668,7 @@ export class TrainingCertification extends BaseClass {
           ORDER BY
             certifications.user_id, certifications.certifications_id DESC`;
 
-        console.log(sql_listing);
+        //console.log(sql_listing);
         this.pool.getConnection((err, connection) => {
           if (err) {                    
             throw new Error(err);
@@ -952,7 +952,7 @@ export class TrainingCertification extends BaseClass {
                     AND
                       DATE_ADD(certifications.certification_date, INTERVAL training_requirement.num_months_valid MONTH) > NOW()
                     `;
-      console.log(sql);
+      //console.log(sql);
       this.pool.getConnection((err, connection) => {
         if (err) {                    
             throw new Error(err);

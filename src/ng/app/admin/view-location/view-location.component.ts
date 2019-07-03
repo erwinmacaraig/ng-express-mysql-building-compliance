@@ -153,12 +153,13 @@ export class AdminViewLocationComponent implements OnInit, AfterViewInit, OnDest
             }
             
           });
-    
+          /*
           if(this.sublocations.length == 0 && this.location_details.is_building == 1) {
             const queryParams: Params = Object.assign({}, this.route.snapshot.queryParams);
             queryParams['active'] = 'people';
             this.router.navigate(['/admin/view-location/'+this.locationId], { queryParams: queryParams });
           }
+          */
     
           this.dashboard.hide();
           // console.log(this.people);

@@ -1,7 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LocationsService } from './../../services/locations';
-import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { AuthService } from '../../services/auth.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
@@ -12,6 +10,7 @@ import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+
 import { DatepickerOptions } from 'ng2-datepicker';
 
 declare var $: any;
@@ -26,6 +25,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
 
     public myWardenTeam = [];
     private wardenTeamMembers = [];
+    public total_records = 0;
     copyOfList = [];
     userData = <any> {};
     showModalLoader = false;
@@ -38,6 +38,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         { value : 9, name : 'Warden' },
         { value : 10, name : 'Floor / Area Warden' },
         { value : 11, name : 'Chief Warden' },
+        { value : 13, name : 'Emergency Planning Committee Member' },
+        { value : 14, name : 'First Aid Officer' },
         { value : 15, name : 'Deputy Chief Warden' },
         { value : 16, name : 'Building Warden' },
         { value : 18, name : 'Deputy Building Warden' }
@@ -48,22 +50,6 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage: 0, selection : []
     };
-
-    queries = {
-        roles : 'users,no_gen_occ',
-        impaired : -1,
-        type : 'client',
-        offset :  0,
-        limit : 10,
-        archived : 0,
-        pagination : true,
-        user_training : true,
-        users_locations : true,
-        search : '',
-        location_id : 0
-    };
-
-    multipleLocations = [];
 
     searchMemberInput;
 
@@ -92,28 +78,18 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     locationPagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
     };
-    locationQueries = {
-        offset :  0,
-        limit : 20,
-        search : '',
-        sort : '',
-        archived : 0,
-        showparentonly: false,
-        parent_id : 0
-    };
-
     subscriptionType = 'free';
+    
 
     constructor(
         private authService : AuthService,
         private router : Router,
         private userService : UserService,
-        public encDecrService : EncryptDecryptService,
-        private dataProvider: PersonDataProviderService,
-        private dashboardService : DashboardPreloaderService,
-        private locationService: LocationsService,
+        public encDecrService : EncryptDecryptService,       
+        private dashboardService : DashboardPreloaderService,       
         private courseService : CourseService,
-        private accountService : AccountsDataProviderService
+        private accountService : AccountsDataProviderService,
+        
     ) {
 
         this.userData = this.authService.getUserData();        
@@ -139,8 +115,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         if (this.userData['account_has_online_training'] == 1) {
             this.isOnlineTrainingAvailable = true;
         }
-        
-        this.dashboardService.show();     
+        this.dashboardService.show(); 
         this.listWardens();
         setTimeout(() => {
             $('.row.filter-container select.filter-by').material_select('update');
@@ -220,14 +195,13 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             let selected = $('#filter-roles').val();
             console.log(selected);
             __this.myWardenTeam = [];
-            const choosen = [];
+            
             
             if(parseInt(selected, 10) == 0) {
                 __this.myWardenTeam = __this.wardenTeamMembers;
             } else {
                 for (let warden of __this.wardenTeamMembers) {
-                    if (warden['role_ids'].indexOf(parseInt(selected, 10)) !== -1) {
-                        choosen.push(warden['location_id']);
+                    if (warden['role_id'] == (parseInt(selected, 10))) {
                         __this.myWardenTeam.push(warden);                        
                     }
                 }
@@ -385,61 +359,10 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.selectedFromList = [];
         });
     }
-
-    pageChange(type){
-
-        let changeDone = false;
-        switch (type) {
-            case "prev":
-                if(this.pagination.currentPage > 1){
-                    this.pagination.currentPage = this.pagination.currentPage - 1;
-                    changeDone = true;
-                }
-                break;
-
-            case "next":
-                if(this.pagination.currentPage < this.pagination.pages){
-                    this.pagination.currentPage = this.pagination.currentPage + 1;
-                    changeDone = true;
-                }
-                break;
-            
-            default:
-                if(this.pagination.prevPage != parseInt(type)){
-                    this.pagination.currentPage = parseInt(type);
-                    changeDone = true;
-                }
-                break;
-        }
-
-        if(changeDone){
-            this.pagination.prevPage = parseInt(type);
-            let offset = (this.pagination.currentPage * this.queries.limit) - this.queries.limit;
-            this.queries.offset = offset;
-            this.loadingTable = true;
-            
-        }
-    }
-
-    clickMultipleLocation(locations){
-        this.multipleLocations = locations;
-        $('#modalSelectMultipleLocations').modal('open');
-    }
+    
 
     submitSelectFromMultipleLocations(form){
-        if(form.valid){
-
-            $('#modalSelectMultipleLocations').modal('close');
-            for(let loc of this.multipleLocations){
-                if(loc.location_id == form.value.location_id){
-                    if(loc.sublocations_count > 0){
-                        this.router.navigate(['/location/view/',  this.encDecrService.encrypt(loc.location_id) ]);
-                    }else{
-                        this.router.navigate(['/location/view-sublocation/',  this.encDecrService.encrypt(loc.location_id) ]);
-                    }
-                }
-            }
-        }
+        
     }
 
     onChangeDatePicker(event){
@@ -560,6 +483,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 warden['isselected'] = false;
                 this.myWardenTeam.push(warden);
                 this.wardenTeamMembers.push(warden);
+                this.total_records = this.wardenTeamMembers.length;
             }
             this.locations = response.buildings;
             this.loadingTable = false;

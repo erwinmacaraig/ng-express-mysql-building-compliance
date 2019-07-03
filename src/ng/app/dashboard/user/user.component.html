@@ -122,7 +122,7 @@
               'activity-container': showWardenConfirmationList == true,
               'activity-container-warden':showWardenConfirmationList == false
             }">
-              <div class="display-table width100">
+              <div class="display-table width100" style="cursor: pointer" [routerLink]="['/teams', 'add-wardens']">
                 <div class="cell grey lighten-5 image-container">
                   <img src="/assets/images/dash02.png" alt="">
                 </div>
@@ -141,7 +141,7 @@
               'activity-container': showWardenConfirmationList == true,
               'activity-container-warden':showWardenConfirmationList == false
             }">
-              <div class="display-table width100">
+              <div class="display-table width100" style="cursor: pointer" [routerLink]="['/teams', 'view-user', userIdEnc]">
                 <div class="cell grey lighten-5 image-container">
                   <img src="/assets/images/dash03.png" alt="">
                 </div>

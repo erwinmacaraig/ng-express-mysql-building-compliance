@@ -315,6 +315,42 @@ table tr td.with-image .impaired{
 
 }
 
+
+.col-buttons{
+	margin: 20px 0px;
+}
+
+.col-buttons .btn{
+    font-size: 12px !important;
+    line-height: 5px;
+    height: 50px !important;
+    margin-bottom: 20px;
+}
+
+.col-buttons .btn:not(:last-child){
+	margin-right: 10px;
+}
+
+.btn-compliance-rating{
+	pointer-events: none;
+}
+
+.btn-compliance-rating > div{
+	display: inline-block;
+}
+
+.btn-compliance-rating .white{
+    height: 40px;
+    width: 80px;
+    vertical-align: middle;
+    color: #666;
+    border-radius: 5px;
+    line-height: 40px;
+    font-size: 12px;
+    font-weight: bold;
+    margin: 0px 5px;
+}
+
 .inline-block{
     display: inline-block;
 }

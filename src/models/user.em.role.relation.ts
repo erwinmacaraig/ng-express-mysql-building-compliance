@@ -423,6 +423,7 @@ export class UserEmRoleRelation extends BaseClass {
               users.mobility_impaired,
               users.last_login,
               users.profile_completion,
+              users.archived,
               accounts.account_name,
               em_roles.em_roles_id,
               em_roles.role_name,                       
@@ -550,17 +551,36 @@ export class UserEmRoleRelation extends BaseClass {
       });
     }
 
-    public getUsersByAccountId(accountId, archived?){
+    public getUsersByAccountId(accountId, archived?): Promise<Array<Object>>{
         archived = (archived) ? archived : 0;
 
         return new Promise((resolve, reject) => {
             let sql_load = `
                 SELECT
-                    u.*, em.em_role_id, em.location_id, er.role_name
+                    u.user_id,
+                    u.first_name,
+                    u.last_name,
+                    u.email,
+                    u.mobility_impaired,
+                    u.last_login,
+                    u.profile_completion,
+                    accounts.account_name,
+                    locations.is_building,
+                    locations.name AS level,
+                    parent.name AS building,
+                    IF(locations.parent_id = -1, locations.location_id, locations.parent_id) AS building_id,
+                    er.em_roles_id, em.location_id, er.role_name
                 FROM user_em_roles_relation em
                 INNER JOIN users u ON em.user_id = u.user_id
+                INNER JOIN locations
+                ON locations.location_id = em.location_id
+                INNER JOIN accounts
+                ON accounts.account_id = u.account_id
+                LEFT JOIN locations AS parent
+                ON locations.parent_id = parent.location_id
                 INNER JOIN em_roles er ON em.em_role_id = er.em_roles_id
                 WHERE u.account_id = ? AND u.archived = ?
+                ORDER BY u.first_name
             `;
             const param = [accountId, archived];
             this.pool.getConnection((err, connection) => {
@@ -571,8 +591,6 @@ export class UserEmRoleRelation extends BaseClass {
                     if (error) {
                         return console.log(error);
                     }
-
-                    this.dbData = results;
                     resolve(results);
                     connection.release();
                 });

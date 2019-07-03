@@ -240,13 +240,14 @@ export class CourseRoute extends BaseRoute {
 	public async getCountsBuildingTrainings(req: AuthRequest, res: Response){
 		let response = {
 			data : {
-				users : <any> [],
+				users : {},
 				emUserCerts : <any> [],
 				requiredTrainings : <any> [],
 				total_users : 0,
 				total_users_trained : 0,
 				locations : [],
-				em_roles : {}
+                em_roles : {},
+                trained_users_info: {}
 			},
 			message : ''
 		},
@@ -256,7 +257,7 @@ export class CourseRoute extends BaseRoute {
 		locations = <any> [],
         responseLocations = [];
         const trainingCertModel = new TrainingCertification();
-
+        /*
 		try {
             // FRP & TRP
             const userRoleModel = new UserRoleRelation();
@@ -320,8 +321,287 @@ export class CourseRoute extends BaseRoute {
 
         } catch (e) {
             console.log('course route endpoint getCountsBuildingTrainings', e);
-         }
+        }
+        */
+        //************************************************* */
+        let roleOfAccountInLocationObj = {};
+        let accountUserData = [];
+        let accountRoles = [];
+        const trainingRequirementsLookup = {};
+        const trainingRequirements = [];
+        let sublocationIds = [];
+        const emUsers = new UserEmRoleRelation();
+        let userIds = [];
+        let frpWardenList = [];
+        let frpGoList = [];
+        let wardens = [];
+        let gofr = [];
+        let area_warden = [];
+        let chief_warden = [];
+        let empcm = [];
+        let first_aid_officer = [];
+        let deputy_chief_warden = [];
+        let building_warden = [];
+        let deputy_building_warden = [];
 
+        try {
+            // determine if you are a building manager or tenant in these locations - response.locations
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);            
+        } catch(err) {
+            console.log('authenticate route get account role relation in location', err);
+        }
+        try {
+            accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
+            for(let data of accountUserData) {
+                if (data['location_id'] in roleOfAccountInLocationObj) {
+                    accountRoles.push({
+                        role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
+                        location_id: data['location_id'],
+                        user_id: req.user.user_id
+                    });
+                }
+            }
+        } catch(e) {
+            console.log(' teams route, error getting in location account user data', e);
+        }
+        try { 
+            let temp = await new TrainingRequirements().allEmRolesTrainings();
+            for (let wardenRole of temp) {
+                trainingRequirementsLookup[wardenRole['em_role_id']] = wardenRole['training_requirement_id'];
+                if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                    trainingRequirements.push(wardenRole['training_requirement_id']);
+                }                
+            }
+        } catch(e) {
+            console.log('Error getting/processing training requirement for role', e);
+        }
+        for(let role of accountRoles) {
+            if (role['role_id'] == 1) {
+                let tempFRP = [];
+                // get sublocation ids
+                sublocationIds.push(role['location_id']);
+                tempFRP = await new Location().getChildren(role['location_id']);
+                let temp = [];
+                for (let loc of tempFRP) {
+                    sublocationIds.push(loc['location_id']);
+                }
+                try {
+                    // get the location and all people that has warden role for FRP
+                    temp = await emUsers.getGOFRTeamList(sublocationIds);            
+                    for (let go of temp) {
+                        frpGoList.push(go);
+                        if (userIds.indexOf(go['user_id']) == -1) {
+                            userIds.push(go['user_id']);                      
+                        }
+                        if (gofr.indexOf(go['user_id']) == -1) {
+                            gofr.push(go['user_id']);
+                        }
+
+                    }
+                } catch (e) {
+                    console.log(e);
+                }
+                try {
+                    // get the location and all people that has warden role for FRP
+                    temp = await emUsers.getWardenTeamList(sublocationIds);
+                    for (let warden of temp) {
+                        frpWardenList.push(warden);
+                        if (userIds.indexOf(warden['user_id']) == -1) {
+                            userIds.push(warden['user_id']);                      
+                        }
+                        if (warden['em_roles_id'] == defs['em_roles']['WARDEN'] && wardens.indexOf(warden['user_id']) == -1) {
+                            wardens.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['FLOOR_WARDEN'] && area_warden.indexOf(warden['user_id']) == -1) {
+                            area_warden.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['CHIEF_WARDEN'] && chief_warden.indexOf(warden['user_id']) == -1) {
+                            chief_warden.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['EMERGENCY_PLANNING_COMMITTEE_MEMBER'] && empcm.indexOf(warden['user_id']) == -1) {
+                            empcm.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['FIRST_AID_OFFICER'] && first_aid_officer.indexOf(warden['user_id']) == -1) {
+                            first_aid_officer.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['DEPUTY_CHIEF_WARDEN'] && deputy_chief_warden.indexOf(warden['user_id']) == -1) {
+                            deputy_chief_warden.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['BUILDING_WARDEN'] && building_warden.indexOf(warden['user_id']) == -1) {
+                            building_warden.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['DEPUTY_BUILDING_WARDEN'] && deputy_building_warden.indexOf(warden['user_id']) == -1) {
+                            deputy_building_warden.push(warden['user_id']);
+                        } 
+
+
+                    }
+                } catch(e) {
+                    console.log(e);
+                }
+            } // for users that has FRP and TRP account role
+            if (role['role_id'] == 2) {
+                try {
+                    // get the location and all people that has warden role within the same account
+                   let temp = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id);
+                   for (let warden of temp) {
+                        frpWardenList.push(warden);
+                        if (userIds.indexOf(warden['user_id']) == -1) {
+                            userIds.push(warden['user_id']);                        
+                        }
+                        if (warden['em_roles_id'] == defs['em_roles']['WARDEN'] && wardens.indexOf(warden['user_id']) == -1) {
+                            wardens.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['FLOOR_WARDEN'] && area_warden.indexOf(warden['user_id']) == -1) {
+                            area_warden.push(warden['user_id']);
+                        }  else if (warden['em_roles_id'] == defs['em_roles']['CHIEF_WARDEN'] && chief_warden.indexOf(warden['user_id']) == -1) {
+                            chief_warden.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['EMERGENCY_PLANNING_COMMITTEE_MEMBER'] && empcm.indexOf(warden['user_id']) == -1) {
+                            empcm.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['FIRST_AID_OFFICER'] && first_aid_officer.indexOf(warden['user_id']) == -1) {
+                            first_aid_officer.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['DEPUTY_CHIEF_WARDEN'] && deputy_chief_warden.indexOf(warden['user_id']) == -1) {
+                            deputy_chief_warden.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['BUILDING_WARDEN'] && building_warden.indexOf(warden['user_id']) == -1) {
+                            building_warden.push(warden['user_id']);
+                        } else if (warden['em_roles_id'] == defs['em_roles']['DEPUTY_BUILDING_WARDEN'] && deputy_building_warden.indexOf(warden['user_id']) == -1) {
+                            deputy_building_warden.push(warden['user_id']);
+                        }    
+                   }
+                } catch(e) {
+                   console.log('Error generating em users from teams route for TRP user', e, role['location_id']);                   
+                }
+                try {
+                    // get the location and all people that has warden role for FRP
+                    let temp = await emUsers.getGOFRTeamList([role['location_id']], req.user.account_id);            
+                    for (let go of temp) {
+                        frpGoList.push(go);
+                        if (userIds.indexOf(go['user_id']) == -1) {
+                            userIds.push(go['user_id']);                        
+                        }
+                        if (gofr.indexOf(go['user_id']) == -1) {
+                            gofr.push(go['user_id']);
+                        }  
+                    }
+                } catch (e) {
+                    console.log(e);
+                }
+            } 
+        }
+        const list = [...frpGoList, ...frpWardenList];
+        // naming condition is frp because ideally FRP can have this info in the dashboard
+        try { 
+            let temp = await new TrainingRequirements().allEmRolesTrainings();
+            for (let wardenRole of temp) {            
+                trainingRequirementsLookup[wardenRole['em_role_id']] = wardenRole['training_requirement_id'];
+                if (trainingRequirements.indexOf(wardenRole['training_requirement_id']) == -1) {
+                    trainingRequirements.push(wardenRole['training_requirement_id']);
+                }            
+            }
+        } catch(e) {
+            console.log('Error getting/processing training requirement for role', e);
+        }
+        let cert = [];
+        try {
+            cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
+        } catch (e) {
+            console.log(e);
+        }
+        const listObj = {};
+        for (let user of list) {
+            let indexStr = `${user['user_id']}-${user['location_id']}-${user['em_roles_id']}`;
+            listObj[indexStr] = {
+                name: `${user['first_name']} ${user['last_name']}`,
+                user_id: user['user_id'],
+                role_id: user['em_roles_id'],
+                training_requirement_id: trainingRequirementsLookup[user['em_roles_id']],
+                training: 0,
+                certifications_id: 0
+            };
+        }
+        const final_list = [];
+        let certUniq = [];
+        let passedCtrArr = [];
+        Object.keys(listObj).forEach( (key) => {
+            let indexUniq = `${listObj[key]['user_id']}-${listObj[key]['role_id']}-${trainingRequirementsLookup[listObj[key]['role_id']]}`;
+            
+            for (let c of cert) {            
+                if (certUniq.indexOf(indexUniq) == -1) {                                 
+                    if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {                    
+                        certUniq.push(indexUniq);
+                        if (c['status'] == 'valid') {                            
+                            listObj[key]['training'] = 1;
+                            listObj[key]['certifications_id'] = c['certifications_id'];
+                            if (passedCtrArr.indexOf(listObj[key]['user_id']) == -1) {
+                                passedCtrArr.push(listObj[key]['user_id']);
+                            }
+                        }
+                    }
+                }
+            }
+            final_list.push(listObj[key]);
+            
+        });
+        response.data.total_users_trained = passedCtrArr.length;
+        response.data.trained_users_info = passedCtrArr;
+        response.data.total_users = userIds.length;
+        response.data.users = listObj;
+        if (wardens.length) {
+            response.data.em_roles[defs['em_roles']['WARDEN']] = {
+                'total': wardens.length,
+                'role_name':  'Warden',
+                'users': wardens
+            };
+
+        }        
+        if (area_warden.length) {
+            response.data.em_roles[defs['em_roles']['FLOOR_WARDEN']] = {
+                'total': area_warden.length,
+                'role_name':  'Floor / Area Warden',
+                'users': area_warden
+            };
+        }
+        if (gofr.length) {
+            response.data.em_roles[defs['em_roles']['GENERAL_OCCUPANT']] = {
+                'total': gofr.length,
+                'role_name':  'General Occupant',
+                'users': gofr
+            };
+        }
+        if (chief_warden.length) {
+            response.data.em_roles[defs['em_roles']['CHIEF_WARDEN']] = {
+                'total': chief_warden.length,
+                'role_name':  'Chief Warden',
+                'users': chief_warden
+            };
+        }
+        if (empcm.length) {
+            response.data.em_roles[defs['em_roles']['EMERGENCY_PLANNING_COMMITTEE_MEMBER']] = {
+                'total': empcm.length,
+                'role_name':  'Emergency Planning Committee Member',
+                'users': empcm
+            };
+        }
+        if (first_aid_officer.length) {
+            response.data.em_roles[defs['em_roles']['FIRST_AID_OFFICER']] = {
+                'total': first_aid_officer.length,
+                'role_name':  'First Aid Officer',
+                'users': first_aid_officer
+            };
+        }
+        if (deputy_chief_warden.length) {
+            response.data.em_roles[defs['em_roles']['DEPUTY_CHIEF_WARDEN']] = {
+                'total': deputy_chief_warden.length,
+                'role_name':  'Deputy Chief Warden',
+                'users': deputy_chief_warden
+            };
+        }
+        if (building_warden.length) {
+            response.data.em_roles[defs['em_roles']['BUILDING_WARDEN']] = {
+                'total': building_warden.length,
+                'role_name':  'Building Warden',
+                'users': building_warden
+            };
+        }
+        if (deputy_building_warden.length) {
+            response.data.em_roles[defs['em_roles']['DEPUTY_BUILDING_WARDEN']] = {
+                'total': deputy_building_warden.length,
+                'role_name':  'Deputy Building Warden',
+                'users': deputy_building_warden
+            };
+        }
         res.send(response);
     }
 

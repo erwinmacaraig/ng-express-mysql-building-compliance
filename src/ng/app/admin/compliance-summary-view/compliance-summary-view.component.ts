@@ -379,8 +379,7 @@ export class ComplianceSummaryViewComponent implements OnInit, AfterViewInit, On
           this.sundry_attendance_record[index]['downloadCtrl'] = false; 
         break;
       }      
-      $('#modalfilenotfound').modal('open');
-      console.log('There was an error', error);
+      $('#modalfilenotfound').modal('open'); 
       const message = `Download error for location_id = ${this.locationId} and file =  paper_attendance/${filename} in admin`;
       this.adminService.sendEmailToDev(message).subscribe((response) => {
         console.log(response);

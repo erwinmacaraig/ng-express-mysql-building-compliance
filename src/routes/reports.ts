@@ -464,11 +464,12 @@ export class ReportsRoute extends BaseRoute {
                 console.log(e);
         }
         Object.keys(listObj).forEach( (key) => {
-            let indexUniq = `${listObj[key]['user_id']}-${listObj[key]['role_id']}-${trainingRequirementsLookup[listObj[key]['user_id']]}`;
+            let indexUniq = `${listObj[key]['user_id']}-${listObj[key]['role_id']}-${trainingRequirementsLookup[listObj[key]['role_id']]}`;
             for (let c of cert) {
                 if (certUniq.indexOf(indexUniq) == -1) {
-                    if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {
-                        certUniq.push(indexUniq); 
+                     
+                    if (listObj[key]['user_id'] == c['user_id'] && trainingRequirementsLookup[listObj[key]['role_id']] == c['training_requirement_id']) {                        
+                        certUniq.push(indexUniq);
                         listObj[key]['training_obj'] = c;
                         if (c['status'] == 'valid') {
                             listObj[key]['training'] = 1;

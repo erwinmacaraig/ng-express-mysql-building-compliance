@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
 
-import { NgForm } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 import { LocationsService } from './../../services/locations';
 import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { AuthService } from '../../services/auth.service';
@@ -14,6 +13,7 @@ import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+import {Subscription} from 'rxjs/Subscription';
 import { DatepickerOptions } from 'ng2-datepicker';
 
 declare var $: any;
@@ -29,8 +29,8 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     copyOfList = [];
     userData = <any> {};
     myGOFRTeam = [];
-    gofrTeamMembers = [];
-
+    private gofrTeamMembers = [];
+    public total_records = 0;
     showModalLoader = false;
     selectedToArchive = {
         name: ''
@@ -53,20 +53,6 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
 
     pagination = {
         pages : 0, total : 0, currentPage : 0, prevPage: 0, selection : []
-    };
-
-    queries = {
-        roles : '8',
-        impaired : -1,
-        type : 'client',
-        offset :  0,
-        limit : 10,
-        archived : 0,
-        pagination : true,
-        user_training : true,
-        users_locations : true,
-        search : '',
-        location_id : 0
     };
 
     multipleLocations = [];
@@ -96,33 +82,21 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     isOnlineTrainingAvailable = false;
     
     locations = <any> [];
-    locationPagination = {
-        pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
-    };
-    locationQueries = {
-        offset :  0,
-        limit : 20,
-        search : '',
-        sort : '',
-        archived : 0,
-        showparentonly: false,
-        parent_id : 0
-    };
+    routeSub: Subscription;
 
     showArchived = false;
     subscriptionType = 'free';
-    private paramSub: Rx.Subscription;
+    
+
     constructor(
         private authService : AuthService,
         private router : Router,
         private userService : UserService,
-        private encDecrService : EncryptDecryptService,
-        private dataProvider: PersonDataProviderService,
-        private dashboardService : DashboardPreloaderService,
-        private locationService: LocationsService,
+        private encDecrService : EncryptDecryptService,        
+        private dashboardService : DashboardPreloaderService,        
         private courseService : CourseService,
         private accountService : AccountsDataProviderService,
-        private activatedRoute : ActivatedRoute
+        private route: ActivatedRoute
     ) {
 
         this.userData = this.authService.getUserData();        
@@ -136,11 +110,23 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         if (this.userData['account_has_online_training'] == 1) {
             this.isOnlineTrainingAvailable = true;
         }
-        this.dashboardService.show();
-        this.listGeneralOccupants();
-        setTimeout(() => {
-            $('.row.filter-container select').material_select();
-        }, 100);
+        this.routeSub = this.route.paramMap.subscribe((paramMap: ParamMap) => {
+            this.showArchived = false;
+            this.dashboardService.show();
+            if (paramMap.has('archived')) {
+                this.showArchived = true;
+                this.listGeneralOccupants(this.showArchived);
+            } else {
+                this.listGeneralOccupants();
+            }
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+            }, 100);
+
+        });
+        
+        
+        
     }
 
     ngAfterViewInit(){
@@ -183,8 +169,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         $('select.location').on('change', function(e){
             e.preventDefault();
             e.stopPropagation();
-            let selected = $('select.location').val();
-            console.log('building: ' + selected);
+            let selected = $('select.location').val();            
             __this.dashboardService.show();
             __this.myGOFRTeam = [];
             const choosen = [];
@@ -520,15 +505,15 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     }
 
     ngOnDestroy(){
-        
+        this.routeSub.unsubscribe();
     }
 
-    public listGeneralOccupants() {
-        this.myGOFRTeam = [];
-        this.gofrTeamMembers = [];
+    public listGeneralOccupants(archived:boolean = false) {        
 
-        this.accountService.generateMyGOFRList().subscribe((response) => {
+        this.accountService.generateMyGOFRList(archived).subscribe((response) => {
             this.loadingTable = true;
+            this.myGOFRTeam = [];
+            this.gofrTeamMembers = [];
             for (let go of response.gofr) {
                 go['id_encrypted'] = this.encDecrService.encrypt(go['user_id']);
                 go['enc_location_id'] = this.encDecrService.encrypt(go['location_id']);
@@ -539,7 +524,7 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             }
             this.locations = response.buildings;
             this.loadingTable = false;
-            console.log(this.locations);
+            this.total_records = this.gofrTeamMembers.length;
 
             setTimeout(() => {
                 $('.row.filter-container select.location').material_select('update');

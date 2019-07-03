@@ -216,8 +216,10 @@ const appRoutes: Routes = [
       { path : 'view-gen-occupant', component : ViewGeneralOccupantComponent },
       { path : 'view-chief-warden', component : ViewChiefWardenComponent },
       { path : 'list-general-occupant', component : ListGeneralOccupantComponent },
+      { path : 'list-archived-general-occupant/:archived', component : ListGeneralOccupantComponent},
       { path : 'add-general-occupant', component : TeamsAddGeneralOccupantComponent },
       { path : 'list-administrators', component : AllUsersComponent },
+      { path : 'list-archived-administrators/:archived', component : AllUsersComponent },
       { path : 'add-administrators', component : AddUserComponent },
       { path: 'view-account-role', component: ViewAccountRoleComponent }
     ]

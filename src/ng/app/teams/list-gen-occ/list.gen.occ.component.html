@@ -3,7 +3,7 @@
 		<h4> <span *ngIf="showArchived">Archived</span> General Occupant </h4>
 		<div class="right-actions">
 			<div class="archived-container">
-				<a  [routerLink]="['/teams/list-general-occupant']" [queryParams]="{ 'archived' : true }" *ngIf="!showArchived">
+				<a  [routerLink]="['/teams', 'list-archived-general-occupant', 'archived']" *ngIf="!showArchived">
 					<div class="image"></div>
 					View Archive
 				</a>
@@ -125,7 +125,8 @@
                         <select (change)="onSelectFromTable($event, warden)">
                             <option value="0" class="blue-text" selected>Manage</option>
                             <option value="view" class="blue-text">View</option>
-                            <option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>
+                            <option *ngIf="!warden.archived" value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>
+                            <option *ngIf="warden.archived" value="archive" class="blue-text" >Restore</option>
                             <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
                                 <span *ngIf="warden.mobility_impaired == 0">Add to mobility impaired list</span>
                                 <span *ngIf="warden.mobility_impaired == 1">Remove from mobility impaired list</span>
@@ -149,6 +150,20 @@
 
 	</div>
 
+</div>
+<div class="row">
+    <div class="col l12 m12 s12 col-buttons right-align">
+        <button class="btn orange btn-compliance-rating">
+            <div class="text">
+                Showing records
+            </div>
+            <div class="white center">
+                {{ myGOFRTeam.length }} 
+            </div>
+            <div class="text"> of {{total_records}}</div>
+        </button>
+
+    </div>
 </div>
 
 <div id="modalArchive" class="modal">

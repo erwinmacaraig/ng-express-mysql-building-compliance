@@ -938,9 +938,10 @@ export class UsersRoute extends BaseRoute {
         });
 
         const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); console.log(myEmRoleIds);
-
+        const overwrittenIfIncludedInThis = [9, 10, 11, 15, 16, 18];
         for (let em of myEmRoleIds) {
-            if (isWardenRoleArray.indexOf(em)  != -1) {
+            //if (isWardenRoleArray.indexOf(em)  != -1) {
+            if (overwrittenIfIncludedInThis.indexOf(em) != -1) {
                 overWriteNonWardenRoleTrainingModules = true;
             }
         }
@@ -952,7 +953,7 @@ export class UsersRoute extends BaseRoute {
         const trainingReqmtObj = {};
         temp = [];
         for (let tr of trainingReqmtArr) {
-            if (tr['en_role_id'] in trainingReqmtObj) {
+            if (tr['em_role_id'] in trainingReqmtObj) {
                 (trainingReqmtObj[tr['em_role_id']]['training_requirement_id']).push(tr['training_requirement_id']);
                 (trainingReqmtObj[tr['em_role_id']]['training_requirement_name']).push(tr['training_requirement_name']);
                 (trainingReqmtObj[tr['em_role_id']]['trainingRqmtArrObj']).push({
@@ -1008,55 +1009,58 @@ export class UsersRoute extends BaseRoute {
 
         let certification = [];
         for (let em_role_id of myEmRoleIds) {
-            userTrainingInfoObj = {
-                em_role_id: em_role_id,
-                role_name:  trainingReqmtObj[em_role_id.toString()]['role_name'],
-                training_requirement: [],
-                active_training: [],
-                role_training_status: 'non-compliant', // as of Feb 2, 2019 we assume that there is only one training requirement for a role
-                expiry: '' // as of April 3, 2019, since we assume that there is only one training requirement for a role
-            };
-            let missingRequiredTrainingsIdArr = [];
-            let status = 'non-compliant';
-            missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
-            requiredTrainingRequirementIdsArr.push(trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
-            
-            // although we assume one training requirement for a role, for scability and future requirements that is why I iterated 
-            for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
-                status = 'compliant';
-                let expiry = '';
-                if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
-                    status = 'non-compliant';
-                }
-                else {
-                    try {
-                        temp = await new TrainingCertification().getActiveCertificate(userId, tr['training_requirement_id']);
-                        expiry = temp[0]['expiry_date']; // if there comes a time that one role will have more than one training requirement
-                        userTrainingInfoObj['expiry'] = expiry; // just assign it here
-                    } catch(e) {
-                        expiry = '';
-                    }
-                }
+            if (em_role_id.toString() in trainingReqmtObj) {
+                userTrainingInfoObj = {
+                    em_role_id: em_role_id,
+                    role_name: trainingReqmtObj[em_role_id.toString()]['role_name'],
+                    training_requirement: [],
+                    active_training: [],
+                    role_training_status: 'non-compliant', // as of Feb 2, 2019 we assume that there is only one training requirement for a role
+                    expiry: '' // as of April 3, 2019, since we assume that there is only one training requirement for a role
+                };
+                let missingRequiredTrainingsIdArr = [];
+                let status = 'non-compliant';
+                missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
+                requiredTrainingRequirementIdsArr.push(trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
                 
-                if ( (nonWardenRolesArray.indexOf(em_role_id) != -1 && overWriteNonWardenRoleTrainingModules) || account['online_training'] == 0) {
-                    userTrainingInfoObj['training_requirement'].push({
-                        ...tr,
-                        modules: [],
-                        status: status,
-                        total_modules: (trainingRequirementModules[tr['training_requirement_id']]['modules'] as Array<object>).length, 
-                        total_completed_modules: 0
-                    }); 
-                } else {
-                    userTrainingInfoObj['training_requirement'].push({
-                        ...tr,
-                        expiry: expiry,
-                        modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
-                        status: status
-                    });
-                }                 
+                // although we assume one training requirement for a role, for scability and future requirements that is why I iterated 
+                for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
+                    status = 'compliant';
+                    let expiry = '';
+                    if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
+                        status = 'non-compliant';
+                    }
+                    else {
+                        try {
+                            temp = await new TrainingCertification().getActiveCertificate(userId, tr['training_requirement_id']);
+                            expiry = temp[0]['expiry_date']; // if there comes a time that one role will have more than one training requirement
+                            userTrainingInfoObj['expiry'] = expiry; // just assign it here
+                        } catch(e) {
+                            expiry = '';
+                        }
+                    }
+                    
+                    if ( (nonWardenRolesArray.indexOf(em_role_id) != -1 && overWriteNonWardenRoleTrainingModules) || account['online_training'] == 0) {
+                        userTrainingInfoObj['training_requirement'].push({
+                            ...tr,
+                            modules: [],
+                            status: status,
+                            total_modules: (trainingRequirementModules[tr['training_requirement_id']]['modules'] as Array<object>).length, 
+                            total_completed_modules: 0
+                        }); 
+                    } else {
+                        userTrainingInfoObj['training_requirement'].push({
+                            ...tr,
+                            expiry: expiry,
+                            modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
+                            status: status
+                        });
+                    }                 
+                }
+                userTrainingInfoObj['role_training_status'] = status;
+                userTrainingInfoArr.push(userTrainingInfoObj);
             }
-            userTrainingInfoObj['role_training_status'] = status;
-            userTrainingInfoArr.push(userTrainingInfoObj);
+            
         }
 
 
@@ -3665,7 +3669,7 @@ export class UsersRoute extends BaseRoute {
 
                         let isGenOccupant = false,
                             isWarden = false;
-
+                        console.log(`selectedRoles[i]['role_id'] = ${selectedRoles[i]['role_id']}`);
                         if(parseInt(users[i]['account_role_id']) == 1 || parseInt(users[i]['account_role_id']) == 2){
                             emailType = 'frp';
                             if(parseInt(users[i]['account_role_id']) == 2){
@@ -3678,9 +3682,17 @@ export class UsersRoute extends BaseRoute {
                             for(let i in selectedRoles){
                                 if(selectedRoles[i]['role_id'] == 8){
                                     isGenOccupant = true;
-                                }else if(selectedRoles[i]['role_id'] == 9){
+                                }else if(selectedRoles[i]['role_id'] > 2 && selectedRoles[i]['role_id'] > 8 ){
                                     isWarden = true;
-                                }
+                                } else if (selectedRoles[i]['role_id'] == 2) {
+                                    emailType = 'trp';
+                                    isGenOccupant = false;
+                                    isWarden = false;                                    
+                                } else if (selectedRoles[i]['role_id'] == 1) {
+                                    emailType = 'frp';
+                                    isGenOccupant = false;
+                                    isWarden = false;
+                                } 
                                 roles.push( selectedRoles[i]['role_name'] );
                             }
 
@@ -3718,6 +3730,7 @@ export class UsersRoute extends BaseRoute {
                             to: [inviSaveData['email']],
                             cc: []
                         });
+                        
                         email.sendFormattedEmail(emailType, emailData, res, 
                             (data) => console.log(data),
                             (err) => console.log(err)

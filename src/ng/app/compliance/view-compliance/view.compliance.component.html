@@ -1018,7 +1018,7 @@
         <table class="striped table">
             <thead>
                 <tr>
-                    <th>Training Records</th>
+                    <th>Date of Activity</th>
                     <th>Filename</th>
                     <th style="width: 13%;" class="center">Action</th>
                 </tr>
@@ -1027,7 +1027,7 @@
                 <tr *ngIf="selectedCompliance.compliance.docs.length == 0">
                     <td  colspan="3" class="center">No record found</td>
                 </tr>
-                <tr *ngFor="let doc of selectedCompliance.compliance.docs">
+                <tr *ngFor="let doc of selectedCompliance.compliance.docs; let i = index">
                     <td>{{doc.timestamp_formatted}}</td>
                     <td>{{doc.file_name}}</td>
 					<td style="padding: 2px;" class="center">
@@ -1036,9 +1036,12 @@
                             <img src="/assets/images/download_ico_blue.png">
 						</a>
 					-->
-						<a class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name)">
-								<img src="/assets/images/download_ico_blue.png" />
+						<a *ngIf="!complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class=" " (click)="downloadKPIFile(doc.urlPath,doc.file_name, selectedCompliance.compliance_kpis_id, i)">
+							<img src="/assets/images/download_ico_blue.png" />
 						</a>
+						<div *ngIf="complianceDocuments[selectedCompliance.compliance_kpis_id][i]['downloadCtrl']" class="progress">
+							<div class="indeterminate"></div>
+						</div>
                     </td>
                 </tr>
             </tbody>
@@ -1684,10 +1687,13 @@
 	<div class="modal-content">	
 		<div class="filenotfoundalert error">
 			<div class="material-icons">error_outline</div>	
-			<h6>File not found</h6>
+			<span style="font-size: 16px;">Archive</span>
 		</div>	  
-		<p>The file you are trying to download is no longer available from the server.		   
-		   <br />Admin have been notified and will provide the document via email to you.</p>
+		<p>
+			This file has been archived and cannot be downloaded. 
+			<br><br>If you require this file, please email us at <a href="mailto:info@evacgroup.com.au">info@evacgroup.com.au</a> and we will send you the file. 
+			Please include the site address and details of the file you require so we can retrieve it.
+		</p>
 	</div>
 	<div class="modal-footer">
 	  <a class="modal-close waves-effect waves-red btn-flat">OK</a>
