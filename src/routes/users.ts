@@ -3510,7 +3510,7 @@ export class UsersRoute extends BaseRoute {
                         'expiration_date': moment().add('1 day').format('YYYY-MM-DD HH:mm:ss')
                     },
                     tokenModel = new Token(),
-                    emailLink = 'http://' + req.get('host'),
+                    emailLink = 'https://' + req.get('host'),
                     locationModel = new Location(),
                     acestrieIds = <any> await locationModel.getAncestryIds(users[i]['account_location_id']),
                     idsLocation = [],
