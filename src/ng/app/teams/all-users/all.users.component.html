@@ -13,7 +13,7 @@
     <div class="col l12 m12 s12" style="position: relative;">
         <h4 *ngIf="!showArchived">Administrators</h4>
         <h4 *ngIf="showArchived">Archived Administrators</h4>
-        <a href="#" class="archived" *ngIf="!showArchived" [routerLink]="['/teams/list-administrators']" [queryParams]="{ 'archived' : true }">
+        <a href="#" class="archived" *ngIf="!showArchived" [routerLink]="['/teams', 'list-archived-administrators', 'archived']">
             <span class="image"></span>
             View Archive
         </a>

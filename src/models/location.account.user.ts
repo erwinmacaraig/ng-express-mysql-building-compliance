@@ -1129,6 +1129,7 @@ export class LocationAccountUser extends BaseClass {
                     u.mobility_impaired,
                     u.last_login,
                     u.profile_completion,
+                    u.archived,
                     accounts.account_name,
                     l.name,
                     l.location_id,
@@ -1160,7 +1161,6 @@ export class LocationAccountUser extends BaseClass {
                 ORDER BY
                     u.first_name
             `;
-            
             this.pool.getConnection((error, connection) => {
                 if (error) {
                     throw Error(error);

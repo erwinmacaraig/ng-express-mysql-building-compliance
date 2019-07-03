@@ -1,7 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { LocationsService } from './../../services/locations';
-import { PersonDataProviderService } from './../../services/person-data-provider.service';
 import { AuthService } from '../../services/auth.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
@@ -12,6 +10,7 @@ import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
+
 import { DatepickerOptions } from 'ng2-datepicker';
 
 declare var $: any;
@@ -52,22 +51,6 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         pages : 0, total : 0, currentPage : 0, prevPage: 0, selection : []
     };
 
-    queries = {
-        roles : 'users,no_gen_occ',
-        impaired : -1,
-        type : 'client',
-        offset :  0,
-        limit : 10,
-        archived : 0,
-        pagination : true,
-        user_training : true,
-        users_locations : true,
-        search : '',
-        location_id : 0
-    };
-
-    multipleLocations = [];
-
     searchMemberInput;
 
     options: DatepickerOptions = {
@@ -95,28 +78,18 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     locationPagination = {
         pages : 0, total : 0, currentPage : 0, prevPage : 0, selection : []
     };
-    locationQueries = {
-        offset :  0,
-        limit : 20,
-        search : '',
-        sort : '',
-        archived : 0,
-        showparentonly: false,
-        parent_id : 0
-    };
-
     subscriptionType = 'free';
+    
 
     constructor(
         private authService : AuthService,
         private router : Router,
         private userService : UserService,
-        public encDecrService : EncryptDecryptService,
-        private dataProvider: PersonDataProviderService,
-        private dashboardService : DashboardPreloaderService,
-        private locationService: LocationsService,
+        public encDecrService : EncryptDecryptService,       
+        private dashboardService : DashboardPreloaderService,       
         private courseService : CourseService,
-        private accountService : AccountsDataProviderService
+        private accountService : AccountsDataProviderService,
+        
     ) {
 
         this.userData = this.authService.getUserData();        
@@ -142,8 +115,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         if (this.userData['account_has_online_training'] == 1) {
             this.isOnlineTrainingAvailable = true;
         }
-        
-        this.dashboardService.show();     
+        this.dashboardService.show(); 
         this.listWardens();
         setTimeout(() => {
             $('.row.filter-container select.filter-by').material_select('update');
@@ -390,19 +362,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     
 
     submitSelectFromMultipleLocations(form){
-        if(form.valid){
-
-            $('#modalSelectMultipleLocations').modal('close');
-            for(let loc of this.multipleLocations){
-                if(loc.location_id == form.value.location_id){
-                    if(loc.sublocations_count > 0){
-                        this.router.navigate(['/location/view/',  this.encDecrService.encrypt(loc.location_id) ]);
-                    }else{
-                        this.router.navigate(['/location/view-sublocation/',  this.encDecrService.encrypt(loc.location_id) ]);
-                    }
-                }
-            }
-        }
+        
     }
 
     onChangeDatePicker(event){

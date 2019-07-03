@@ -611,6 +611,11 @@ export class TeamRoute extends BaseRoute {
 
   public async generateMyGeneralOccupantList(req: AuthRequest, res:Response) {
 
+      let showArchivedUsers: number = 0;
+      
+      if (req.query.archived) {
+          showArchivedUsers = parseInt(req.query.archived, 10);
+      }
       let roleOfAccountInLocationObj = {};
       let accountUserData = [];
       let accountRoles = [];
@@ -685,7 +690,7 @@ export class TeamRoute extends BaseRoute {
         if (role['role_id'] == 2) {
             try {
                 // get all general occupant in this level/location belonging to the same account
-                temp = await emUsers.getGOFRTeamList([role['location_id']], req.user.account_id);                
+                temp = await emUsers.getGOFRTeamList([role['location_id']], req.user.account_id, showArchivedUsers);                
                 for (let go of temp) {
                     list.push(go);
                     if (userIds.indexOf(go['user_id']) == -1) {
@@ -731,7 +736,7 @@ export class TeamRoute extends BaseRoute {
             }
             try {
                 // get the location and all people that has warden role for FRP
-                temp = await emUsers.getGOFRTeamList(sublocationIds);            
+                temp = await emUsers.getGOFRTeamList(sublocationIds, 0, showArchivedUsers);            
                 for (let go of temp) {
                     list.push(go);
                     if (userIds.indexOf(go['user_id']) == -1) {
@@ -782,6 +787,7 @@ export class TeamRoute extends BaseRoute {
             level: item['level'],
             last_login: item['last_login'],
             profile_completion: item['profile_completion'],
+            archived: item['archived'],
             location_id: item['location_id'],
             is_building: item['is_building'],
             role_ids: [item['em_roles_id']],
@@ -813,7 +819,12 @@ export class TeamRoute extends BaseRoute {
     
   }
 
-  public async generateMyAdminList(req: AuthRequest, res:Response) {        
+  public async generateMyAdminList(req: AuthRequest, res:Response) {
+        let showArchivedUsers: number = 0;
+        
+        if (req.query.archived) {
+            showArchivedUsers = parseInt(req.query.archived, 10);
+        }        
         let roleOfAccountInLocationObj = {};
         let accountUserData = [];
         let accountRoles = [];
@@ -856,7 +867,7 @@ export class TeamRoute extends BaseRoute {
             if (role['role_id'] == 2) { 
                 try {
                     // get the location and all TRP role in the location with the same account
-                    temp = await new LocationAccountUser().generateUserAccountRoles(req.user.account_id, [role['location_id']], '0');                    
+                    temp = await new LocationAccountUser().generateUserAccountRoles(req.user.account_id, [role['location_id']], showArchivedUsers.toString());                    
                     for (let user of temp) {
                         trpList.push(user);
                     }
@@ -897,7 +908,7 @@ export class TeamRoute extends BaseRoute {
                 }
                 try {
                     // get the location and all TRP role in the location with the same account
-                    temp = await new LocationAccountUser().generateUserAccountRoles(0, sublocationIds, '0');
+                    temp = await new LocationAccountUser().generateUserAccountRoles(0, sublocationIds, showArchivedUsers.toString());
                     
                     for (let user of temp) {
                         frpList.push(user);
@@ -953,6 +964,7 @@ export class TeamRoute extends BaseRoute {
                     level: item['name'],
                     last_login: item['last_login'],
                     profile_completion: item['profile_completion'],
+                    archived: item['archived'],
                     location_id: item['location_id'],
                     is_building: item['is_building'],
                     role_ids: [],

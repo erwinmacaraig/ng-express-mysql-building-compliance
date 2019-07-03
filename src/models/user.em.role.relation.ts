@@ -423,6 +423,7 @@ export class UserEmRoleRelation extends BaseClass {
               users.mobility_impaired,
               users.last_login,
               users.profile_completion,
+              users.archived,
               accounts.account_name,
               em_roles.em_roles_id,
               em_roles.role_name,                       

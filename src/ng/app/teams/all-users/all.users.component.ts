@@ -1,8 +1,5 @@
-import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { NgForm } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Component, OnInit, OnDestroy, AfterViewInit } from '@angular/core';
+import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 import { UserService } from '../../services/users';
 import { AuthService } from '../../services/auth.service';
 import { AccountsDataProviderService  } from '../../services/accounts';
@@ -15,6 +12,7 @@ import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import * as moment from 'moment';
 import { DatepickerOptions } from 'ng2-datepicker';
+import { Subscription } from 'rxjs/Subscription';
 
 declare var $: any;
 @Component({
@@ -77,6 +75,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     isAdministrationsShow = false;
     showArchived = false;
     subscriptionType = 'free';
+    routeSub: Subscription;
 
 	constructor(
 		private userService : UserService,
@@ -85,9 +84,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		private encDecrService : EncryptDecryptService,
 		private router : Router,
         private courseService : CourseService,
-        private accountService : AccountsDataProviderService,
-        private locationService : LocationsService,
-        private activatedRoute : ActivatedRoute
+        private accountService : AccountsDataProviderService,        
+        private route : ActivatedRoute
 		){
         this.userData = this.authService.getUserData();
         this.datepickerModel = moment().add(1, 'days').toDate();
@@ -101,10 +99,22 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         if (this.userData['account_has_online_training'] == 1) {
             this.isOnlineTrainingAvailable = true;
         }
-        this.listAdminUsers();
-        setTimeout(() => {
-            $('.row.filter-container select').material_select();
-        }, 100);
+        this.routeSub = this.route.paramMap.subscribe((paramMap: ParamMap) => {
+            this.showArchived = false;
+            this.dashboardService.show();
+            if (paramMap.has('archived')) {
+                this.showArchived = true;
+                this.listAdminUsers(this.showArchived);
+                
+            } else {
+                this.listAdminUsers();
+            }
+            setTimeout(() => {
+                $('.row.filter-container select').material_select();
+            }, 100);
+
+        });        
+        
         
 	}
 
@@ -216,7 +226,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 	}
 
 	ngOnDestroy(){
-        
+        this.routeSub.unsubscribe();
     }
 
 	onSelectFromTable(event, list){
@@ -476,9 +486,9 @@ export class AllUsersComponent implements OnInit, OnDestroy {
     }
 
 
-    private listAdminUsers() {
+    private listAdminUsers(archived:boolean = false) {
         this.dashboardService.show();
-        this.accountService.generateAdminUserList().subscribe((response) => {
+        this.accountService.generateAdminUserList(archived).subscribe((response) => {
             this.listData = [];
             this.adminTeamMembers = [];
             for (let user of response.account_users) {

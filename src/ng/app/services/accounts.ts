@@ -15,7 +15,7 @@ export class AccountsDataProviderService {
 
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
 		this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
-    this.options = { headers : this.headers };
+    	this.options = { headers : this.headers };
 
 		this.baseUrl = environment.backendUrl;
 	}
@@ -211,12 +211,26 @@ export class AccountsDataProviderService {
 		return this.http.get<{warden: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
 	}
 
-	generateMyGOFRList() {
-		return this.http.get<{gofr: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-occupants-list/`);
+	generateMyGOFRList(archivedUsers?) {
+		if (archivedUsers) {
+			const httpParams = new HttpParams().set('archived', '1');
+			this.options['params'] = httpParams;
+			return this.http.get<{gofr: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-occupants-list/`, this.options);
+		} else {
+			return this.http.get<{gofr: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-occupants-list/`);
+		}
+		
 	}
 
-	generateAdminUserList() {
-		return this.http.get<{account_users: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-admin-list/`);
+	generateAdminUserList(archivedUsers?) {
+		if (archivedUsers) {
+			this.options['params'] = {};
+			const httpParams = new HttpParams().set('archived', '1');
+			this.options['params'] = httpParams;
+			return this.http.get<{account_users: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-admin-list/`, this.options);
+		} else {
+			return this.http.get<{account_users: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-admin-list/`);
+		}
 	}
 
 	generatePeepList() {
