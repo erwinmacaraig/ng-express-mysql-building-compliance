@@ -112,9 +112,12 @@
               </select>
             </td>
             <td>
-                <select formControlName="sublocation_id" style="display: block;" id="sublocation_id-{{i}}">
+                <select formControlName="sublocation_id" style="display: block;" id="sublocation_id-{{i}}" (change)="showAddLocationRow($event, i)">
                   <optgroup *ngFor="let parent of parentLocationOptionGroup" label="{{parent['parent_location_name']}}">
                       <option *ngFor="let sub of parent['sublocations']" [value]="sub.id">{{sub.name}}</option>
+                  </optgroup>
+                  <optgroup label="Location not in list">
+                    <option value="0">Add New Location</option>
                   </optgroup>
                 </select>
             </td>
@@ -146,6 +149,22 @@
                 <button type="button" class="checked-icon hover-grow" (click)="confirmException(i)"></button>
             </td>
           </tr>
+          <!--New Location row-
+          <tr [hidden]="showAddNewLocationCtrl[i]">
+            <td colspan="3">
+              <select class="browser-default" id="buildingContainerForNewLevel-{{i}}">
+                <option [value]="null" [disabled]="true == true">Choose Building</option>
+                <option *ngFor="let bldg of buildingContainerForNewLevel[i]" [value]="bldg['location_id']">{{bldg.name}}</option>
+            </select>
+            </td>
+            <td colspan="3">
+              <input id="newLevelForBuilding-{{i}}" type="text" placeholder="Enter new sub location" autocomplete="off">
+            </td>
+            <td>
+              <button type="button" class="expired-icon hover-grow" (click)="showAddNewLocationCtrl[i] = 1"></button>              
+            </td>
+          </tr> -->
+
         </tbody>
         <tfoot>          
           <tr>
@@ -217,4 +236,67 @@
     <a class="modal-close waves-effect waves-red btn-flat">OK</a>
   </div>
 </div>
+
+<div id="modalConfirmation" class="modal modal-fixed-footer">
+    <div class="modal-content">  
+        <h4>Confirmation</h4>  
+      <div>
+          <h5>{{confirmation_title}}</h5>           
+      </div>
+      <div>
+        <h6>{{confirmation_message}}</h6>        
+      </div>
+      
+    </div>
+    <div class="modal-footer">
+      <a class="modal-close waves-effect waves-red btn-flat">OK</a>
+    </div>
+</div>
+
+<div id="modalNewLocation" class="modal modal-fixed-footer">
+  <form #newLocForm="ngForm">
+      <div class="modal-content" [hidden]="showModalNewLocation">
+          <div class="center" style="padding: 8%;">
+              <div class="preloader-wrapper active" >
+                  <div class="spinner-layer spinner-red-only">
+                      <div class="circle-clipper left">
+                          <div class="circle"></div>
+                      </div>
+                      <div class="gap-patch">
+                          <div class="circle"></div>
+                      </div>
+                      <div class="circle-clipper right">
+                          <div class="circle"></div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    
+      <div class="modal-content" [hidden]="!showModalNewLocation">  
+          <h4>Add New Location</h4>  
+        <label for="buildingContainer">Choose from the list of buildings below:</label>
+        <div class="building-container-selection">          
+          <select class="browser-default" id="buildingContainer" name="buildingContainer" #buildingSelection required ngModel> 
+            <option [disabled]="true == true">Choose Building</option>
+            <option *ngFor="let bldg of buildings" [value]="bldg['location_id']">{{bldg.name}}</option>
+          </select>
+        </div>
+        <div class="new-level-container">
+          <input style="width: 100%; height: 3rem; border: none;" class="browser-default" id="newLevelForBuilding" name="newLevelForBuilding" type="text" placeholder="Enter new sub location" autocomplete="off" #newLevelInput required ngModel>
+          
+        </div>    
+      </div>
+      <div class="modal-footer" [hidden]="!showModalNewLocation">
+        <div style="padding-right: 18px;">
+            <a class="modal-close waves-effect waves-red btn-flat">Cancel</a>
+            <button [disabled]="!newLocForm.valid" type="button" (click)="submitNewLevelCreation()" class="btn orange waves-light waves-effect">Submit</button> <!--[disabled]="formProfile.invalid"-->
+        </div>
+      </div>      
+  </form>
+
+  
+</div>
+
+
 <div preloader></div>

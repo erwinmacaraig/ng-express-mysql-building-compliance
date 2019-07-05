@@ -1,4 +1,4 @@
-.modal { max-height: 25% !important;
+.modal { max-height: 35% !important;
      overflow-y: hidden !important ;
 }  
 /* increase the width, height and prevent vertical scroll! 
@@ -289,3 +289,18 @@ td.paper-attendance {
     background-color: #f1f1f1;
 }
 
+.building-container-selection {
+    margin-bottom: 20px;
+    background-color: #f0f0f0;
+    border: 1px solid #f0f0f0;
+    border-radius: 5px;
+    height: 60px;
+    vertical-align: middle;
+    padding: 5px;
+}
+
+.new-level-container {
+    padding: 5px;
+    border: 1px solid #f0f0f0;
+    border-radius: 5px;
+}
