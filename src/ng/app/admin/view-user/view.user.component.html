@@ -58,7 +58,7 @@
                 <li (click)="selectTab('rolesLocations')" [ngClass]="{ active : activeLink == 'rolesLocations' }"> Roles & Locations </li>
                 <li (click)="selectTab('credentials')" [ngClass]="{ active : activeLink == 'credentials' }"> Credentials </li>
                 <li (click)="selectTab('information')" [ngClass]="{ active : activeLink == 'information' }"> Information </li>
-                <!-- <li (click)="selectTab('trainings')" [ngClass]="{ active : activeLink == 'trainings' }"> Trainings </li> -->
+                <li (click)="selectTab('trainings')" [ngClass]="{ active : activeLink == 'trainings' }"> Training History </li>
             </ul>
         </div>
     </div>
@@ -143,24 +143,26 @@
         <table class="table striped">
             <thead>
                 <tr>
-                    <th>Training Id</th>
-                    <th>Training Name</th>
-                    <th>Course Id</th>
-                    <th>Course</th>
-                    <th>Role</th>
+                    <th>Competency</th>
+                    <th>Training Type</th>
+                    <th>Training Location</th>
+                    <th>Date of Training</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
 
-                <tr *ngIf="trainings.length == 0">
+                <tr *ngIf="certificates.length == 0">
                     <td colspan="5" class="center">No record found</td>
                 </tr>
-                <tr *ngFor="let tr of trainings">
-                    <td>{{tr.training_requirement_id}}</td>
-                    <td>{{tr.training_requirement_name}}</td>
-                    <td>{{tr.course_id}}</td>
-                    <td>{{tr.course_name}}</td>
-                    <td>{{tr.role_name}}</td>
+                <tr *ngFor="let cert of certificates">
+                    <td><span class="text"> {{cert['training_requirement_name']}} </span></td>
+                    <td><span class="text"> {{cert['training_type']}} </span></td>
+                    <td><span class="text" *ngIf="cert['course_method']=='offline_by_evac'"> {{cert['location_name']}} </span></td>
+                    <td><span class="text"> {{ cert['certification_date'] | date: 'MM/dd/yyyy' }} </span></td>
+                    <td>
+                        <a [routerLink]="['/certificate', cert['encryptedCertId']]" target="_blank" class="">Download</a>                        
+                    </td>
                 </tr>
             </tbody>
         </table>

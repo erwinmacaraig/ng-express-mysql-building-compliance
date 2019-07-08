@@ -44,6 +44,7 @@ import * as fs from 'fs';
 import * as AWS from 'aws-sdk';
 import * as async from 'async';
 import * as PDFDocument from 'pdfkit';
+import { freemem } from 'os';
 
 export class AdminRoute extends BaseRoute {
 
@@ -764,6 +765,13 @@ export class AdminRoute extends BaseRoute {
               });
               accountId = accountObj.ID();
 
+              await new AccountSubscription().create({
+                account_id: accountId,
+                type: 'free',
+                bulk_license_total: 0,
+                enabled: 1
+              });
+
               // tag this new account to location_account_relation
               try {
                 await locationAccntRel.getLocationAccountRelation({
@@ -830,21 +838,6 @@ export class AdminRoute extends BaseRoute {
                 } catch (e) {
                     console.log('Cannot create entry in db');
                 }
-                /*
-                try {
-                  await locationAccntRel.getLocationAccountRelation({
-                      'location_id': u['location_id'],
-                      'account_id': accountId,
-                      'responsibility': defs['role_text'][u['role_id']]
-                  });
-                } catch (err) {
-                  await locationAccntRel.create({
-                    'location_id': u['location_id'],
-                    'account_id': accountId,
-                    'responsibility': defs['role_text'][u['role_id']]
-                  });
-                }
-                */
                 // User Role Relation
                 const userRoleRelObj = new UserRoleRelation();
                 let accountRole = [];
