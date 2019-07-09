@@ -815,7 +815,9 @@ export class Account extends BaseClass {
                     users.first_name,
                     users.last_name,
                     users.email,
-                    users.mobile_number,                     
+                    users.mobile_number, 
+                    user_role_relation.role_id,
+                    IF (user_role_relation.role_id = 1, 'FRP', 'TRP') AS account_role,                    
                     accounts.account_id,
                     accounts.account_name,                     
                     locations.location_id,
@@ -826,7 +828,8 @@ export class Account extends BaseClass {
                     INNER JOIN accounts ON users.account_id = accounts.account_id                                                         
                     LEFT JOIN location_account_user
                     ON
-                    location_account_user.user_id = users.user_id                    
+                    location_account_user.user_id = users.user_id
+                    LEFT JOIN user_role_relation ON users.user_id = user_role_relation.user_id                    
                     LEFT JOIN
                     locations
                     ON
@@ -885,7 +888,7 @@ export class Account extends BaseClass {
                     users.mobile_number,
                     accounts.account_id,
                     accounts.account_name,
-                    user_em_roles_relation.em_role_id as role_id,
+                    user_em_roles_relation.em_role_id as role_id,                   
                     em_roles.role_name,
                     locations.location_id,
                     locations.name,

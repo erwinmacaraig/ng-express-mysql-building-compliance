@@ -1363,9 +1363,10 @@ export class AdminRoute extends BaseRoute {
           role_id: role_id,
           account_role: account_role
         };
-      }
-      */
+      }*/
+      
       allUsers = await account.generateAdminAccountUsers(req.params.accountId, selectedUsers);
+      /*
       try {            
         roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.params.accountId);            
       } catch(err) {
@@ -1381,7 +1382,7 @@ export class AdminRoute extends BaseRoute {
           // allUsers[i]['account_role'] = 'FRP';
         }
       }
-
+      */
       allUsers = allUsers.concat(await account.generateAdminEMUsers(req.params.accountId, selectedUsers));
       // console.log(allUsers);
       const accountUsers = [];
@@ -1453,8 +1454,8 @@ export class AdminRoute extends BaseRoute {
             'allAccountRoles': []
           };
 
-          if (allUsers[i]['role_id'] != null && allUsers[i]['role_id'] < 3 && (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).indexOf(allUsers[i]['role_id']) == -1) {
-            allUserObject[allUsers[i]['user_id']]['allAccountRoles'].push(allUsers[i]['role_id']);
+          if (allUsers[i]['role_id'] != null && parseInt(allUsers[i]['role_id']) < 3 && (allUserObject[allUsers[i]['user_id']]['allAccountRoles']).indexOf(parseInt(allUsers[i]['role_id'])) == -1) {
+            allUserObject[allUsers[i]['user_id']]['allAccountRoles'].push(parseInt(allUsers[i]['role_id']));
           }
           // console.log(typeof allUsers[i]['location_id']);
           // console.log(allUsers[i]['location_id'] === null);
@@ -1487,6 +1488,7 @@ export class AdminRoute extends BaseRoute {
           }
         }
       }
+      
       Object.keys(allUserObject).forEach((key) => {
         if (Object.keys(allUserObject[key]['locations']).length > 0) {
           allUserObject[key]['locations-arr'] =
@@ -1494,7 +1496,7 @@ export class AdminRoute extends BaseRoute {
               return allUserObject[key]['locations'][k];
             });
         }
-        accountUsers.push(allUserObject[key]);
+        accountUsers.push(allUserObject[key]);        
       });
 
       return res.status(200).send({
@@ -3379,27 +3381,35 @@ export class AdminRoute extends BaseRoute {
             userAccountRoles  = await accountModel.generateAdminAccountUsers(user['account_id'], [user['user_id']]);          
             for (let i = 0; i < userAccountRoles.length; i++) {
               if (userAccountRoles[i]['location_id'] in roleOfAccountInLocationObj) {
-                userAccountRoles[i]['role_id'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['role_id'];
-                userAccountRoles[i]['account_role'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['account_role'];
-                userAccountInfo.push(userAccountRoles[i]);
+                //userAccountRoles[i]['role_id'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['role_id'];
+                //userAccountRoles[i]['account_role'] = roleOfAccountInLocationObj[userAccountRoles[i]['location_id']]['account_role'];
+                //userAccountInfo.push(userAccountRoles[i]);
               } else {
                 //userAccountInfo[i]['role_id'] = 1;
                 //userAccountInfo[i]['account_role'] = 'FRP';
                 //userAccountInfo.splice(i,1);
               }
+              userAccountInfo.push(userAccountRoles[i]);
             }
+
+            
             
             const userEmergencyInfo = await accountModel.generateAdminEMUsers(user['account_id'], [user['user_id']]);           
             const locationRoles = [];
             const locationRolesObj = {};
 
             for(let loc of userAccountInfo) {
-                let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;                
-                locationRolesObj[loc['location_id']] = {
-                  location_id: loc['location_id'],
-                  location_role: [loc['account_role']],
-                  location_name: name 
-                };
+                let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;
+                if (loc['location_id'] in locationRolesObj) {
+                  (locationRolesObj[loc['location_id']]['location_role']).push(loc['account_role']);
+                } else {
+                  locationRolesObj[loc['location_id']] = {
+                    location_id: loc['location_id'],
+                    location_role: [loc['account_role']],
+                    location_name: name 
+                  };
+                }
+                
             }
             for(let loc of userEmergencyInfo) {
               let name = loc['parent_name'] != null ? `${loc['parent_name']}, ${loc['name']}` : `${loc['name']}`;
