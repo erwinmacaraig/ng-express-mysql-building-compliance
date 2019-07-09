@@ -4,6 +4,7 @@ import { environment } from '../../environments/environment';
 import { PlatformLocation } from '@angular/common';
 import { Observable } from 'rxjs/Rx';
 import { AuthService } from './auth.service';
+import { newBuildingLevelPostBody } from '../models/post_interfaces';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 
@@ -16,10 +17,11 @@ export class LocationsService {
     private baseUrl: String;
     public dataStore: Object;
 
+    
+
     constructor(private http: HttpClient, platformLocation: PlatformLocation, private authService: AuthService) {
         this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
         this.options = { headers : this.headers };
-        
 		this.baseUrl = environment.backendUrl;
     }
 
@@ -324,5 +326,13 @@ export class LocationsService {
 
     public listLocationsForAccountUser() {
         return this.http.get<{message: string, locations: Object[]}>(`${this.baseUrl}/location/list-account-user-locations/`);
+    }
+
+    public newSubLocation(postBody:newBuildingLevelPostBody) {        
+        return this.http.post<{
+            message: string,
+            sublocation_id: number,
+            building_id: number
+        }>(`${this.baseUrl}/location/create-new-sublevel/`, postBody);
     }
 }

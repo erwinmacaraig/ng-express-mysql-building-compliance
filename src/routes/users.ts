@@ -527,7 +527,7 @@ export class UsersRoute extends BaseRoute {
         } catch(e) {
             console.log(' teams route, error getting in location account user data', e);
         }
-        console.log(locationIds);
+        
         // get parent location details for trpLocations
         let locationArr = [];
         let uniqLoc = [];

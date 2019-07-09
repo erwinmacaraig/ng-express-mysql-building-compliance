@@ -6,6 +6,8 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { UserService } from '../../services/users';
 import { Subscription } from 'rxjs/Rx';
 import { HttpErrorResponse } from '@angular/common/http';
+import { EncryptDecryptService } from '../../services/encrypt.decrypt';
+
 declare var $: any;
 declare var moment: any;
 declare var Materialize: any;
@@ -14,7 +16,7 @@ declare var Materialize: any;
     selector: 'app-admin-view-user',
     templateUrl: './view.user.component.html',
     styleUrls: ['./view.user.component.css'],
-    providers: [ AdminService, DashboardPreloaderService, UserService ]
+    providers: [ AdminService, DashboardPreloaderService, UserService, EncryptDecryptService ]
 })
 
 export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy {
@@ -44,7 +46,7 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
         phone_number: null,
         user_id: null
     };
-
+    public certificates = [];
     accounts: object[] = [];; 
     trainings = <any> [];
     accountLocationRoles = [];
@@ -55,6 +57,7 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
         public adminService: AdminService,
         public dashboard: DashboardPreloaderService,
         private router: Router,
+        private encryptor : EncryptDecryptService,
         private userService: UserService
         ) {
     }
@@ -95,6 +98,16 @@ export class AdminViewUserComponent implements OnInit, AfterViewInit, OnDestroy 
                 this.accounts = response.accounts;
             }, (error) => {
                 this.accounts = [];
+                console.log(error);
+            });
+
+            this.userService.userTrainingInfo(this.userId).subscribe((response) => {
+                // this.certificates = response.certificates;
+                for (let cert of response.certificates) {
+                    cert['encryptedCertId'] = this.encryptor.encrypt(cert['certifications_id']);
+                    this.certificates.push(cert);
+                }
+            }, (error) => {
                 console.log(error);
             });
 

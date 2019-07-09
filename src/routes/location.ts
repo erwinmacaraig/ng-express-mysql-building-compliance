@@ -42,7 +42,7 @@ const defs = require('../config/defs.json');
 	public static create(router: Router) {
 	   	// add route
 
-      router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        router.get('/location/get/:location_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 
         new LocationRoute().getLocation(req, res).then((data) => {
           return res.status(200).send(data);
@@ -55,7 +55,7 @@ const defs = require('../config/defs.json');
 	   	});
 
 
-      router.get('/location/get-with-queries', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        router.get('/location/get-with-queries', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
 
         new LocationRoute().getLocation(req, res).then((data) => {
           return res.status(200).send(data);
@@ -65,7 +65,7 @@ const defs = require('../config/defs.json');
               message: 'No location found'
             });
          });
-           })
+        });
 
         router.post('/location/assign-location', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
             new LocationRoute().assignSubLocation(req, res).then((data) => {
@@ -77,13 +77,13 @@ const defs = require('../config/defs.json');
             });
         });
 
-      router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
+        router.get('/location/get-by-account/:account_id', (req: Request, res: Response, next: NextFunction) => {
         new LocationRoute().getByAccountId(req, res, next);
-      });
+        });
 
-      router.get('/location/get-by-userid-accountid/:user_id/:account_id', (req: Request, res: Response, next: NextFunction) => {
+        router.get('/location/get-by-userid-accountid/:user_id/:account_id', (req: Request, res: Response, next: NextFunction) => {
         new LocationRoute().getByUserIdAndAccountId(req, res, next);
-      });
+        });
 
         router.post('/location/get-parent-locations-by-account-id-paginated', new MiddlewareAuth().authenticate, async(req: AuthRequest, res: Response) => {
             new LocationRoute().getParentLocationsByAccount(req, res, 0, true).then((data) => {
@@ -206,17 +206,17 @@ const defs = require('../config/defs.json');
             });
         });
 
-      router.get('/location/get-sublocations-of-parent/:parent_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().getSublocationsOfParent(req, res)
-      });
+         router.get('/location/get-sublocations-of-parent/:parent_id', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+            new LocationRoute().getSublocationsOfParent(req, res)
+        });
 
-      router.post('/location/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
-        new LocationRoute().updateLocation(req, res);
-      });
+        router.post('/location/update', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+          new LocationRoute().updateLocation(req, res);
+        });
 
-      router.post('/location/add-account', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+        router.post('/location/add-account', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
           new LocationRoute().addAccountToLocation(req, res);
-      });
+        });
 
       router.post('/location/remove-account', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
           new LocationRoute().removeAccountFromLocation(req, res);
@@ -274,7 +274,10 @@ const defs = require('../config/defs.json');
             new LocationRoute().listLocationsAssignedToAccountUser(req, res);
         });
         
-
+        router.post('/location/create-new-sublevel/', new MiddlewareAuth().authenticate,
+        (req:AuthRequest, res:Response) => {
+            new LocationRoute().createNewSubLocation(req, res);
+        });
       
 
 
@@ -290,6 +293,67 @@ const defs = require('../config/defs.json');
   	*/
   	constructor() {
   		super();
+    }
+
+    public async createNewSubLocation(req: AuthRequest, res: Response) {
+        const parentId = req.body.building_id;
+        const sublocation_name = req.body.name;
+        const account_role = req.body.account_role;
+        const account_id = req.body.account_id;
+        let subData = {};
+        let temp = await new Location().getChildren(parentId);
+        let parentData = await new Location(parentId).load();
+        for (let loc of temp) {
+            if (loc['name'].toUpperCase() === sublocation_name.toUpperCase()) {
+                return res.status(500).send({
+                    message: 'Location name existing'
+                });
+            }
+        }
+        subData['name'] = sublocation_name;
+        subData['parent_id'] = parentId;
+        subData['order'] = null;
+        subData['admin_verified'] = 1;
+        subData['is_building'] = 0;
+        subData['street'] = parentData['street'];
+        subData['city'] = parentData['city'];
+        subData['state'] = parentData['state'];
+        subData['formatted_address'] = parentData['formatted_address'];
+
+        subData['admin_verified'] = 1;
+        subData['admin_verified_date'] = moment().format('YYYY-MM-DD');
+        subData['admin_id'] = 0;
+        try {
+            const locationSub = new Location();
+            await locationSub.create(subData);
+            subData['location_id'] = locationSub.ID();
+
+        } catch(e) {
+            console.log(e);
+            return res.status(500).send({
+                message: 'There was an error creating sublocation ' + sublocation_name
+            });
+        }    
+        try {
+           await new LocationAccountRelation().create({
+                'location_id': subData['location_id'],
+				'account_id': account_id,
+				'responsibility': account_role
+           });
+
+           return res.status(200).send({
+               message: 'Sub level created successfully',
+               sublocation_id: subData['location_id'],
+               building_id: parentId
+           });
+
+        } catch(e) {
+            console.log(e);
+            return res.status(500).send({
+                message: 'Faile. Cannot establish location account relation'
+            });
+        }   
+
     }
 
     public async listLocationsAssignedToAccountUser(req: AuthRequest, res: Response) {

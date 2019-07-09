@@ -12,6 +12,8 @@ import { ComponentCanDeactivate } from '../../models/component-can-deactivate';
 import { Observable } from 'rxjs/Observable';
 import { environment } from '../../../environments/environment';
 import { AdminService } from './../../services/admin.service';
+import { LocationsService } from './../../services/locations';
+import { newBuildingLevelPostBody } from './../../models/post_interfaces';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 declare var moment: any;
 declare var $: any;
@@ -20,7 +22,7 @@ declare var $: any;
   selector: 'app-admin-training-validation',
   templateUrl: './training-validation.component.html',
   styleUrls: ['./training-validation.component.css'],
-  providers: [AdminService, DashboardPreloaderService]
+  providers: [AdminService, DashboardPreloaderService, LocationsService]
 })
 
 export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDestroy, ComponentCanDeactivate  {
@@ -37,6 +39,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   validUsers: Array<string> = [];
   invalidUsers: Array<string> = [];
   takenEmailAddress: Array<string> = [];
+  showModalNewLocation = true;
 
   smartSearchSelection: string;
   smartSearchSelectionId: number = 0;
@@ -53,7 +56,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   genericEmailSearchSub: Subscription[] = [];
   genericAccountSearchSub: Subscription[] = [];
   buildings = [];
-  buildingsForNewUser = [];
+  public buildingContainer = null;
   options: DatepickerOptions = {
     displayFormat: 'YYYY-MM-DD',
     maxDate: new Date(Date.now())
@@ -75,6 +78,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   initialAccountName = null;
   selectedAccountId = 0;
   exceptionCtrl = [];
+  
+  private account_for_new_location;
   roles = [
     {
       role_id: 1,
@@ -132,17 +137,24 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
   ];
   addedUserExceptions: object = {};
   ngDateObjects = [];
+  newLocationBtnCtrl = true;
   showDateSelection = [];
   private baseUrl: string;
   httpEmitter: Subscription;
   httpEvent: any;
   hasUnsavedData: boolean = true;
+  confirmation_title = '';
+  confirmation_message = '';
+  newLevelCheck = true;
   @ViewChild('fileInput') fileInput: ElementRef;
   @ViewChild('datepickeroverall') datepickeroverall: ElementRef;
-  
+  @ViewChild('buildingSelection') buildingSelection: ElementRef;
+  @ViewChild('newLevelInput') newLevelInput: ElementRef;
+
   constructor(private adminService: AdminService, private formBuilder: FormBuilder,
     public dashboard: DashboardPreloaderService,
     private platformLocation: PlatformLocation,
+    private locationService: LocationsService,
     public http: HttpClient) {
       this.baseUrl = environment.backendUrl;
     }
@@ -306,6 +318,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.filteredAccountList = [];
       this.users = [];
       this.exceptionCtrl = [];
+      
       this.searchLocationField.setValue(accountName);
       this.genericSub = this.smartSearch();
       let temp = [];
@@ -353,8 +366,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           this.levelUsers = this.userForm.get('levelUsers') as FormArray;
           this.assignSearchEmailAbility();
           this.searchAccount();
-          this.exceptionCtrl.push(1);
-  
+          this.exceptionCtrl.push(1);                    
         // }
       });
   
@@ -362,8 +374,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         this.buildings = response['data']['buildings'];
         this.parentLocationOptionGroup = response['data']['levels'];
         console.log(this.parentLocationOptionGroup);
-        this.parentLocationOptionGroupForNewUser = response['data']['levels'];
-        this.buildingsForNewUser = response['data']['buildings'];
+        this.parentLocationOptionGroupForNewUser = response['data']['levels'];        
       });
   
   
@@ -379,6 +390,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.filteredAccountList = [];
       this.genericSub = this.smartSearch();
       this.exceptionCtrl = [];
+      
       this.adminService.getLocationLevelUsers(this.locationId.toString()).subscribe((response) => {
         this.users = response['users'];
         console.log(response['sublocations']);
@@ -404,6 +416,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
           this.assignSearchEmailAbility();
           this.searchAccount();
           this.exceptionCtrl.push(1);
+          
         // }
         // console.log(this.users);
       });
@@ -414,11 +427,16 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.smartSearchSelection = type;
   
       if (type == 'location') {
+        this.buildings = []; // reset if user chooses a different building
         this.getLocationSelection(id, name);
         this.accountIdForAddUser = 0;
         this.accountSearchResults = [];
         this.selectedAccountId = 0;
         this.initialAccountName = null;
+        this.buildings.push({
+          location_id: id,
+          name: name
+        });
       } else {
         this.getAccountSelection(id, name);
         this.accountIdForAddUser = id;
@@ -497,6 +515,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       }
       (<FormArray>this.userForm.get('levelUsers')).removeAt(0);
       this.exceptionCtrl = [];
+      
     }
   
     public removeUser(index: number = 1) {
@@ -504,7 +523,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.genericAccountSearchSub[index].unsubscribe();
       (<FormArray>this.userForm.get('levelUsers')).removeAt(index);
       this.exceptionCtrl.splice(index, 1);
-      
+     
     }
   
     setDatePickerDefaultDate() {
@@ -550,7 +569,8 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       const formUserControls = (<FormArray>this.userForm.get('levelUsers')).controls;
       const locationsOfSelectedUsers = [];
       
-      for (const ctrl of formUserControls) {
+      for (let i = 0; i < formUserControls.length; i++) {
+        const ctrl = formUserControls[i];
         values.push({
           email: ctrl.get('email').value,
           user_id: ctrl.get('user_id').value,
@@ -569,7 +589,9 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         if (locationsOfSelectedUsers.indexOf(ctrl.get('sublocation_id').value) == -1) {
           locationsOfSelectedUsers.push(ctrl.get('sublocation_id').value);
         }
-      }
+        
+
+      } console.log(values); this.dashboard.hide();
   
       Object.keys(this.addedUserExceptions).forEach((key) => {        
         values.push({
@@ -588,7 +610,6 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         if (locationsOfSelectedUsers.indexOf(this.addedUserExceptions[key]['sublocation_id']) == -1)  {
             locationsOfSelectedUsers.push(this.addedUserExceptions[key]['sublocation_id']);
         }
-
       });
   
       this.genericSub.unsubscribe();
@@ -596,6 +617,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
       this.searchLocationField.reset();
       // console.log(JSON.stringify(values));
   
+      
       this.cancelUserForm();
       this.exceptionCtrl = [];
       
@@ -725,6 +747,7 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
         course_method: 'offline_by_evac',
       };
       this.exceptionCtrl[index] = 1;
+      
       console.log(this.addedUserExceptions);
   
     }
@@ -787,4 +810,71 @@ export class TrainingValidationComponent implements OnInit, AfterViewInit, OnDes
     }
     
   
+    public showAddLocationRow(e, index=-1) {      
+      this.account_for_new_location = 0;
+      if (parseInt(e.target.value, 10) == 0) {        
+        // clear selection here
+        (<FormArray>this.userForm.get('levelUsers')).controls[index].get('sublocation_id').setValue(null);
+        this.account_for_new_location = (<FormArray>this.userForm.get('levelUsers')).controls[index].get('accountId').value;
+        $('#modalNewLocation').modal('open');
+      } 
+    }
+
+    public submitNewLevelCreation() {
+      
+      if (this.newLevelInput.nativeElement.value == '') {
+        this.newLevelCheck = false;
+        return;
+      }
+
+      if (this.account_for_new_location == 0) {
+        this.confirmation_title = 'Non-Existing Account For New Location';
+        this.confirmation_message = `Creating a new location for non-existing account is not allowed.`;
+        $('#modalNewLocation').modal('close');
+        $('#modalConfirmation').modal('open'); 
+        return;
+      }
+      
+      let newLevelInfo:newBuildingLevelPostBody = {
+        account_id: this.account_for_new_location,
+        account_role: 'Tenant',
+        building_id: this.buildingSelection.nativeElement.value,
+        name: this.newLevelInput.nativeElement.value
+      };
+      this.showModalNewLocation = false;
+      
+      this.locationService.newSubLocation(newLevelInfo).subscribe((response) => {
+
+        for (let p of this.parentLocationOptionGroup) {
+          if (p['parent_location_id'] == newLevelInfo.building_id) {
+            p['sublocations'].push({
+              id: response.sublocation_id,
+              name: newLevelInfo.name
+            });
+          }
+        }
+        
+        this.confirmation_title = 'New Location Successfully Added';
+        this.confirmation_message = `${newLevelInfo.name} was added.`;
+        setTimeout(() => {
+          this.showModalNewLocation = true; 
+          $('#modalNewLocation').modal('close');           
+        }, 1000);
+        
+        setTimeout(() => {           
+          $('#modalConfirmation').modal('open'); 
+        }, 1200);
+        this.buildingSelection.nativeElement.value = null;
+        this.newLevelInput.nativeElement.value = '';
+        
+      }, (error) => {
+        console.log(error);
+        this.confirmation_title = 'New Location Was Not Added';
+        this.confirmation_message = `There was an error creating ${newLevelInfo.name} location.`;        
+        this.showModalNewLocation = true;
+        $('#modalNewLocation').modal('close');
+        $('#modalConfirmation').modal('open'); 
+      });
+
+    }
   }

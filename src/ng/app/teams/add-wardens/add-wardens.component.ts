@@ -136,7 +136,7 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
             this.dashboardPreloaderService.hide();
             this.addMoreRow();
 
-            console.log(response.hierarchy);
+            // console.log(response.hierarchy);
         }, (err) => {
             this.dashboardPreloaderService.hide(); 
         });
@@ -301,27 +301,28 @@ export class TeamsAddWardenComponent implements OnInit, OnDestroy {
                 
             let findRelatedName = (data) => {
                 let results = [];
-                for(let d of data){
-                    let name = d.name.trim().toLowerCase();
-                    name = name.replace(/[^a-zA-Z 0-9]/g, "");
-                    if(name.indexOf(value) > -1){                        
-                        //d['sublocations'] = [];
-                        //console.log(d);
-                        results.push(d);
-                    }
-                    try {
-                        if(d.sublocations.length > 0){
-                            let related = findRelatedName(d.sublocations);
-                            for(let i in related) {
-                                related[i]['name'] = `${related[i]['name']}, ${d['name']}`;
-                                results.push(related[i]);                                
-                            }
+                for(let d of data) { 
+                    if (d.name) {
+                        let name = d.name.trim().toLowerCase();
+                        name = name.replace(/[^a-zA-Z 0-9]/g, "");
+                        if(name.indexOf(value) > -1){                        
+                            //d['sublocations'] = [];
+                            //console.log(d);
+                            results.push(d);
                         }
-
-                    } catch(e) {
-                        console.log('No sublocation');
+                        try {
+                            if(d.sublocations.length > 0){
+                                let related = findRelatedName(d.sublocations);
+                                for(let i in related) {
+                                    related[i]['name'] = `${related[i]['name']}, ${d['name']}`;
+                                    results.push(related[i]);                                
+                                }
+                            }
+    
+                        } catch(e) {
+                            console.log('No sublocation');
+                        }
                     }
-                    
                 }
 
                 return results;
