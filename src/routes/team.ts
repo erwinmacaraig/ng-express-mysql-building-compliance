@@ -1531,35 +1531,7 @@ export class TeamRoute extends BaseRoute {
                 );
         }
         return true;
-        /*
-        const em_role = (data[i]['eco_role']).toUpperCase();
-              // email and create
-              const userInvitation = new UserInvitation();
-              const tokenModel = new Token();
-              const tokenStr = tokenModel.generateRandomChars(10);
-              await userInvitation.create({
-                'first_name': data[i]['first_name'],
-                'last_name': data[i]['last_name'],
-                'email': data[i]['email'],
-                'location_id': 0,
-                'account_id': req.user.account_id,
-                'role_id': 0,
-                'eco_role_id': defs['em_roles'][em_role],
-                'contact_number': data[i]['mobile_number'],
-                'phone_number': data[i]['phone_number'],
-                'invited_by_user': req.user.user_id
-              });
-              const expDate = moment().format('YYYY-MM-DD HH-mm-ss');
-              await tokenModel.create({
-                'token': tokenStr,
-                'action': 'invitation',
-                'verified': 0,
-                'expiration_date': expDate,
-                'id': userInvitation.ID(),
-                'id_type': 'user_invitations_id'
-              });
-
-              */
+        
     }
 
     public async addMobilityImpairedPersons(req: AuthRequest, res: Response) {
