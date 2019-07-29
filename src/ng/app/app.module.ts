@@ -36,7 +36,7 @@ import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
 import { SendInviteComponent } from './dashboard/send-invite/send.invite';
-import { SetupCompanyComponent } from './setupcompany/setup.company.component';
+
 
 import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component';
@@ -186,8 +186,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     TenantInvitationFormComponent,
     ProfileCompletionComponent,
     SignoutComponent,
-    CompanyInformationComponent,
-    SetupCompanyComponent,
+    CompanyInformationComponent,    
     PersonInfoComponent,
     EmailSuccessVerficiationComponent,
     WardenSignupComponent,
@@ -197,7 +196,6 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     CustomHttpDataProviderComponent,
     NoemailComponent,
     LocationSignupComponent,
-
     SublocationComponent,
     SearchLocationComponent,
     // todo: move to location module

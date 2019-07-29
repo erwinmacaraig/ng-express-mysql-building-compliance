@@ -7,7 +7,7 @@ import { UserRoleRelation } from '../models/user.role.relation.model';
 import { UserEmRoleRelation } from '../models/user.em.role.relation';
 import { Files } from '../models/files.model';
 import { Token } from '../models/token.model';
-import { Utils } from '../models/utils.model';
+import { Location } from '../models/location.model';
 
 import * as jwt from 'jsonwebtoken';
 import * as moment from 'moment';
@@ -48,6 +48,9 @@ export class AuthenticateLoginRoute extends BaseRoute {
         process.env.KEY, { expiresIn: signedInExpiry }
         );
 
+        const myLocationIds = [];
+        const buildings = [];
+
         let response = {
             status: 'Authentication Success',
             message: 'Successfully logged in',
@@ -67,7 +70,8 @@ export class AuthenticateLoginRoute extends BaseRoute {
                 roles : [],
                 profilePic : '',
                 account_roles: {},
-                subscription: {}
+                subscription: {},
+                buildings: []
             }
         };
         let roleOfAccountInLocationObj = {};
@@ -83,18 +87,20 @@ export class AuthenticateLoginRoute extends BaseRoute {
         } catch (e) {
             response.data['account_has_online_training'] = 0;
         }
-
+        fileData = false;
+        /*
         try{
             fileData = <any> await fileModel.getByUserIdAndType(userModel.get('user_id'), 'profile');
             fileData[0].url = await new Utils().getAWSSignedURL(`${fileData[0].directory}/${fileData[0].file_name}`);
         }catch(e){
             fileData = false;
         }
+        
 
         if(fileData !== false){
             response.data.profilePic = fileData[0].url;
         }
-
+        */
         try{
             wardenRoles = <any> await new UserEmRoleRelation().getEmRolesByUserId(userModel.get('user_id'));
             for(let role of wardenRoles){
@@ -104,6 +110,7 @@ export class AuthenticateLoginRoute extends BaseRoute {
                     role_name : role['role_name'],
                     is_warden_role : role['is_warden_role']
                 });
+                myLocationIds.push(role['location_id']);
             }
         }catch(e){ }
 
@@ -143,10 +150,27 @@ export class AuthenticateLoginRoute extends BaseRoute {
                         location_id: data['location_id'],
                         user_id:userModel.get('user_id') 
                     });
+                    myLocationIds.push(data['location_id']);
                 }
             }
         } catch(e) {
             console.log(' authenticate route, error getting in location account user data', e);
+        }
+
+        try {
+            // get building locations
+
+            let temp = await new Location().immediateParent(myLocationIds);
+            for (let loc of temp) {
+                if (loc['buildingId'] == null && buildings.indexOf(loc['locId']) == -1) {
+                    buildings.push(loc['locId']);
+                } else if (loc['buildingId'] !== null && buildings.indexOf(loc['buildingId']) == -1) {
+                    buildings.push(loc['buildingId']);
+                }
+            }
+            response.data.buildings = buildings;
+        } catch(e) {
+           console.log(e);
         }
 
         try {

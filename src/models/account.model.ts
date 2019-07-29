@@ -166,7 +166,7 @@ export class Account extends BaseClass {
                 resolve(subscription);
                 return;
             }).catch((e) => {
-                console.log('There is a problem with getting account subscription, resolving to free subscription', e);
+                console.log('There is a problem with getting account subscription, resolving to free subscription');
                 resolve(subscription);
                 return;
             });

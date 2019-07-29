@@ -17,7 +17,7 @@ import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
 import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
 import { SendInviteComponent } from './dashboard/send-invite/send.invite';
-import { SetupCompanyComponent } from './setupcompany/setup.company.component';
+
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
 import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
@@ -176,7 +176,7 @@ const appRoutes: Routes = [
     ]
   },
   { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
-  { path: 'setup-company', canActivate: [AuthGuard], component : SetupCompanyComponent },
+  
   { path: 'signout', component: SignoutComponent },
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   /*{ path: '**', redirectTo: '/dashboard'},*/
