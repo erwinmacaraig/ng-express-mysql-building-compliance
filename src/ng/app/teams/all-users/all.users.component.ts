@@ -13,13 +13,14 @@ import 'rxjs/add/operator/catch';
 import * as moment from 'moment';
 import { DatepickerOptions } from 'ng2-datepicker';
 import { Subscription } from 'rxjs/Subscription';
+import { ExportToCSV } from '../../services/export.to.csv';
 
 declare var $: any;
 @Component({
   selector: 'app-all-users',
   templateUrl: './all.users.component.html',
   styleUrls: ['./all.users.component.css'],
-  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService, CourseService, AccountsDataProviderService, LocationsService]
+  providers: [UserService, AuthService, DashboardPreloaderService, EncryptDecryptService, CourseService, AccountsDataProviderService, LocationsService, ExportToCSV]
 })
 export class AllUsersComponent implements OnInit, OnDestroy {
 
@@ -85,7 +86,8 @@ export class AllUsersComponent implements OnInit, OnDestroy {
 		private router : Router,
         private courseService : CourseService,
         private accountService : AccountsDataProviderService,        
-        private route : ActivatedRoute
+        private route : ActivatedRoute,
+        private exportToCSV: ExportToCSV
 		){
         this.userData = this.authService.getUserData();
         this.datepickerModel = moment().add(1, 'days').toDate();

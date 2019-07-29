@@ -20,7 +20,7 @@
 		</button>
 	</div>
 
-	<div class="col l3 m5 s12">
+	<div class="col l2 m5 s12">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name" id="searchMemberInput">
 			<span class="material-icons">search</span>
@@ -34,7 +34,7 @@
 		</select>
 	</div>
     
-    <div class="col l3 m6 s6 margin-bottom-20">
+    <div class="col l2 m6 s6 margin-bottom-20">
         <select class="location">
             <option value="0" selected>All Locations</option>
             <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.location_name}}</option>
@@ -54,6 +54,11 @@
 			<option value="0" selected>Manage Action</option>
             <option value="archive" >Archive selected</option>            
 		</select>
+    </div>
+    <div class="col l2 m4 s6">
+		<button class="btn orange waves-effect waves-light btn-add-warden" (click)="csvExport()">
+            Download CSV
+        </button>
 	</div>	
 </div>
 

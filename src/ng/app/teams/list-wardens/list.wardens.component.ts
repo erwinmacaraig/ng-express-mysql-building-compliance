@@ -6,6 +6,8 @@ import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { AccountsDataProviderService  } from '../../services/accounts';
 import { CourseService } from '../../services/course';
+import { ExportToCSV } from '../../services/export.to.csv';
+
 import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -18,7 +20,7 @@ declare var $: any;
     selector: 'app-teams-list-warden',
     templateUrl: './list.wardens.component.html',
     styleUrls: ['./list.wardens.component.css'],
-    providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService]
+    providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService, ExportToCSV]
 })
 export class ListWardensComponent implements OnInit, OnDestroy {
     public wardenArr = <any>[];
@@ -89,7 +91,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         private dashboardService : DashboardPreloaderService,       
         private courseService : CourseService,
         private accountService : AccountsDataProviderService,
-        
+        private exportToCSV: ExportToCSV
     ) {
 
         this.userData = this.authService.getUserData();        
@@ -495,5 +497,44 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.loadingTable = false;
             this.dashboardService.hide();
         });
+    }
+
+    csvExport() {
+        let 
+        csvData = {},
+        columns = ["Building Name", "Name", "ECO Role", "Training", "Last Login"],
+        getLength = () => {
+            return Object.keys(csvData).length;
+        },
+        title =  "ECO List";
+        csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
+
+        if (this.myWardenTeam.length == 0) {
+            csvData[ getLength() ] = [ "No record found" ];
+        } else {
+            for (let warden of this.myWardenTeam) {
+                let location = '';
+                const data = [];                
+                if (warden['building'] != null) {
+                    location = `${warden['building']}, ${warden['level']}`;
+                } else {
+                    location = `${warden['level']}`;
+                }
+                data.push(location);
+                data.push(warden['name']);
+                data.push(warden['roles'].join('\r\n'));
+                let training = 'Not recorded';
+                if (warden['training_requirement_id']) {
+                    training = `${warden.training} / 1`;
+                }
+                data.push(training); 
+                data.push(moment(warden['last_login']).format('DD/MM/YYYY'));
+                csvData[ getLength() ] = data;
+            }
+        }
+        this.exportToCSV.setData(csvData, 'location-listing-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
+        
     }
 }

@@ -43,7 +43,7 @@
         </button>
     </div>
 
-	<div class="col l3 m6 s12 margin-bottom-20" [ngClass]="{ 'l5' : showArchived }">
+	<div class="col l2 m6 s12 margin-bottom-20" [ngClass]="{ 'l5' : showArchived }">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name" id="searchMemberInput">
 			<span class="material-icons">search</span>
@@ -57,7 +57,7 @@
 		</select>
 	</div>
 
-	<div class="col l3 m6 s6 margin-bottom-20">
+	<div class="col l2 m6 s6 margin-bottom-20">
         <select class="location">
             <option value="0" selected>All Locations</option>
             <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.location_name}}</option>
@@ -79,7 +79,11 @@
 			<option value="archive" ><span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span> selected</option>
 		</select>
     </div>
-
+    <div class="col l2 m6 s6 margin-bottom-20">
+        <button class="btn orange waves-effect waves-light btn-add-warden" (click)="csvExport()">
+            Download CSV
+        </button>
+    </div>
 </div>
 
 
