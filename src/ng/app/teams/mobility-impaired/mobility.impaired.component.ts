@@ -10,6 +10,8 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { CourseService } from '../../services/course';
 import { LocationsService } from '../../services/locations';
+import { ExportToCSV } from '../../services/export.to.csv';
+
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
@@ -21,7 +23,7 @@ declare var $: any;
     selector: 'app-mobility-impaired',
     templateUrl: './mobility.impaired.component.html',
     styleUrls: ['./mobility.impaired.component.css'],
-    providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService]
+    providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService, ExportToCSV]
 })
 export class MobilityImpairedComponent implements OnInit, OnDestroy {
     @ViewChild('formMobility') formMobility : NgForm;
@@ -120,7 +122,8 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
         private router : Router,
         private courseService : CourseService,
         private accountService : AccountsDataProviderService,
-        private locationService : LocationsService
+        private locationService : LocationsService,
+        private exportToCSV: ExportToCSV
         ){
         this.userData = this.authService.getUserData();
         for(let role of this.userData.roles){
@@ -680,6 +683,44 @@ export class MobilityImpairedComponent implements OnInit, OnDestroy {
                 }
             }  
         });
+    }
+
+    csvExport() {
+        let 
+        csvData = {},
+        columns = ["Building Name", "Name", "PEEP Review Date", "Last Login"],
+        getLength = () => {
+            return Object.keys(csvData).length;
+        },
+        title =  "Mobility Impaired List";
+
+        
+        csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
+
+        if (this.listData.length == 0) {
+            csvData[ getLength() ] = [ "No record found" ];
+        } else {
+            for (let peep of this.listData) {
+                const data = [];
+                if (peep['building'] != null) {
+                    data.push(`${peep['building']}, ${peep['level']}`);
+                } else {
+                    data.push(`${peep['level']}`);
+                }
+                data.push(`${peep.first_name} ${peep.last_name}`);
+                if (!peep.mobility_impaired_details[0]) {
+                    data.push('-');
+                } else {
+                    data.push(moment(peep.mobility_impaired_details[0].date_created).format('DD/MM/YYYY'));
+                }
+                data.push(moment(peep.last_login).format('DD/MM/YYYY'));
+
+                csvData[ getLength() ] = data;
+            }
+        }
+        this.exportToCSV.setData(csvData, 'mobility-impaired-listing-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
     }
 
 }

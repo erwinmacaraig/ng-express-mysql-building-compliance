@@ -25,14 +25,14 @@
 		</button>
 	</div>
 
-	<div class="col l4 m6 s12">
+	<div class="col l3 m6 s12" [ngClass]="{l6: showArchived}">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name" id="searchMemberInput">
 			<span class="material-icons">search</span>
 		</div>
 	</div>	
     
-    <div class="col l3 m6 s12">
+    <div class="col l2 m6 s12">
         <select class="location">
             <option value="0" selected>All Locations</option>
             <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.location_name}}</option>
@@ -55,6 +55,11 @@
             <option value="archive"  *ngIf="!showArchived">Archive selected</option>
 			<option value="archive" *ngIf="showArchived">Restore selected</option>
 		</select>
+    </div>
+    <div class="col l2 m6 s6 margin-bottom-20">
+        <button class="btn orange waves-effect waves-light btn-add-warden" (click)="csvExport()">
+            Download CSV
+        </button>
     </div>
 </div>
 
@@ -188,7 +193,7 @@
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat" (click)="clearSelected()">Cancel</a>
 		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
             <span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span>
         </a>
@@ -212,7 +217,8 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want restore the following users?
+			Are you sure you want to <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>
+			
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">

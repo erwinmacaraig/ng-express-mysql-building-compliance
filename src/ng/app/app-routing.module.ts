@@ -41,7 +41,7 @@ import { ViewSingleLocation } from './location/view.single/view-single.component
 import { LocationComponent } from './location/location.component';
 import { SublocationComponent } from './location/sublocation/sublocation.component';
 import { VerificationComponent } from './location/verification/verification.component';
-import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
+
 import { WardenLocationComponent } from './location/warden/warden.location.component';
 
 import { SetupLocationComponent } from './location/setup-location/setup-location.component';
@@ -52,7 +52,7 @@ import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.im
 import { MobilityImpairedArchivedComponent } from './teams/mobility-impaired-archived/mobility.impaired.archived.component';
 import { AddMobilityImpairedComponent } from './teams/add-mobility-impaired/add.mobility.impaired.component';
 import { ListWardensComponent } from './teams/list-wardens/list.wardens.component';
-import { ListArchivedWardensComponent } from './teams/list-wardens-archived/list.wardens.archived.component';
+
 import { AllUsersComponent } from './teams/all-users/all.users.component';
 import { AllUsersArchivedComponent } from './teams/all-users-archived/all.users.archived.component';
 import { AddUserComponent } from './teams/add-user/add.user.component';
@@ -206,7 +206,7 @@ const appRoutes: Routes = [
       { path : 'mobility-impaired-archived', component : MobilityImpairedArchivedComponent },
       { path : 'add-mobility-impaired', component : AddMobilityImpairedComponent },
       { path : 'list-wardens', component : ListWardensComponent },
-      { path : 'list-archived-wardens', component : ListArchivedWardensComponent },
+      { path : 'list-wardens/:archived', component : ListWardensComponent },
       { path : 'all-users', component : AllUsersComponent },
       { path : 'all-archived-users', component : AllUsersArchivedComponent },
       { path : 'add-user', component : AddUserComponent },

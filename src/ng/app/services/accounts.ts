@@ -207,8 +207,15 @@ export class AccountsDataProviderService {
 		});
 	}
 
-	generateMyWardenList() {
-		return this.http.get<{warden: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
+	generateMyWardenList(archivedUsers?) {
+		if (archivedUsers) {
+			const httpParams = new HttpParams().set('archived', '1');
+			this.options['params'] = httpParams;
+			return this.http.get<{warden: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`, this.options);
+		} else {
+			return this.http.get<{warden: Object[], buildings: Object[]}>(`${this.baseUrl}/team/get-my-warden-list/`);
+		}
+		
 	}
 
 	generateMyGOFRList(archivedUsers?) {

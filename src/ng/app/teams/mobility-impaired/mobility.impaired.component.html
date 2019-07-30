@@ -16,7 +16,7 @@
 		</button>
 	</div>
 
-	<div class="col l3 m5 s12">
+	<div class="col l2 m5 s12">
         <div class="search-field">
             <input type="text" placeholder="Search member name or email" id="searchMemberInput">
             <span class="material-icons">search</span>
@@ -31,20 +31,12 @@
         </select>
     </div>
     
-    <div class="col l3 m6 s6 margin-bottom-20">
+    <div class="col l2 m6 s6 margin-bottom-20">
         <select class="location">
             <option value="0" selected>All Locations</option>
             <option value="{{loc.location_id}}" *ngFor="let loc of locations">{{loc.location_name}}</option>
         </select>
-    </div>
-
-	<!-- <div class="col l2 m6 s6">
-        <select class="sort-by">
-            <option value="0" selected>Sort By</option>
-            <option value="user-name-desc">User Name Descending</option>
-            <option value="user-name-asc">User Name Ascending</option>
-        </select>
-    </div> -->
+    </div>	
 	<div class="col l2 m6 s12">
 		<select class="bulk-manage">
 			<option value="0" selected>Manage Action</option>
@@ -54,6 +46,11 @@
             <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
 		</select>
 	</div>
+	<div class="col l2 m6 s6 margin-bottom-20">
+        <button class="btn orange waves-effect waves-light btn-add-warden" (click)="csvExport()">
+            Download CSV
+        </button>
+    </div>
 
 </div>
 
@@ -152,24 +149,6 @@
 
 	</div>
 
-</div>
-
-<div class="row">
-	<div class="col l12 m12 s12 center pagination" [hidden]="listData.length == 0 || pagination.total <= queries.limit || loadingTable">
-		<div class="inline-block">
-			<button class="btn blue" (click)="pageChange('prev')" [disabled]="pagination.currentPage == 1" > Prev </button>
-		</div>
-
-		<div class="inline-block select">
-			<select #selectPage ngModel [(ngModel)]="pagination.currentPage" (change)="pageChange(selectPage.value)">
-				<option *ngFor="let sel of pagination.selection" value="{{sel.number}}">{{sel.number}}</option>
-			</select>
-		</div>
-
-		<div class="inline-block">
-			<button class="btn blue" (click)="pageChange('next')" [disabled]="pagination.pages == pagination.currentPage" > Next </button>
-		</div>
-	</div>
 </div>
 
 

@@ -9,6 +9,7 @@ import { UserService } from '../../services/users';
 import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { AccountsDataProviderService  } from '../../services/accounts';
 import { CourseService } from '../../services/course';
+import { ExportToCSV } from '../../services/export.to.csv';
 import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -21,7 +22,7 @@ declare var $: any;
     selector: 'app-teams-list-general-occupant',
     templateUrl: './list.gen.occ.component.html',
     styleUrls: ['./list.gen.occ.component.css'],
-    providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService]
+    providers : [EncryptDecryptService, UserService, DashboardPreloaderService, AccountsDataProviderService, CourseService, ExportToCSV]
 })
 export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
     public wardenArr = <any>[];
@@ -96,7 +97,8 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
         private dashboardService : DashboardPreloaderService,        
         private courseService : CourseService,
         private accountService : AccountsDataProviderService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private exportToCSV: ExportToCSV
     ) {
 
         this.userData = this.authService.getUserData();        
@@ -284,6 +286,12 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.selectedToArchive = warden;
             $('#modalArchive').modal('open');
         }
+    }
+
+    public clearSelected() {
+        this.selectedToArchive = {
+            name: ''
+        };
     }
 
     archiveClick(){
@@ -534,6 +542,45 @@ export class ListGeneralOccupantComponent implements OnInit, OnDestroy {
             this.loadingTable = false;
             this.dashboardService.hide();
         });
+
+    }
+    csvExport() {
+        let 
+        csvData = {},
+        columns = ["Locations", "Name", "ECO Role", "Training", "Last Login"],
+        getLength = () => {
+            return Object.keys(csvData).length;
+        },
+        title = (this.showArchived) ? "Archived General Occupant List" : "General Occupant List";
+        csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
+
+        if (this.myGOFRTeam.length == 0) {
+            csvData[ getLength() ] = [ "No record found" ];
+        } else {
+            for (let warden of this.myGOFRTeam) {
+                let location = '';
+                const data = [];                
+                if (warden['building'] != null) {
+                    location = `${warden['building']}, ${warden['level']}`;
+                } else {
+                    location = `${warden['level']}`;
+                }
+                data.push(location);
+                data.push(warden['name']);
+                data.push(warden['roles'].join('\r\n'));
+                let training = 'Not recorded';
+                if (warden['training_requirement_id']) {
+                    training = `${warden.training} of 1`;
+                }
+                data.push(training); 
+                data.push(moment(warden['last_login']).format('DD/MM/YYYY'));
+                csvData[ getLength() ] = data;
+            }
+        }
+        let f = (this.showArchived) ? "archived-general-occupant-listing-" : "general-occupant-listing-";
+        this.exportToCSV.setData(csvData, `${f}`+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();
 
     }
 }

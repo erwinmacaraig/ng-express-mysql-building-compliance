@@ -375,6 +375,11 @@ export class TeamRoute extends BaseRoute {
 
   public async generateMyWardenList(req: AuthRequest, res:Response) {
 
+    let showArchivedUsers: number = 0;      
+    if (req.query.archived) {
+        showArchivedUsers = parseInt(req.query.archived, 10);
+    }
+
     let roleOfAccountInLocationObj = {};
     let accountUserData = [];
     let accountRoles = [];
@@ -433,7 +438,7 @@ export class TeamRoute extends BaseRoute {
         if (role['role_id'] == 2) {
             try {
                  // get the location and all people that has warden role within the same account
-                temp = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id);
+                temp = await emUsers.getWardenTeamList([role['location_id']], req.user.account_id, showArchivedUsers);
                 for (let warden of temp) {
                     trpWardenList.push(warden);
                 }
@@ -474,7 +479,7 @@ export class TeamRoute extends BaseRoute {
             }
             try {
                 // get the location and all people that has warden role for FRP
-                temp = await emUsers.getWardenTeamList(sublocationIds);
+                temp = await emUsers.getWardenTeamList(sublocationIds, 0, showArchivedUsers);
                 for (let warden of temp) {
                     frpWardenList.push(warden);
                 }
@@ -534,47 +539,9 @@ export class TeamRoute extends BaseRoute {
             account_name: item['account_name']
         };
         
-        /*
-        let indexStr = `${item['user_id']}-${item['location_id']}`;
-        if (indexStr in listObj && (listObj[indexStr]['role_ids'].indexOf(item['em_roles_id']) == -1) ) {
-            listObj[indexStr]['roles'].push(item['role_name']);
-            listObj[indexStr]['role_ids'].push(item['em_roles_id']);
-            if ((listObj[indexStr]['role_ids']['training_requirement_id'] as Array<Number>).indexOf(trainingRequirementsLookup[item['em_roles_id']]) == -1) {
-                (listObj[indexStr]['role_ids']['training_requirement_id'] as Array<Number>).push(trainingRequirementsLookup[item['em_roles_id']]);
-            }
-        } else {
-            listObj[indexStr] = {
-                name: `${item['first_name']} ${item['last_name']}`,
-                user_id: item['user_id'],
-                mobility_impaired: item['mobility_impaired'],                
-                building: item['building'],
-                building_id: item['building_id'],
-                level: item['level'],
-                last_login: item['last_login'],
-                profile_completion: item['profile_completion'],
-                location_id: item['location_id'],
-                is_building: item['is_building'],
-                role_ids: [item['em_roles_id']],
-                roles: [item['role_name']],
-                training_requirement_id: [trainingRequirementsLookup[item['em_roles_id']]],
-                training: 0,
-                account_name: item['account_name'] 
-            }; 
-        }*/
+        
     }
-    /*
-    cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
-        current: true,
-        training_requirement: trainingRequirements 
-    });
-    list = [];
-    Object.keys(listObj).forEach( (key) => {
-        if (listObj[key]['user_id'] in cert) {
-            listObj[key]['training'] = 1;
-        }
-        list.push(listObj[key]);
-    });
-    */
+    
     try {
         cert = await new TrainingCertification().generateEMTrainingReport(userIds, trainingRequirements);
     } catch (e) {

@@ -513,4 +513,39 @@ export class AllUsersComponent implements OnInit, OnDestroy {
         });
     }
 
+    public csvExport() {
+        let 
+        csvData = {},
+        columns = ["Building Name", "Name", "Email", "Account", "Role"],
+        getLength = () => {
+            return Object.keys(csvData).length;
+        },
+        title =  (this.showArchived) ? "Archived Administrator List" :"Administrator List";
+        csvData[ getLength() ] = [title];
+        csvData[ getLength() ] = columns;
+
+        if (this.listData.length == 0) {
+            csvData[ getLength() ] = [ "No record found" ];
+        } else {
+            for (let list of this.listData) {
+                const data = [];
+                if (list['building'] != null) {
+                    data.push(`${list['building']}, ${list['level']}`);
+                } else {
+                    data.push(`${list['level']}`);
+                }
+                data.push(list['name']);
+                data.push(list['email']);
+                data.push(list['account_name']);
+                data.push(list['roles'].join("\r\n"));
+                csvData[ getLength() ] = data;
+            }
+        }
+        let f = (this.showArchived) ? 'archived-administrator-listing-' : 'administrator-listing-';
+        
+        this.exportToCSV.setData(csvData, `${f}`+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        this.exportToCSV.export();       
+        
+    }
+
 }

@@ -1,11 +1,15 @@
 <div class="row top">
 	<div class="col l12 m12 s12">
-		<h4> ECO Member </h4>
+		<h4> <span *ngIf="showArchived">Archived</span> ECO Member </h4>
 		<div class="right-actions">			
 			<div class="archived-container">
-				<a  [routerLink]="['/teams/list-archived-wardens']">
+				<a *ngIf="!showArchived"  [routerLink]="['/teams', 'list-wardens', 'archived']">
 					<div class="image"></div>
 					View Archive
+                </a>
+                <a *ngIf="showArchived"  [routerLink]="['/teams', 'list-wardens']">
+					<div class="image"></div>
+					View Active
 				</a>
 			</div>
 		</div>
@@ -13,14 +17,14 @@
 </div>
 
 <div class="row filter-container">
-	<div class="col l2 m5 s12">
+	<div class="col l2 m5 s12" *ngIf="!showArchived">
 		<button class="btn orange waves-effect waves-light btn-add-warden" [routerLink]="['/teams/add-wardens']">
 			<div class="image"></div>
 			Add Warden
 		</button>
 	</div>
 
-	<div class="col l2 m5 s12">
+	<div class="col l2 m5 s12" [ngClass]="{l4: showArchived}">
 		<div class="search-field">
 			<input type="text" placeholder="Search member name" id="searchMemberInput">
 			<span class="material-icons">search</span>
@@ -42,11 +46,12 @@
     </div>	
 	<div class="col l2 m6 s12" *ngIf="subscriptionType != 'free'">
 		<select class="bulk-manage">
-			<option value="0" selected>Manage Action</option>
-			<option value="archive" >Archive selected</option>
-            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable">Send training invite to selected</option>
-            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable">Send training invite to all non-compliant</option>
-            <option value="invite-all" *ngIf="isOnlineTrainingAvailable">Send training invtite to all</option>
+            <option value="0" selected>Manage Action</option>
+            <option value="archive"  *ngIf="!showArchived">Archive selected</option>
+			<option value="archive" *ngIf="showArchived">Restore selected</option>			
+            <option value="invite-selected" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to selected</option>
+            <option value="invite-all-non-compliant" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invite to all non-compliant</option>
+            <option value="invite-all" *ngIf="isOnlineTrainingAvailable && !showArchived">Send training invtite to all</option>
 		</select>
 	</div>
 	<div class="col l2 m6 s12" *ngIf="subscriptionType == 'free'">
@@ -136,7 +141,10 @@
                         <select (change)="onSelectFromTable($event, warden)">
                             <option value="0" class="blue-text" selected>Manage</option>
                             <option value="view" class="blue-text">View</option>
-                            <option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>
+                            <!--<option value="archive" class="blue-text" [hidden]="warden.user_id == userData.userId">Archive</option>-->
+                            <option value="archive" class="blue-text" *ngIf="!showArchived">Archive</option>
+                            <option value="archive" class="blue-text" *ngIf="showArchived">Restore</option>
+            
                             <option  [value]=" (warden.mobility_impaired == 0) ? 'peep' : 'healthy'  " class="blue-text" >
                                 <span *ngIf="warden.mobility_impaired == 0">Add to mobility impaired list</span>
                                 <span *ngIf="warden.mobility_impaired == 1">Remove from mobility impaired list</span>
@@ -189,13 +197,15 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want to archive
-			<span class="blue-text">{{selectedToArchive.first_name}} {{selectedToArchive.last_name}}</span>
+			Are you sure you want to <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>
+			<span class="blue-text">{{selectedToArchive.name}}</span>
 		</p>
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
-		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">Archive</a>
+		<a  class="modal-action modal-close waves-effect waves-red btn-flat" (click)="clearSelected()">Cancel</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="archiveClick()">
+            <span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span>
+        </a>
 	</div>
 </div>
 
@@ -216,7 +226,7 @@
 	<div class="modal-content" [hidden]="showModalLoader">
 		<h5>Confirmation</h5>
 		<p style="font-size: 16px;">
-			Are you sure you want archive the following users?
+			Are you sure you want to <span *ngIf="!showArchived">archive</span> <span *ngIf="showArchived">restore</span>			
 		</p>
 		<ul>
 			<li *ngFor="let list of selectedFromList;">
@@ -226,7 +236,9 @@
 	</div>
 	<div class="modal-footer" [hidden]="showModalLoader">
 		<a  class="modal-action modal-close waves-effect waves-red btn-flat">Cancel</a>
-		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">Archive</a>
+		<a  class="waves-effect waves-blue btn-flat" (click)="bulkArchiveClick()">
+            <span *ngIf="!showArchived">Archive</span> <span *ngIf="showArchived">Restore</span>
+        </a>
 	</div>
 </div>
 

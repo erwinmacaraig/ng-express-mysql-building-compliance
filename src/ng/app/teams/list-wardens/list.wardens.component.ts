@@ -1,5 +1,5 @@
 import { Component, OnInit, ViewEncapsulation, OnDestroy, AfterViewInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, ParamMap } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { EncryptDecryptService } from '../../services/encrypt.decrypt';
 import { UserService } from '../../services/users';
@@ -7,7 +7,7 @@ import { DashboardPreloaderService } from '../../services/dashboard.preloader';
 import { AccountsDataProviderService  } from '../../services/accounts';
 import { CourseService } from '../../services/course';
 import { ExportToCSV } from '../../services/export.to.csv';
-
+import { Subscription } from 'rxjs/Subscription';
 import * as moment from 'moment';
 import * as Rx from 'rxjs/Rx';
 import 'rxjs/add/operator/map';
@@ -24,7 +24,7 @@ declare var $: any;
 })
 export class ListWardensComponent implements OnInit, OnDestroy {
     public wardenArr = <any>[];
-
+    routeSub: Subscription;
     public myWardenTeam = [];
     private wardenTeamMembers = [];
     public total_records = 0;
@@ -74,7 +74,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
     sendInviteToAllNonCompliant = false;
 
     isOnlineTrainingAvailable = false;
-
+    showArchived = false;
     isFRP = false;
     locations = <any> [];
     locationPagination = {
@@ -91,7 +91,8 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         private dashboardService : DashboardPreloaderService,       
         private courseService : CourseService,
         private accountService : AccountsDataProviderService,
-        private exportToCSV: ExportToCSV
+        private exportToCSV: ExportToCSV,
+        private route : ActivatedRoute,
     ) {
 
         this.userData = this.authService.getUserData();        
@@ -117,13 +118,18 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         if (this.userData['account_has_online_training'] == 1) {
             this.isOnlineTrainingAvailable = true;
         }
-        this.dashboardService.show(); 
-        this.listWardens();
-        setTimeout(() => {
-            $('.row.filter-container select.filter-by').material_select('update');
-            $('.row.filter-container select').material_select();
-        }, 100);
-        
+        this.routeSub = this.route.paramMap.subscribe((paramMap: ParamMap) => {
+            this.showArchived = false;
+            this.dashboardService.show();
+            if (paramMap.has('archived')) { 
+                this.showArchived = true;                
+            }
+            this.listWardens(this.showArchived);
+            setTimeout(() => {
+                $('.row.filter-container select.filter-by').material_select('update');
+                $('.row.filter-container select').material_select();
+            }, 100);
+        });        
     }
 
     ngAfterViewInit(){
@@ -279,9 +285,15 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         }
     }
 
+    public clearSelected() {
+        this.selectedToArchive = {
+            first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
+        };
+    }
+
     archiveClick(){
         this.showModalLoader = true;
-        this.userService.archiveUsers([this.selectedToArchive['user_id']], (response) => {
+        let cb = (response) => {
             this.showModalLoader = false;
             $('#modalArchive').modal('close');
             this.dashboardService.show();
@@ -289,7 +301,13 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             this.selectedToArchive = {
                 first_name : '', last_name : '', parent_data : {}, locations : [], parent_name: '', name: ''
             };
-        });
+        };
+        if(!this.showArchived){
+            this.userService.archiveUsers([this.selectedToArchive['user_id']], cb);
+        }else{
+            this.userService.unArchiveUsers([this.selectedToArchive['user_id']], cb);
+        }
+        
     }
 
     singleCheckboxChangeEvent(list, event){
@@ -352,14 +370,20 @@ export class ListWardensComponent implements OnInit, OnDestroy {
             arrIds.push(this.selectedFromList[i]['user_id']);
         }
 
-        this.userService.archiveUsers(arrIds, (response) => {
+        let cb = (response) => {
             $('#allLocations').prop('checked', false);
             this.showModalLoader = false;
             $('#modalArchiveBulk').modal('close');
             this.dashboardService.show();
             this.ngOnInit();
             this.selectedFromList = [];
-        });
+        };
+
+        if(!this.showArchived){
+            this.userService.archiveUsers(arrIds, cb);
+        }else{
+            this.userService.unArchiveUsers(arrIds, cb);
+        }
     }
     
 
@@ -471,13 +495,17 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngOnDestroy(){}
+    ngOnDestroy(){
+        if (this.routeSub) {
+            this.routeSub.unsubscribe();
+        }
+    }
 
 
-    private listWardens() {
+    private listWardens(archived:boolean = false) {
         this.myWardenTeam = [];
         this.wardenTeamMembers = [];
-        this.accountService.generateMyWardenList().subscribe((response) => {
+        this.accountService.generateMyWardenList(archived).subscribe((response) => {
             this.loadingTable = true;
             for (let warden of response.warden) {
                 warden['id_encrypted'] = this.encDecrService.encrypt(warden['user_id']);
@@ -506,7 +534,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
         getLength = () => {
             return Object.keys(csvData).length;
         },
-        title =  "ECO List";
+        title = (this.showArchived) ? "Archived ECO List" : "ECO List";
         csvData[ getLength() ] = [title];
         csvData[ getLength() ] = columns;
 
@@ -526,14 +554,15 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 data.push(warden['roles'].join('\r\n'));
                 let training = 'Not recorded';
                 if (warden['training_requirement_id']) {
-                    training = `${warden.training} / 1`;
+                    training = `${warden.training} of 1`;
                 }
                 data.push(training); 
                 data.push(moment(warden['last_login']).format('DD/MM/YYYY'));
                 csvData[ getLength() ] = data;
             }
         }
-        this.exportToCSV.setData(csvData, 'location-listing-'+moment().format('YYYY-MM-DD-HH-mm-ss'));
+        let f = (this.showArchived) ? "Archived-ECO-listing-" : "ECO-listing-";
+        this.exportToCSV.setData(csvData, `${f}` +moment().format('YYYY-MM-DD-HH-mm-ss'));
         this.exportToCSV.export();
         
     }
