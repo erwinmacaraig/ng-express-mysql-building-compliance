@@ -235,6 +235,10 @@ export class ReportsRoute extends BaseRoute {
            req.body['eco_role_ids'] = req.params.roleids;
            new ReportsRoute().generateWardenReport(req, res, false, true);
        });
+
+       router.post('/reports/summary-of-building-activities/', new MiddlewareAuth().authenticate, (req: AuthRequest, res: Response) => {
+           new ReportsRoute().buildingActivityReport(req, res);
+       });
     }
 
    /**
@@ -1911,6 +1915,30 @@ export class ReportsRoute extends BaseRoute {
         }
 
         res.send(response);
+    }
+
+    public async buildingActivityReport(req: AuthRequest, res: Response) {
+        const buildings: number[] = req.body.buildingIds;
+        const accountsModel = new Account(req.user.account_id);
+        let logs: Array<Object> = await accountsModel.getActivityLog(buildings.join(','), '0,500', false, '"Primary","Secondary"');
+        let locations = <any>[];
+        const  locationModel = new Location();
+        let whereLoc = [];
+        whereLoc.push([ 'location_id IN ('+buildings.join(',')+') AND archived = 0' ]);
+        try{
+            locations = <any> await locationModel.getWhere( whereLoc );
+            
+        }catch(e){  }
+
+        for(let log of logs){
+            log['timestamp_formatted'] = moment(log['timestamp']).format('DD/MM/YYYY');
+            log['date_of_activity_formatted'] = moment(log['date_of_activity']).format('DD/MM/YYYY');            
+            log['url'] = (log['urlPath']) ? log['urlPath'] : '';
+        }            
+        
+        res.status(200).send({
+            activity: logs
+        });
     }
 
     public async getActivityReport(req: AuthRequest, res: Response, toPdf?, toCsv?){

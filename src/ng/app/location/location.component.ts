@@ -4,12 +4,15 @@ import { AuthService } from '../services/auth.service';
 import { SignupService } from '../services/signup.service';
 import { Router, NavigationStart, NavigationEnd } from '@angular/router';
 
+import { ReportService } from '../services/report.service';
+
+
 declare var $: any;
 @Component({
     selector: 'app-location',
     templateUrl: './location.component.html',
     styleUrls: ['./location.component.css'],
-    providers: [UserService]
+    providers: [UserService, ReportService]
 })
 export class LocationComponent implements OnInit, OnDestroy {
     showEmailVerification = false;
@@ -23,7 +26,8 @@ export class LocationComponent implements OnInit, OnDestroy {
         private userService: UserService, 
         private auth: AuthService, 
         private router: Router,
-        private signupServices: SignupService
+        private signupServices: SignupService,
+        private reportService: ReportService
         ) {
         this.userData = this.auth.getUserData();
         this.router.events.subscribe((event) => {
@@ -46,6 +50,11 @@ export class LocationComponent implements OnInit, OnDestroy {
                 localStorage.removeItem('showemailverification');
             }
         });
+
+        this.reportService.listBuildingActivities(this.userData['buildings']).subscribe((response) => {
+            console.log(response.activity);
+        });
+
     }
 
     ngOnDestroy() {}

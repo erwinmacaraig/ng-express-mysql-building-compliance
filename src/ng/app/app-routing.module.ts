@@ -35,17 +35,12 @@ import { WardenSignupComponent } from './warden-signup/warden-signup.component';
 
 import { CustomHttpDataProviderComponent } from './custom-http-data-provider/custom-http-data-provider.component';
 
-import { SearchLocationComponent } from './location/search/search-location.component';
+
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
 import { SublocationComponent } from './location/sublocation/sublocation.component';
 import { VerificationComponent } from './location/verification/verification.component';
-
-import { WardenLocationComponent } from './location/warden/warden.location.component';
-
-import { SetupLocationComponent } from './location/setup-location/setup-location.component';
-
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
@@ -175,15 +170,10 @@ const appRoutes: Routes = [
       { path: 'my-notified-warden-list', component: NotifiedWardenListComponent }
     ]
   },
-  { path: 'setup-location', canActivate: [AuthGuard], component: SetupLocationComponent },
-  
   { path: 'signout', component: SignoutComponent },
-  { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
-  /*{ path: '**', redirectTo: '/dashboard'},*/
+  { path: 'custom-resolver', component: CustomHttpDataProviderComponent },  
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
-    // { path: 'archived/list', component: ArchivedLocationListComponent },
-    { path: 'search', component: SearchLocationComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },
     { path: 'verify-access', component: VerificationComponent },
@@ -191,8 +181,7 @@ const appRoutes: Routes = [
       children : [
         { path : 'view/:encrypted', component : ViewComplianceComponent }
       ]
-    },
-    { path : 'warden', component : WardenLocationComponent }
+    }
   ]},
   {
     path : 'view-location/:encrypted', canActivate: [AuthGuard], component : ViewSingleLocation

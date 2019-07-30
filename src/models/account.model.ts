@@ -528,7 +528,7 @@ export class Account extends BaseClass {
         });
     }
 
-    public getActivityLog(locationIds?, offsetLimit?, count?, types?){
+    public getActivityLog(locationIds?, offsetLimit?, count?, types?): Promise<any>{
         if(!offsetLimit){
             offsetLimit = 0,10;
         }

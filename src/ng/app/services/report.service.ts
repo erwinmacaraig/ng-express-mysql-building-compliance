@@ -62,4 +62,10 @@ export class ReportService {
         
     }
 
+    public listBuildingActivities(buildings=[]) {
+        return this.http.post<{
+            activity: object[] 
+        }>(`${this.baseUrl}/reports/summary-of-building-activities/`, {buildingIds: buildings});
+    }
+
 }

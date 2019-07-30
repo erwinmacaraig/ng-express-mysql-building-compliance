@@ -52,18 +52,16 @@ import { NoemailComponent } from './noemail/noemail.component';
 import { LocationSignupComponent } from './signup/location.signup/location.signup';
 
 
-import { SearchLocationComponent } from './location/search/search-location.component';
+
 import { SublocationComponent } from './location/sublocation/sublocation.component';
 
 // todo: move to locations module
 import { ReactiveFormsModule } from '@angular/forms';
-import { SetupLocationComponent } from './location/setup-location/setup-location.component';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
 import { VerificationComponent } from './location/verification/verification.component';
-import { ArchivedLocationListComponent } from './location/archived.list/archived.list.component';
-import { WardenLocationComponent } from './location/warden/warden.location.component';
+
 
 import { ImportCsvButtonComponent } from './import-csv/import-csv';
 
@@ -197,15 +195,12 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     NoemailComponent,
     LocationSignupComponent,
     SublocationComponent,
-    SearchLocationComponent,
-    // todo: move to location module
-    SetupLocationComponent,
+    
+    // todo: move to location module    
     LocationListComponent,
     ViewSingleLocation,
     LocationComponent,
     VerificationComponent,
-    ArchivedLocationListComponent,
-    WardenLocationComponent,
     // ViewSublocationComponent
 
     ImportCsvButtonComponent,
@@ -262,17 +257,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
     // NOTIFICATION
-    /*NotificationListComponent,
-    NotificationConfigurationComponent,
-    NotifiedUsersListComponent,
-    NotificationQueryComponent,
-    NotificationWardenListComponent,
-    NotificationPEEPListComponent,
-    WardenNotificationComponent,
-    NotifiedTrpUpdateProfileComponent,
-    SummaryViewComponent,
-    NotifiedTRPTrainingsComponent,
-    */
+    
    NotifiedWardenListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
