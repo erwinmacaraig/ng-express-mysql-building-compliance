@@ -1919,25 +1919,38 @@ export class ReportsRoute extends BaseRoute {
 
     public async buildingActivityReport(req: AuthRequest, res: Response) {
         const buildings: number[] = req.body.buildingIds;
+        const locationSelection = [];        
         const accountsModel = new Account(req.user.account_id);
         let logs: Array<Object> = await accountsModel.getActivityLog(buildings.join(','), '0,500', false, '"Primary","Secondary"');
         let locations = <any>[];
         const  locationModel = new Location();
         let whereLoc = [];
-        whereLoc.push([ 'location_id IN ('+buildings.join(',')+') AND archived = 0' ]);
+        whereLoc.push([ 'location_id IN ('+buildings.join(',')+') ' ]);
         try{
             locations = <any> await locationModel.getWhere( whereLoc );
-            
+            for (let loc of locations) {
+                locationSelection.push({
+                    location_id: loc['location_id'],
+                    location_name: loc['name']
+                });
+            }                        
         }catch(e){  }
+
 
         for(let log of logs){
             log['timestamp_formatted'] = moment(log['timestamp']).format('DD/MM/YYYY');
             log['date_of_activity_formatted'] = moment(log['date_of_activity']).format('DD/MM/YYYY');            
             log['url'] = (log['urlPath']) ? log['urlPath'] : '';
+            for(let loc of locations){
+                if(log['building_id'] == loc.location_id){
+                    log['location_name'] = loc.name;                    
+                }
+            }
         }            
         
         res.status(200).send({
-            activity: logs
+            activity: logs,
+            buildings: locationSelection
         });
     }
 

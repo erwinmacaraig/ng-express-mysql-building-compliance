@@ -64,7 +64,8 @@ export class ReportService {
 
     public listBuildingActivities(buildings=[]) {
         return this.http.post<{
-            activity: object[] 
+            activity: object[],
+            buildings: object[] 
         }>(`${this.baseUrl}/reports/summary-of-building-activities/`, {buildingIds: buildings});
     }
 

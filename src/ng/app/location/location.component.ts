@@ -2,9 +2,9 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { UserService } from '../services/users';
 import { AuthService } from '../services/auth.service';
 import { SignupService } from '../services/signup.service';
-import { Router, NavigationStart, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd } from '@angular/router';
 
-import { ReportService } from '../services/report.service';
+
 
 
 declare var $: any;
@@ -12,7 +12,7 @@ declare var $: any;
     selector: 'app-location',
     templateUrl: './location.component.html',
     styleUrls: ['./location.component.css'],
-    providers: [UserService, ReportService]
+    providers: [UserService]
 })
 export class LocationComponent implements OnInit, OnDestroy {
     showEmailVerification = false;
@@ -21,18 +21,22 @@ export class LocationComponent implements OnInit, OnDestroy {
     public userData: Object;
     public thisRouteUrl = '';
     public showLocationNavigation = true;
-
+    public endNav= '';
     constructor(
         private userService: UserService, 
         private auth: AuthService, 
         private router: Router,
         private signupServices: SignupService,
-        private reportService: ReportService
+        
         ) {
         this.userData = this.auth.getUserData();
         this.router.events.subscribe((event) => {
+            let parts = [];
             if(event instanceof NavigationEnd ){
                 this.thisRouteUrl = event.url;
+                parts = this.thisRouteUrl.split('/');
+                this.endNav = parts[parts.length - 1]; 
+                console.log(this.endNav);               
                 this.ngAfterViewInit();
             }
         });
@@ -51,9 +55,7 @@ export class LocationComponent implements OnInit, OnDestroy {
             }
         });
 
-        this.reportService.listBuildingActivities(this.userData['buildings']).subscribe((response) => {
-            console.log(response.activity);
-        });
+        
 
     }
 

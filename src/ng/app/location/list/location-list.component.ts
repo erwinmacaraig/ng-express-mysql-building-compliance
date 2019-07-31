@@ -1,7 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitter } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse, HttpRequest, HttpErrorResponse } from '@angular/common/http';
-import { PlatformLocation } from '@angular/common';
-import { environment } from '../../../environments/environment';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { Router, ActivatedRoute, NavigationStart, NavigationEnd } from '@angular/router';
 import { LocationsService } from '../../services/locations';
@@ -38,10 +35,7 @@ export class LocationListComponent implements OnInit, OnDestroy {
     @ViewChild('inputSearch') inputSearch : ElementRef;
 
 	locations = [];
-	locationsBackup = [];
-	private baseUrl: String;
-	private options;
-	private headers;
+	locationsBackup = [];	
 	// private accountData = { account_name : " " };
 	public userData: Object;
 	private mutationOversable;
@@ -124,16 +118,8 @@ export class LocationListComponent implements OnInit, OnDestroy {
       private messageService : MessageService,
       private exportToCSV: ExportToCSV
     ) {
-
-        this.baseUrl = environment.backendUrl;        
-        this.options = { headers : this.headers };
-        this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
         this.userData = this.auth.getUserData();
-        /*
-    	this.accntService.getById(this.userData['accountId'], (response) => {
-	      	this.accountData = response.data;
-        });
-        */
+      
 
 		this.mutationOversable = new MutationObserver((mutationsList) => {
 			mutationsList.forEach((mutation) => {

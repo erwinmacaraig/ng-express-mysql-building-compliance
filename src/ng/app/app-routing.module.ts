@@ -40,7 +40,10 @@ import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
 import { SublocationComponent } from './location/sublocation/sublocation.component';
+import { BuildingActivityComponent } from './location/activity/building-activity.component';
 import { VerificationComponent } from './location/verification/verification.component';
+
+
 import { TeamsComponent } from './teams/teams.component';
 import { TeamsAddWardenComponent } from './teams/add-wardens/add-wardens.component';
 import { MobilityImpairedComponent } from './teams/mobility-impaired/mobility.impaired.component';
@@ -174,6 +177,7 @@ const appRoutes: Routes = [
   { path: 'custom-resolver', component: CustomHttpDataProviderComponent },  
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
+    { path: 'activity', component: BuildingActivityComponent },
     { path: 'view/:encrypted', component: ViewSingleLocation },
     { path: 'view-sublocation/:encrypted', component: SublocationComponent },
     { path: 'verify-access', component: VerificationComponent },

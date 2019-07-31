@@ -1,8 +1,8 @@
 <app-navbar></app-navbar>
 <div class="location-navigation" *ngIf="showLocationNavigation">
 	<ul>
-
-		<!-- <li class="add-location pink-theme " [routerLink]="['/location', 'search']">
+		<!--
+		 <li class="add-location pink-theme " [routerLink]="['/location', 'search']">
             <a  >
                 <img src="assets/images/locations/add_location.png" class="default">
                 <img src="assets/images/locations/add_location_hover.png" class="hover">
@@ -10,29 +10,29 @@
                     Add new location
                 </span>
             </a>
-        </li> -->
-
-		<li class="view-location green-theme" [routerLink]="['/location', 'list']" *ngIf="!showEmailVerification">
-			<a  >
+        </li> 
+-->
+		<li class="view-location green-theme" [ngClass]="{'active': endNav=='list'}" [routerLink]="['/location', 'list']" tabindex="0">
+			<a>
 				<img src="assets/images/locations/view_all_location.png" class="default">
 				<img src="assets/images/locations/view_all_locations_hover.png" class="hover">
 				<span>
 					View location
 				</span>
 			</a>
-    </li>
-    <li class="view-location pink-theme" [routerLink]="['/location', 'list']">
+    	</li>
+		<li class="view-location-changes green-theme" tabindex="1" [ngClass]="{'active': endNav=='changes'}">
+				<a>
+					<img src="assets/images/locations/view_all_location.png" class="default">
+					<img src="assets/images/locations/view_all_locations_hover.png" class="hover">
+					<span>
+						Summary of Changes
+					</span>
+				</a>
+		</li>
+    	<li class="view-location-activity green-theme" [ngClass]="{'active': endNav=='activity'}" [routerLink]="['/location', 'activity']" tabindex="2">
 			<a>
-				<img src="assets/images/locations/view_all_location.png" class="default">
-				<img src="assets/images/locations/view_all_locations_hover.png" class="hover">
-				<span>
-					Summary of Changes
-				</span>
-			</a>
-    </li>
-    <li class="view-location purple-theme" [routerLink]="['/location', 'activity-logs']">
-			<a>
-        <img src="assets/images/locations/view_all_location.png" class="default">
+        		<img src="assets/images/locations/view_all_location.png" class="default">
 				<img src="assets/images/locations/view_all_locations_hover.png" class="hover">				
 				<span>
 					Activity Log

@@ -55,11 +55,14 @@ import { LocationSignupComponent } from './signup/location.signup/location.signu
 
 import { SublocationComponent } from './location/sublocation/sublocation.component';
 
-// todo: move to locations module
+// ******* LOCATIONS ***********
 import { ReactiveFormsModule } from '@angular/forms';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
+
+import { BuildingActivityComponent } from './location/activity/building-activity.component';
+
 import { VerificationComponent } from './location/verification/verification.component';
 
 
@@ -196,13 +199,14 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     LocationSignupComponent,
     SublocationComponent,
     
-    // todo: move to location module    
+    //LOCATION
     LocationListComponent,
     ViewSingleLocation,
     LocationComponent,
     VerificationComponent,
-    // ViewSublocationComponent
+    BuildingActivityComponent,
 
+    // ViewSublocationComponent
     ImportCsvButtonComponent,
     TeamsComponent,
     TeamsAddWardenComponent,

@@ -1,0 +1,64 @@
+<div class="row">
+    <div class="col l12 m12 s12">
+        <h5>Activity Log</h5>
+        <span>A list of all compliance documents uploaded by location</span>
+    </div>
+</div>
+<div class="row filter-container">
+    <div class="col l7 m5 s12">
+        <div class="search-field">
+            <input type="text" placeholder="Search for file" id="searchFileInput">
+            <span class="material-icons">search</span>
+        </div>
+    </div>
+    <div class="col l3 m6 s6">
+        <select class="location" id="filter-location">
+            <option value="0" selected>All Locations</option>
+            <option *ngFor="let loc of buildings" [value]="loc['location_id']">{{loc['location_name']}}</option>
+        </select>
+    </div> 
+    <div class="col l2 m4 s6">
+        <button class="btn orange waves-effect waves-light btn-add-warden" (click)="csvExport()">
+            Download CSV
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Location</th>
+                    <th>Filename</th>
+                    <th>Event Date</th>
+                    <th>Date Uploaded</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="documents.length == 0">
+                    <td colspan="4">No record found.</td>
+                </tr>
+                <tr *ngFor="let doc of documents">
+                    <td><span class="text">{{doc['location_name']}}</span></td>
+                    <td> <a href="{{doc['url']}}" target="blank"> <span class="text">{{doc['file_name']}}</span> </a></td>
+                    <td><span class="text">{{doc['date_of_activity_formatted']}}</span></td>
+                    <td><span class="text">{{doc['timestamp_formatted']}}</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col l12 m12 s12 col-buttons right-align">
+        <button class="btn orange btn-compliance-rating">
+            <div class="text">
+                Showing records
+            </div>
+            <div class="white center">
+                {{ documents.length }} 
+            </div>
+            <div class="text"> of {{total_records}}</div>
+        </button>
+
+    </div>
+</div>

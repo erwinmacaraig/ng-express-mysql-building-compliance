@@ -119,6 +119,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     });
 
     // first check account roles
+    /*
     this.userRoles = this.userData['roles'];
     for(let i in this.userRoles){
       if( this.userRoles[i]['role_id'] == 1 ){
@@ -141,7 +142,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     } else {
       this.router.navigate(['/trainings', 'new-training']);
     }
-
+    */
   }
 
   ngOnDestroy() {

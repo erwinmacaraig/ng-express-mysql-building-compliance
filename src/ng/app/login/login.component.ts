@@ -7,13 +7,15 @@ import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { PersonDataProviderService } from '../services/person-data-provider.service';
 import { SignupService } from '../services/signup.service';
+import { EncryptDecryptService } from '../services/encrypt.decrypt';
 
 declare var $: any;
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  styleUrls: ['./login.component.css'],
+  providers: [EncryptDecryptService]
 })
 export class LoginComponent implements OnInit, OnDestroy {
   loginMessageStatus: string;
@@ -27,15 +29,17 @@ export class LoginComponent implements OnInit, OnDestroy {
     success : false,
     buttons : true
   };
-
+  public userRoles;
   errorOccuredMessage = '';
   private subscription;
   private baseUrl: String;
   private userId = 0;
+  public has_account_role = false;
   constructor(public http: HttpClient,
     private auth: AuthService,
     private signupService: SignupService,
     private platformLocation: PlatformLocation,
+    private encryptDecrypt: EncryptDecryptService,
     private router: Router) {
     this.baseUrl = environment.backendUrl;
   }
@@ -102,7 +106,36 @@ export class LoginComponent implements OnInit, OnDestroy {
       this.auth.setToken(data.token);
       this.auth.setAuthTimer(data.expiresIn);
       this.auth.setUserData(data.data);
-      this.router.navigate(['']);
+      this.userRoles = data.data['roles'];
+    
+      for(let i in this.userRoles){
+        if( this.userRoles[i]['role_id'] == 1 ){
+          this.has_account_role = true
+        }
+        if( this.userRoles[i]['role_id'] == 2 ){
+          this.has_account_role = true;
+        }            
+      }
+    
+    // checks how many buildings
+    if (this.has_account_role) {
+      if ((data.data['buildings'] as number[]).length > 1) {
+        // go to location listing
+        this.router.navigate(['/location', 'list']);
+      } else {
+        // go directly to compliance
+        this.router.navigate(['/location', 'compliance', 'view', this.encryptDecrypt.encrypt(data.data['buildings'][0])]); 
+      }
+    } else {
+      this.router.navigate(['/trainings', 'new-training']);
+    }
+      //this.router.navigate(['']);
+
+
+
+
+
+
     },
     (err: HttpErrorResponse) => {
       if (err.error instanceof Error) {
