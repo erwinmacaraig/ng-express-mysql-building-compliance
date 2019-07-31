@@ -537,7 +537,7 @@ export class AllUsersComponent implements OnInit, OnDestroy {
                 data.push(list['name']);
                 data.push(list['email']);
                 data.push(list['account_name']);
-                data.push(list['roles'].join("\r\n"));
+                data.push(list['roles'].join(" "));
                 csvData[ getLength() ] = data;
             }
         }

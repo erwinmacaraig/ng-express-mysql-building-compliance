@@ -551,7 +551,7 @@ export class ListWardensComponent implements OnInit, OnDestroy {
                 }
                 data.push(location);
                 data.push(warden['name']);
-                data.push(warden['roles'].join('\r\n'));
+                data.push(warden['roles'].join(' '));
                 let training = 'Not recorded';
                 if (warden['training_requirement_id']) {
                     training = `${warden.training} of 1`;
