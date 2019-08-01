@@ -146,7 +146,7 @@ export class UserEmRoleRelation extends BaseClass {
                     LEFT JOIN locations l ON l.location_id = uer.location_id
                     LEFT JOIN locations parent ON l.parent_id = parent.location_id
                     WHERE u.account_id = ${accountId} AND l.location_id IN (${locIds}) AND l.archived = ${archived} AND u.archived = 0`;
-            console.log(sql_load);
+            // console.log(sql_load);
             this.pool.getConnection((err, connection) => {
                 if (err) {
                     throw new Error(err);

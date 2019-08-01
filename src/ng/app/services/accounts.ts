@@ -190,12 +190,12 @@ export class AccountsDataProviderService {
     });
 	}
 	
-	listPeepForConfirmation(locationIdArrStr='') {
+	listPeepForConfirmation(postBody:object={}) {
 		return this.http.post<{
 			building: object[],
 			account_users: object[],
 			emergency_users: object[]
-		}>(`${this.baseUrl}/team/build-trp-peep-list/`, {assignedLocations: locationIdArrStr});
+		}>(`${this.baseUrl}/team/build-trp-peep-list/`, postBody);
 	}
 
 	permanentlyDeleteAccount(accountId=0) {

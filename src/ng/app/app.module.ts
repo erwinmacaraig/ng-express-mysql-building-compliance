@@ -60,8 +60,8 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { LocationListComponent } from './location/list/location-list.component';
 import { ViewSingleLocation } from './location/view.single/view-single.component';
 import { LocationComponent } from './location/location.component';
-
 import { BuildingActivityComponent } from './location/activity/building-activity.component';
+import { SummaryOfChangesComponent } from './location/changes-summary/summary-changes.component';
 
 import { VerificationComponent } from './location/verification/verification.component';
 
@@ -205,6 +205,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     LocationComponent,
     VerificationComponent,
     BuildingActivityComponent,
+    SummaryOfChangesComponent,
 
     // ViewSublocationComponent
     ImportCsvButtonComponent,
@@ -296,8 +297,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     FormsModule,
     HttpClientModule,
     AppRoutingModule,
-    NgMultiSelectDropDownModule.forRoot(),
-    // todo: move to location module
+    NgMultiSelectDropDownModule.forRoot(),    
     ReactiveFormsModule,
     NgDatepickerModule,
     CommonModule,

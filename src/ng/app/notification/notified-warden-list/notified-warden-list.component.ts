@@ -21,7 +21,8 @@ declare var $: any;
 
 export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDestroy {
 
-    private myLocations = [];
+    private trpLocations = [];
+    private frpLocations = [];
     public wardenList = [];
     public validatedList = [];
     public myBuildings = [];
@@ -76,11 +77,13 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
         }
       });
         // need to know what building I am building the list
-        const roles: object[] = this.auth.userDataItem('roles');
-        const checker = [];
+        const roles: object[] = this.auth.userDataItem('roles');        
         for (let r of roles) {
-            if (r['role_id'] <= 2) {
-                this.myLocations.push(r['location_id']);
+            if (r['role_id'] == 2) {              
+              this.trpLocations.push(r['location_id']);
+            }
+            if (r['role_id'] == 1) {
+              this.frpLocations.push(r['location_id']);
             }
         }
         
@@ -134,7 +137,9 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
         let wardenInformation = [];
         //build the team here
         this.userService.generateConfirmationWardenList({
-            'assignedLocations': JSON.stringify(this.myLocations)
+            'trpLocations': JSON.stringify(this.trpLocations),
+            'frpLocations': JSON.stringify(this.frpLocations),
+            'assignedLocations': JSON.stringify(this.auth.userDataItem('buildings'))
         }).subscribe((response) => {
             this.receivers = response.list.length;
             this.allWarden = response.list;
@@ -320,8 +325,13 @@ export class NotifiedWardenListComponent implements OnInit, AfterViewInit, OnDes
 
     private generateMobilityImpairedList() {
       this.accountMobilityImpaired = [];
-      this.emergencyMobilityImpaired = [];
-      this.accountService.listPeepForConfirmation(JSON.stringify(this.myLocations)).subscribe((response) => {
+      this.emergencyMobilityImpaired = [];      
+      const locations = [...this.trpLocations, ...this.frpLocations];
+      this.accountService.listPeepForConfirmation({
+        'trpLocations': JSON.stringify(this.trpLocations),
+        'frpLocations': JSON.stringify(this.frpLocations),
+        'assignedLocations': JSON.stringify(this.auth.userDataItem('buildings'))
+      }).subscribe((response) => {
         this.accountMobilityImpaired = response.account_users;
         this.emergencyMobilityImpaired = response.emergency_users; 
         for (let peep of this.emergencyMobilityImpaired) {

@@ -966,6 +966,10 @@ export class TeamRoute extends BaseRoute {
   }
 
   public async buildPeepListForTrp(req:AuthRequest, res:Response) {
+    
+    let trpLocations = JSON.parse(req.body.trpLocations);
+    let frpLocations = JSON.parse(req.body.frpLocations);
+
     let assignedLocations = [];
     let tempArr = [];
     let whereLoc = [];
@@ -973,38 +977,33 @@ export class TeamRoute extends BaseRoute {
     const location = new Location();
     let myBuildings = [];
     let sublocations = [];
-    assignedLocations = JSON.parse(req.body.assignedLocations);
-    if (assignedLocations.length == 0) {
+    buildings = JSON.parse(req.body.assignedLocations);
+    try {
+        // getting the building details        
+        whereLoc.push(`location_id IN (${buildings.join(',')})`);
+        myBuildings = await location.getWhere(whereLoc) as Array<object>;  
+    } catch(e) {
+        console.log(e);
+        buildings = [];
+    }
+    whereLoc = [];
+    sublocations = [...trpLocations, ...frpLocations];
+
+    if (trpLocations.length == 0 && frpLocations.length == 0) {
         return res.status(500).send({
             list: [],
             message: 'No supplied location parameter'
         });
     }
-    whereLoc.push( `location_id IN (${assignedLocations.join(',')})`);
-	tempArr = await location.getWhere(whereLoc) as Array<object>;
-		
-    for (let index of tempArr) {
-        if (buildings.indexOf(index['parent_id']) == -1 && index['parent_id'] != -1) {
-            buildings.push(index['parent_id'])
-        } else if(buildings.indexOf(index['location_id']) == -1 && index['parent_id'] == -1 && index['is_building'] == 1) {
-            buildings.push(index['location_id']);
-            sublocations.push(index['location_id']);
+    if (frpLocations.length > 0) {
+        whereLoc.push(`parent_id IN (${frpLocations.join(',')})`);
+        tempArr = await location.getWhere(whereLoc) as Array<object>;
+        //tempArr now contains the sublevels of the frplocations
+        for (let loc of tempArr) {
+            sublocations.push(loc['location_id']);	
         }
     }
 
-    whereLoc = [];
-    tempArr = [];
-    whereLoc.push(`parent_id IN (${buildings.join(',')})`);
-    tempArr = await location.getWhere(whereLoc) as Array<object>;
-    //tempArr now contains the sublevels
-
-    // getting the building details
-    whereLoc = [];
-    whereLoc.push(`location_id IN (${buildings.join(',')})`);
-    myBuildings = await location.getWhere(whereLoc) as Array<object>;    
-    for (let loc of tempArr) {
-        sublocations.push(loc['location_id']);	
-    }
     // get all emergency roles from these locations which belongs to the same account which is peep
     const peepObj = new MobilityImpairedModel();
     let accountTypeMobilityImpaired = [];
@@ -1036,50 +1035,45 @@ export class TeamRoute extends BaseRoute {
 
   public async buildMyEcoTeam(req: AuthRequest, res: Response) {
 
-    let assignedLocations = [];
+    let trpLocations = JSON.parse(req.body.trpLocations);
+    let frpLocations = JSON.parse(req.body.frpLocations);
+    
     let buildings = [];
     let sublocations = [];
     let tempArr = [];
     let whereLoc = [];
     const location = new Location();
     let list = [];
-    assignedLocations = JSON.parse(req.body.assignedLocations);
+    
     let myBuildings = [];
-
-    if (assignedLocations.length == 0) {
+    buildings = JSON.parse(req.body.assignedLocations);
+    try {
+        // getting the building details        
+        whereLoc.push(`location_id IN (${buildings.join(',')})`);
+        myBuildings = await location.getWhere(whereLoc) as Array<object>;  
+    } catch(e) {
+        console.log(e);
+        buildings = [];
+    }
+    whereLoc = [];
+    sublocations = [...trpLocations, ...frpLocations];
+    if (trpLocations.length == 0 && frpLocations.length == 0) {
         return res.status(500).send({
             list: [],
             message: 'No supplied location parameter'
         });
     }
-    whereLoc.push( `location_id IN (${assignedLocations.join(',')})`);
-	tempArr = await location.getWhere(whereLoc) as Array<object>;
-		
-    for (let index of tempArr) {
-        if (buildings.indexOf(index['parent_id']) == -1 && index['parent_id'] != -1) {
-            buildings.push(index['parent_id'])
-        } else if(buildings.indexOf(index['location_id']) == -1 && index['parent_id'] == -1 && index['is_building'] == 1) {
-            buildings.push(index['location_id']);
-            sublocations.push(index['location_id']);
+    if (frpLocations.length > 0) {
+        whereLoc.push(`parent_id IN (${frpLocations.join(',')})`);
+        tempArr = await location.getWhere(whereLoc) as Array<object>;
+        //tempArr now contains the sublevels of the frplocations
+        for (let loc of tempArr) {
+            sublocations.push(loc['location_id']);	
         }
     }
-
-    whereLoc = [];
-    tempArr = [];
-    whereLoc.push(`parent_id IN (${buildings.join(',')})`);
-    tempArr = await location.getWhere(whereLoc) as Array<object>;
-    //tempArr now contains the sublevels
-
-    // getting the building details
-    whereLoc = [];
-    whereLoc.push(`location_id IN (${buildings.join(',')})`);
-    myBuildings = await location.getWhere(whereLoc) as Array<object>;
-
+    
     // get all wardens from these locations which belongs to the same account
-    for (let loc of tempArr) {
-        sublocations.push(loc['location_id']);	
-    }
-
+    
     //need to get the training requirements for emergency roles
     const trainingForRoles: Array<object> = await new TrainingRequirements().allEmRolesTrainings();
     const tempUserTrainingReqObj:{[r:number]:Array<Number>} = {};
@@ -1154,9 +1148,6 @@ export class TeamRoute extends BaseRoute {
         }
         
     }
-
-
-
     res.status(200).send({
         list: list,
         building: myBuildings

@@ -1,0 +1,123 @@
+<div class="row">
+    <div class="col l12 m12 s12">
+        <h5>Summary of Changes</h5>
+        <span>A summary of all changes requiring management approval.</span>
+    </div>
+</div>
+<div class="row filter-container">
+    <div class="col l6 m6 s6">
+        <div class="search-field">
+            <input type="text" placeholder="Search member" id="searchMemberInput">
+            <span class="material-icons">search</span>
+        </div>
+    </div>
+    <div class="col l3 m3 s3">
+        <select class="location" id="filter-location">
+            <option value="0" selected>All Locations</option>
+            <option *ngFor="let loc of myBuildings" [value]="loc['location_id']">{{loc['name']}}</option>
+        </select>
+    </div>
+    <div class="col l3 m3 s3">
+        <button class="btn orange waves-effect waves-light btn-add-warden" (click)="csvExport()">
+            Download CSV
+        </button>
+    </div>
+</div>
+<div class="row">
+    <div class="col l12 m12 s12">
+        <table class="table striped">
+            <thead>
+                <tr>
+                    <th>Location</th>                    
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Response</th>
+                    <th>Mobile</th>
+                    <th>Sublocation</th>
+                    <th>ECO Role</th>
+                    <th>Training</th>
+                    <th>Last Activity</th>
+                    <th>Required Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngIf="wardenList.length == 0 && validatedList.length == 0">
+                    <td colspan="10">No record found.</td>
+                </tr>
+                <tr *ngFor="let warden of wardenList">
+                    <td>{{warden.parent}}</td>  
+                    <td>{{warden.first_name}} {{warden.last_name}}</td> 
+                    <td>{{warden.statusText}}</td>                 
+                    <td>
+                        <ng-container *ngIf="warden['jsonResponse']">
+                            <span class="response-parser">
+                               {{warden['jsonResponse']['reason']}}
+                            </span>                            
+                            <span style="display: block;" *ngFor="let info of warden['additional_info']">
+                                {{info}}
+                            </span>                            
+                        </ng-container>
+                    </td>
+                                       
+                    <td>{{warden.mobile}}</td>
+                    <td>{{warden.name}}</td>
+                    <td><span style="display: block;" *ngFor="let role of warden['roles']">{{role}}</span></td>
+                    <td><span [ngStyle]="{'color':warden.training === 'Non-compliant' ? 'red' : '#39a1ff'}">{{warden.training}}</span></td>
+                    <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
+                    <td>
+                        <div *ngIf="warden.strStatus == 'Pending'">
+                            <button style="width: 100%;" type="button" (click)="resendNotificationToUser(warden['notification_token_id'])" class="btn blue waves-effect waves-light">Resend Notification</button>
+                        </div>
+                        <div style="text-align: center;" *ngIf="warden.strStatus == 'Resigned' && warden['lastActionTaken'] == null">
+                            <button style="width: 48%;" type="button" class="btn orange waves-effect waves-light" (click)="acceptResignation(warden['user_id'], warden['location_id'], warden['notification_token_id'])">Accept</button>
+                            <button style="width: 49%;" type="button" class="btn blue waves-effect waves-light" (click)="rejectResignation(warden['user_id'], warden['location_id'], warden['notification_token_id'])">Reject</button>
+                        </div>
+                        <div *ngIf="warden['lastActionTaken'] != null">
+                            <span [ngStyle]="{'color':warden.actionTakenByTrp === 'Rejected' ? 'red' : '#39a1ff'}">{{warden.actionTakenByTrp}}</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngFor="let warden of validatedList">
+                    <td>{{warden.parent}}</td>
+                    <td>{{warden.first_name}} {{warden.last_name}}</td>
+                    <td>{{warden.statusText}}</td>
+                    <td> -- </td>
+                    
+                    <td>{{warden.mobile}}</td>
+                    <td>{{warden.name}}</td>
+                    <td><span style="display: block;" *ngFor="let role of warden['roles']">{{role}}</span></td>
+                    <td><span [ngStyle]="{'color':warden.training === 'Non-compliant' ? 'red' : '#39a1ff'}">{{warden.training}}</span></td>
+                    <td>{{warden.last_login | date: 'dd/MM/yyyy' }}</td>
+                    <td> -- </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="row">
+    <div class="col l12 m12 s12 col-buttons right-align">
+        <button class="btn orange btn-compliance-rating">
+            <div class="text">
+                Showing records
+            </div>
+            <div class="white center">
+               {{showing_records}}
+            </div>
+            <div class="text"> of {{total_records}} </div>
+        </button>
+
+    </div>
+</div>
+<div id="modal-email-confirmation" class="modal">
+    <div class="modal-content">
+        <div class="modal-content-message">
+            <h3>{{emailSentHeading}}</h3>
+                <h5>{{emailSendingStat}}</h5>
+            <div class="modal-footer">
+                <a class="modal-close waves-effect waves-green btn-flat">Ok</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div preloader></div>
