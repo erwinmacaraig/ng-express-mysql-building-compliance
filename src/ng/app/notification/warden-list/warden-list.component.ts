@@ -221,17 +221,17 @@ export class NotificationWardenListComponent implements OnInit, AfterViewInit, O
                         __this.locationsCopy = JSON.parse( JSON.stringify( __this.locations ) );
                     });
 
-                    __this.userService.getUserLocationTrainingsEcoRoles(warden.user_id, (response) => {
-                        __this.toEditLocations = response.data.locations;
+                    __this.userService.getUserLocationTrainingsEcoRoles(warden.user_id).subscribe((response) => {
+                      __this.toEditLocations = response.data.locations;
 
-                        __this.showLocationLoading = false;
-                    });
+                      __this.showLocationLoading = false;
+                  });
 
                     $('#modalAssignLocations').modal('open');
                 }else if(val == 'markaspeep'){
                     __this.router.navigate(
-                        ['/dashboard/notification-warden-list/', __this.encryptedToken ], 
-                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true', modalclose : 'true' } 
+                        ['/dashboard/notification-warden-list/', __this.encryptedToken ],
+                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true', modalclose : 'true' }
                     });
                     $('#modalPeep').modal('open');
 

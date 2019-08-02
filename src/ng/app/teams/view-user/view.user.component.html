@@ -3,14 +3,6 @@
 		<div class="col l12 m12 s12 col-user-profile">
 			<h5>User Profile</h5>
 
-			<div class="image-container">
-				<p class="initials" *ngIf="viewData.user.profilePic.length == 0">
-					{{getInitials(viewData.user.first_name+' '+viewData.user.last_name)}}
-				</p>
-				<img *ngIf="viewData.user.profilePic.length > 0" [src]="viewData.user.profilePic"  >
-			</div>
-
-			<div class="badge-warden" [ngClass]="viewData.badge_class"></div>
 
 			<div class="name-container ">
 				<h5 class="name blue-text">{{viewData.user.first_name+' '+viewData.user.last_name}}</h5>
@@ -20,67 +12,36 @@
 	</div>
 	<div class="row">
 		<div class="col l12 m12 s12">
-			<!--
-			<div class="select-field">
-				<select id="selectLocation">
-            <option *ngFor="let loc of viewData.locations; let i = index;" [attr.index]="i" [selected]="i == 0" value="{{loc.location_id}}">{{loc.name}}</option>
-				</select>
-			</div>			
-			-->
-			<div class="field-padding">
-					<h5>Location</h5>
-					<span class="field-text" *ngFor="let loc of viewData.locations">{{loc.name}}</span>
-			</div> 
-			
-			
-		</div>
-
-		<div class="col l12 m12 s12">
-			<!--
-			<div class="input-field">
-				<input id="role" type="text" readonly value="{{viewData.role_text}}">
-				<label for="role">
-					<span>Role</span>
-				</label>
-			</div>
-			-->
-			<div class="field-padding">
-				<h5>Role</h5>
-				<span class="field-text" *ngFor="let role of viewData.role_texts">{{role}}</span>
-			</div>
-			
-		</div>
-
-		<div class="col l12 m12 s12" *ngIf="viewData.user.mobile_number.length > 0">
-				<div class="field-padding">
-						<h5>Contact Information</h5>
-						<span class="field-text">{{viewData.user.mobile_number}}</span>
-				</div>
-			
-			<!--
-				<div class="input-field">
-				<input id="contactInfo" type="text" value="{{viewData.user.mobile_number}}" readonly>
-				<label for="contactInfo">Contact Information</label>
-			</div>
-			-->
-			
-		</div>
-		<div class="col l12 m12 s12">
 			<div class="field-padding">
 				<h5>Email Address</h5>
 				<span class="field-text">{{viewData.user.email}}</span>
-
 			</div>
-			
+    </div>
+    <div class="col l12 m12 s12">
+      <div class="field-padding">
+          <h5>Contact Information</h5>
+          <span class="field-text" *ngIf="viewData.user.mobile_number.length > 0; else noMobile">{{viewData.user.mobile_number}}</span>
+          <ng-template #noMobile><span class="field-text"> -- </span></ng-template>
+      </div>
+    </div>
+  </div>
 
-			<!--<div class="input-field">
-				<input id="emailAddress" type="text" value="{{viewData.user.email}}" readonly>
-				<label for="emailAddress">Email Address</label>
-			</div> -->
-		</div>
-	</div>
-
-	<div class="bottom-buttons">
+  <div class="row">
+    <div class="col l12 m12 s12">
+      <button class="btn orange waves-effect waves-light" style="width: 100%">
+        <div class="text inline-block">Edit Information</div>
+      </button>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col l12 m12 s12">
+      <button class="btn grey waves-effect waves-light" style="width: 100%">
+        <div class="text inline-block">Update Password</div>
+      </button>
+    </div>
+  </div>
+<!--
+<div class="bottom-buttons">
 
 		<div class="select-field">
 			<select id="selectAction">
@@ -91,10 +52,7 @@
 			</select>
 		</div>
 
-		<button class="btn orange waves-effect waves-light remove" *ngIf="showRemoveWardenButton" (click)="clickRemoveWarden()">
-			<div class="image inline-block"></div>
-			<div class="text inline-block">Remove this user as {{viewData.eco_role}}</div>
-		</button>
+
 
 		<button class="btn pink waves-effect waves-light presonal-emergency" (click)="viewPEEP()" *ngIf="viewData.user.mobility_impaired == 1">
 			<div class="image inline-block"></div>
@@ -103,14 +61,91 @@
 				<span *ngIf="viewData.user.mobility_impaired_details.user_id">View Emergency Evacuation Plan</span>
 			</div>
 		</button>
+  </div>
+-->
 
 
-
-	</div>
 </div>
 
 
 <div class="inline-block right-content">
+  <div class="row">
+      <div class="col l12 m12 s12">
+          <div class="mid-nav">
+              <ul>
+                  <li (click)="locationRoleTab=false" [ngClass]="{active:locationRoleTab==false}">Location Role</li>
+                  <li (click)="locationRoleTab=true" [ngClass]="{active:locationRoleTab==true}"> Training Requirements </li>
+              </ul>
+          </div>
+      </div>
+  </div>
+  <div class="row">
+    <div class="col s12 m12 l12">
+      <ng-container *ngIf="locationRoleTab == true">
+        <h6>Required Trainings</h6>
+        <span>List of trainings required for the ECO role</span>
+        <table>
+          <thead>
+            <tr>
+              <th>ECO Role</th>
+              <th>Competency</th>
+              <th>Compliant</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+            <tbody>
+              <tr>
+                <td colspan="4">No record found.</td>
+              </tr>
+            </tbody>
+        </table>
+
+        <h6>Previous Trainings</h6>
+        <span>List of previous trainings</span>
+        <table>
+            <thead>
+              <tr>
+                <th>Competency</th>
+                <th>Training Type</th>
+                <th>Training Location</th>
+                <th>Date of Training</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+              <tbody>
+                <tr>
+                  <td colspan="5">No record found.</td>
+                </tr>
+              </tbody>
+
+          </table>
+      </ng-container>
+      <ng-container *ngIf="locationRoleTab == false">
+        <!-- DISPLAY Location Role -->
+        <table>
+          <thead>
+            <tr>
+              <th>Location</th>
+              <th>Role</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+            <tbody>
+              <tr *ngIf="viewData.locations.length == 0">
+                <td colspan="3">No record found.</td>
+              </tr>
+              <tr *ngFor="let location of viewData.locations">
+                <td>{{location['name']}}</td>
+                <td>{{location['role_name']}}</td>
+                <td><a>Delete</a></td>
+              </tr>
+            </tbody>
+
+        </table>
+      </ng-container>
+    </div>
+  </div>
+<!--
   <div class="row">
     <div class="col s12 m12 l12">
       <h5>Required Trainings</h5>
@@ -244,7 +279,7 @@
     </div>
   </div>
 </div>
-
+-->
 </div>
 
 
@@ -373,7 +408,7 @@
 				</div>
 
 				<input type="text" name="user_id" ngModel required style="visibility: hidden;">
-				
+
 			</div>
 
 			<div class="row button-container">
@@ -492,7 +527,7 @@
 						</td>
 						<td *ngIf="!loc.deleted">
 							<select name="role_id[{{i}}]" style="display: block;" (change)="onChangeSelectRole(loc, $event.currentTarget.value)" >
-                <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>								
+                <option value="0" [selected]="loc.role_id == 0" disabled>Select Role</option>
 								<option *ngIf="isImFRP" value="1" [selected]="loc.role_id == 1">Building Manager</option>
 								<option value="2" [selected]="loc.role_id == 2">Tenancy Responsible Personnel</option>
 								<option value="{{eco.em_roles_id}}" *ngFor="let eco of viewData.eco_roles" [selected]="loc.role_id == eco.em_roles_id ">

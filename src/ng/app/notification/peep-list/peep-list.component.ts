@@ -142,7 +142,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
           this.generatePeepList();
 
           this.locationsService.getSublocationsOfParent(this.building_id).subscribe((response) => {
-            // this.sublocations.push(response['building']); Only FRP can add person to a building 
+            // this.sublocations.push(response['building']); Only FRP can add person to a building
             this.sublocations =  this.sublocations.concat(response['data']);
           }, (error) => {
               console.log(error);
@@ -215,17 +215,17 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
                         __this.locationsCopy = JSON.parse( JSON.stringify( __this.locations ) );
                     });
 
-                    __this.userService.getUserLocationTrainingsEcoRoles(warden.user_id, (response) => {
-                        __this.toEditLocations = response.data.locations;
+                    __this.userService.getUserLocationTrainingsEcoRoles(warden.user_id).subscribe((response) => {
+                      __this.toEditLocations = response.data.locations;
 
-                        __this.showLocationLoading = false;
+                      __this.showLocationLoading = false;
                     });
 
                     $('#modalAssignLocations').modal('open');
-                }else if(val == 'markaspeep'){
+                } else if(val == 'markaspeep'){
                     __this.router.navigate(
-                        ['/dashboard/notification-peep-list/', __this.encryptedToken ], 
-                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true', modalclose : 'true' } 
+                        ['/dashboard/notification-peep-list/', __this.encryptedToken ],
+                        { queryParams: { id: __this.cryptor.encrypt(''+warden.user_id), formodal : 'true', modalclose : 'true' }
                     });
                     $('#modalPeep').modal('open');
 
@@ -477,7 +477,7 @@ export class NotificationPEEPListComponent implements OnInit, AfterViewInit, OnD
                 }
             }
             this.peep = newList;
-            
+
             setTimeout(function(){
                 $('select.select-action').val('0').material_select();
             }, 300);

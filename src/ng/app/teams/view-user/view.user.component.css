@@ -5,7 +5,7 @@
 .left-panel{
 	width: 270px;
 	background-color: #eee;
-	padding: 20px;
+	padding: 10px;
 	min-height: 750px;
 	position: relative;
     height: calc(100vh - 140px);
@@ -638,4 +638,45 @@ table tr td .image img{
 .field-text {
     display: block;
     font-size: 13px;
+}
+
+.mid-nav{
+  border-bottom: 1px solid #cacaca;
+  padding-left: 25px;
+  margin-bottom: 20px;
+}
+
+.mid-nav ul{
+  margin: 0px;
+}
+
+.mid-nav ul li{
+  text-align: left;
+  border-bottom: 1px solid #cacaca;
+  display: inline-block;
+  margin-right: 30px;
+  padding: 15px 0px !important;
+  margin-bottom: -1px;
+  color: #383838;
+  font-size: 18px;
+  transition: 0.5s all;
+}
+
+.mid-nav ul li:hover{
+  border-bottom: 1px solid #39a1ff !important;
+  cursor: pointer;
+  color: #39a1ff !important;
+}
+
+.mid-nav ul li:focus{
+  outline: none;
+}
+
+.mid-nav ul li:hover{
+  cursor: pointer;
+}
+
+.mid-nav ul li.active{
+  color: #39a1ff !important;
+  border-bottom: 1px solid #39a1ff !important;
 }

@@ -137,8 +137,8 @@ export class TrainingProfile implements OnInit, OnDestroy {
 	}
 
 	loadProfile(callBack?) {
-		this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
-			this.viewData.user = response.data.user;
+		this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID).subscribe((response) => {
+			// this.viewData.user = {...response.data.user };
 			this.viewData.role_text = response.data.role_text;
 			this.viewData.eco_roles = response.data.eco_roles;
 			this.viewData.trainings = response.data.trainings;
@@ -156,14 +156,14 @@ export class TrainingProfile implements OnInit, OnDestroy {
         if (response.data.locations[i]['em_roles_id'] !== null) {
           this.viewData.locations.push(response.data.locations[i]);
         }
-        
+
         if (response.data.locations[i]['training_requirement_name']) {
           for (let j = 0; j < response.data.locations[i]['training_requirement_name'].length; j++) {
             if (this.seenRequiredTrainings.indexOf(response.data.locations[i]['training_requirement_name'][i]) === -1) {
               this.seenRequiredTrainings.push(response.data.locations[i]['training_requirement_name'][i]);
             }
           }
-        } 
+        }
       }
       */
      let temp = [];

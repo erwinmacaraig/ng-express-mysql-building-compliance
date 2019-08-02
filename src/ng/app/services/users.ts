@@ -16,7 +16,7 @@ export class UserService {
 	constructor(private http: HttpClient, platformLocation: PlatformLocation) {
     this.headers = new HttpHeaders({ 'Content-type' : 'application/json' });
     this.options = { headers : this.headers };
-    
+
 	this.baseUrl = environment.backendUrl;
 	}
 
@@ -59,7 +59,7 @@ export class UserService {
 			callBack( JSON.parse(err.error) );
 		});
 		*/
-		return this.http.post(this.baseUrl+"/users/upload-profile-picture", formData); 
+		return this.http.post(this.baseUrl+"/users/upload-profile-picture", formData);
 	}
 
 	checkUserVerified(userId, callBack){
@@ -115,14 +115,22 @@ export class UserService {
 		});
 	}
 
-	getUserLocationTrainingsEcoRoles(userId, callBack){
-		this.http.get(this.baseUrl+"/users/get-user-locations-trainings-ecoroles/"+userId)
-		.subscribe(res => {
-			callBack(res);
-		}, err => {
-			callBack( JSON.parse(err.error) );
-		});
-	}
+  getUserLocationTrainingsEcoRoles(userId) {
+    return this.http.get<{
+      data: {
+        certificates: object[],
+        eco_roles: object[],
+        locations: object[],
+        required_trainings: object[],
+        trainings: object[],
+        user: object,
+        valid_trainings: object[],
+        role_text: string
+      },
+      message: string,
+      status: boolean
+    }>(this.baseUrl + '/users/get-user-locations-trainings-ecoroles/' + userId);
+  }
 
 	archiveUsers(userIds, callBack){
 		this.http.post(this.baseUrl+"/users/archive-users", { user_ids : userIds })
@@ -319,7 +327,7 @@ export class UserService {
     getNotificationToken(userId = 0) {
         return this.http.get(this.baseUrl + '/users/get-notification-token/'+userId, this.options);
 	}
-	
+
 	userInfo(userId=0) {
 		return this.http.post<{
 			user_id: number,
@@ -328,7 +336,7 @@ export class UserService {
 			email: string,
 			phone_number: string,
 			mobile_number: string,
-			mobility_impaired: number, 
+			mobility_impaired: number,
 			evac_role: string
 		}>(this.baseUrl + '/users/user-info/', {user: userId});
 	}
@@ -376,7 +384,7 @@ export class UserService {
     computeUserRewardPoints(uid = 0) {
         return this.http.get<{message: string, total_points: number}>(this.baseUrl + '/users/get-reward-points/' + uid, this.options);
 	}
-	
+
 	verifyAsWarden(configId=0) {
 		const httpParams = new HttpParams().set('configId', configId.toString());
 		this.options['params'] = httpParams;
@@ -402,7 +410,7 @@ export class UserService {
 
 	getGofrInLocation(locId){
 		return this.http.get<{message: string, data: Object[]}>(this.baseUrl+"/users/get-gofr/"+locId);
-		
+
 	}
 	listUserAccountLocations() {
 		return this.http.get<{

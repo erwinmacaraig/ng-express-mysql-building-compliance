@@ -104,7 +104,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         private route: ActivatedRoute,
         private authService: AuthService,
         private cryptor: EncryptDecryptService,
-        private accountService: AccountsDataProviderService,        
+        private accountService: AccountsDataProviderService,
         private userService: UserService,
         private preloader: DashboardPreloaderService,
         private personDataService: PersonDataProviderService,
@@ -115,7 +115,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         private complianceService: ComplianceService,
         private router: Router
         ) {
-   
+
         this.baseUrl = environment.backendUrl;
         this.userData = this.authService.getUserData();
         this.email = this.authService.userDataItem('email');
@@ -123,7 +123,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.last_name = this.authService.userDataItem('last_name');
         this.mobile = this.authService.userDataItem('mobile');
         this.encryptedUserId = this.cryptor.encrypt(this.userData['userId']);
-       
+
         this.accountService.getById(this.userData['accountId'], (response) => {
             this.accountData = response.data;
         });
@@ -160,7 +160,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
             building: this.building,
             assignedLocations: JSON.stringify(locations),
             oldLocations: JSON.stringify(this.assignedSublocations),
-            user_em_role_id: 9 
+            user_em_role_id: 9
         };
 
         this.userService.updateWardenProfile(postBody).subscribe((response) => {
@@ -184,7 +184,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 }
             }
             this.verifyWardenSub = this.userService.verifyAsWarden(tokens[0]['notification_config_id']).subscribe((response) => {
-                console.log(response);  
+                console.log(response);
             });
 
         });
@@ -197,11 +197,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
     onItemSelect(item: any) {
         console.log(item);
       }
-     
+
 
     ngOnInit() {
 
-        this.preloader.show();         
+        this.preloader.show();
 
           this.dropdownSettings = {
             singleSelection: false,
@@ -213,13 +213,13 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
             allowSearchFilter: false,
             noDataAvailablePlaceholderText: 'Fetching data from server'
           };
-         
+
         this.routeParamsSub =  this.route.queryParams.subscribe((query) => {
             this.routeQuery = query;
             let params = this.getQueryParams();
 
             this.token = this.cryptor.decryptUrlParam(this.routeQuery['token']);
-            
+
             const parts: Array<string> = this.token.split('_');
             this.notification_token_id = +parts[3];
 
@@ -239,31 +239,31 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     let wardenRoleIds = [8, 9, 10, 11, 15, 16, 18];
 
                     for(let i in response.users_locations){
-                        if( response.users_locations[i]['location_id'] == this.routeQuery['locationid'] && 
-                            ( wardenRoleIds.indexOf(  parseInt( response.users_locations[i]['em_roles_id'] ) ) ) > -1 
+                        if( response.users_locations[i]['location_id'] == this.routeQuery['locationid'] &&
+                            ( wardenRoleIds.indexOf(  parseInt( response.users_locations[i]['em_roles_id'] ) ) ) > -1
                             ){
                             this.roleText = response.users_locations[i]['role_name'];
                         }
                     }
 
                     if (this.locationData['is_building'] == 1) {
-                        this.building = this.selectedBuilding = this.locationData['location_id'];                        
+                        this.building = this.selectedBuilding = this.locationData['location_id'];
                         console.log(this.selectedBuilding);
                         this.sublocationList = this.locationData['sublocations'];
                         this.buildingSelections.push({
                             name: this.locationData['name'],
                             location_id: this.locationData['location_id'],
-                            sublocations: this.locationData['sublocations'] 
+                            sublocations: this.locationData['sublocations']
                         });
                     } else {
                         this.building = this.selectedBuilding = response.parent['location_id'];
                         this.sublocationList = response.siblings;
                         this.buildingSelections.push({
                             name: response.parent['name'],
-                            location_id: response.parent['location_id'], 
-                            sublocations:[] 
+                            location_id: response.parent['location_id'],
+                            sublocations:[]
                         });
-                        
+
                         for (let s of response.siblings) {
                             if (s['location_id'] == this.locationData['location_id']) {
                                 continue;
@@ -272,60 +272,60 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                             }
 
                         }
-                    }                    
-                    
+                    }
+
                 });
-                this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
-                    for(let loc of response.data.locations){
-                        if(loc.user_em_roles_relation_id){
-                            this.locationRoles.push(loc);
-                            this.selectedItems.push({
-                                location_id: loc.location_id,
-                                name: loc.main_name
-                            });
-                            this.assignedSublocations.push(loc.location_id);                            
-                        }
-                        this.showAssignedLocations = true;
-                    }
-                    this.userData = Object.assign(this.userData, response.data.user);
-                    this.requiredTrainings = response.data.required_trainings;
-                    this.availableTrainings = response.data.trainings;
-                    this.validTrainings = response.data.valid_trainings;
+                this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId']).subscribe((response) => {
+                  for(const loc of response.data.locations){
+                      if(loc['user_em_roles_relation_id']){
+                          this.locationRoles.push(loc);
+                          this.selectedItems.push({
+                              location_id: loc['location_id'],
+                              name: loc['main_name']
+                          });
+                          this.assignedSublocations.push(loc['location_id']);
+                      }
+                      this.showAssignedLocations = true;
+                  }
+                  this.userData = Object.assign(this.userData, response.data.user);
+                  this.requiredTrainings = response.data.required_trainings;
+                  this.availableTrainings = response.data.trainings;
+                  this.validTrainings = response.data.valid_trainings;
 
-                    for(let vl of this.validTrainings){
-                        vl['valid'] = true;
-                    }
+                  for(let vl of this.validTrainings){
+                      vl['valid'] = true;
+                  }
 
-                    this.trainingItems = JSON.parse( JSON.stringify(this.validTrainings) );
+                  this.trainingItems = JSON.parse( JSON.stringify(this.validTrainings) );
 
-                    for(let tr of this.requiredTrainings){
-                        tr['valid'] = false;
-                        this.trainingItems.push(tr);
-                    }
+                  for(let tr of this.requiredTrainings){
+                      tr['valid'] = false;
+                      this.trainingItems.push(tr);
+                  }
 
-                    this.isCompliant = (response.data.valid_trainings.length > 0 && response.data.required_trainings.length == 0) ? true : false;
+                  this.isCompliant = (response.data.valid_trainings.length > 0 && response.data.required_trainings.length == 0) ? true : false;
 
-                    this.ecoRoles = response.data.eco_roles;
+                  this.ecoRoles = response.data.eco_roles;
 
-                    if( this.userData.mobile_number !== null ){
-                        if(this.userData.mobile_number.trim().length > 0){
-                            this.displayText.yesUpdateProfile.mobile = this.userData.mobile_number;
-                        }else if( this.userData.phone_number !== null ){
-                            if(this.userData.phone_number.trim().length > 0){
-                                this.displayText.yesUpdateProfile.mobile = this.userData.phone_number;
-                            }
-                        }
-                    }else if( this.userData.phone_number !== null ){
-                        if(this.userData.phone_number.trim().length > 0){
-                            this.displayText.yesUpdateProfile.mobile = this.userData.phone_number;
-                        }
-                    }
+                  if( this.userData.mobile_number !== null ){
+                      if(this.userData.mobile_number.trim().length > 0){
+                          this.displayText.yesUpdateProfile.mobile = this.userData.mobile_number;
+                      }else if( this.userData.phone_number !== null ){
+                          if(this.userData.phone_number.trim().length > 0){
+                              this.displayText.yesUpdateProfile.mobile = this.userData.phone_number;
+                          }
+                      }
+                  }else if( this.userData.phone_number !== null ){
+                      if(this.userData.phone_number.trim().length > 0){
+                          this.displayText.yesUpdateProfile.mobile = this.userData.phone_number;
+                      }
+                  }
 
-                    setTimeout(() => {
-                        this.changeEventSubLocationReviewProfile();
-                    }, 500);
-                    this.preloader.hide();
-                });
+                  setTimeout(() => {
+                      this.changeEventSubLocationReviewProfile();
+                  }, 500);
+                  this.preloader.hide();
+              });
 
             }
 
@@ -348,14 +348,14 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         this.routeSub = this.route.params.subscribe((params) => {
             this.routeParam = params;
             console.log(this.routeParam);
-        }); 
+        });
         /*
         this.locationService.getParentLocationsForListing(this.userData['accountId'], (response) => {
             this.buildingSelections = response.locations;
         }, { sublocations:true });
         */
 
-        
+
 
     }
 
@@ -394,7 +394,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         btn.innerText = "Updating...";
         btn.disabled = true;
 
-        let 
+        let
         idEmrolesRel = parseInt($('#selectLocReviewProf').val()),
         idFromLoc = 0,
         sublocid = parseInt($('#selectSubLocProfile').val()),
@@ -434,10 +434,10 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         $('.update-profile').css('pointer-events', 'none');
 
         let getUserLocationTrainingsEcoRoles = (callBack) => {
-            this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId'], (response) => {
+            this.userService.getUserLocationTrainingsEcoRoles(this.userData['userId']).subscribe((response) => {
                 this.locationRoles = [];
-                for(let loc of response.data.locations){
-                    if(loc.user_em_roles_relation_id){
+                for (const loc of response.data.locations) {
+                    if (loc['user_em_roles_relation_id']) {
                         this.locationRoles.push(loc);
                     }
                 }
@@ -445,11 +445,11 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 btn.disabled = false;
                 $('.update-profile').css('pointer-events', '');
 
-                if(callBack){
+                if (callBack) {
                     callBack();
                 }
 
-                if(differentLocation){
+                if (differentLocation) {
                     setTimeout(() => {
                         $('#modalNewLocation').modal('close');
                     }, 1500);
@@ -482,7 +482,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     console.log('There was an error processing the request answer');
                 }
             );
-           
+
         });
     }
 
@@ -532,7 +532,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
         const responses = [];
         this.token = this.cryptor.decryptUrlParam(this.routeQuery['token']);
         let params = this.getQueryParams();
-        
+
         const parts: Array<string> = this.token.split('_');
         this.notification_token_id = +parts[3];
         let status = '';
@@ -549,13 +549,13 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 });
                 if( $('#messageTenancyMovedOut').val().trim().length > 0 ){
                     btnConfirm.disabled = true;
-                    btnConfirm.innerText = "Sending...";                    
+                    btnConfirm.innerText = "Sending...";
                     responses.push({
                         question: 'addtional information',
                         ans: $('#messageTenancyMovedOut').val().trim()
                     });
                 }
-                params['stillonlocation'] = 'no';                
+                params['stillonlocation'] = 'no';
 
             } else if( this.routeQuery['ans'] == 'resign' ) {
                 status = 'Resigned';
@@ -565,16 +565,16 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     question: 'reason',
                     ans: 'I want to resign'
                 });
-                if( $('[name="nominate"]:checked').length > 0 ){                    
-                    let 
+                if( $('[name="nominate"]:checked').length > 0 ){
+                    let
                     val = $('[name="nominate"]:checked').val(),
                     email = $('#inpEmailNominate').val(),
                     re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-                    
+
                     email = (re.test(String(email).toLowerCase())) ? email : '';
-                    
+
                     if(  email.trim().length > 0 || val == "no" ){
-                        
+
                         $('[name="nominate"]').prop('disabled', true);
                         $('#inpEmailNominate').prop('disabled', true);
                         btnConfirm.disabled = true;
@@ -586,14 +586,14 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                                 ans: email
                             });
                         }
-                        
+
                     }
 
                 }
 
             }
 
-            let 
+            let
             idEmrolesRel = parseInt($('#selectSubLocNewLoc').val()),
             idFromLoc = 0,
             sublocid = parseInt($('#selSubLocationNewLoc').val()),
@@ -634,7 +634,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 }
 
                 btnConfirm.disabled = true;
-                btnConfirm.innerText = "Sending...";  
+                btnConfirm.innerText = "Sending...";
 
                 status = 'Location Changed';
                 responses.push({
@@ -659,7 +659,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                     console.log(res);
                     if( this.routeQuery['ans'] == 'tenancy_moved_out' ) {
                         this.router.navigate(['/dashboard']);
-                    } else if( this.routeQuery['ans'] == 'resign' ) { 
+                    } else if( this.routeQuery['ans'] == 'resign' ) {
                         this.router.navigate(['/dashboard/warden-notification'], {queryParams: params});
                     } else {
 
@@ -672,14 +672,14 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                             setTimeout(() => {
                                 this.router.navigate(['/dashboard']);
                             }, 2000);
-                        }else{
+                        } else {
                             this.router.navigate(['/dashboard']);
                         }
                     }
                 },
                 (error) => {
                     console.log('There was an error processing the request answer');
-                    
+
                 }
             );
 
@@ -761,7 +761,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 }else{
                     this.searchedLocations = [];
                     this.noSubLocs = false;
-                    
+
                 }
             });
         }
@@ -780,7 +780,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
                 }else{
                     this.searchedLocations = [];
                     this.noSubLocs = false;
-                    
+
                 }
             });
         }
@@ -797,7 +797,7 @@ export class WardenNotificationComponent implements OnInit, AfterViewInit, OnDes
             },
             (error) => {
                 console.log('There was an error processing the request answer');
-                
+
             }
         );*/
 

@@ -28,8 +28,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 	@ViewChild("durationDate") durationDate: ElementRef;
 	@ViewChild("formProfile") formProfile: NgForm;
 	@ViewChild("formCredential") formCredential : NgForm;
-    @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
-	userData = {};
+  @ViewChild('modalSearchLocation') modalSearchLocation: ElementRef;
+  userData = {};
+  locationRoleTab = false;
 	encryptedID = '';
 	decryptedID = '';
 	viewData = {
@@ -120,11 +121,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             }
         }
 
-		this.paramSub = this.route.params.subscribe((params) => {
-			this.encryptedID = params['encrypted'];
-			this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
-			this.loadProfile();
-		});
+
 
 		this.locationService.getLocationsHierarchyByAccountId(this.userData['accountId'], (response) => {
 			for(let loc of response.locations){
@@ -166,13 +163,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         return responseCode;
     }
 
-    setLoadedProfile(response){
+    setLoadedProfile(response) {
         this.viewData.user = response.data.user;
         this.viewData.role_text = response.data.role_text;
 
         if (!this.isImFRP) {
             for (let r of response.data.eco_roles) {
-                if (r['em_roles_id'] != 12) {
+                if (r['em_roles_id'] !== 12) {
                     this.viewData.eco_roles.push(r);
                 }
             }
@@ -180,31 +177,13 @@ export class ViewUserComponent implements OnInit, OnDestroy {
             this.viewData.eco_roles = response.data.eco_roles;
         }
 
-        let temp = [];
-        for (let loc of response.data.locations) {
-            if (temp.indexOf(loc['location_id']) == -1) {
-                this.viewData.locations.push(loc);
-                temp.push(loc['location_id']);
-            }
-        }
-        temp = [];
-        for (let loc of response.data.locations) {
-            if (temp.indexOf(loc['role_id']) == -1) {
-                this.viewData.role_texts.push(loc['role_name']);
-                temp.push(loc['role_id']);
-            }
-        }
-
-        
-        //this.viewData.locations = response.data.locations;
-
-        let trainings = [];
-        for(let tr of response.data.trainings){
-            if( this.userData['userId'] == tr.user_id){
+        const trainings = [];
+        for (const tr of response.data.trainings){
+            if (this.userData['userId'] === tr.user_id){
                 trainings.push(tr);
             }
         }
-
+        this.viewData.locations = response.data.locations; console.log(this.viewData.locations);
         this.viewData.trainings = trainings;
         this.viewData.certificates = response.data.certificates;
         this.viewData.valid_trainings = response.data.valid_trainings;
@@ -224,23 +203,23 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         setTimeout(function(){ $('#selectLocation').trigger('change'); },500);
     }
 
-	loadProfile(callBack?){
-		this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID, (response) => {
-			this.setLoadedProfile(response);
+  loadProfile(callBack?) {
+    this.userService.getUserLocationTrainingsEcoRoles(this.decryptedID).subscribe((response) => {
+      this.setLoadedProfile(response);
+      this.preloaderService.hide();
+      setTimeout(() => { $('.left-panel select').material_select(); }, 300);
+      if (callBack) {
+        callBack();
+      }
+    });
+  }
 
-			this.preloaderService.hide();
-
-			setTimeout(() => {
-				$('.left-panel select').material_select();
-			},300);
-
-			if(callBack){
-				callBack();
-			}
-		});
-	}
-
-	ngOnInit(){
+  ngOnInit(){
+    this.paramSub = this.route.params.subscribe((params) => {
+      this.encryptedID = params['encrypted'];
+      this.decryptedID = this.encryptDecrypt.decrypt(params['encrypted']);
+      this.loadProfile();
+    });
         this.adminService.getAllLocationsOnAccount(this.userData['accountId']).subscribe((response:any) => {
             this.buildings = response.data.buildings;
             this.levels = response.data.levels;

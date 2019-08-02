@@ -358,7 +358,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             }
         }
     };
-    
+
     msgSubs;
 
     constructor(private adminService: AdminService, private route: ActivatedRoute, private router: Router,
@@ -531,7 +531,7 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
                 user: user['user_id']
             }).subscribe((response) => {
                 this.message = 'Notification sent.';
-                $('#modalArchive').modal('open');                
+                $('#modalArchive').modal('open');
             });
         }
         else if(val == 'assign'){
@@ -541,33 +541,33 @@ export class AccountUsersListComponent implements OnInit, OnDestroy, AfterViewIn
             this.assignLocationRoleData.user = user;
             this.assignLocationRoleData.showForm();
 
-            this.userService.getUserLocationTrainingsEcoRoles(user.user_id, (response) => {
-                this.assignLocationRoleData.user = response.data.user;
-                this.assignLocationRoleData.role_text = response.data.role_text;
-                this.assignLocationRoleData.eco_roles = response.data.eco_roles;
-                this.assignLocationRoleData.locations = response.data.locations;
+            this.userService.getUserLocationTrainingsEcoRoles(user.user_id).subscribe((response) => {
+              this.assignLocationRoleData.user = response.data.user;
+              this.assignLocationRoleData.role_text = response.data.role_text;
+              this.assignLocationRoleData.eco_roles = response.data.eco_roles;
+              this.assignLocationRoleData.locations = response.data.locations;
 
-                this.assignLocationRoleData.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );
+              this.assignLocationRoleData.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );
 
-                this.assignLocationRoleData.fetching = false;
+              this.assignLocationRoleData.fetching = false;
             });
         } else if (val == 'set-passwd-invite') {
-            this.adminService.sendPasswordSetupInvite({user: user['user_id']}).subscribe((response) => {                
+            this.adminService.sendPasswordSetupInvite({user: user['user_id']}).subscribe((response) => {
                 this.message = 'Send invite successful!';
-                $('#modalArchive').modal('open'); 
+                $('#modalArchive').modal('open');
             });
-        } else if (val == 'send-summary-link') {            
+        } else if (val == 'send-summary-link') {
             this.adminService.sendNotificationSummaryLink(user['user_id'], user['allAccountRoles'][0], this.accountId)
                 .subscribe((response) => {
                     console.log('Email Sent');
                     this.message = 'Email Sent';
-                    $('#modalArchive').modal('open');                   
+                    $('#modalArchive').modal('open');
                 });
 
             if (user['allAccountRoles'].length > 1) {
                 this.adminService.sendNotificationSummaryLink(user['user_id'], user['allAccountRoles'][1], this.accountId)
                 .subscribe((response) => {
-                    console.log('Email Sent');                   
+                    console.log('Email Sent');
                 });
             }
         } else if (val == 'archive-user') {
