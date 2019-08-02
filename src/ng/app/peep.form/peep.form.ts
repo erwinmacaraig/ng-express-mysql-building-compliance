@@ -88,12 +88,12 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.encryptedId = params["id"];
                 this.user.user_id = this.encryptDecrypt.decrypt(this.encryptedId);
 
-                this.userService.getUserLocationTrainingsEcoRoles(this.user.user_id, (response) => {
+                this.userService.getUserLocationTrainingsEcoRoles(this.user.user_id).subscribe((response) => {
                     this.user = response.data.user;
-                    
+
                     if(this.user.mobility_impaired_details){
-                        if(this.user.mobility_impaired_details.length > 0){
-                            if(Object.keys(this.formMobility.controls).length > 0){
+                        if (this.user.mobility_impaired_details.length > 0) {
+                            if (Object.keys(this.formMobility.controls).length > 0) {
                                 this.formMobility.controls.is_permanent.setValue(this.user.mobility_impaired_details[0]['is_permanent']);
                                 this.formMobility.controls.assistant_type.setValue(this.user.mobility_impaired_details[0]['assistant_type']);
                                 this.formMobility.controls.equipment_type.setValue(this.user.mobility_impaired_details[0]['equipment_type']);
@@ -116,7 +116,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     ngAfterViewInit(){
-        
+
         $('select[name="is_permanent"]').material_select();
         $('.modal').modal({
             dismissible: false
@@ -175,7 +175,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
             paramData['is_permanent'] = ($('select[name="is_permanent"]').val() == null) ? 0 : $('select[name="is_permanent"]').val();
 
             this.showModalLoader = true;
-            this.userService.sendMobilityImpaireInformation(paramData, (response) => { 
+            this.userService.sendMobilityImpaireInformation(paramData, (response) => {
                 this.showModalLoader = false;
                 if (this.authService.userDataItem('confirmation_process') && this.authService.userDataItem('confirmation_process') == true) {
                     const confirmationRole = this.authService.userDataItem('confirmation_process_role');
@@ -219,7 +219,7 @@ export class PeepFormComponent implements OnInit, AfterViewInit, OnDestroy {
         }
 
         else if(this.paramDest.length > 0){
-            if(this.paramQuery){                
+            if(this.paramQuery){
                 this.router.navigate([this.paramDest], { queryParams: this.parseQuery(this.paramQuery) });
             }else{
                 this.router.navigate([this.paramDest]);
