@@ -11,7 +11,7 @@ import { ngfModule, ngf } from 'angular-file';
 // services section
 import { AuthService } from './services/auth.service';
 import { AuthGuard } from './services/auth-guard.service';
-import { CanDeactivateGuard } from './services/can-deactivate.guard.service'; 
+import { CanDeactivateGuard } from './services/can-deactivate.guard.service';
 import { SignupService } from './services/signup.service';
 import { MessageService } from './services/messaging.service';
 import { LocationsService } from './services/locations';
@@ -34,9 +34,6 @@ import { UserDashboardComponent  } from './dashboard/user/user.component';
 import { SecurityPrivacyComponent } from './dashboard/security-privacy/security.privacy';
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
-import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
-import { SendInviteComponent } from './dashboard/send-invite/send.invite';
-
 
 import { WardenInvitationFormComponent } from './signup/warden-invite/warden-invite.component';
 import { TenantInvitationFormComponent } from './signup/trp-invite/tenant-invite.component';
@@ -187,19 +184,17 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     TenantInvitationFormComponent,
     ProfileCompletionComponent,
     SignoutComponent,
-    CompanyInformationComponent,    
     PersonInfoComponent,
     EmailSuccessVerficiationComponent,
     WardenSignupComponent,
     SignupSelectRoleComponent,
     SignupUserInfoComponent,
-    SendInviteComponent,
     CustomHttpDataProviderComponent,
     NoemailComponent,
     LocationSignupComponent,
     SublocationComponent,
-    
-    //LOCATION
+
+    // LOCATION
     LocationListComponent,
     ViewSingleLocation,
     LocationComponent,
@@ -215,7 +210,6 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     MobilityImpairedArchivedComponent,
     AddMobilityImpairedComponent,
     ListWardensComponent,
-    
     AllUsersComponent,
     AddUserComponent,
     ViewUserComponent,
@@ -262,7 +256,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     AssignCoursesComponent,
     EpcMinutesMeetingComponent,
     // NOTIFICATION
-    
+
    NotifiedWardenListComponent,
     // ADMIN COMPONENTS
     AdminComponent,
@@ -297,7 +291,7 @@ import { BreadCrumbsComponent } from './breadcrumbs/breadcrumbs';
     FormsModule,
     HttpClientModule,
     AppRoutingModule,
-    NgMultiSelectDropDownModule.forRoot(),    
+    NgMultiSelectDropDownModule.forRoot(),
     ReactiveFormsModule,
     NgDatepickerModule,
     CommonModule,

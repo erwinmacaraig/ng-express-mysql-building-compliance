@@ -15,8 +15,6 @@ import { SecurityPrivacyComponent } from './dashboard/security-privacy/security.
 
 import { SignoutComponent } from './signout/signout.component';
 import { PersonInfoComponent } from './dashboard/person-info/person-info.component';
-import { CompanyInformationComponent } from './dashboard/company_information/company.information.component';
-import { SendInviteComponent } from './dashboard/send-invite/send.invite';
 
 import { SignupSelectRoleComponent } from './signup/select.role/select.role.component';
 import { SignupUserInfoComponent } from './signup/user.info/user.info.component';
@@ -156,10 +154,7 @@ const appRoutes: Routes = [
       { path: 'main', component : FrpTrpDashboardComponent },
       { path: 'user', component : UserDashboardComponent },
       { path: 'person-info', component: PersonInfoComponent, resolve: { personInfo: PersonInfoResolver } },
-      { path: 'company-information', component: CompanyInformationComponent },
-      { path: 'send-invite', component : SendInviteComponent },
       { path: 'process-notification-queries/:token', component: NotificationQueryComponent },
-      { path: 'send-invite', component : SendInviteComponent },
       { path: 'security-privacy', component : SecurityPrivacyComponent },
       { path: 'notification-warden-list/:token', component: NotificationWardenListComponent },
       { path: 'notification-peep-list/:token', component: NotificationPEEPListComponent },
@@ -174,7 +169,7 @@ const appRoutes: Routes = [
     ]
   },
   { path: 'signout', component: SignoutComponent },
-  { path: 'custom-resolver', component: CustomHttpDataProviderComponent },  
+  { path: 'custom-resolver', component: CustomHttpDataProviderComponent },
   { path: 'location', canActivate: [AuthGuard], component: LocationComponent, children: [
     { path: 'list', component: LocationListComponent },
     { path: 'activity', component: BuildingActivityComponent },
@@ -240,7 +235,7 @@ const appRoutes: Routes = [
       { path : 'team-training', component : TeamTrainingComponent },
       { path : 'training-invite', component : TrainingInviteComponent },
       { path : 'my-training-profile/:encrypted', component: TrainingProfile },
-      { path : 'new-training', component : NewTrainingComponent },      
+      { path : 'new-training', component : NewTrainingComponent },
     ]
   },
   { path: 'certificate/:certId', canActivate: [AuthGuard], component: TrainingCertificate },
@@ -289,7 +284,7 @@ const appRoutes: Routes = [
       { path: 'list-reward-configuration', component: ListRewardConfigComponent },
       { path: 'reward-program-redeemers/:programConfig', component: RedeemersComponent },
       { path: 'list-reward-configuration', component: ListRewardConfigComponent },
-      { path: 'list-archives', component: ArchiveComponent }      
+      { path: 'list-archives', component: ArchiveComponent }
     ]
   },
 
