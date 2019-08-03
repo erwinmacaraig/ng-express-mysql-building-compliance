@@ -386,7 +386,7 @@ export class UsersRoute extends BaseRoute {
             toTake.push(co);
           }
         }
-        
+
 
         //
         try {
@@ -476,9 +476,9 @@ export class UsersRoute extends BaseRoute {
         let hierarchyObj = {};
         let buildingForTrpUniqCtr:{[index:number]: Object} = {};
         let buildingForFRPUniqCtr = [];
-        // Determine role of the account 
-        try {            
-            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);            
+        // Determine role of the account
+        try {
+            roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
         } catch(err) {
             console.log('authenticate route get account role relation in location', err);
         }
@@ -492,14 +492,14 @@ export class UsersRoute extends BaseRoute {
                 if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Manager']) {
                     frpLocations.push(data['location_id']);
                     let temp = await new Location(data['location_id']).load();
-                    temp['responsibility'] = 'FRP'; 
+                    temp['responsibility'] = 'FRP';
                     temp['sublocations'] = [];
                     temp['sublocations'] = await new Location().getChildren(data['location_id']);
                     locationHierarchy.push(temp);
                 } else if (data['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[data['location_id']]['role_id'] == defs['Tenant']) {
                     trpLocations.push(data['location_id']);
                     let locLevel = await new Location(data['location_id']).load();
-                    locLevel['responsibility'] = 'TRP';                   
+                    locLevel['responsibility'] = 'TRP';
                     if (frpLocations.indexOf(locLevel['parent_id']) == -1) {
                         if (locLevel['parent_id'] != -1) {
                             if ( !(locLevel['parent_id'] in  buildingForTrpUniqCtr )) {
@@ -507,19 +507,19 @@ export class UsersRoute extends BaseRoute {
                                     name: locLevel['parent'],
                                     location_id: locLevel['parent_id'],
                                     sublocations: [locLevel]
-        
+
                                 };
                             } else {
                                 buildingForTrpUniqCtr[locLevel['parent_id']]['sublocations'].push(locLevel);
                             }
-                            
+
                         } else {
                             locationHierarchy.push(locLevel);
                         }
                     }
-                    
-                    
-                } 
+
+
+                }
             }
             Object.keys(buildingForTrpUniqCtr).forEach((key) => {
                 locationHierarchy.push(buildingForTrpUniqCtr[key]);
@@ -527,7 +527,7 @@ export class UsersRoute extends BaseRoute {
         } catch(e) {
             console.log(' teams route, error getting in location account user data', e);
         }
-        
+
         // get parent location details for trpLocations
         let locationArr = [];
         let uniqLoc = [];
@@ -537,11 +537,11 @@ export class UsersRoute extends BaseRoute {
                 let buildingId = 0;
                 let buildingName = '';
                 let name = '';
-                if (loc['buildingId'] == null) {                    
+                if (loc['buildingId'] == null) {
                     buildingId = loc['locId'];
                     buildingName = loc['level'];
                     name = loc['level'];
-                    
+
                 } else {
                     buildingId = loc['buildingId'];
                     buildingName = `${loc['level']}, ${loc['buildingName']}`;
@@ -552,7 +552,7 @@ export class UsersRoute extends BaseRoute {
                     location_id: loc['locId'],
                     name: name,
                     building_id: buildingId,
-                    building_name: buildingName                    
+                    building_name: buildingName
                 });
             }
 
@@ -592,30 +592,30 @@ export class UsersRoute extends BaseRoute {
         try {
             // determine if you are a building manager or tenant in these locations - response.locations
             roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
-            
+
         } catch(err) {
             console.log('authenticate route get account role relation in location', err);
         }
-    
+
         try {
             accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
             for(let data of accountUserData) {
                 if (data['location_id'] in roleOfAccountInLocationObj) {
                     if (parent == data['location_id']) {
                         // this checks for FRP user that is why I have gotten the info for parent id
-                        role = roleOfAccountInLocationObj[data['location_id']]['role_id']; 
+                        role = roleOfAccountInLocationObj[data['location_id']]['role_id'];
                     } else if (locationData['location_id'] == data['location_id']) {
                         // this checks for TRP
-                        role = roleOfAccountInLocationObj[data['location_id']]['role_id']; 
+                        role = roleOfAccountInLocationObj[data['location_id']]['role_id'];
                     }
-                    
+
                 }
             }
         } catch(e) {
             console.log(' teams route, error getting in location account user data', e);
         }
 
-        try { 
+        try {
             tempArr = await new TrainingRequirements().allEmRolesTrainings();
             for (let gofrRole of tempArr) {
                 if (gofrRole['role_name'] == 'General Occupant') {
@@ -626,10 +626,10 @@ export class UsersRoute extends BaseRoute {
                 }
             }
         } catch(e) {
-            console.log('Error getting/processing training requirement for role', e);    
+            console.log('Error getting/processing training requirement for role', e);
         }
         if (role == defs['Manager']) {
-            let accountIds = [];            
+            let accountIds = [];
             const location = new Location();
             const accounts = await location.getAllAccountsInLocation(location_id);
             for (let account of accounts) {
@@ -653,10 +653,10 @@ export class UsersRoute extends BaseRoute {
             } catch(e) {
                 console.log(e);
             }
-            
+
 
         } else if (role == defs['Tenant']) {
-            // listing of roles is implemented here because we are only listing roles on a sub location                    
+            // listing of roles is implemented here because we are only listing roles on a sub location
             try {
                 canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, [req.user.account_id], '0');
             } catch(e) {
@@ -676,7 +676,7 @@ export class UsersRoute extends BaseRoute {
         for (let i = 0; i < canLoginTenantArr.length; i++) {
             // get all wardens for this location on this account
             const EMRole = new UserEmRoleRelation();
-            
+
             let temp = {};
             userIds = [];
             try {
@@ -685,7 +685,7 @@ export class UsersRoute extends BaseRoute {
                 defs['em_roles']['GENERAL_OCCUPANT'],
                 canLoginTenantArr[i]['account_id'],
                 location_id
-              );            
+              );
               for ( let user of temp['raw']) {
                   if (userIds.indexOf(user['user_id']) == -1) {
                       userIds.push(user['user_id']);
@@ -693,24 +693,24 @@ export class UsersRoute extends BaseRoute {
               }
               const cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
                   current: true,
-                  training_requirement: trainingRequirements 
+                  training_requirement: trainingRequirements
               });
               let total_passed = 0;
-              for ( let user of temp['raw']) { 
+              for ( let user of temp['raw']) {
                   if (user['user_id'] in cert) {
                       total_passed += 1;
-                      user['passed'] = true;                    
+                      user['passed'] = true;
                   }
               }
               canLoginTenantArr[i]['total_gofr'] = temp['users'].length;
               canLoginTenantArr[i]['gofr'] = temp['raw'];
-             
+
               let tempPercentage = Math.round((total_passed / temp['users'].length) * 100);
               let tempPercentageStr = '0%';
               if (tempPercentage > 0) {
                 tempPercentageStr =  tempPercentage.toFixed(0).toString() + '%';
               }
-              
+
               canLoginTenantArr[i]['trained_gofr'] = {
                   'total_passed': total_passed,
                   'passed': total_passed,
@@ -721,9 +721,9 @@ export class UsersRoute extends BaseRoute {
               temp = {};
               canLoginTenantArr[i]['total_gofr'] = 0;
               canLoginTenantArr[i]['gofr'] = [];
-              
+
             }
-         
+
           }
           return res.status(200).send({
               message: 'Success',
@@ -736,7 +736,7 @@ export class UsersRoute extends BaseRoute {
         let status = '';
         try {
             // delete from location_account_user
-            await new LocationAccountUser().removeUser(req.body.user);            
+            await new LocationAccountUser().removeUser(req.body.user);
         } catch(e) {
             console.log(e);
             status += ' Unable to delete user from location account user ';
@@ -749,7 +749,7 @@ export class UsersRoute extends BaseRoute {
             console.log(e);
             status += ' Unable to delete user from user role relation ';
         }
-        
+
         try {
             // delete from user_em_roles_relation
             await new UserEmRoleRelation().removeUser(req.body.user);
@@ -811,7 +811,7 @@ export class UsersRoute extends BaseRoute {
         } catch(e) {
             console.log(e);
         }
-        try {            
+        try {
             for (let l of oldAssignedLocations) {
                 let res = await new UserEmRoleRelation().getByWhere({
                     user_id: req.user.user_id,
@@ -837,23 +837,23 @@ export class UsersRoute extends BaseRoute {
             message: 'Success'
         });
 
-        
+
 
     }
 
 
     public async certificateDetails(req: AuthRequest, res:Response) {
-        const certId = req.body.certId;        
+        const certId = req.body.certId;
        const trainingCert = new TrainingCertification(certId);
        try {
             const certDetails = await trainingCert.getCertificateDetailsForDownload();
             return res.status(200).send(certDetails);
-       } catch(e) {           
+       } catch(e) {
            return res.status(500).send({
                message: 'No certification found'
            });
        }
-       
+
 
 
     }
@@ -886,7 +886,7 @@ export class UsersRoute extends BaseRoute {
         let miscTrainings = [];
         let userTrainingInfoObj = {};
         let temp;
-        let emroles = new UserEmRoleRelation(); 
+        let emroles = new UserEmRoleRelation();
         let isFRP = false, isTRP = false;
         if (req.user.user_id != userId || req.user.evac_role != 'admin') {
             userRoleModel = new UserRoleRelation();
@@ -913,12 +913,12 @@ export class UsersRoute extends BaseRoute {
         }
 
         // get certifications
-        const certObj = new TrainingCertification();                        
+        const certObj = new TrainingCertification();
         const certificates = await certObj.userCertificates(userId);
 
         //checks if account has online training
         const account = await new Account(req.user.account_id).load();
-        
+
 
         const isWardenRoleArray = [];
         const nonWardenRolesArray = [];
@@ -934,7 +934,7 @@ export class UsersRoute extends BaseRoute {
 
         const emRolesInfoArr = await emroles.getEmRolesFilterBy({
             user_id: userId,
-            distinct: 'em_role_id' 
+            distinct: 'em_role_id'
         });
 
         const myEmRoleIds = (emRolesInfoArr[0] as Array<number>); console.log(myEmRoleIds);
@@ -969,13 +969,13 @@ export class UsersRoute extends BaseRoute {
                         training_requirement_name: tr['training_requirement_name']
                     }],
                     training_requirement_id: [tr['training_requirement_id']],
-                    training_requirement_name: [tr['training_requirement_name']]                    
+                    training_requirement_name: [tr['training_requirement_name']]
                 }
             }
 
             if (temp.indexOf(tr['training_requirement_id']) == -1)  {
                 temp.push(tr['training_requirement_id']);
-                trainingRequirementModules[tr['training_requirement_id']] = {                    
+                trainingRequirementModules[tr['training_requirement_id']] = {
                     modules: []
                 };
                 let trModules = [];
@@ -983,7 +983,7 @@ export class UsersRoute extends BaseRoute {
                 if (trModules.length == 0) {
                     trModules = await new TrainingRequirements().getTrainingModulesForRequirement(tr['training_requirement_id'], 0);
                 }
-                
+
                 trainingRequirementModules[tr['training_requirement_id']]['modules'] = trModules;
             }
 
@@ -991,7 +991,7 @@ export class UsersRoute extends BaseRoute {
         temp = null;
         // cross reference to user_training_module_relation
         Object.keys(trainingRequirementModules).forEach((tridKey) => {
-            for(let i = 0; i < trainingRequirementModules[tridKey]['modules'].length; i++) {                
+            for(let i = 0; i < trainingRequirementModules[tridKey]['modules'].length; i++) {
                 new UserTrainingModuleRelation().getUserTrainingModule(parseInt(tridKey, 10), userId, trainingRequirementModules[tridKey]['modules'][i]['training_module_id'])
                 .then((userMod) => {
                     trainingRequirementModules[tridKey]['modules'][i] = {
@@ -1022,9 +1022,9 @@ export class UsersRoute extends BaseRoute {
                 let status = 'non-compliant';
                 missingRequiredTrainingsIdArr = await new TrainingCertification().getTrainings(userId, trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
                 requiredTrainingRequirementIdsArr.push(trainingReqmtObj[em_role_id.toString()]['training_requirement_id']);
-                
-                // although we assume one training requirement for a role, for scability and future requirements that is why I iterated 
-                for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {                
+
+                // although we assume one training requirement for a role, for scability and future requirements that is why I iterated
+                for (let tr of trainingReqmtObj[em_role_id.toString()]['trainingRqmtArrObj']) {
                     status = 'compliant';
                     let expiry = '';
                     if (missingRequiredTrainingsIdArr.indexOf(tr['training_requirement_id']) != -1) {
@@ -1039,15 +1039,15 @@ export class UsersRoute extends BaseRoute {
                             expiry = '';
                         }
                     }
-                    
+
                     if ( (nonWardenRolesArray.indexOf(em_role_id) != -1 && overWriteNonWardenRoleTrainingModules) || account['online_training'] == 0) {
                         userTrainingInfoObj['training_requirement'].push({
                             ...tr,
                             modules: [],
                             status: status,
-                            total_modules: (trainingRequirementModules[tr['training_requirement_id']]['modules'] as Array<object>).length, 
+                            total_modules: (trainingRequirementModules[tr['training_requirement_id']]['modules'] as Array<object>).length,
                             total_completed_modules: 0
-                        }); 
+                        });
                     } else {
                         userTrainingInfoObj['training_requirement'].push({
                             ...tr,
@@ -1055,19 +1055,19 @@ export class UsersRoute extends BaseRoute {
                             modules: trainingRequirementModules[tr['training_requirement_id']]['modules'],
                             status: status
                         });
-                    }                 
+                    }
                 }
                 userTrainingInfoObj['role_training_status'] = status;
                 userTrainingInfoArr.push(userTrainingInfoObj);
             }
-            
+
         }
 
 
 
 
-        // load trainings not related to the role 
-        miscTrainings = await new UserTrainingModuleRelation().listMiscTraining(userId, requiredTrainingRequirementIdsArr); 
+        // load trainings not related to the role
+        miscTrainings = await new UserTrainingModuleRelation().listMiscTraining(userId, requiredTrainingRequirementIdsArr);
         let otherTrainings = {
             training_requirement: []
         };
@@ -1081,7 +1081,7 @@ export class UsersRoute extends BaseRoute {
                 expiry = '';
             }
             let mods_misc = await new TrainingRequirements().getTrainingModulesForRequirement(misc['training_requirement_id']);
-            
+
             let userMiscModules;
             for (let i = 0; i < mods_misc.length; i++) {
                  userMiscModules = await new UserTrainingModuleRelation().getUserTrainingModule(
@@ -1094,17 +1094,17 @@ export class UsersRoute extends BaseRoute {
                                 ...userMiscModules,
                                 expiry: expiry
                             };
-            } 
+            }
 
-           
+
             otherTrainings['training_requirement'].push({
                 training_requirement_id: misc['training_requirement_id'],
                 expiry: expiry,
                 modules: mods_misc
             });
         }
-        
-        
+
+
         // cross reference if these misc modules were already completed
         // get completed modules
 
@@ -1114,13 +1114,13 @@ export class UsersRoute extends BaseRoute {
             for (let training of req['training_requirement']) {
                 for (let module of training['modules']) {
                     if (module['completed']) {
-                        completedModulesId.push(module['module_id']); 
+                        completedModulesId.push(module['module_id']);
                     }
                 }
             }
 
         }
-        
+
 
         for (let req of userTrainingInfoArr) {
             for (let training of req['training_requirement']) {
@@ -1136,7 +1136,7 @@ export class UsersRoute extends BaseRoute {
                 }
             }
         }
-        
+
         res.status(200).send({
             message: 'Success',
             userInfoTraining: userTrainingInfoArr,
@@ -1148,7 +1148,7 @@ export class UsersRoute extends BaseRoute {
             isWardenRoleArray: isWardenRoleArray,
             nonWardenRolesArray: nonWardenRolesArray
         });
-                
+
 
 
     }
@@ -1162,27 +1162,27 @@ export class UsersRoute extends BaseRoute {
         let invalidTrainings = [];
         let invalidTrainingIds = [];
 
-        // get required trainings for the given role        
+        // get required trainings for the given role
         new TrainingRequirements().allEmRolesTrainings()
             .then((trainingRequirements) => {
                 for (let tr of trainingRequirements) {
                     if (emergencyRoles.indexOf(tr['em_role_id']) != -1) {
                         requiredTrainingIds.push(tr['training_requirement_id']);
                         requiredTrainings.push(tr);
-                    }                     
+                    }
                 }
                 // search certifications
                 return new TrainingCertification().getCertificationsInUserIds(user);
             })
-            .then((certificates) => {                
+            .then((certificates) => {
                 console.log(requiredTrainingIds);
-                for (let rtid of requiredTrainingIds) {                    
-                    const i = certificates.findIndex(cert => cert['training_requirement_id'] == rtid);                    
-                    const j = requiredTrainings.findIndex(rt => rt['training_requirement_id'] == rtid);                    
-                    
+                for (let rtid of requiredTrainingIds) {
+                    const i = certificates.findIndex(cert => cert['training_requirement_id'] == rtid);
+                    const j = requiredTrainings.findIndex(rt => rt['training_requirement_id'] == rtid);
+
                     if (i == -1) {
                         invalidTrainings.push({
-                            'validity': 'non-compliant',                            
+                            'validity': 'non-compliant',
                             ...requiredTrainings[j]
                         });
                         invalidTrainingIds.push(rtid);
@@ -1192,7 +1192,7 @@ export class UsersRoute extends BaseRoute {
                             ...requiredTrainings[j]
                         });
                         invalidTrainingIds.push(rtid);
-                    } else {                        
+                    } else {
                         validTrainings.push({
                             ...certificates[i],
                             ...requiredTrainings[j]
@@ -1214,12 +1214,12 @@ export class UsersRoute extends BaseRoute {
                     bulk_training_requirement: invalidTrainingIds
                });
                */
-              
-               
+
+
               return new CourseUserRelation().getAllCourseForUser(user);
-                
-                
-            })            
+
+
+            })
             .then((rels:Array<object>) => {
                 const invalidTrainingsWithCourse = [];
                 for (let trainings of invalidTrainings) {
@@ -1242,7 +1242,7 @@ export class UsersRoute extends BaseRoute {
                     valid_trainings: validTrainings,
                     invalid_trainings: invalidTrainingsWithCourse
                 });
-            })            
+            })
             .catch((error_rel) => {
                 console.log(error_rel);
                 return res.status(400).send({
@@ -1307,7 +1307,7 @@ export class UsersRoute extends BaseRoute {
                 email: data['email'],
                 phone_number: data['phone_number'],
                 mobile_number: data['mobile_number'],
-                mobility_impaired: data['mobility_impaired'], 
+                mobility_impaired: data['mobility_impaired'],
                 evac_role: data['evac_role']
             });
         }).catch((e) => {
@@ -1599,7 +1599,7 @@ export class UsersRoute extends BaseRoute {
             if(req.body.location_id && req.body.role_id){
                 if(req.body.role_id > 2){
 
-                    let 
+                    let
                     locAccModel = new LocationAccountRelation(),
                     locAccData = await locAccModel.getByAccountIdAndLocationId(userData['account_id'], req.body.location_id);
 
@@ -1670,7 +1670,7 @@ export class UsersRoute extends BaseRoute {
 		const fu = new FileUploader(req, res, next);
 		fu.uploadFile(false, 'ProfilePic/').then(
 			(data: object) => {
-				
+
 				let filesModel = new Files(),
 					fileUserModel = new FileUser();
 
@@ -1829,7 +1829,7 @@ export class UsersRoute extends BaseRoute {
         userRoleRel = new UserRoleRelation(),
         userRole = <any> '',
         roleOfAccountInLocationObj = {},
-        locations = <any> [], 
+        locations = <any> [],
         queryAccountRoles = false;
 
         const idsOfBuildingsForFRP = [];
@@ -1842,7 +1842,7 @@ export class UsersRoute extends BaseRoute {
                         userRole = 'trp'
                     }
                 }
-    
+
                 if(r.role_id == 1){
                     userRole = 'frp';
                 }
@@ -1851,14 +1851,14 @@ export class UsersRoute extends BaseRoute {
             console.log('At users route queryUsers endpoint ', e);
             userRole = 'trp';
         }
-        
+
         roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(accountId);
-        // console.log(roleOfAccountInLocationObj);  
-        if(locationId) { 
+        // console.log(roleOfAccountInLocationObj);
+        if(locationId) {
             try {
-                // determine if you are a building manager or tenant in these locations - response.locations                          
-                if (locationId in roleOfAccountInLocationObj) {            
-                    userRole = (roleOfAccountInLocationObj[locationId]['account_role']).toLowerCase();   
+                // determine if you are a building manager or tenant in these locations - response.locations
+                if (locationId in roleOfAccountInLocationObj) {
+                    userRole = (roleOfAccountInLocationObj[locationId]['account_role']).toLowerCase();
                 } else {
                     userRole = 'trp';
                 }
@@ -1869,35 +1869,35 @@ export class UsersRoute extends BaseRoute {
             if (userRole == 'frp') {
                 selectedLocIds.push(locationId);
                 let locs = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(locationId);
-                for(let loc of locs){ 
+                for(let loc of locs){
                     selectedLocIds.push(loc.location_id);
                 }
             } else if (userRole == 'trp') {
-                try {                
+                try {
                     childForTenant = await new LocationAccountRelation().getTenantAccountRoleOfBlgSublocs(locationId, accountId);
-                    
+
                 } catch(e) {
-                    // this is at the case of malls where in a tenant is assign to the building               
+                    // this is at the case of malls where in a tenant is assign to the building
                     try {
-                        childForTenant = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(locationId, accountId);                         
+                        childForTenant = await new LocationAccountRelation().getTenantAccountRoleAssignToBuilding(locationId, accountId);
                     } catch(sub_e) {
-    
+
                     }
                 }
-                for (let c of childForTenant) {                    
+                for (let c of childForTenant) {
                     selectedLocIds.push(c['location_id']);
                 }
-                 
+
             }
-            
+
         } else {
             selectedLocIds = [];
             // const assignedLocations = await new LocationAccountUser().getLocationsByUserIdAndAccountId(userID, accountId);
             let accountRoleObjArr = [];
             let accountRoles = [];
             try {
-                accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);            
-            
+                accountRoleObjArr = await new UserRoleRelation().getByUserId(userID);
+
                 for (let role of accountRoleObjArr) {
                     accountRoles.push(role['role_id']);
                 }
@@ -1913,18 +1913,18 @@ export class UsersRoute extends BaseRoute {
                 accountRoles = [];
                 console.log(e);
             }
-            
+
 
             /*
             for (let loc of assignedLocations) {
-                if (loc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[loc['location_id']]['role_id'] == 1) {            
+                if (loc['location_id'] in roleOfAccountInLocationObj && roleOfAccountInLocationObj[loc['location_id']]['role_id'] == 1) {
                     idsOfBuildingsForFRP.push(loc['location_id']);
                   } else {
-                    idsOfLocationsForTRP.push(loc['location_id']);  
+                    idsOfLocationsForTRP.push(loc['location_id']);
                   }
             }
             /*
-            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {                             
+            Object.keys(roleOfAccountInLocationObj).forEach((locId) => {
                 if (roleOfAccountInLocationObj[locId]['role_id'] == 2 ) {
                     idsOfLocationsForTRP.push(parseInt(locId, 10));
                 } else if (roleOfAccountInLocationObj[locId]['role_id'] == 1) {
@@ -1935,10 +1935,10 @@ export class UsersRoute extends BaseRoute {
             // console.log('idsOfLocationsForTRP ' + idsOfLocationsForTRP.join(', '));
             // console.log('idsOfBuildingsForFRP ' + idsOfBuildingsForFRP.join(', '));
             for (let loc of idsOfBuildingsForFRP) {
-                
+
                 let hier = <any> await locModelHier.getDeepLocationsMinimizedDataByParentId(loc);
-                
-                for(let h of hier){ 
+
+                for(let h of hier){
                     selectedLocIds.push(h.location_id);
                 }
             }
@@ -1947,11 +1947,11 @@ export class UsersRoute extends BaseRoute {
 
             // THERE ARE EM THAT IS ASSIGNED TO THE BUILDING SO WE NEED TO INCLUDE THEM
             selectedLocIds = selectedLocIds.concat(idsOfBuildingsForFRP);
-          
+
         }
         // console.log('SELECTED IDS ' +  selectedLocIds.join(',') + ' ***');
         locations = await locationsModel.getByInIds(selectedLocIds, false, true);
-       
+
         for(let id of emRoleIds){
             if(queryRoles.indexOf(''+id) > -1){
                 getUsersByEmRoleId = true;
@@ -1960,11 +1960,11 @@ export class UsersRoute extends BaseRoute {
         }
 
         modelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived', 'profile_completion'];
-       
+
         if(query.archived){
             archived = query.archived;
         }
-        
+
 
         modelQueries.where.push('users.archived = '+archived);
         if(userRole != 'frp'){
@@ -1995,7 +1995,7 @@ export class UsersRoute extends BaseRoute {
                     break;
             }
         }
-        
+
         if(query.roles){
 
             let emRoleIdInQuery = '';
@@ -2036,7 +2036,7 @@ export class UsersRoute extends BaseRoute {
                 modelQueries.select['locations'] = ['parent_id'];
                 modelQueries.joins.push(`
                     INNER JOIN user_em_roles_relation ON users.user_id = user_em_roles_relation.user_id
-                    INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id         
+                    INNER JOIN locations ON user_em_roles_relation.location_id = locations.location_id
                     LEFT JOIN file_user ON users.user_id = file_user.user_id
                     LEFT JOIN files ON files.file_id = file_user.file_id
                     INNER JOIN accounts ON users.account_id = accounts.account_id
@@ -2142,14 +2142,14 @@ export class UsersRoute extends BaseRoute {
         response.data['users'] = [];
         let people = [];
         let tempUsers = [];
-        
+
         if (!locationId && !queryAccountRoles) {
-            // console.log('Here at locationId ' + locationId + ' and queryAccountRoles = ' +  queryAccountRoles, modelQueries);            
-            tempUsers = await userModel.query(modelQueries);                                   
+            // console.log('Here at locationId ' + locationId + ' and queryAccountRoles = ' +  queryAccountRoles, modelQueries);
+            tempUsers = await userModel.query(modelQueries);
             for (let u of tempUsers) {
                 let parentId = parseInt(u['parent_id'], 10);
                 let subId = parseInt(u['location_id'], 10);
-                
+
                 if (people.indexOf(u['user_id']) === -1) {
                     people.push(u['user_id']);
                     if (idsOfBuildingsForFRP.indexOf(parentId) != -1) {
@@ -2157,16 +2157,16 @@ export class UsersRoute extends BaseRoute {
                     } else if (idsOfBuildingsForFRP.indexOf(u['location_id']) != -1 && parentId == -1) {
                         response.data['users'].push(u);
                     }
-                    if (idsOfLocationsForTRP.indexOf(subId) != -1 && u['account_id'] == accountId) {                    
+                    if (idsOfLocationsForTRP.indexOf(subId) != -1 && u['account_id'] == accountId) {
                         response.data['users'].push(u);
                     }
                 }
 
-            }           
+            }
 
         } else  {
             tempUsers= await userModel.query(modelQueries);
-            for (let u of tempUsers) { 
+            for (let u of tempUsers) {
                 if (people.indexOf(u['user_id']) === -1) {
                     response.data['users'].push(u);
                     people.push(u['user_id']);
@@ -2174,10 +2174,10 @@ export class UsersRoute extends BaseRoute {
             }
             // response.data['users'] = await userModel.query(modelQueries);
         }
-        
+
        /*
         if ( (emRoleIdSelected.indexOf(8) !== -1 && query.search) ) {
-            tempUsers = [];   
+            tempUsers = [];
             // response.data['users'] = [];
             let otherModelQueries = {
                 select : <any>{},
@@ -2191,7 +2191,7 @@ export class UsersRoute extends BaseRoute {
 
             otherModelQueries.select['users'] = ['first_name', 'last_name', 'account_id', 'user_id', 'user_name', 'email', 'mobile_number', 'phone_number', 'mobility_impaired', 'last_login', 'archived', 'profile_completion'];
             otherModelQueries.where.push('users.archived = '+archived);
-            
+
             if(getPendings){
                 otherModelQueries.where.push('users.profile_completion = 0');
             }
@@ -2224,7 +2224,7 @@ export class UsersRoute extends BaseRoute {
             }
 
             otherModelQueries.where.push('users.evac_role = "Client"');
-            
+
             otherModelQueries.where.push(' users.user_id NOT IN (SELECT user_id FROM user_em_roles_relation WHERE location_id > -1 AND em_role_id = 8  AND location_id IN ('+ selectedLocIds.join(',') +') ) ');
             otherModelQueries.where.push('users.account_id = '+accountId);
 
@@ -2233,28 +2233,28 @@ export class UsersRoute extends BaseRoute {
                     LEFT JOIN files ON files.file_id = file_user.file_id
                     INNER JOIN accounts ON users.account_id = accounts.account_id
              `);
-             tempUsers = await userModel.query(otherModelQueries);  
-             for (let u of tempUsers) { 
+             tempUsers = await userModel.query(otherModelQueries);
+             for (let u of tempUsers) {
                 if (people.indexOf(u['user_id']) === -1) {
                     response.data['users'].push(u);
                     people.push(u['user_id']);
                 }
-            } 
+            }
             // console.log('=========================', tempUsers, '===========================');
             response.data['users'] = (response.data['users'] as Array<object>).concat(tempUsers);
         }
         */
-        const training_requirements = await new TrainingCertification().getRequiredTrainings(); 
+        const training_requirements = await new TrainingCertification().getRequiredTrainings();
         for(let user of response.data['users']){
-            userIds.push(user.user_id);         
-            
+            userIds.push(user.user_id);
+
             let lastLoginMoment = moment(user.last_login);
             if(lastLoginMoment.isValid()){
                 user.last_login = lastLoginMoment.format('DD/MM/YYYY hh:mma');
             }else{
                 user.last_login = '';
             }
-            
+
            user.profilePic = '';
            user.profile_pic = '';
            user.last_login = '';
@@ -2321,12 +2321,12 @@ export class UsersRoute extends BaseRoute {
                         }
                     }
                 }
-                
+
                 for(let ft of user['frpTrpEms']){
                     let locFound = false;
                     for(let loc of locations){
                         if(ft.location_id == loc.location_id){
-                            let 
+                            let
                             hasFrpTrp = false,
                             frpTrpRoleId = 0;
                             for(let ftrole of frpTrpRel){
@@ -2373,8 +2373,8 @@ export class UsersRoute extends BaseRoute {
                             let locSubModel = new Location();
                             userLocData.sublocations_count =  <any> await locSubModel.countSubLocations(loc.location_id)
 
-                            if(!exst){ 
-                                user['locations'].push(userLocData); 
+                            if(!exst){
+                                user['locations'].push(userLocData);
                             }
 
                             user['locs'].push(loc);
@@ -2407,7 +2407,7 @@ export class UsersRoute extends BaseRoute {
 
                 for(let rol of usersRolesRelation){
                     let role = { role_name : '', role_id : 0 };
-                    if(rol.user_id == user.user_id && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || (queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1) ) 
+                    if(rol.user_id == user.user_id && ( (queryRoles.indexOf('frp') > -1 || queryRoles.indexOf('1') > -1) || (queryRoles.indexOf('trp') > -1 || queryRoles.indexOf('2') > -1) )
                         && usersRolesIds.indexOf(rol.role_id) == -1 ){
                         role.role_name = (rol.role_id == 1) ? 'FRP' : 'TRP';
                         role.role_id = (rol.role_id == 1) ? 1 : 2;
@@ -2442,7 +2442,7 @@ export class UsersRoute extends BaseRoute {
                 user_training_total,
                 training = new TrainingCertification(),
                 userCourseRel = new CourseUserRelation();
-           
+
           for(let user of response.data['users']) {
               try {
               user_training_total = await training.getNumberOfTrainings([user.user_id], {
@@ -2457,7 +2457,7 @@ export class UsersRoute extends BaseRoute {
               user['trainings'] = 0;
             }
             try {
-              user_course_total = await userCourseRel.getNumberOfAssignedCourses([user.user_id]);              
+              user_course_total = await userCourseRel.getNumberOfAssignedCourses([user.user_id]);
               if (user_course_total[user.user_id]) {
                 user['assigned_courses'] = user_course_total[user.user_id]['count'];
                 user['assigned_courses_tr'] = user_course_total[user.user_id]['trids'];
@@ -2466,8 +2466,8 @@ export class UsersRoute extends BaseRoute {
               } else {
                 user['assigned_courses'] = 0;
                 user['assigned_courses_tr'] = [];
-                user['misc_trainings'] = [];                
-              }             
+                user['misc_trainings'] = [];
+              }
             } catch (e) {
                 console.log('users route get queryUsers endpoint getNumberOfAssignedCourses', e);
                 user_course_total = {};
@@ -2476,7 +2476,7 @@ export class UsersRoute extends BaseRoute {
                 user['misc_trainings'] = [];
             }
           }
-          
+
         }
 
         if(query.impaired && queryRoles.indexOf('users') > -1){
@@ -2796,15 +2796,12 @@ export class UsersRoute extends BaseRoute {
         locAccUserModel = new LocationAccountUser();
 
 		response.data.eco_roles = emRoles;
-        const training_requirements = await new TrainingCertification().getRequiredTrainings();
-        // console.log(training_requirements);
-        try {
+    const training_requirements = await new TrainingCertification().getRequiredTrainings();
+    try {
+      user = await userModel.load();
+      let locations = <any>[];
 
-            user = await userModel.load();
-            let locations = <any>[];
-
-            if( Object.keys(user).length > 0 ) {
-                user['mobility_impaired_details'] = [];
+      user['mobility_impaired_details'] = [];
                 // user['last_login'] = (user['last_login'] == null) ? '' : user['last_login'];
                 user['last_login'] = '';
                 user['password'] = null;
@@ -2816,6 +2813,7 @@ export class UsersRoute extends BaseRoute {
                 // what is important here is the corresponding training to the role attached to the user
                 for (const em_on_loc of locations) {
                   if (user_em_roles.indexOf(em_on_loc['em_role_id']) == -1) {
+
                     user_em_roles.push(em_on_loc['em_role_id']);
                     if (em_on_loc['em_role_id'] in training_requirements) {
                       for (let i = 0; i < training_requirements[em_on_loc['em_role_id']]['training_requirement_id'].length; i++) {
@@ -2922,7 +2920,7 @@ export class UsersRoute extends BaseRoute {
                         locations.push(frptrp);
                     }
                 }catch(e){}
-            }
+
 
             let filteredLocs = [];
 
@@ -3277,7 +3275,7 @@ export class UsersRoute extends BaseRoute {
                                 response.data['roles'].push({
                                     role_id: roleOfAccountInLocationObj[data['location_id']]['role_id'],
                                     location_id: data['location_id'],
-                                    user_id:userModel.get('user_id') 
+                                    user_id:userModel.get('user_id')
                                 });
                             }
                         }
@@ -3299,7 +3297,7 @@ export class UsersRoute extends BaseRoute {
         }catch(e){
             response.message = 'Invalid Token';
         }
-        
+
 
 
         res.status(200).send(response);
@@ -3577,7 +3575,7 @@ export class UsersRoute extends BaseRoute {
                     await userSaveModel.create(userSaveData);
                     tokenSaveData.id = userSaveModel.ID();
 
-                    let 
+                    let
                     saveLocAccUser = async (user, roleid) => {
                         let locationAcctUser = new LocationAccountUser();
                         await locationAcctUser.create({
@@ -3632,7 +3630,7 @@ export class UsersRoute extends BaseRoute {
                                         'account_id': accountId,
                                         'responsibility': defs['role_text'][role['role_id']]
                                     });
-                                }                                
+                                }
                                 await saveLocAccUser(users[i], role['role_id']);
 
                             }else{
@@ -3687,12 +3685,12 @@ export class UsersRoute extends BaseRoute {
                                 } else if (selectedRoles[i]['role_id'] == 2) {
                                     emailType = 'trp';
                                     isGenOccupant = false;
-                                    isWarden = false;                                    
+                                    isWarden = false;
                                 } else if (selectedRoles[i]['role_id'] == 1) {
                                     emailType = 'frp';
                                     isGenOccupant = false;
                                     isWarden = false;
-                                } 
+                                }
                                 roles.push( selectedRoles[i]['role_name'] );
                             }
 
@@ -3730,8 +3728,8 @@ export class UsersRoute extends BaseRoute {
                             to: [inviSaveData['email']],
                             cc: []
                         });
-                        
-                        email.sendFormattedEmail(emailType, emailData, res, 
+
+                        email.sendFormattedEmail(emailType, emailData, res,
                             (data) => console.log(data),
                             (err) => console.log(err)
                         );
@@ -3826,7 +3824,7 @@ export class UsersRoute extends BaseRoute {
 		locationModel = new Location();
 
 		try {
-			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id'], 0, false);            
+			myEmRoles = await myEmRoleRelation.getEmRolesByUserId(req['user']['user_id'], 0, false);
             for(let i in emRoles){
 				if(emRoles[i]['em_roles_id'] == roleId){
 					response.data.eco_role.push( emRoles[i]);
@@ -4472,30 +4470,30 @@ export class UsersRoute extends BaseRoute {
         try {
             // determine if you are a building manager or tenant in these locations - response.locations
             roleOfAccountInLocationObj = await new UserRoleRelation().getAccountRoleInLocation(req.user.account_id);
-            
+
         } catch(err) {
             console.log('authenticate route get account role relation in location', err);
         }
-    
+
         try {
             accountUserData = await new LocationAccountUser().getByUserId(req.user.user_id);
             for(let data of accountUserData) {
                 if (data['location_id'] in roleOfAccountInLocationObj) {
                     if (parent == data['location_id']) {
                         // this checks for FRP user that is why I have gotten the info for parent id
-                        role = roleOfAccountInLocationObj[data['location_id']]['role_id']; 
+                        role = roleOfAccountInLocationObj[data['location_id']]['role_id'];
                     } else if (locationData['location_id'] == data['location_id']) {
                         // this checks for TRP
-                        role = roleOfAccountInLocationObj[data['location_id']]['role_id']; 
+                        role = roleOfAccountInLocationObj[data['location_id']]['role_id'];
                     }
-                    
+
                 }
             }
         } catch(e) {
             console.log(' teams route, error getting in location account user data', e);
         }
 
-        try { 
+        try {
             tempArr = await new TrainingRequirements().allEmRolesTrainings();
             for (let wardenRole of tempArr) {
                 if (wardenRole['is_warden_role'] == 1) {
@@ -4507,14 +4505,14 @@ export class UsersRoute extends BaseRoute {
             }
         } catch(e) {
             console.log('Error getting/processing training requirement for role', e);
-    
+
         }
 
 
 
         // || req.user.evac_role == 'admin'
         if (role == defs['Manager']) {
-            let accountIds = [];            
+            let accountIds = [];
             const location = new Location();
             const accounts = await location.getAllAccountsInLocation(location_id);
             for (let account of accounts) {
@@ -4538,10 +4536,10 @@ export class UsersRoute extends BaseRoute {
             } catch(e) {
                 console.log(e);
             }
-            
+
 
         } else if (role == defs['Tenant']) {
-            // listing of roles is implemented here because we are only listing roles on a sub location                    
+            // listing of roles is implemented here because we are only listing roles on a sub location
             try {
                 canLoginTenants = await locationAccountUserObj.listRolesOnLocation(defs['Tenant'], location_id, [req.user.account_id], '0');
             } catch(e) {
@@ -4574,7 +4572,7 @@ export class UsersRoute extends BaseRoute {
               -99,
               canLoginTenantArr[i]['account_id'],
               location_id
-            );            
+            );
             for ( let user of temp['raw']) {
                 if (userIds.indexOf(user['user_id']) == -1) {
                     userIds.push(user['user_id']);
@@ -4582,24 +4580,24 @@ export class UsersRoute extends BaseRoute {
             }
             const cert = await new TrainingCertification().getNumberOfTrainings(userIds, {
                 current: true,
-                training_requirement: trainingRequirements 
+                training_requirement: trainingRequirements
             });
             let total_passed = 0;
-            for ( let user of temp['raw']) { 
+            for ( let user of temp['raw']) {
                 if (user['user_id'] in cert) {
                     total_passed += 1;
-                    user['passed'] = true;                    
+                    user['passed'] = true;
                 }
             }
             canLoginTenantArr[i]['total_wardens'] = temp['users'].length;
             canLoginTenantArr[i]['wardens'] = temp['raw'];
-           
+
             let tempPercentage = Math.round((total_passed / temp['users'].length) * 100);
             let tempPercentageStr = '0%';
             if (tempPercentage > 0) {
               tempPercentageStr =  tempPercentage.toFixed(0).toString() + '%';
             }
-            
+
             canLoginTenantArr[i]['trained_wardens'] = {
                 'total_passed': total_passed,
                 'passed': total_passed,
@@ -4618,7 +4616,7 @@ export class UsersRoute extends BaseRoute {
               'percentage': '0%'
             };
           }
-        
+
         }
 
         return canLoginTenantArr;
@@ -4792,7 +4790,7 @@ export class UsersRoute extends BaseRoute {
     }
 
   public async updateNotificationSettings(req:AuthRequest, res:Response){
-    let 
+    let
     notifiUserSettingsModel = new NotificationUserSettingsModel(),
     response = {
       status : true, data : <any> [], message : ''

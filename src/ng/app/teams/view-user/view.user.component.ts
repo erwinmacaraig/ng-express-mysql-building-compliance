@@ -72,7 +72,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
 	selectedPeep = {};
 
-    selectedLocationData = {};
+  selectedLocationData = {};
 	showSelectLocation = false;
 
 	showModalProdfileLoader = false;
@@ -94,6 +94,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
     formLocValid = false;
     paramSub: Subscription;
+    required_trainings_data = {};
 
 	constructor(
 		private auth: AuthService,
@@ -108,8 +109,9 @@ export class ViewUserComponent implements OnInit, OnDestroy {
         private adminService: AdminService
 		){
 
-		this.userData = this.auth.getUserData();
-		this.datepickerModel = new Date();
+      this.required_trainings_data = {};
+      this.userData = this.auth.getUserData();
+      this.datepickerModel = new Date();
     	this.datepickerModelFormatted = moment(this.datepickerModel).format('MMM. DD, YYYY');
 
         for(let role of this.userData['roles']){
@@ -183,7 +185,7 @@ export class ViewUserComponent implements OnInit, OnDestroy {
                 trainings.push(tr);
             }
         }
-        this.viewData.locations = response.data.locations; console.log(this.viewData.locations);
+        this.viewData.locations = response.data.locations;
         this.viewData.trainings = trainings;
         this.viewData.certificates = response.data.certificates;
         this.viewData.valid_trainings = response.data.valid_trainings;
@@ -191,6 +193,32 @@ export class ViewUserComponent implements OnInit, OnDestroy {
 
         for(let x in this.viewData.certificates){
             this.viewData.certificates[x]['expiry_date_formatted'] = moment( this.viewData.certificates[x]['expiry_date'] ).format('DD/MM/YYYY');
+        }
+
+        // formulate the data for required trainings table
+        for (const em_on_loc of this.viewData.locations) {
+
+          if (em_on_loc['em_role_id'] in this.required_trainings_data) {
+            continue;
+          } else if (em_on_loc['em_role_id'] !== 0) {
+            this.required_trainings_data[em_on_loc['em_role_id']] = {
+              role_name: em_on_loc['role_name'],
+              training_requirement_id: [...em_on_loc['training_requirement_id']],
+              training_requirement_name: [...em_on_loc['training_requirement_name']],
+              compliant: 0,
+              valid_till: '',
+              certifications_id: ''
+            };
+            for (const t of this.viewData.valid_trainings) {
+              if (em_on_loc['training_requirement_id'].indexOf(t['training_requirement_id']) !== -1) {
+                this.required_trainings_data[em_on_loc['em_role_id']]['compliant'] = 1;
+                this.required_trainings_data[em_on_loc['em_role_id']]['certifications_id'] =
+                this.encryptDecrypt.encrypt(em_on_loc['certifications_id']);
+                this.required_trainings_data[em_on_loc['em_role_id']]['valid_till'] =
+                  moment(em_on_loc['certification_date']).add(em_on_loc['num_months_valid'], 'months').format('DD/MM/YYYY');
+              }
+            }
+          }
         }
 
         this.toEditLocations = JSON.parse( JSON.stringify(response.data.locations) );

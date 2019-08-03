@@ -94,8 +94,19 @@
             </tr>
           </thead>
             <tbody>
-              <tr>
+              <tr *ngIf="(required_trainings_data | json) != '{}'">
                 <td colspan="4">No record found.</td>
+              </tr>
+              <tr *ngFor="let training in required_trainings_data">
+                <td>{{training['role_name']}}</td>
+                <td>{{training[training_requriement_name].join(', ')}}</td>
+                <td><span *ngIf="training['compliant'] == 1">Compliant untill {{training['valid_till']}}</span>
+                    <span *ngIf="training['compliant'] == 0">Non-Compliant</span>
+                </td>
+                <td>
+                  <span *ngIf="training['compliant'] == 1"><a [routerLink]="['/certificate', cert['encryptedCertId']]" target="_blank" class="">Download</a></span>
+                  <span *ngIf="training['compliant'] == 0">Send Training Invitation</span>
+                </td>
               </tr>
             </tbody>
         </table>
